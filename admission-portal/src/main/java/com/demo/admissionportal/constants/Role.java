@@ -1,4 +1,4 @@
-package com.demo.admissionportal.entity;
+package com.demo.admissionportal.constants;
 
 /**
  * The enum Role.
