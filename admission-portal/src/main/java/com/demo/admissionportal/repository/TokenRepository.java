@@ -33,5 +33,5 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
      * @param token the token
      * @return the optional
      */
-    Optional<Token> findByToken(String token);
+    Optional<Token> findByTokenUser(String token);
 }

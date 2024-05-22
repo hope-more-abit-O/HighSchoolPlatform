@@ -20,7 +20,7 @@ public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String fToken;
+    private String tokenUser;
 
     @Enumerated(EnumType.STRING)
     private TokenType tokenType;
