@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,14 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    private static final String SECRET_KEY = "94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e";
+    @Value("${jwtKey}")
+    private String secretKey;
+
+    @Value("${jwtExpired}")
+    private long jwtExpired;
+
+    @Value("${refresh_token_expiration}")
+    private long refreshTokenExpiration;
 
     @Override
     public String extractUsername(String token) {
@@ -48,13 +56,7 @@ public class JwtServiceImpl implements JwtService {
      * @return the string
      */
     private String generateToken(Map<String, Object> extractClaims, UserDetails userDetails) {
-        return Jwts.builder()
-                .claims(extractClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 50 * 24))
-                .signWith(getSignInKey(), Jwts.SIG.HS256)
-                .compact();
+        return buildToken(extractClaims, userDetails, jwtExpired);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
@@ -83,8 +85,21 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    private String buildToken(Map<String, Object> extractClaims, UserDetails userDetails, long expiration) {
+        return Jwts.builder()
+                .claims(extractClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, refreshTokenExpiration);
+    }
 }

@@ -30,4 +30,12 @@ public interface JwtService {
      * @return the string
      */
     String generateToken(UserDetails userDetails);
+
+    /**
+     * Generate refresh token string.
+     *
+     * @param userDetails the user details
+     * @return the string
+     */
+    String generateRefreshToken(UserDetails userDetails);
 }
