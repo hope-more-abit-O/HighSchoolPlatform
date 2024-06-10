@@ -1,13 +1,14 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.AuthenticationRequest;
-import com.demo.admissionportal.dto.response.AuthenticationResponse;
 import com.demo.admissionportal.dto.request.RegisterRequest;
+import com.demo.admissionportal.dto.response.AuthenticationResponse;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,8 +31,8 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authenticationService.register(request));
+    public ResponseData<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
+        return new ResponseData<>(HttpStatus.CREATED.value(), "User register successfully", authenticationService.register(request));
     }
 
     /**
@@ -41,8 +42,8 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+    public ResponseData<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+        return new ResponseData<>(HttpStatus.OK.value(), "Login successfully", authenticationService.authenticate(request));
     }
 
     /**
