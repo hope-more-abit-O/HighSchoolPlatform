@@ -38,8 +38,8 @@ public class SecurityConfiguration {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        req -> req.requestMatchers(AUTHENTICATION_API + "/**",
-
+                        req -> req.requestMatchers("api/v1/subject/**",
+                                        AUTHENTICATION_API + "/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
