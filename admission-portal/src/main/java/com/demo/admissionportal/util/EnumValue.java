@@ -10,14 +10,46 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * The interface Enum value.
+ */
 @Documented
 @Retention(RUNTIME)
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Constraint(validatedBy = EnumValueValidator.class)
 public @interface EnumValue {
+    /**
+     * Name string.
+     *
+     * @return the string
+     */
     String name();
-    String message() default "Trạng thái môn học là ACTIVE hoặc INACTIVE";
+
+    /**
+     * Message string.
+     *
+     * @return the string
+     */
+    String message() default "";
+
+    /**
+     * Enum class class.
+     *
+     * @return the class
+     */
     Class<? extends Enum<?>> enumClass();
+
+    /**
+     * Groups class [ ].
+     *
+     * @return the class [ ]
+     */
     Class<?>[] groups() default {};
+
+    /**
+     * Payload class [ ].
+     *
+     * @return the class [ ]
+     */
     Class<? extends Payload>[] payload() default {};
 }

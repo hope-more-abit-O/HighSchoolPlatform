@@ -10,7 +10,7 @@ import java.util.stream.Stream;
  * The type Enum value validator.
  */
 public class EnumValueValidator implements ConstraintValidator<EnumValue, CharSequence> {
-    private List acceptedValues;
+    private List<?> acceptedValues;
 
     @Override
     public void initialize(EnumValue enumValue) {
