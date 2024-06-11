@@ -31,6 +31,6 @@ public class RequestSubjectDTO implements Serializable {
      * The Status.
      */
     @NotNull(message = "Trạng thái môn học trống hoặc rỗng")
-    @EnumValue(name = "type", enumClass = SubjectStatus.class)
+    @EnumValue(name = "type", enumClass = SubjectStatus.class, message = "Trạng thái môn học là ACTIVE hoặc INACTIVE")
     private String status;
 }

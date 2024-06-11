@@ -30,16 +30,16 @@ public class SubjectServiceImpl implements SubjectService {
                 Subject checkExisted = subjectRepository.findSubjectByName(requestSubjectDTO.getName().trim());
                 if (checkExisted != null) {
                     log.error("Subject {} is already existed", requestSubjectDTO.getName());
-                    return new ResponseData<>(HttpStatus.CONFLICT.value(), "Subject " + requestSubjectDTO.getName() + " is already existed", null);
+                    return new ResponseData<>(HttpStatus.CONFLICT.value(), "Môn học " + requestSubjectDTO.getName() + " đã tồn tại", null);
                 }
                 Subject isSuccess = subjectRepository.save(modelMapper.map(requestSubjectDTO, Subject.class));
                 RequestSubjectDTO createdSubject = modelMapper.map(isSuccess, RequestSubjectDTO.class);
                 log.info("Subject {} is successfully added", requestSubjectDTO.getName());
-                return new ResponseData<>(HttpStatus.CREATED.value(), "Subject created successfully", createdSubject);
+                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", createdSubject);
             }
         } catch (Exception ex) {
             log.error("Error occurred while creating subject: {}", ex.getMessage());
         }
-        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while creating subject", null);
+        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Xuất hiện lỗi khi tạo môn học", null);
     }
 }

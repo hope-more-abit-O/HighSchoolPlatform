@@ -30,6 +30,6 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errors.getOrDefault(fieldName, "") + errorMessage + " ");
         });
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Validation failed", errors);
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Sai format", errors);
     }
 }
