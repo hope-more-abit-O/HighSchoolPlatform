@@ -34,7 +34,7 @@ public class StaffServiceImpl implements StaffService {
         try {
             Staff existStaff = staffRepository.findByEmailOrUsername(request.getEmail().trim(), request.getUsername().trim());
             if (existStaff != null) {
-                throw new RuntimeException("Username or email already in use");
+                throw new RuntimeException("Tài khoản hoặc mật khẩu không tồn tại hoặc không đúng !");
             }
             Staff newStaff = new Staff();
             newStaff.setName(request.getName());
@@ -45,9 +45,9 @@ public class StaffServiceImpl implements StaffService {
             newStaff.setPhone(request.getPhone());
             newStaff.setStatus(AccountStatus.ACTIVE.toString());
             staffRepository.save(newStaff);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tao thanh cong", newStaff);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", newStaff);
         } catch (Exception e) {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "Tao that bai");
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Tạo nhân viên thất bại, vui lòng kiểm tra lại !");
         }
     }
 }
