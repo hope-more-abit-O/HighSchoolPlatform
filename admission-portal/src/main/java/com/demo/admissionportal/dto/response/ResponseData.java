@@ -4,6 +4,8 @@ package com.demo.admissionportal.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * The type Response data.
  *
@@ -15,6 +17,8 @@ public class ResponseData<T> {
     private final String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Map<String, String> errors;
 
     /**
      * Instantiates a new Response data.
@@ -40,5 +44,18 @@ public class ResponseData<T> {
         this.status = status;
         this.message = message;
         this.data = data;
+    }
+
+    /**
+     * Instantiates a new Response data.
+     *
+     * @param status  the status
+     * @param message the message
+     * @param errors  the errors
+     */
+    public ResponseData(int status, String message, Map<String, String> errors) {
+        this.status = status;
+        this.message = message;
+        this.errors = errors;
     }
 }
