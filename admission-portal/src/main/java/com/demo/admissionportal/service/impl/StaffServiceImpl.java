@@ -52,7 +52,7 @@ public class StaffServiceImpl implements StaffService {
             newStaff.setPassword(request.getPassword().trim());
             newStaff.setAvatar(request.getAvatar().trim());
             newStaff.setPhone(request.getPhone().trim());
-            newStaff.setStatus(AccountStatus.ACTIVE.toString().trim());
+            request.setStatus(AccountStatus.ACTIVE.toString().trim());
             staffRepository.save(newStaff);
             log.info("Staff registered successfully with email: {}", request.getEmail());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", newStaff);
