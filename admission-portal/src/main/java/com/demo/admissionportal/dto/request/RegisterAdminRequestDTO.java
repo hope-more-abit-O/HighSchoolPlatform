@@ -1,5 +1,7 @@
 package com.demo.admissionportal.dto.request;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.util.EnumValue;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -9,13 +11,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * The type Register staff request dto.
+ * The type Register admin request dto.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Valid
-public class RegisterStaffRequestDTO {
+public class RegisterAdminRequestDTO {
     @NotNull(message = "Tên không thể để trống !")
     private String name;
     @NotNull(message = "Tên đăng nhập không thể để trống !")
