@@ -43,6 +43,8 @@ public class SecurityConfiguration {
                         req -> req
                                 .requestMatchers("api/v1/subject/**").hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API + "/**",
+                                        "api/v1/admins/**",
+                                        "/api/v1/staffs/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

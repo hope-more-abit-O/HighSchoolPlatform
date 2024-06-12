@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.AuthenticationStudentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class AuthenticationStudentController {
      * @return the response entity
      */
     @PostMapping("/register")
-    public ResponseEntity<ResponseData<LoginResponseDTO>> register(@RequestBody RegisterStudentRequestDTO request) {
+    public ResponseEntity<ResponseData<LoginResponseDTO>> register(@RequestBody @Valid RegisterStudentRequestDTO request) {
         if (request == null) {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }

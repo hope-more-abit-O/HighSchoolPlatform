@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 
 /**
@@ -31,6 +34,7 @@ import java.io.IOException;
  */
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationStudentServiceImpl implements AuthenticationStudentService {
 
     private final PasswordEncoder passwordEncoder;
@@ -41,24 +45,47 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
 
     @Override
     public ResponseData<LoginResponseDTO> register(RegisterStudentRequestDTO request) {
+        if (request == null) {
+            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Request bị trống");
+        }
+        // Case 1 : Existed By Email
+        Student checkExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
+        if (checkExistedByEmail != null) {
+            log.error("Email {} is already existed", checkExistedByEmail.getEmail());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Email đã được tài khoản khác sử dụng", null);
+        }
+        // Case 2: Existed By UserName
+        Optional<Student> checkExistedByUserName = studentRepository.findByUsername(request.getUsername());
+        if (checkExistedByUserName.isPresent()) {
+            log.error("Username {} is already existed", request.getUsername());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Username đã được tài khoản khác sử dụng", null);
+        }
+        // Case 3: Existed By Phone
+        Student checkExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
+        if (checkExistedByPhone != null) {
+            log.error("Phone {} is already existed", checkExistedByPhone.getPhone());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Số điện thoại đã được tài khoản khác sử dụng", null);
+        }
+        // Map request to Student
         var student = Student.builder()
-                .username(request.getUsername())
-                .firstname(request.getFirstname())
-                .middleName(request.getMiddle_name())
-                .lastName(request.getLastname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .username(request.getUsername().trim())
+                .firstname(request.getFirstname().trim())
+                .middleName(request.getMiddle_name().trim())
+                .lastName(request.getLastname().trim())
+                .email(request.getEmail().trim())
+                .password(passwordEncoder.encode(request.getPassword()).trim())
                 .addressId(request.getAddress())
                 .birthday(request.getBirthday())
-                .educationLevel(request.getEducationLevel())
+                .educationLevel(request.getEducationLevel().trim())
                 .avatar(request.getAvatar())
                 .gender(request.getGender())
                 .role(Role.STUDENT)
                 .phone(request.getPhone())
-                .status("ACTIVE")
+                .status(AccountStatus.ACTIVE.name())
                 .build();
-        // Save user in DB
+        // Save student in DB
         var createStudent = studentRepository.save(student);
+        log.info("Student has been added: {}", createStudent);
         var jwtToken = jwtService.generateToken(student);
         var refreshToken = jwtService.generateRefreshToken(student);
         saveStudentToken(createStudent, jwtToken, refreshToken);
