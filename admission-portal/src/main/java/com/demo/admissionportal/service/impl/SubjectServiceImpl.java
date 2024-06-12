@@ -34,10 +34,10 @@ public class SubjectServiceImpl implements SubjectService {
                     return new ResponseData<>(HttpStatus.CONFLICT.value(), "Môn học " + requestSubjectDTO.getName() + " đã tồn tại", null);
                 }
                 Subject subject = modelMapper.map(requestSubjectDTO, Subject.class);
-                subject.setStatus(SubjectStatus.ACTIVE.name());
-                Subject isSuccessSubject = subjectRepository.save(subject);
+                subject.setStatus(SubjectStatus.ACTIVE.name().trim());
+                Subject createSubject = subjectRepository.save(subject);
                 log.info("Subject {} is successfully added", requestSubjectDTO.getName());
-                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", isSuccessSubject);
+                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", createSubject);
             }
         } catch (Exception ex) {
             log.error("Error occurred while creating subject: {}", ex.getMessage());
