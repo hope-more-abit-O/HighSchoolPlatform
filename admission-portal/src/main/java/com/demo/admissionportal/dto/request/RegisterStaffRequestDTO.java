@@ -1,7 +1,5 @@
 package com.demo.admissionportal.dto.request;
 
-import com.demo.admissionportal.constants.AccountStatus;
-import com.demo.admissionportal.util.EnumValue;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -32,10 +30,12 @@ public class RegisterStaffRequestDTO {
     @NotNull(message = "Số điện thoại không thể để trống !")
     @Pattern(regexp = "0\\d{9,10}", message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
-    @EnumValue(name = "type", enumClass = AccountStatus.class, message = "Trạng thái Staff là ACTIVE")
-    @NotNull
-    private String status;
 
+    /**
+     * Is empty boolean.
+     *
+     * @return the boolean
+     */
     public boolean isEmpty() {
         return (name == null || name.isEmpty()) && (username == null || username.isEmpty()) && (email == null || email.isEmpty()) && (password == null || password.isEmpty()) && (phone == null || phone.isEmpty());
     }

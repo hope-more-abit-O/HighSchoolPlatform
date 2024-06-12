@@ -7,7 +7,9 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Admin;
 import com.demo.admissionportal.repository.AdminRepository;
 import com.demo.admissionportal.service.AdminService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,21 +17,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class AdminServiceImpl implements AdminService {
+
     private final AdminRepository adminRepository;
+    private final ModelMapper modelMapper;
 
-    /**
-     * Instantiates a new Admin service.
-     *
-     * @param adminRepository the admin repository
-     */
-    public AdminServiceImpl(AdminRepository adminRepository) {
-        this.adminRepository = adminRepository;
-    }
-
-    /**
-     * @return
-     */
     @Override
     public ResponseData<?> registerAdmin(RegisterAdminRequestDTO request) {
         try {
@@ -44,14 +37,8 @@ public class AdminServiceImpl implements AdminService {
                 log.warn("Staff with phone: {} already registered", request.getPhone().trim());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được đăng kí bởi một Quản Trị Viên khác !");
             }
-            Admin newAdmin = new Admin();
-            newAdmin.setName(request.getName().trim());
-            newAdmin.setUsername(request.getUsername().trim());
-            newAdmin.setEmail(request.getEmail().trim());
-            newAdmin.setPassword(request.getPassword().trim());
-            newAdmin.setPhone(request.getPhone().trim());
-            newAdmin.setAvatar(request.getAvatar().trim());
-            newAdmin.setStatus(AccountStatus.ACTIVE.toString().trim());
+            Admin newAdmin = modelMapper.map(request, Admin.class);
+            newAdmin.setStatus(AccountStatus.ACTIVE.name());
             adminRepository.save(newAdmin);
             log.info("Staff registered successfully with email and username: {}", request.getEmail(), request.getUsername());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Quản Trị Viên được tạo thành công !", newAdmin);
