@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.service.SubjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class SubjectController {
      * @return the response data
      */
     @PostMapping()
-    public ResponseEntity<ResponseData<RequestSubjectDTO>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
-        ResponseData<RequestSubjectDTO> createdSubject = subjectService.createSubject(requestSubjectDTO);
+    public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
+        ResponseData<Subject> createdSubject = subjectService.createSubject(requestSubjectDTO);
         if (createdSubject.getData() != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSubject);
         } else {
