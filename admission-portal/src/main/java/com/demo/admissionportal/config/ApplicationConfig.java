@@ -1,6 +1,6 @@
 package com.demo.admissionportal.config;
 
-import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
-
-    private final UserRepository repository;
+    private final StudentRepository studentRepository;
 
     /**
      * User details service user details service.
@@ -29,8 +28,8 @@ public class ApplicationConfig {
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> repository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return username -> studentRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
     }
 
     /**

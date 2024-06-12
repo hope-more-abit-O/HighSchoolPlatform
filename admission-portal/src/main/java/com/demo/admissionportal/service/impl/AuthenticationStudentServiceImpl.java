@@ -1,0 +1,166 @@
+package com.demo.admissionportal.service.impl;
+
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.constants.TokenType;
+import com.demo.admissionportal.dto.request.LoginRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
+import com.demo.admissionportal.dto.response.LoginResponseDTO;
+import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Student;
+import com.demo.admissionportal.entity.StudentToken;
+import com.demo.admissionportal.repository.StudentRepository;
+import com.demo.admissionportal.repository.StudentTokenRepository;
+import com.demo.admissionportal.service.AuthenticationStudentService;
+import com.demo.admissionportal.service.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Optional;
+
+
+/**
+ * The type Authentication student service.
+ */
+@Service
+@AllArgsConstructor
+@Slf4j
+public class AuthenticationStudentServiceImpl implements AuthenticationStudentService {
+
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final StudentRepository studentRepository;
+    private final StudentTokenRepository studentTokenRepository;
+
+    @Override
+    public ResponseData<LoginResponseDTO> register(RegisterStudentRequestDTO request) {
+        if (request == null) {
+            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Request bị trống");
+        }
+        // Case 1 : Existed By Email
+        Student checkExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
+        if (checkExistedByEmail != null) {
+            log.error("Email {} is already existed", checkExistedByEmail.getEmail());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Email đã được tài khoản khác sử dụng", null);
+        }
+        // Case 2: Existed By UserName
+        Optional<Student> checkExistedByUserName = studentRepository.findByUsername(request.getUsername());
+        if (checkExistedByUserName.isPresent()) {
+            log.error("Username {} is already existed", request.getUsername());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Username đã được tài khoản khác sử dụng", null);
+        }
+        // Case 3: Existed By Phone
+        Student checkExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
+        if (checkExistedByPhone != null) {
+            log.error("Phone {} is already existed", checkExistedByPhone.getPhone());
+            return new ResponseData<>(HttpStatus.CONFLICT.value(), "Số điện thoại đã được tài khoản khác sử dụng", null);
+        }
+        // Map request to Student
+        var student = Student.builder()
+                .username(request.getUsername().trim())
+                .firstname(request.getFirstname().trim())
+                .middleName(request.getMiddle_name().trim())
+                .lastName(request.getLastname().trim())
+                .email(request.getEmail().trim())
+                .password(passwordEncoder.encode(request.getPassword()).trim())
+                .addressId(request.getAddress())
+                .birthday(request.getBirthday())
+                .educationLevel(request.getEducationLevel().trim())
+                .avatar(request.getAvatar())
+                .gender(request.getGender())
+                .role(Role.STUDENT)
+                .phone(request.getPhone())
+                .status(AccountStatus.ACTIVE.name())
+                .build();
+        // Save student in DB
+        var createStudent = studentRepository.save(student);
+        log.info("Student has been added: {}", createStudent);
+        var jwtToken = jwtService.generateToken(student);
+        var refreshToken = jwtService.generateRefreshToken(student);
+        saveStudentToken(createStudent, jwtToken, refreshToken);
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo tài khoản thành công",
+                LoginResponseDTO.builder()
+                        .accessToken(jwtToken)
+                        .refreshToken(refreshToken)
+                        .build());
+    }
+
+    @Override
+    public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+        var student = studentRepository.findByUsername(request.getUsername())
+                .orElseThrow();
+        var jwtToken = jwtService.generateToken(student);
+        var refreshToken = jwtService.generateRefreshToken(student);
+        revokeAllStudentTokens(student);
+        saveStudentToken(student, jwtToken, refreshToken);
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Đăng nhập thành công",
+                LoginResponseDTO.builder()
+                        .accessToken(jwtToken)
+                        .refreshToken(refreshToken)
+                        .build());
+    }
+
+    private void saveStudentToken(Student student, String jwtToken, String refreshToken) {
+        var token = StudentToken.builder()
+                .student(student)
+                .tokenStudent(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .refreshTokenStudent(refreshToken)
+                .build();
+        // Save token in DB
+        studentTokenRepository.save(token);
+    }
+
+    private void revokeAllStudentTokens(Student student) {
+        var validUserTokens = studentTokenRepository.findAllValidTokenByUser(student.getId());
+        if (validUserTokens.isEmpty())
+            return;
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        studentTokenRepository.saveAll(validUserTokens);
+    }
+
+    @Override
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String username;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+        refreshToken = authHeader.substring(7);
+        username = jwtService.extractUsername(refreshToken);
+        if (username != null) {
+            var student = studentRepository.findByUsername(username)
+                    .orElseThrow();
+            if (jwtService.isTokenValid(refreshToken, student)) {
+                var accessToken = jwtService.generateToken(student);
+                revokeAllStudentTokens(student);
+                saveStudentToken(student, accessToken, refreshToken);
+                var authResponse = LoginResponseDTO.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+            }
+        }
+    }
+}

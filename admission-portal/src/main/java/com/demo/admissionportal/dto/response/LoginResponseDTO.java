@@ -7,13 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * The type Authentication response.
+ * The type Login response dto.
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthenticationResponse {
+public class LoginResponseDTO {
     @JsonProperty("accessToken")
     private String accessToken;
     @JsonProperty("refreshToken")

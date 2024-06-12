@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Subject;
@@ -24,7 +25,7 @@ public class SubjectServiceImpl implements SubjectService {
     private final ModelMapper modelMapper;
 
     @Override
-    public ResponseData<RequestSubjectDTO> createSubject(RequestSubjectDTO requestSubjectDTO) {
+    public ResponseData<Subject> createSubject(RequestSubjectDTO requestSubjectDTO) {
         try {
             if (!Objects.isNull(requestSubjectDTO)) {
                 Subject checkExisted = subjectRepository.findSubjectByName(requestSubjectDTO.getName().trim());
@@ -32,10 +33,11 @@ public class SubjectServiceImpl implements SubjectService {
                     log.error("Subject {} is already existed", requestSubjectDTO.getName());
                     return new ResponseData<>(HttpStatus.CONFLICT.value(), "Môn học " + requestSubjectDTO.getName() + " đã tồn tại", null);
                 }
-                Subject isSuccess = subjectRepository.save(modelMapper.map(requestSubjectDTO, Subject.class));
-                RequestSubjectDTO createdSubject = modelMapper.map(isSuccess, RequestSubjectDTO.class);
+                Subject subject = modelMapper.map(requestSubjectDTO, Subject.class);
+                subject.setStatus(SubjectStatus.ACTIVE.name().trim());
+                Subject createSubject = subjectRepository.save(subject);
                 log.info("Subject {} is successfully added", requestSubjectDTO.getName());
-                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", createdSubject);
+                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", createSubject);
             }
         } catch (Exception ex) {
             log.error("Error occurred while creating subject: {}", ex.getMessage());
