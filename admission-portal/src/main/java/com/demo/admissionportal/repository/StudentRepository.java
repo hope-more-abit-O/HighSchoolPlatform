@@ -1,21 +1,21 @@
 package com.demo.admissionportal.repository;
 
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 /**
- * The interface User repository.
+ * The interface Student repository.
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface StudentRepository extends JpaRepository<Student, Integer> {
     /**
-     * Find by email optional.
+     * Find by username optional.
      *
      * @param email the email
      * @return the optional
      */
-    Optional<User> findByEmail(String email);
+    Optional<Student> findByUsername(String email);
 }

@@ -1,19 +1,16 @@
 package com.demo.admissionportal.repository;
 
-import com.demo.admissionportal.entity.Token;
+import com.demo.admissionportal.entity.StudentToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * The interface Token repository.
+ * The interface Student token repository.
  */
-@Repository
-public interface TokenRepository extends JpaRepository<Token, Integer> {
-
+public interface StudentTokenRepository extends JpaRepository<StudentToken, Integer> {
     /**
      * Find all valid token by user list.
      *
@@ -22,10 +19,10 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
      */
     @Query("""
             SELECT t 
-            FROM Token t INNER JOIN User u ON t.user.id = u.id
+            FROM StudentToken t INNER JOIN Student u ON t.student.id = u.id
             WHERE u.id =  :userId and (t.expired = false or t.revoked = false)
             """)
-    List<Token> findAllValidTokenByUser(Integer userId);
+    List<StudentToken> findAllValidTokenByUser(Integer userId);
 
     /**
      * Find by token optional.
@@ -33,5 +30,5 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
      * @param token the token
      * @return the optional
      */
-    Optional<Token> findByTokenUser(String token);
+    Optional<StudentToken> findByTokenStudent(String token);
 }
