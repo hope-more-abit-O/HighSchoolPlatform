@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class UniversityServiceImpl implements UniversityService {
     private final StaffUniversityRepository staffUniversityRepository;
     private final StaffService staffService;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructs a new instance of {@code UniversityServiceImpl}.
@@ -45,11 +47,12 @@ public class UniversityServiceImpl implements UniversityService {
      * @param modelMapper The model mapper for object mapping.
      */
     @Autowired
-    public UniversityServiceImpl(UniversityRepository universityRepository, StaffUniversityRepository staffUniversityRepository, StaffService staffService, ModelMapper modelMapper) {
+    public UniversityServiceImpl(UniversityRepository universityRepository, StaffUniversityRepository staffUniversityRepository, StaffService staffService, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.universityRepository = universityRepository;
         this.staffUniversityRepository = staffUniversityRepository;
         this.staffService = staffService;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -90,7 +93,7 @@ public class UniversityServiceImpl implements UniversityService {
             throw new BadRequestException("Tên tài khoản, email hoặc mã của trường đại học đã tồn tại!");
         }
 
-        University university = universityRepository.save(new University(request.getCode(), request.getName(), request.getUsername(), request.getEmail(), request.getDescription(), request.getPassword(), UniversityType.valueOf(request.getType())));
+        University university = universityRepository.save(new University(request.getCode(), request.getName(), request.getUsername(), request.getEmail(), request.getDescription(), passwordEncoder.encode(request.getPassword()), UniversityType.valueOf(request.getType())));
         log.info("University registered successfully with email: {}", request.getEmail());
         return university;
     }
