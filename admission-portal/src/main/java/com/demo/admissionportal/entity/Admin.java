@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,9 +9,6 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
-/**
- * The type Admin.
- */
 @Getter
 @Setter
 @Entity
@@ -51,6 +49,10 @@ public class Admin {
     @NotNull
     @Column(name = "phone", nullable = false, length = 11)
     private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @Size(max = 255)
     @NotNull
