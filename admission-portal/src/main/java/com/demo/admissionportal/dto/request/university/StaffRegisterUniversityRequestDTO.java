@@ -1,9 +1,9 @@
 package com.demo.admissionportal.dto.request.university;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.util.EnumValue;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -14,7 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Valid
-public class RegisterUniversityRequestDTO {
+public class StaffRegisterUniversityRequestDTO {
+    @NotNull(message = "Mã nhân viên không được để trống")
+    @Min(value = 1, message = "Mã nhân viên phải lớn hơn 0")
+    private Integer staffId;
     @NotNull(message = "Mã trường không được để trống")
     private String code;
     @NotNull(message = "Tên người dùng không được để trống")

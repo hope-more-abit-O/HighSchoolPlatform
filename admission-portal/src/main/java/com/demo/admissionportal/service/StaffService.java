@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Staff;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,4 +17,5 @@ public interface StaffService {
      * @return the response data
      */
     ResponseData<?> registerStaff(RegisterStaffRequestDTO staff);
+    Staff getStaffById(int id);
 }

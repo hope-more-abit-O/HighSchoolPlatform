@@ -61,4 +61,9 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Tạo nhân viên thất bại, vui lòng kiểm tra lại !");
         }
     }
+
+    @Override
+    public Staff getStaffById(int id){
+        return staffRepository.findById(id).orElse(null);
+    }
 }

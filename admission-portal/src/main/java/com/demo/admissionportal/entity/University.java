@@ -4,14 +4,14 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.UniversityType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "university")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

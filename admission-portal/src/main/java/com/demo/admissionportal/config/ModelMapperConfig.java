@@ -1,6 +1,7 @@
 package com.demo.admissionportal.config;
 
 
+import com.demo.admissionportal.converter.LocalDateTimeConverter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,8 @@ public class ModelMapperConfig {
     public ModelMapper GetmodelMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+        modelMapper.addConverter(new LocalDateTimeConverter());
         return modelMapper;
     }
+
 }
