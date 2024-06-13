@@ -4,9 +4,8 @@ import com.demo.admissionportal.constants.Role;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import jakarta.persistence.Column;
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
+import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +18,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * The type Account redis cache dto.
@@ -59,10 +58,10 @@ public class AccountRedisCacheDTO implements Serializable {
     private Integer addressId;
 
     @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime birthday;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = DateSerializer.class)
+    @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    private Date birthday;
 
     @Size(max = 10)
     @NotNull
