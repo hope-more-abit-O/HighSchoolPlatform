@@ -4,6 +4,11 @@ import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.util.EnumPassword;
 import com.demo.admissionportal.util.EnumPhone;
 import com.demo.admissionportal.util.EnumValue;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +18,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * The type Register student request.
@@ -41,7 +46,10 @@ public class RegisterStudentRequestDTO implements Serializable {
     @NotNull(message = "Địa chỉ không thể để trống")
     private int address;
     @NotNull(message = "Ngày sinh không thể để trống")
-    private LocalDate birthday;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime birthday;
     @NotNull(message = "Lớp không thể để trống")
     private String educationLevel;
     private String avatar;
