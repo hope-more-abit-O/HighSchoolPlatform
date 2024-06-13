@@ -11,5 +11,6 @@ public enum AccountStatus {
     /**
      * Inactive account status.
      */
-    INACTIVE
+    INACTIVE,
+    PENDING
 }

@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.response;
 
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -57,5 +58,9 @@ public class ResponseData<T> {
         this.status = status;
         this.message = message;
         this.errors = errors;
+    }
+
+    public static ResponseData<?> error(String message, Map<String, String> errors) {
+        return new ResponseData<>(ResponseCode.C201.getCode(), message, errors);
     }
 }
