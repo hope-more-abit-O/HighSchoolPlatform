@@ -1,6 +1,6 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,6 +50,10 @@ public class Staff {
     @NotNull
     @Column(name = "phone", nullable = false, length = 11)
     private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @Size(max = 255)
     @NotNull

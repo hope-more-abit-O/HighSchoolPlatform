@@ -2,6 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Staff;
@@ -43,6 +44,7 @@ public class StaffServiceImpl implements StaffService {
             }
             Staff newStaff = modelMapper.map(request, Staff.class);
             newStaff.setStatus(AccountStatus.ACTIVE.name());
+            newStaff.setRole(Role.STAFF);
             staffRepository.save(newStaff);
             log.info("Staff registered successfully with email: {}", request.getEmail());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", newStaff);

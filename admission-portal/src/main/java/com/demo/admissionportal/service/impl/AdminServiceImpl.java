@@ -2,6 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterAdminRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Admin;
@@ -38,6 +39,7 @@ public class AdminServiceImpl implements AdminService {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được đăng kí bởi một Quản Trị Viên khác !");
             }
             Admin newAdmin = modelMapper.map(request, Admin.class);
+            newAdmin.setRole(Role.ADMIN);
             newAdmin.setStatus(AccountStatus.ACTIVE.name());
             adminRepository.save(newAdmin);
             log.info("Staff registered successfully with email and username: {}", request.getEmail(), request.getUsername());
