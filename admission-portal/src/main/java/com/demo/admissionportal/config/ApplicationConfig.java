@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,8 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Configuration
 @RequiredArgsConstructor
-public class ApplicationConfig {
+public class ApplicationConfig implements UserDetailsService {
     private final StudentRepository studentRepository;
+
 
     /**
      * User details service user details service.
@@ -29,6 +31,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> studentRepository.findByUsername(username)
+                .or(() -> java.util.Optional.ofNullable(studentRepository.findByEmail(username)))
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
     }
 
@@ -65,5 +68,12 @@ public class ApplicationConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return studentRepository.findByUsername(username)
+                .or(() -> java.util.Optional.ofNullable(studentRepository.findByEmail(username)))
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
     }
 }
