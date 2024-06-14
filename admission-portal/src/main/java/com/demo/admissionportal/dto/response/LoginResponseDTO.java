@@ -1,10 +1,10 @@
 package com.demo.admissionportal.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.io.Serializable;
 
 /**
  * The type Login response dto.
@@ -13,9 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponseDTO {
-    @JsonProperty("accessToken")
+public class LoginResponseDTO implements Serializable {
     private String accessToken;
-    @JsonProperty("refreshToken")
     private String refreshToken;
 }

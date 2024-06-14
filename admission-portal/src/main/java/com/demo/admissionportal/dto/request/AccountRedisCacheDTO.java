@@ -28,21 +28,17 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class AccountRedisCacheDTO implements Serializable {
-    @Size(max = 20)
     @NotNull
     private String username;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
     private String firstname;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
     private String middleName;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
     private String lastName;
@@ -50,7 +46,6 @@ public class AccountRedisCacheDTO implements Serializable {
     @NotNull
     private String email;
 
-    @Size(max = 100)
     @NotNull
     private String password;
 
@@ -63,26 +58,21 @@ public class AccountRedisCacheDTO implements Serializable {
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
     private Date birthday;
 
-    @Size(max = 10)
     @NotNull
     @Nationalized
-    private String educationLevel;
+    private int educationLevel;
 
-    @Size(max = 20)
     @NotNull
     private String avatar;
 
-    @Size(max = 11)
     @NotNull
     private String phone;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("MALE")
     private String gender;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("ACTIVE")

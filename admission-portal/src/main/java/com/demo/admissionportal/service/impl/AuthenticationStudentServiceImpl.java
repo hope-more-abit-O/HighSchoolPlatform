@@ -99,7 +99,7 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
                     .password(passwordEncoder.encode(request.getPassword()).trim())
                     .addressId(request.getAddress())
                     .birthday(request.getBirthday())
-                    .educationLevel(request.getEducationLevel().trim())
+                    .educationLevel(request.getEducationLevel())
                     .avatar(request.getAvatar())
                     .gender(request.getGender())
                     .role(Role.STUDENT)
@@ -187,7 +187,7 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             var refreshToken = jwtService.generateRefreshToken(createStudent);
             saveStudentToken(createStudent, jwtToken, refreshToken);
             log.info("Student has been verified: {}", createStudent);
-            return new ResponseData<>(HttpStatus.OK.value(), "Tài khoản đã được xác thực thành công", jwtToken);
+            return new ResponseData<>(HttpStatus.OK.value(), "Tài khoản đã được xác thực thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } else {
             return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "OTP đã hết hạn", null);
         }

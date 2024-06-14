@@ -37,40 +37,36 @@ public class Student implements UserDetails {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 20)
     @NotNull
-    @Column(name = "username", nullable = false, length = 20)
+    @Column(name = "username")
     private String username;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "firstname", nullable = false, length = 20)
+    @Column(name = "firstname")
     private String firstname;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "middle_name", nullable = false, length = 20)
+    @Column(name = "middle_name")
     private String middleName;
 
     @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "last_name", nullable = false, length = 20)
+    @Column(name = "last_name")
     private String lastName;
 
     @NotNull
-    @Column(name = "email", nullable = false, length = 20)
+    @Column(name = "email")
     private String email;
 
-    @Size(max = 100)
     @NotNull
-    @Column(name = "password", nullable = false, length = 100)
+    @Column(name = "password")
     private String password;
 
     @NotNull
-    @Column(name = "address_id", nullable = false)
+    @Column(name = "address_id")
     private Integer addressId;
 
     @NotNull
@@ -80,34 +76,31 @@ public class Student implements UserDetails {
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
     private Date birthday;
 
-    @Size(max = 10)
     @NotNull
     @Nationalized
-    @Column(name = "education_level", nullable = false, length = 10)
-    private String educationLevel;
+    @Column(name = "education_level_id")
+    private int educationLevel;
 
     @Size(max = 20)
     @NotNull
-    @Column(name = "avatar", nullable = false, length = 20)
+    @Column(name = "avatar")
     private String avatar;
 
-    @Size(max = 11)
     @NotNull
-    @Column(name = "phone", nullable = false, length = 11)
+    @Column(name = "phone")
     private String phone;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("MALE")
-    @Column(name = "gender", nullable = false)
+    @Column(name = "gender")
     private String gender;
 
     @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("ACTIVE")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @Enumerated(EnumType.STRING)
