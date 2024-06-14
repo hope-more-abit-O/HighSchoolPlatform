@@ -53,7 +53,7 @@ public class RegisterStudentRequestDTO implements Serializable {
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
     private Date birthday;
     @NotNull(message = "Lớp không thể để trống")
-    private String educationLevel;
+    private int educationLevel;
     private String avatar;
     @NotNull(message = "Số điện thoại không thể để trống !")
     @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
