@@ -135,7 +135,7 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
             log.error("Error occurred while login: {}", ex.getMessage());
-            return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Username or password incorrect");
+            return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Tên đăng nhập hoặc mật khẩu không đúng");
         }
     }
 

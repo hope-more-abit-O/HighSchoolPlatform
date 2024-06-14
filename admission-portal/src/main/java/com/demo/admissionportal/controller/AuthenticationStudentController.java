@@ -59,7 +59,7 @@ public class AuthenticationStudentController {
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationStudentService.login(request);
         if (loginAccount.getData() != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(loginAccount);
+            return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else {
             return ResponseEntity.status(loginAccount.getStatus()).body(loginAccount);
         }
