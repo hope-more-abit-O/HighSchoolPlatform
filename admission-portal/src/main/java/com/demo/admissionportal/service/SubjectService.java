@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Subject;
 
 /**
  * The interface Subject service.
@@ -13,5 +14,5 @@ public interface SubjectService {
      * @param requestSubjectDTO the request subject dto
      * @return the request subject dto
      */
-    ResponseData<RequestSubjectDTO> createSubject(RequestSubjectDTO requestSubjectDTO);
+    ResponseData<Subject> createSubject(RequestSubjectDTO requestSubjectDTO);
 }

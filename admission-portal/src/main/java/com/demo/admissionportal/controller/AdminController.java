@@ -1,9 +1,9 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterAdminRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.service.AdminService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,28 +15,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * The type Staff controller.
+ * The type Admin controller.
  */
 @Controller
+@RequestMapping("/api/v1/admins")
 @CrossOrigin
-@RequestMapping("/api/v1/staffs")
-public class StaffController {
+public class AdminController {
     @Autowired
-    private StaffService staffService;
+    private AdminService adminService;
 
     /**
-     * Register staff response entity.
+     * Register admin response entity.
      *
      * @param request the request
      * @return the response entity
      */
     @PostMapping("/register")
-    public ResponseEntity<ResponseData<?>> registerStaff(@RequestBody @Valid RegisterStaffRequestDTO request) {
+    public ResponseEntity<ResponseData<?>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
         //if request insert null
         if (request == null || request.isEmpty()) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), ResponseCode.C205.getMessage()));
         }
-        ResponseData<?> result = staffService.registerStaff(request);
+        ResponseData<?> result = adminService.registerAdmin(request);
         //if request full field
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);

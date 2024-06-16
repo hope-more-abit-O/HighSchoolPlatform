@@ -2,12 +2,16 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Staff;
 import com.demo.admissionportal.repository.StaffRepository;
 import com.demo.admissionportal.service.StaffService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,17 +19,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class StaffServiceImpl implements StaffService {
-    private final StaffRepository staffRepository;
 
-    /**
-     * Instantiates a new Staff service.
-     *
-     * @param staffRepository the staff repository
-     */
-    public StaffServiceImpl(StaffRepository staffRepository) {
-        this.staffRepository = staffRepository;
-    }
+    private final StaffRepository staffRepository;
+    private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * @param request
@@ -45,14 +44,10 @@ public class StaffServiceImpl implements StaffService {
                 log.warn("Staff with phone: {} already registered", request.getPhone().trim());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại này đã được đăng kí bởi nhân viên khác !");
             }
-            Staff newStaff = new Staff();
-            newStaff.setName(request.getName().trim());
-            newStaff.setUsername(request.getUsername().trim());
-            newStaff.setEmail(request.getEmail().trim());
-            newStaff.setPassword(request.getPassword().trim());
-            newStaff.setAvatar(request.getAvatar().trim());
-            newStaff.setPhone(request.getPhone().trim());
-            newStaff.setStatus(AccountStatus.ACTIVE.toString().trim());
+            Staff newStaff = modelMapper.map(request, Staff.class);
+            newStaff.setPassword(passwordEncoder.encode(request.getPassword()));
+            newStaff.setStatus(AccountStatus.ACTIVE.name());
+            newStaff.setRole(Role.STAFF);
             staffRepository.save(newStaff);
             log.info("Staff registered successfully with email: {}", request.getEmail());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", newStaff);

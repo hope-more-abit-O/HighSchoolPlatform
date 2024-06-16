@@ -8,6 +8,12 @@ public enum Role {
      * Admin role.
      */
     ADMIN,
+
+    /**
+     * Staff role.
+     */
+    STAFF,
+
     /**
      * Consultant role.
      */

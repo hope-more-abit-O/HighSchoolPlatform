@@ -2,7 +2,9 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.service.SubjectService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/subject")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class SubjectController {
     private final SubjectService subjectService;
 
@@ -29,8 +32,8 @@ public class SubjectController {
      * @return the response data
      */
     @PostMapping()
-    public ResponseEntity<ResponseData<RequestSubjectDTO>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
-        ResponseData<RequestSubjectDTO> createdSubject = subjectService.createSubject(requestSubjectDTO);
+    public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
+        ResponseData<Subject> createdSubject = subjectService.createSubject(requestSubjectDTO);
         if (createdSubject.getData() != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSubject);
         } else {

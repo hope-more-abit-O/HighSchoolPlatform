@@ -1,13 +1,9 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,44 +14,49 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * The type Staff.
+ * The type Admin.
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Getter
 @Setter
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Table(name = "[staff]")
-public class Staff implements UserDetails {
+@Builder
+@Table(name = "admin")
+public class Admin implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @NotNull
     @Column(name = "username")
     private String username;
 
+
     @NotNull
     @Nationalized
     @Column(name = "name")
     private String name;
 
+
     @NotNull
     @Column(name = "email")
     private String email;
+
 
     @NotNull
     @Column(name = "password")
     private String password;
 
+
     @NotNull
     @Column(name = "avatar")
     private String avatar;
 
+
     @NotNull
-    @Column(name = "phone"
-    )
+    @Column(name = "phone")
     private String phone;
 
     @Enumerated(EnumType.STRING)
@@ -67,10 +68,6 @@ public class Staff implements UserDetails {
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", nullable = false)
     private String status;
-
-    @OneToMany(mappedBy = "staff")
-    @JsonIgnore
-    private List<StaffToken> tokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
