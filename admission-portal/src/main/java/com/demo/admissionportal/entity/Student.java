@@ -81,7 +81,6 @@ public class Student implements UserDetails {
     @Column(name = "education_level_id")
     private int educationLevel;
 
-    @Size(max = 20)
     @NotNull
     @Column(name = "avatar")
     private String avatar;

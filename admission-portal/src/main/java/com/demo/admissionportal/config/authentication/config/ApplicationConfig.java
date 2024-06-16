@@ -1,5 +1,8 @@
-package com.demo.admissionportal.config;
+package com.demo.admissionportal.config.authentication.config;
 
+import com.demo.admissionportal.entity.Staff;
+import com.demo.admissionportal.entity.Student;
+import com.demo.admissionportal.repository.StaffRepository;
 import com.demo.admissionportal.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 /**
  * The type Application config.
  */
@@ -21,7 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig implements UserDetailsService {
     private final StudentRepository studentRepository;
-
+    private final StaffRepository staffRepository;
 
     /**
      * User details service user details service.
@@ -30,9 +35,19 @@ public class ApplicationConfig implements UserDetailsService {
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> studentRepository.findByUsername(username)
-                .or(() -> java.util.Optional.ofNullable(studentRepository.findByEmail(username)))
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
+        return username -> {
+            Optional<Student> studentDetails = studentRepository.findByUsername(username)
+                    .or(() -> Optional.ofNullable(studentRepository.findByEmail(username)));
+            if (studentDetails.isPresent()) {
+                return studentDetails.get();
+            }
+            Optional<Staff> staffDetails = staffRepository.findByUsername(username)
+                    .or(() -> Optional.ofNullable(staffRepository.findByEmail(username)));
+            if (staffDetails.isPresent()) {
+                return staffDetails.get();
+            }
+            throw new UsernameNotFoundException("Không tìm thấy user");
+        };
     }
 
     /**
@@ -71,9 +86,17 @@ public class ApplicationConfig implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return studentRepository.findByUsername(username)
-                .or(() -> java.util.Optional.ofNullable(studentRepository.findByEmail(username)))
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
+    public UserDetails loadUserByUsername(String username) {
+        Optional<Student> studentDetails = studentRepository.findByUsername(username)
+                .or(() -> Optional.ofNullable(studentRepository.findByEmail(username)));
+        if (studentDetails.isPresent()) {
+            return studentDetails.get();
+        }
+        Optional<Staff> staffDetails = staffRepository.findByUsername(username)
+                .or(() -> Optional.ofNullable(staffRepository.findByEmail(username)));
+        if (staffDetails.isPresent()) {
+            return staffDetails.get();
+        }
+        throw new UsernameNotFoundException("Không tìm thấy user");
     }
 }

@@ -1,5 +1,6 @@
 package com.demo.admissionportal.config;
 
+import com.demo.admissionportal.config.authentication.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-    private final JwtAuthenticationStudentFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
     private static final String AUTHENTICATION_API = "/api/v1/auth";
@@ -43,7 +44,7 @@ public class SecurityConfiguration {
                         req -> req
                                 .requestMatchers("api/v1/subject/**").hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API + "/**",
-                                        "api/v1/admins/**",
+                                        "/api/v1/admins/**",
                                         "/api/v1/staffs/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
