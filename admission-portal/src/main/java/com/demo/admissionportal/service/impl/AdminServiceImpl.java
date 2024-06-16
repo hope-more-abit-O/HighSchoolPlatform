@@ -11,6 +11,7 @@ import com.demo.admissionportal.service.AdminService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,6 +24,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public ResponseData<?> registerAdmin(RegisterAdminRequestDTO request) {
@@ -39,6 +41,7 @@ public class AdminServiceImpl implements AdminService {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được đăng kí bởi một Quản Trị Viên khác !");
             }
             Admin newAdmin = modelMapper.map(request, Admin.class);
+            newAdmin.setPassword(passwordEncoder.encode(request.getPassword()));
             newAdmin.setRole(Role.ADMIN);
             newAdmin.setStatus(AccountStatus.ACTIVE.name());
             adminRepository.save(newAdmin);

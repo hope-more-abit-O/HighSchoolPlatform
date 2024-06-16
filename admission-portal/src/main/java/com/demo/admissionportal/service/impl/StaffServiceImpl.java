@@ -11,6 +11,7 @@ import com.demo.admissionportal.service.StaffService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,6 +24,7 @@ public class StaffServiceImpl implements StaffService {
 
     private final StaffRepository staffRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * @param request
@@ -43,6 +45,7 @@ public class StaffServiceImpl implements StaffService {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại này đã được đăng kí bởi nhân viên khác !");
             }
             Staff newStaff = modelMapper.map(request, Staff.class);
+            newStaff.setPassword(passwordEncoder.encode(request.getPassword()));
             newStaff.setStatus(AccountStatus.ACTIVE.name());
             newStaff.setRole(Role.STAFF);
             staffRepository.save(newStaff);

@@ -1,20 +1,15 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * The type Staff.
@@ -25,35 +20,35 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "[staff]")
-public class Staff implements UserDetails {
+public class Staff {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @NotNull
-    @Column(name = "username")
+    @Column(name = "username", nullable = false)
     private String username;
 
     @NotNull
     @Nationalized
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @NotNull
-    @Column(name = "email")
+    @Column(name = "email", nullable = false)
     private String email;
 
     @NotNull
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
     @NotNull
-    @Column(name = "avatar")
+    @Column(name = "avatar", nullable = false)
     private String avatar;
 
     @NotNull
-    @Column(name = "phone")
+    @Column(name = "phone", nullable = false)
     private String phone;
 
     @Enumerated(EnumType.STRING)
@@ -65,33 +60,4 @@ public class Staff implements UserDetails {
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", nullable = false)
     private String status;
-
-    @OneToMany(mappedBy = "staff")
-    @JsonIgnore
-    private List<StaffToken> tokens;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }
