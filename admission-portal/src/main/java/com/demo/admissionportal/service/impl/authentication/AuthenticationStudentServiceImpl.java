@@ -1,4 +1,4 @@
-package com.demo.admissionportal.service.impl;
+package com.demo.admissionportal.service.impl.authentication;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
