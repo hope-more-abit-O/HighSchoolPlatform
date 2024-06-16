@@ -16,20 +16,20 @@ import org.hibernate.annotations.Nationalized;
 public class Subject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Integer id;
 
     @Size(max = 40)
     @NotNull
     @Nationalized
-    @Column(name = "name", nullable = false, length = 40)
+    @Column(name = "name")
     private String name;
 
     @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("ACTIVE")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
 }

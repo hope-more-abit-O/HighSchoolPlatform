@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.authentication;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
@@ -24,7 +25,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,25 +57,25 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
     public ResponseData<LoginResponseDTO> register(RegisterStudentRequestDTO request) {
         try {
             if (request == null) {
-                return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Request bị trống");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Request bị trống");
             }
             // Case 1 : Existed By Email
             Student checkExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
             if (checkExistedByEmail != null) {
                 log.error("Email {} is already existed", checkExistedByEmail.getEmail());
-                return new ResponseData<>(HttpStatus.CONFLICT.value(), "Email đã được tài khoản khác sử dụng", null);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được tài khoản khác sử dụng");
             }
             // Case 2: Existed By UserName
             Optional<Student> checkExistedByUserName = studentRepository.findByUsername(request.getUsername());
             if (checkExistedByUserName.isPresent()) {
                 log.error("Username {} is already existed", request.getUsername());
-                return new ResponseData<>(HttpStatus.CONFLICT.value(), "Username đã được tài khoản khác sử dụng", null);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng", null);
             }
             // Case 3: Existed By Phone
             Student checkExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
             if (checkExistedByPhone != null) {
                 log.error("Phone {} is already existed", checkExistedByPhone.getPhone());
-                return new ResponseData<>(HttpStatus.CONFLICT.value(), "Số điện thoại đã được tài khoản khác sử dụng", null);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng", null);
             }
 
             // Sending OTP to Email
@@ -109,11 +109,11 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             // Save student in Redis Cache
             otpService.saveStudent(student.getEmail(), student);
 
-            return new ResponseData<>(HttpStatus.CREATED.value(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+            return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
         } catch (Exception ex) {
             log.error("Error occurred while sending email: {}", ex.getMessage());
         }
-        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Xuất hiện lỗi khi tạo tài khoản", null);
+        return new ResponseData<>(ResponseCode.C201.getCode(), "Xuất hiện lỗi khi tạo tài khoản", null);
     }
 
     @Override
@@ -124,18 +124,18 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
                     .or(() -> Optional.ofNullable(studentRepository.findByEmail(request.getUsername())))
                     .orElseThrow(null);
             if (student == null) {
-                return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy user");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             var jwtToken = jwtService.generateToken(student);
             var refreshToken = jwtService.generateRefreshToken(student);
             revokeAllStudentTokens(student);
             saveStudentToken(student, jwtToken, refreshToken);
-            return new ResponseData<>(HttpStatus.OK.value(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
             log.error("Error occurred while login: {}", ex.getMessage());
-            return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Tên đăng nhập hoặc mật khẩu không đúng");
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
         }
     }
 
@@ -181,10 +181,10 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
         String storedOtp = otpService.getOTP(verifyStudentRequestDTO.getEmail());
         LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyStudentRequestDTO.getEmail());
         if (storedOtp == null) {
-            return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "OTP đã hết hạn không tồn tại");
+            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
         }
         if (!storedOtp.equals(verifyStudentRequestDTO.getOtpFromEmail())) {
-            return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "OTP không hợp lệ");
+            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
         }
         // Setting 10 minutes for OTP
         if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
@@ -198,9 +198,9 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             var refreshToken = jwtService.generateRefreshToken(createStudent);
             saveStudentToken(createStudent, jwtToken, refreshToken);
             log.info("Student has been verified: {}", createStudent);
-            return new ResponseData<>(HttpStatus.OK.value(), "Tài khoản đã được xác thực thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } else {
-            return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "OTP đã hết hạn", null);
+            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
         }
     }
 
@@ -221,10 +221,10 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             if (!emailUtil.sendOtpEmail(requestDTO.getEmail().trim(), newOTP)) {
                 throw new RuntimeException("Không thể gửi OTP xin vui lòng thử lại");
             }
-            return new ResponseData<>(HttpStatus.OK.value(), "Đã gửi lại mã OTP. Vui lòng kiểm tra mail!");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã gửi lại mã OTP. Vui lòng kiểm tra mail!");
         } catch (Exception ex) {
             log.error("regenerateOtp error: {}", ex.getMessage());
-            return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), ex.getMessage());
         }
 
     }

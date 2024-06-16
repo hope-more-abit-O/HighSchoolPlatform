@@ -23,8 +23,17 @@ public enum ResponseCode {
     /**
      * The C 205.
      */
-    C205(5, "BAD REQUEST");
+    C205(5, "BAD REQUEST"),
 
+    /**
+     * C 206 response code.
+     */
+    C206(6, "CREATED"),
+
+    /**
+     * C 207 response code.
+     */
+    C207(7, "INTERNAL_SERVER_ERROR");
     private int code;
     private String message;
 

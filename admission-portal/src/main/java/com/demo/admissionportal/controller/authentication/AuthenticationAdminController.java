@@ -1,4 +1,4 @@
-package com.demo.admissionportal.controller;
+package com.demo.admissionportal.controller.authentication;
 
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
@@ -34,7 +34,7 @@ public class AuthenticationAdminController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationAdminService.login(request);
-        if (loginAccount.getData() != null) {
+        if (loginAccount != null) {
             return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else {
             return ResponseEntity.status(loginAccount.getStatus()).body(loginAccount);

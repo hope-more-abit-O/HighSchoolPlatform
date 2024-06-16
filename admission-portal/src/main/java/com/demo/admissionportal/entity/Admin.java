@@ -66,7 +66,7 @@ public class Admin implements UserDetails {
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @Override
