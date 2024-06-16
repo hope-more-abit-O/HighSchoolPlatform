@@ -8,9 +8,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-
 /**
- * The type University controller.
+ * Controller for managing university-related operations.
+ *
+ * @author hopeless
+ * @version 1.0
+ * @since 13/06/2024
  */
 @RestController
 @RequestMapping("/api/v1/unversity")
@@ -19,12 +22,12 @@ public class UniversityController {
     private final UniversityService universityService;
 
     /**
-     * Register university response data.
+     * Handles the registration of a new university by a staff member.
      *
-     * @param request the request
-     * @return the response data
+     * @param request The request containing university information.
+     * @return A response containing the registration result.
      */
-    @PostMapping("/staff")
+    @PostMapping
     public ResponseData<?> registerUniversity(@RequestBody @Valid StaffRegisterUniversityRequestDTO request) {
         //if request insert null
         if (request == null) {
@@ -34,10 +37,10 @@ public class UniversityController {
     }
 
     /**
-     * Register fail university response data.
+     * Creates a new university with a predefined "fail" status for testing purposes.
      *
-     * @param request the request
-     * @return the response data
+     * @param request The request containing university information.
+     * @return A response containing the creation result.
      */
     @PostMapping("/test/create/fail")
     public ResponseData<?> registerFailUniversity(@RequestBody @Valid StaffRegisterUniversityRequestDTO request) {

@@ -1,6 +1,7 @@
 package com.demo.admissionportal.config;
 
 
+import com.demo.admissionportal.converter.AccountStatusConverter;
 import com.demo.admissionportal.converter.LocalDateTimeConverter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -22,6 +23,7 @@ public class ModelMapperConfig {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
         modelMapper.addConverter(new LocalDateTimeConverter());
+        modelMapper.addConverter(new AccountStatusConverter());
         return modelMapper;
     }
 

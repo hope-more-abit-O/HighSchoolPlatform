@@ -13,4 +13,6 @@ public interface UniversityRepository extends JpaRepository<University, Integer>
     Optional<University> findByUsernameOrName(String username, String name);
 
     List<University> findByUsernameOrEmailOrCode(String username, String email, String code);
+
+    List<University> findByUsernameOrEmail(String username, String email);
 }

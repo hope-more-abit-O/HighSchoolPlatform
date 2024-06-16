@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.University;
 
 public interface UniversityService {
 
@@ -20,4 +21,7 @@ public interface UniversityService {
      * @return A response containing the created university and staff-university association.
      */
     public ResponseData<?> staffCreateUniversity(StaffRegisterUniversityRequestDTO request);
+
+    //TODO JAVADOC
+    public University getUniversityById(Integer id);
 }

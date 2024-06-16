@@ -20,36 +20,39 @@ public class University {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "code", length = 250)
+    @Column(name = "code")
     private String code;
 
-    @Column(name = "name", nullable = false, length = 250)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "username", nullable = false, length = 50)
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name = "email", length = 100)
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "password", nullable = false, length = 100)
+    @Column(name = "password", nullable = false)
     private String password;
 
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name = "avatar", nullable = false, length = 100)
+    @Column(name = "avatar", nullable = false)
     private String avatar;
 
+    @Column(name = "phone", nullable = false)
+    private String phone;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 15)
+    @Column(name = "type", nullable = false)
     private UniversityType type;
 
     @NotNull
     @Nationalized
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'PENDING'")
-    @Column(name = "status", nullable = false, length = 255)
+    @Column(name = "status", nullable = false)
     private AccountStatus status;
 
     public University(String code, String name, String username, String email, String password, UniversityType type) {

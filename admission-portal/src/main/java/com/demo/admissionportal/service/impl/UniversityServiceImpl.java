@@ -116,4 +116,15 @@ public class UniversityServiceImpl implements UniversityService {
             return ResponseData.error("Tạo trường đại học thất bại, vui lòng kiểm tra lại!", e.getMessage());
         }
     }
+
+    /**
+     * Retrieves a university by its ID.
+     *
+     * @param id The ID of the university to retrieve.
+     * @return The university with the specified ID, or null if no such university exists.
+     */
+    public University getUniversityById(Integer id){
+        return universityRepository.findById(id).orElse(null);
+    }
+
 }
