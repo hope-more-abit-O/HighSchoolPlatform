@@ -1,9 +1,12 @@
 package com.demo.admissionportal.dto.response;
 
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,5 +60,27 @@ public class ResponseData<T> {
         this.status = status;
         this.message = message;
         this.errors = errors;
+    }
+
+    public static ResponseData<?> error(String message, List<String> errorsMessage) {
+        Map<String, String> errors = new HashMap<>();
+        for (String error : errorsMessage) {
+            errors.put("Error detail", error);
+        }
+        return new ResponseData<>(ResponseCode.C201.getCode(), message, errors);
+    }
+    public static ResponseData<?> error(String message) {
+        Map<String, String> errors = new HashMap<>();
+        return new ResponseData<>(ResponseCode.C201.getCode(), message);
+    }
+
+    public static ResponseData<?> error(String message, String errorMessage) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("Error detail", errorMessage);
+        return new ResponseData<>(ResponseCode.C201.getCode(), message, errors);
+    }
+
+    public static ResponseData<?> ok(String message, Object data) {
+        return new ResponseData<>(ResponseCode.C200.getCode(), message, data);
     }
 }
