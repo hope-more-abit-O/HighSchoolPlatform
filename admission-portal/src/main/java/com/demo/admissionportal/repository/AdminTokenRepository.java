@@ -1,6 +1,6 @@
 package com.demo.admissionportal.repository;
 
-import com.demo.admissionportal.entity.StaffToken;
+import com.demo.admissionportal.entity.AdminToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -9,30 +9,28 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The interface Staff token repository.
+ * The interface Admin token repository.
  */
 @Repository
-public interface StaffTokenRepository extends JpaRepository<StaffToken, Integer> {
-
+public interface AdminTokenRepository extends JpaRepository<AdminToken, Integer> {
     /**
-     * Find all valid token by staff list.
+     * Find all valid token by admin list.
      *
      * @param userId the user id
      * @return the list
      */
     @Query("""
             SELECT t 
-            FROM StaffToken t INNER JOIN Staff u ON t.staff.id = u.id
+            FROM AdminToken t INNER JOIN Admin u ON t.admin.id = u.id
             WHERE u.id =  :userId and (t.expired = false or t.revoked = false)
             """)
-    List<StaffToken> findAllValidTokenByStaff(Integer userId);
+    List<AdminToken> findAllValidTokenByAdmin(Integer userId);
 
     /**
-     * Find by token staff optional.
+     * Find by admin token optional.
      *
      * @param token the token
      * @return the optional
      */
-    Optional<StaffToken> findByStaffToken(String token);
-
+    Optional<AdminToken> findByAdminToken(String token);
 }
