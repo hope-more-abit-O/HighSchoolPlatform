@@ -51,7 +51,6 @@ public class Student implements UserDetails {
     @Column(name = "middle_name")
     private String middleName;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
     @Column(name = "last_name")
@@ -95,7 +94,6 @@ public class Student implements UserDetails {
     @Column(name = "gender")
     private String gender;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("ACTIVE")

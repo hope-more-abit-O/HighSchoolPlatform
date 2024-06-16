@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -9,7 +10,6 @@ import com.demo.admissionportal.service.SubjectService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -31,17 +31,17 @@ public class SubjectServiceImpl implements SubjectService {
                 Subject checkExisted = subjectRepository.findSubjectByName(requestSubjectDTO.getName().trim());
                 if (checkExisted != null) {
                     log.error("Subject {} is already existed", requestSubjectDTO.getName());
-                    return new ResponseData<>(HttpStatus.CONFLICT.value(), "Môn học " + requestSubjectDTO.getName() + " đã tồn tại", null);
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Môn học " + requestSubjectDTO.getName() + " đã tồn tại", null);
                 }
                 Subject subject = modelMapper.map(requestSubjectDTO, Subject.class);
                 subject.setStatus(SubjectStatus.ACTIVE.name().trim());
                 Subject createSubject = subjectRepository.save(subject);
                 log.info("Subject {} is successfully added", requestSubjectDTO.getName());
-                return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo môn học thành công", createSubject);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo môn học thành công", createSubject);
             }
         } catch (Exception ex) {
             log.error("Error occurred while creating subject: {}", ex.getMessage());
         }
-        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Xuất hiện lỗi khi tạo môn học", null);
+        return new ResponseData<>(ResponseCode.C201.getCode(), "Xuất hiện lỗi khi tạo môn học", null);
     }
 }

@@ -34,7 +34,7 @@ public class SubjectController {
     @PostMapping()
     public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
         ResponseData<Subject> createdSubject = subjectService.createSubject(requestSubjectDTO);
-        if (createdSubject.getData() != null) {
+        if (createdSubject != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSubject);
         } else {
             return ResponseEntity.status(createdSubject.getStatus()).body(createdSubject);

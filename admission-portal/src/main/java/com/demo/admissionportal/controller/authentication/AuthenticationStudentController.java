@@ -1,4 +1,4 @@
-package com.demo.admissionportal.controller;
+package com.demo.admissionportal.controller.authentication;
 
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
@@ -39,7 +39,7 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> registerStudentAccount = authenticationStudentService.register(request);
-        if (registerStudentAccount.getData() != null) {
+        if (registerStudentAccount != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerStudentAccount);
         } else {
             return ResponseEntity.status(registerStudentAccount.getStatus()).body(registerStudentAccount);
@@ -58,7 +58,7 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationStudentService.login(request);
-        if (loginAccount.getData() != null) {
+        if (loginAccount != null) {
             return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else {
             return ResponseEntity.status(loginAccount.getStatus()).body(loginAccount);
@@ -89,8 +89,8 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> verifyAccount = authenticationStudentService.verifyAccount(verifyStudentRequestDTO);
-        if (verifyAccount.getData() != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(verifyAccount);
+        if (verifyAccount != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(verifyAccount);
         } else {
             return ResponseEntity.status(verifyAccount.getStatus()).body(verifyAccount);
         }
@@ -102,8 +102,8 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> regenerateOtp = authenticationStudentService.regenerateOtp(requestDTO);
-        if (regenerateOtp.getData() != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(regenerateOtp);
+        if (regenerateOtp != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(regenerateOtp);
         } else {
             return ResponseEntity.status(regenerateOtp.getStatus()).body(regenerateOtp);
         }

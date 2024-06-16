@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl.authentication;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
@@ -12,7 +13,6 @@ import com.demo.admissionportal.service.AuthenticationAdminService;
 import com.demo.admissionportal.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -39,18 +39,18 @@ public class AuthenticationAdminServiceImpl implements AuthenticationAdminServic
                     .or(() -> Optional.ofNullable(adminRepository.findByEmail(request.getUsername())))
                     .orElseThrow(null);
             if (admin == null) {
-                return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy user");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             var jwtToken = jwtService.generateToken(admin);
             var refreshToken = jwtService.generateRefreshToken(admin);
             revokeAllAdminTokens(admin);
             saveAdminToken(admin, jwtToken, refreshToken);
-            return new ResponseData<>(HttpStatus.OK.value(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
             log.error("Error occurred while login: {}", ex.getMessage());
-            return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Tên đăng nhập hoặc mật khẩu không đúng");
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
         }
     }
 
