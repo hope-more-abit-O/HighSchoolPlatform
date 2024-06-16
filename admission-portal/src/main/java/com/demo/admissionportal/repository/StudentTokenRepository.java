@@ -3,6 +3,7 @@ package com.demo.admissionportal.repository;
 import com.demo.admissionportal.entity.StudentToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import java.util.Optional;
 /**
  * The interface Student token repository.
  */
+@Repository
 public interface StudentTokenRepository extends JpaRepository<StudentToken, Integer> {
     /**
      * Find all valid token by user list.

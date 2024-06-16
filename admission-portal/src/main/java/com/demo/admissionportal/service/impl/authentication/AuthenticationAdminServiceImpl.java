@@ -4,13 +4,13 @@ import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.Staff;
-import com.demo.admissionportal.entity.StaffToken;
-import com.demo.admissionportal.repository.StaffRepository;
-import com.demo.admissionportal.repository.StaffTokenRepository;
-import com.demo.admissionportal.service.AuthenticationStaffService;
+import com.demo.admissionportal.entity.Admin;
+import com.demo.admissionportal.entity.AdminToken;
+import com.demo.admissionportal.repository.AdminRepository;
+import com.demo.admissionportal.repository.AdminTokenRepository;
+import com.demo.admissionportal.service.AuthenticationAdminService;
 import com.demo.admissionportal.service.JwtService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,29 +19,32 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * The type Authentication admin service.
+ */
 @Service
-@AllArgsConstructor
 @Slf4j
-public class AuthenticationStaffServiceImpl implements AuthenticationStaffService {
+@RequiredArgsConstructor
+public class AuthenticationAdminServiceImpl implements AuthenticationAdminService {
     private final AuthenticationManager authenticationManager;
-    private final StaffRepository staffRepository;
-    private final StaffTokenRepository staffTokenRepository;
+    private final AdminRepository adminRepository;
+    private final AdminTokenRepository adminTokenRepository;
     private final JwtService jwtService;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-            var staff = staffRepository.findByUsername(request.getUsername())
-                    .or(() -> Optional.ofNullable(staffRepository.findByEmail(request.getUsername())))
+            var admin = adminRepository.findByUsername(request.getUsername())
+                    .or(() -> Optional.ofNullable(adminRepository.findByEmail(request.getUsername())))
                     .orElseThrow(null);
-            if (staff == null) {
+            if (admin == null) {
                 return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy user");
             }
-            var jwtToken = jwtService.generateToken(staff);
-            var refreshToken = jwtService.generateRefreshToken(staff);
-            revokeAllStaffTokens(staff);
-            saveStaffToken(staff, jwtToken, refreshToken);
+            var jwtToken = jwtService.generateToken(admin);
+            var refreshToken = jwtService.generateRefreshToken(admin);
+            revokeAllAdminTokens(admin);
+            saveAdminToken(admin, jwtToken, refreshToken);
             return new ResponseData<>(HttpStatus.OK.value(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
@@ -51,25 +54,25 @@ public class AuthenticationStaffServiceImpl implements AuthenticationStaffServic
         }
     }
 
-    private void revokeAllStaffTokens(Staff staff) {
-        var validStaffTokens = staffTokenRepository.findAllValidTokenByStaff(staff.getId());
+    private void revokeAllAdminTokens(Admin admin) {
+        var validStaffTokens = adminTokenRepository.findAllValidTokenByAdmin(admin.getId());
         if (validStaffTokens.isEmpty()) return;
         validStaffTokens.forEach(token -> {
             token.setExpired(true);
             token.setRevoked(true);
         });
-        staffTokenRepository.saveAll(validStaffTokens);
+        adminTokenRepository.saveAll(validStaffTokens);
     }
 
-    private void saveStaffToken(Staff staff, String jwtToken, String refreshToken) {
-        var token = StaffToken.builder()
-                .staff(staff)
-                .staffToken(jwtToken)
+    private void saveAdminToken(Admin admin, String jwtToken, String refreshToken) {
+        var token = AdminToken.builder()
+                .admin(admin)
+                .adminToken(jwtToken)
                 .tokenType(TokenType.BEARER)
                 .expired(false)
                 .revoked(false)
-                .refreshTokenStaffToken(refreshToken)
+                .refreshTokenAdminToken(refreshToken)
                 .build();
-        staffTokenRepository.save(token);
+        adminTokenRepository.save(token);
     }
 }
