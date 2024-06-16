@@ -7,18 +7,19 @@ import com.demo.admissionportal.util.EnumValue;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
+import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * The type Register student request.
@@ -46,12 +47,13 @@ public class RegisterStudentRequestDTO implements Serializable {
     @NotNull(message = "Địa chỉ không thể để trống")
     private int address;
     @NotNull(message = "Ngày sinh không thể để trống")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime birthday;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @PastOrPresent(message = "Ngày sinh không được vượt ngày hiện tại")
+    @JsonSerialize(using = DateSerializer.class)
+    @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    private Date birthday;
     @NotNull(message = "Lớp không thể để trống")
-    private String educationLevel;
+    private int educationLevel;
     private String avatar;
     @NotNull(message = "Số điện thoại không thể để trống !")
     @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")

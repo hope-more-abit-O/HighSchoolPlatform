@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
+import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,8 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,77 +37,69 @@ public class Student implements UserDetails {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 20)
     @NotNull
-    @Column(name = "username", nullable = false, length = 20)
+    @Column(name = "username")
     private String username;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "firstname", nullable = false, length = 20)
+    @Column(name = "firstname")
     private String firstname;
 
-    @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "middle_name", nullable = false, length = 20)
+    @Column(name = "middle_name")
     private String middleName;
 
     @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "last_name", nullable = false, length = 20)
+    @Column(name = "last_name")
     private String lastName;
 
     @NotNull
-    @Column(name = "email", nullable = false, length = 20)
+    @Column(name = "email")
     private String email;
 
-    @Size(max = 100)
     @NotNull
-    @Column(name = "password", nullable = false, length = 100)
+    @Column(name = "password")
     private String password;
 
     @NotNull
-    @Column(name = "address_id", nullable = false)
+    @Column(name = "address_id")
     private Integer addressId;
 
     @NotNull
     @Column(name = "birthday", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime birthday;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = DateSerializer.class)
+    @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    private Date birthday;
 
-    @Size(max = 10)
     @NotNull
     @Nationalized
-    @Column(name = "education_level", nullable = false, length = 10)
-    private String educationLevel;
+    @Column(name = "education_level_id")
+    private int educationLevel;
 
-    @Size(max = 20)
     @NotNull
-    @Column(name = "avatar", nullable = false, length = 20)
+    @Column(name = "avatar")
     private String avatar;
 
-    @Size(max = 11)
     @NotNull
-    @Column(name = "phone", nullable = false, length = 11)
+    @Column(name = "phone")
     private String phone;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("MALE")
-    @Column(name = "gender", nullable = false)
+    @Column(name = "gender")
     private String gender;
 
     @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("ACTIVE")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @Enumerated(EnumType.STRING)

@@ -4,6 +4,7 @@ import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.service.SubjectService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/subject")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class SubjectController {
     private final SubjectService subjectService;
 

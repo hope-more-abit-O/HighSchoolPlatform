@@ -1,4 +1,4 @@
-package com.demo.admissionportal.service.impl;
+package com.demo.admissionportal.service.impl.authentication;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
@@ -52,7 +52,6 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
     private final OTPUtil otpUtil;
     private final EmailUtil emailUtil;
     private final OTPService otpService;
-    private final ObjectMapper objectMapper;
 
     @Override
     public ResponseData<LoginResponseDTO> register(RegisterStudentRequestDTO request) {
@@ -97,8 +96,9 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
                     .lastName(request.getLastname().trim())
                     .email(request.getEmail().trim())
                     .password(passwordEncoder.encode(request.getPassword()).trim())
-                    .addressId(request.getAddress()).birthday(request.getBirthday())
-                    .educationLevel(request.getEducationLevel().trim())
+                    .addressId(request.getAddress())
+                    .birthday(request.getBirthday())
+                    .educationLevel(request.getEducationLevel())
                     .avatar(request.getAvatar())
                     .gender(request.getGender())
                     .role(Role.STUDENT)
@@ -118,13 +118,25 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        var student = studentRepository.findByUsername(request.getUsername()).orElseThrow();
-        var jwtToken = jwtService.generateToken(student);
-        var refreshToken = jwtService.generateRefreshToken(student);
-        revokeAllStudentTokens(student);
-        saveStudentToken(student, jwtToken, refreshToken);
-        return new ResponseData<>(HttpStatus.CREATED.value(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+            var student = studentRepository.findByUsername(request.getUsername())
+                    .or(() -> Optional.ofNullable(studentRepository.findByEmail(request.getUsername())))
+                    .orElseThrow(null);
+            if (student == null) {
+                return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy user");
+            }
+            var jwtToken = jwtService.generateToken(student);
+            var refreshToken = jwtService.generateRefreshToken(student);
+            revokeAllStudentTokens(student);
+            saveStudentToken(student, jwtToken, refreshToken);
+            return new ResponseData<>(HttpStatus.OK.value(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+        } catch (Exception ex) {
+            // Case 1: Bad Credential: Authentication Failure: 401
+            // Case 2: Access Denied : Authorization Error: 403
+            log.error("Error occurred while login: {}", ex.getMessage());
+            return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Tên đăng nhập hoặc mật khẩu không đúng");
+        }
     }
 
     private void saveStudentToken(Student student, String jwtToken, String refreshToken) {
@@ -186,7 +198,7 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             var refreshToken = jwtService.generateRefreshToken(createStudent);
             saveStudentToken(createStudent, jwtToken, refreshToken);
             log.info("Student has been verified: {}", createStudent);
-            return new ResponseData<>(HttpStatus.OK.value(), "Tài khoản đã được xác thực thành công", jwtToken);
+            return new ResponseData<>(HttpStatus.OK.value(), "Tài khoản đã được xác thực thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
         } else {
             return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "OTP đã hết hạn", null);
         }

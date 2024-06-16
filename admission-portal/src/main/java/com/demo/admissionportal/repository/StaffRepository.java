@@ -4,6 +4,8 @@ import com.demo.admissionportal.entity.Staff;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * The interface Staff repository.
  */
@@ -25,4 +27,22 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
      * @return the staff
      */
     Staff findByEmailOrUsername(String email, String username);
+
+
+    /**
+     * Find by username optional.
+     *
+     * @param username the username
+     * @return the optional
+     */
+    Optional<Staff> findByUsername(String username);
+
+
+    /**
+     * Find by email staff.
+     *
+     * @param email the email
+     * @return the staff
+     */
+    Staff findByEmail(String email);
 }
