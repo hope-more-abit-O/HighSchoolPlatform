@@ -44,6 +44,9 @@ public class Consultant implements UserDetails {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "role")
+    private String role;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -65,6 +68,7 @@ public class Consultant implements UserDetails {
         this.avatar = "default_avatar.png";
         this.phone = phone;
         this.status = AccountStatus.ACTIVE;
+        this.role = "CONSULTANT";
     }
 
     @Override
