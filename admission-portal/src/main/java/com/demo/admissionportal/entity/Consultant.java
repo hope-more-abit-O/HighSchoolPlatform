@@ -1,7 +1,6 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
-import com.demo.admissionportal.constants.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -52,10 +51,6 @@ public class Consultant implements UserDetails {
     @Column(name = "status")
     private AccountStatus status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private Role role;
-
     @OneToMany(mappedBy = "consultant")
     @JsonIgnore
     private List<ConsultantToken> tokens;
@@ -73,7 +68,7 @@ public class Consultant implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority(role));
     }
 
     @Override
