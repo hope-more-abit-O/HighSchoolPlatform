@@ -5,7 +5,9 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.Admin;
 import com.demo.admissionportal.entity.Staff;
+import com.demo.admissionportal.repository.AdminRepository;
 import com.demo.admissionportal.repository.StaffRepository;
 import com.demo.admissionportal.service.StaffService;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ public class StaffServiceImpl implements StaffService {
     private final StaffRepository staffRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AdminRepository adminRepository;
 
     /**
      * @param request
@@ -43,6 +46,16 @@ public class StaffServiceImpl implements StaffService {
             if (existPhone != null) {
                 log.warn("Staff with phone: {} already registered", request.getPhone().trim());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại này đã được đăng kí bởi nhân viên khác !");
+            }
+            Admin existAdmin = adminRepository.findAdminByUsernameAndEmail(request.getUsername().trim(), request.getEmail().trim());
+            if (existAdmin != null) {
+                log.warn("Admin with email: {} or username: {} already exists", request.getEmail(), request.getUsername());
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Tên đăng nhập hoặc Email đã tồn tại !");
+            }
+            Admin adminHasPhone = adminRepository.findAdminByPhone(request.getPhone());
+            if (adminHasPhone != null) {
+                log.warn("Admin with phone: {} already registered", request.getPhone().trim());
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được đăng kí bởi một Quản Trị Viên khác !");
             }
             Staff newStaff = modelMapper.map(request, Staff.class);
             newStaff.setPassword(passwordEncoder.encode(request.getPassword()));

@@ -32,6 +32,7 @@ public class RegisterStaffRequestDTO {
     @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
 
+
     /**
      * Is empty boolean.
      *
