@@ -1,7 +1,11 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.Staff;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -45,4 +49,8 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
      * @return the staff
      */
     Staff findByEmail(String email);
+
+    @Query("SELECT s FROM Staff s WHERE (:name IS NULL OR s.name LIKE %:name%) AND (:phone IS NULL OR s.phone LIKE %:phone%)")
+    Page<Staff> findAll(@Param("name") String name, @Param("phone") String phone, Pageable pageable);
+
 }
