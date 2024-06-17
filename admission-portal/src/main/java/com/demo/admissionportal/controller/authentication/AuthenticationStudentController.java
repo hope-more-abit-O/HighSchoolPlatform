@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller.authentication;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
 import com.demo.admissionportal.dto.request.VerifyStudentRequestDTO;
@@ -39,11 +40,12 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> registerStudentAccount = authenticationStudentService.register(request);
-        if (registerStudentAccount != null) {
+        if (registerStudentAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerStudentAccount);
-        } else {
-            return ResponseEntity.status(registerStudentAccount.getStatus()).body(registerStudentAccount);
+        } else if (registerStudentAccount.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(registerStudentAccount);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(registerStudentAccount);
     }
 
     /**
@@ -58,11 +60,12 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationStudentService.login(request);
-        if (loginAccount != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
-        } else {
-            return ResponseEntity.status(loginAccount.getStatus()).body(loginAccount);
+        if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(loginAccount);
+        } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
     }
 
     /**
@@ -89,11 +92,12 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> verifyAccount = authenticationStudentService.verifyAccount(verifyStudentRequestDTO);
-        if (verifyAccount != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(verifyAccount);
-        } else {
-            return ResponseEntity.status(verifyAccount.getStatus()).body(verifyAccount);
+        if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(verifyAccount);
+        } else if (verifyAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(verifyAccount);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(verifyAccount);
     }
 
     @PostMapping("/regenerate-otp")
@@ -102,10 +106,11 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> regenerateOtp = authenticationStudentService.regenerateOtp(requestDTO);
-        if (regenerateOtp != null) {
+        if (regenerateOtp.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(regenerateOtp);
-        } else {
-            return ResponseEntity.status(regenerateOtp.getStatus()).body(regenerateOtp);
+        } else if (regenerateOtp.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(regenerateOtp);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(regenerateOtp);
     }
 }
