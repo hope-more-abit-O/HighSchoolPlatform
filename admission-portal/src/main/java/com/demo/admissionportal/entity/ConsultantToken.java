@@ -5,24 +5,21 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-/**
- * The type Admin token.
- */
 @Getter
 @Setter
+@Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "admin_token")
-public class AdminToken {
+@Table(name = "consultant_token")
+public class ConsultantToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @NotNull
-    @Column(name = "admin_token")
-    private String adminToken;
+    @Column(name = "consultant_token")
+    private String consultantToken;
 
     @NotNull
     @Column(name = "token_type")
@@ -38,10 +35,10 @@ public class AdminToken {
     private boolean revoked;
 
     @NotNull
-    @Column(name = "refresh_token_admin_token")
-    private String refreshTokenAdminToken;
+    @Column(name = "refresh_token_consultant_token")
+    private String refreshTokenConsultantToken;
 
     @ManyToOne
-    @JoinColumn(name = "[admin_id]")
-    private Admin admin;
+    @JoinColumn(name = "[consultant_id]")
+    private Consultant consultant;
 }

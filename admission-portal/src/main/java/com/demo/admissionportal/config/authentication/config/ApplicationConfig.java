@@ -1,9 +1,11 @@
 package com.demo.admissionportal.config.authentication.config;
 
 import com.demo.admissionportal.entity.Admin;
+import com.demo.admissionportal.entity.Consultant;
 import com.demo.admissionportal.entity.Staff;
 import com.demo.admissionportal.entity.Student;
 import com.demo.admissionportal.repository.AdminRepository;
+import com.demo.admissionportal.repository.ConsultantRepository;
 import com.demo.admissionportal.repository.StaffRepository;
 import com.demo.admissionportal.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class ApplicationConfig implements UserDetailsService {
     private final StudentRepository studentRepository;
     private final StaffRepository staffRepository;
     private final AdminRepository adminRepository;
+    private final ConsultantRepository consultantRepository;
 
     /**
      * User details service user details service.
@@ -53,6 +56,11 @@ public class ApplicationConfig implements UserDetailsService {
                     .or(() -> Optional.ofNullable(adminRepository.findByEmail(username)));
             if (adminDetails.isPresent()) {
                 return adminDetails.get();
+            }
+            Optional<Consultant> consultantDetails = consultantRepository.findByUsername(username)
+                    .or(() -> consultantRepository.findByEmail(username));
+            if (consultantDetails.isPresent()) {
+                return consultantDetails.get();
             }
             throw new UsernameNotFoundException("Không tìm thấy user");
         };
@@ -109,6 +117,11 @@ public class ApplicationConfig implements UserDetailsService {
                 .or(() -> Optional.ofNullable(adminRepository.findByEmail(username)));
         if (adminDetails.isPresent()) {
             return adminDetails.get();
+        }
+        Optional<Consultant> consultantDetails = consultantRepository.findByUsername(username)
+                .or(() -> consultantRepository.findByEmail(username));
+        if (consultantDetails.isPresent()) {
+            return consultantDetails.get();
         }
         throw new UsernameNotFoundException("Không tìm thấy user");
     }
