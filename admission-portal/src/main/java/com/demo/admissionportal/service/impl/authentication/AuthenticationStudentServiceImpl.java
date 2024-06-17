@@ -10,10 +10,8 @@ import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
 import com.demo.admissionportal.dto.request.VerifyStudentRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.Student;
-import com.demo.admissionportal.entity.StudentToken;
-import com.demo.admissionportal.repository.StudentRepository;
-import com.demo.admissionportal.repository.StudentTokenRepository;
+import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.AuthenticationStudentService;
 import com.demo.admissionportal.service.JwtService;
 import com.demo.admissionportal.service.OTPService;
@@ -52,6 +50,10 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
     private final OTPUtil otpUtil;
     private final EmailUtil emailUtil;
     private final OTPService otpService;
+    private final StaffRepository staffRepository;
+    private final ConsultantRepository consultantRepository;
+    private final UniversityRepository universityRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     public ResponseData<LoginResponseDTO> register(RegisterStudentRequestDTO request) {
@@ -60,22 +62,37 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Request bị trống");
             }
             // Case 1 : Existed By Email
-            Student checkExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
-            if (checkExistedByEmail != null) {
-                log.error("Email {} is already existed", checkExistedByEmail.getEmail());
+            Student checkStudentExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
+            Staff checkStaffExistedByEmail = staffRepository.findByEmail(request.getEmail().trim());
+            Optional<Consultant> checkConsultantExistedByEmail = consultantRepository.findByEmail(request.getEmail().trim());
+            University checkUniversityExistedByEmail = universityRepository.findByEmail(request.getEmail().trim());
+            Admin checkAdminExistedByEmail = adminRepository.findByEmail(request.getEmail().trim());
+            if (checkStudentExistedByEmail != null || checkStaffExistedByEmail != null || checkConsultantExistedByEmail.isPresent()
+                    || checkUniversityExistedByEmail != null || checkAdminExistedByEmail != null) {
+                log.error("Email {} is already existed", request.getEmail());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được tài khoản khác sử dụng");
             }
             // Case 2: Existed By UserName
-            Optional<Student> checkExistedByUserName = studentRepository.findByUsername(request.getUsername());
-            if (checkExistedByUserName.isPresent()) {
+            Optional<Student> checkStudentExistedByUserName = studentRepository.findByUsername(request.getUsername().trim());
+            Optional<Staff> checkStaffExistedByUserName = staffRepository.findByUsername(request.getUsername().trim());
+            Optional<Consultant> checkConsultantExistedByUserName = consultantRepository.findByUsername(request.getUsername().trim());
+            University checkUniversityExistedByUserName = universityRepository.findByUsername(request.getUsername().trim());
+            Optional<Admin> checkAdminExistedByUsername = adminRepository.findByUsername(request.getUsername().trim());
+            if (checkStudentExistedByUserName.isPresent() || checkStaffExistedByUserName.isPresent() || checkConsultantExistedByUserName.isPresent()
+                    || checkUniversityExistedByUserName != null || checkAdminExistedByUsername.isPresent()) {
                 log.error("Username {} is already existed", request.getUsername());
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng", null);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng");
             }
             // Case 3: Existed By Phone
-            Student checkExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
-            if (checkExistedByPhone != null) {
-                log.error("Phone {} is already existed", checkExistedByPhone.getPhone());
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng", null);
+            Student checkStudentExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
+            Staff checkStaffExistedExistedByPhone = staffRepository.findByPhone(request.getPhone().trim());
+            Optional<Consultant> checkConsultantExistedByPhone = consultantRepository.findByPhone(request.getPhone().trim());
+            University checkUniversityExistedByPhone = universityRepository.findByPhone(request.getPhone().trim());
+            Admin checkAdminExistedByPhone = adminRepository.findAdminByPhone(request.getPhone().trim());
+            if (checkStudentExistedByPhone != null || checkStaffExistedExistedByPhone != null || checkConsultantExistedByPhone.isPresent()
+                    || checkUniversityExistedByPhone != null || checkAdminExistedByPhone != null) {
+                log.error("Phone {} is already existed", request.getPhone());
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng");
             }
 
             // Sending OTP to Email

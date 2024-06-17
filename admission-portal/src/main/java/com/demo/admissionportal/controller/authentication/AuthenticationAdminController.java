@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller.authentication;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -34,10 +35,11 @@ public class AuthenticationAdminController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationAdminService.login(request);
-        if (loginAccount != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
-        } else {
-            return ResponseEntity.status(loginAccount.getStatus()).body(loginAccount);
+        if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(loginAccount);
+        } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
     }
 }
