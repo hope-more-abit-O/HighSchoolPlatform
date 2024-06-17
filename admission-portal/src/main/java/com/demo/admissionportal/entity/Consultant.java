@@ -36,6 +36,9 @@ public class Consultant {
     @Column(name = "phone", nullable = false)
     private String phone;
 
+    @Column(name = "role")
+    private String role;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -50,5 +53,6 @@ public class Consultant {
         this.avatar = "default_avatar.png";
         this.phone = phone;
         this.status = AccountStatus.ACTIVE;
+        this.role = "CONSULTANT";
     }
 }
