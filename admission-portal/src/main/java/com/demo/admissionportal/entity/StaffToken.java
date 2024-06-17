@@ -26,15 +26,16 @@ public class StaffToken {
 
     @NotNull
     @Column(name = "token_type")
+    @Enumerated(EnumType.STRING)
     private TokenType tokenType;
 
     @NotNull
     @Column(name = "expired")
-    private boolean expired = false;
+    private boolean expired;
 
     @NotNull
     @Column(name = "revoked")
-    private boolean revoked = false;
+    private boolean revoked;
 
     @NotNull
     @Column(name = "refresh_token_staff_token")

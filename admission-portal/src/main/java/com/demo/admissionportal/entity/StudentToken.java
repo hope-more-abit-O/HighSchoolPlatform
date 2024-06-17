@@ -23,7 +23,7 @@ public class StudentToken {
     private Integer id;
 
     @NotNull
-    @Column(name = "token_student")
+    @Column(name = "student_token")
     private String tokenStudent;
 
     @NotNull
@@ -32,11 +32,11 @@ public class StudentToken {
     private TokenType tokenType;
 
     @NotNull
-    @Column(name = "expired", nullable = false)
+    @Column(name = "expired")
     private boolean expired;
 
     @NotNull
-    @Column(name = "revoked", nullable = false)
+    @Column(name = "revoked")
     private boolean revoked;
 
     @NotNull
