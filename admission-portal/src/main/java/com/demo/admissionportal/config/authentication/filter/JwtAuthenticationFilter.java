@@ -1,6 +1,7 @@
 package com.demo.admissionportal.config.authentication.filter;
 
 import com.demo.admissionportal.repository.AdminTokenRepository;
+import com.demo.admissionportal.repository.ConsultantTokenRepository;
 import com.demo.admissionportal.repository.StaffTokenRepository;
 import com.demo.admissionportal.repository.StudentTokenRepository;
 import com.demo.admissionportal.service.JwtService;
@@ -33,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final StudentTokenRepository studentTokenRepository;
     private final StaffTokenRepository staffTokenRepository;
     private final AdminTokenRepository adminTokenRepository;
+    private final ConsultantTokenRepository consultantTokenRepository;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -70,6 +72,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 isTokenValid = adminTokenRepository.findByAdminToken(jwt)
                         .map(t -> !t.isExpired() && !t.isRevoked())
                         .orElse(false);
+                if(!isTokenValid){
+                    isTokenValid = consultantTokenRepository.findByConsultantToken(jwt)
+                            .map(t -> !t.isExpired() && !t.isRevoked())
+                            .orElse(false);
+                }
             }
         }
         return isTokenValid;
