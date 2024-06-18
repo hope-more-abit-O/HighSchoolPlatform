@@ -76,10 +76,10 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             Optional<Student> checkStudentExistedByUserName = studentRepository.findByUsername(request.getUsername().trim());
             Optional<Staff> checkStaffExistedByUserName = staffRepository.findByUsername(request.getUsername().trim());
             Optional<Consultant> checkConsultantExistedByUserName = consultantRepository.findByUsername(request.getUsername().trim());
-            University checkUniversityExistedByUserName = universityRepository.findByUsername(request.getUsername().trim());
+            Optional<University> checkUniversityExistedByUserName = universityRepository.findByUsername(request.getUsername().trim());
             Optional<Admin> checkAdminExistedByUsername = adminRepository.findByUsername(request.getUsername().trim());
             if (checkStudentExistedByUserName.isPresent() || checkStaffExistedByUserName.isPresent() || checkConsultantExistedByUserName.isPresent()
-                    || checkUniversityExistedByUserName != null || checkAdminExistedByUsername.isPresent()) {
+                    || checkUniversityExistedByUserName.isPresent() || checkAdminExistedByUsername.isPresent()) {
                 log.error("Username {} is already existed", request.getUsername());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng");
             }
@@ -87,10 +87,10 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
             Student checkStudentExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
             Staff checkStaffExistedExistedByPhone = staffRepository.findByPhone(request.getPhone().trim());
             Optional<Consultant> checkConsultantExistedByPhone = consultantRepository.findByPhone(request.getPhone().trim());
-            University checkUniversityExistedByPhone = universityRepository.findByPhone(request.getPhone().trim());
+            Optional<University> checkUniversityExistedByPhone = universityRepository.findByPhone(request.getPhone().trim());
             Admin checkAdminExistedByPhone = adminRepository.findAdminByPhone(request.getPhone().trim());
             if (checkStudentExistedByPhone != null || checkStaffExistedExistedByPhone != null || checkConsultantExistedByPhone.isPresent()
-                    || checkUniversityExistedByPhone != null || checkAdminExistedByPhone != null) {
+                    || checkUniversityExistedByPhone.isPresent() || checkAdminExistedByPhone != null) {
                 log.error("Phone {} is already existed", request.getPhone());
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng");
             }
