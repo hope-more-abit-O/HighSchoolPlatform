@@ -13,6 +13,7 @@ import com.demo.admissionportal.repository.ConsultantRepository;
 import com.demo.admissionportal.repository.sub_repository.UniversityConsultantRepository;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -33,6 +34,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final ConsultantRepository consultantRepository;
     private final UniversityService universityService;
     private final UniversityConsultantRepository universityConsultantRepository;
+    private final ValidationService validationService;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
@@ -118,12 +120,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         }
         log.info("University id: {} founded!", request.getUniversityId());
 
-        log.info("Checking existing email availability: {}", request.getEmail());
-        if (consultantRepository.findByEmail(request.getEmail()).isPresent()) {
-            log.warn("Email: {} not available", request.getEmail());
-            throw new Exception("Email đã được sử dụng!");
-        }
-        log.info("Email: {} is available.", request.getEmail());
+        validationService.validateUsernameAndEmailAvailable(request.getUsername(), request.getEmail());
 
         log.info("Checking existing username availability: {}", request.getUsername());
         if (consultantRepository.findByUsername(request.getUsername()).isPresent()) {

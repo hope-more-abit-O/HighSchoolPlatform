@@ -3,12 +3,11 @@ package com.demo.admissionportal.service;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
-import com.demo.admissionportal.dto.request.VerifyStudentRequestDTO;
+import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.coyote.Response;
 
 import java.io.IOException;
 
@@ -45,10 +44,10 @@ public interface AuthenticationStudentService {
     /**
      * Verify account response data.
      *
-     * @param verifyStudentRequestDTO the verify student request dto
+     * @param verifyAccountRequestDTO the verify student request dto
      * @return the response data
      */
-    ResponseData<?> verifyAccount(VerifyStudentRequestDTO verifyStudentRequestDTO);
+    ResponseData<?> verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO);
 
     /**
      * Regenerate otp response data.

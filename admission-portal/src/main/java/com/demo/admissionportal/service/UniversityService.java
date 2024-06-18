@@ -1,9 +1,15 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
+import com.demo.admissionportal.dto.request.VerifyUpdateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.University;
 
+/**
+ * The interface University service.
+ */
 public interface UniversityService {
 
     /**
@@ -22,6 +28,29 @@ public interface UniversityService {
      */
     public ResponseData<?> staffCreateUniversity(StaffRegisterUniversityRequestDTO request);
 
-    //TODO JAVADOC
+    /**
+     * Gets university by id.
+     *
+     * @param id the id
+     * @return the university by id
+     */
+//TODO JAVADOC
     public University getUniversityById(Integer id);
+
+
+    /**
+     * Update university response data.
+     *
+     * @param updateUniversityRequestDTO the update university request dto
+     * @return the response data
+     */
+    ResponseData<University> updateUniversity(UpdateUniversityRequestDTO updateUniversityRequestDTO);
+
+    /**
+     * Verify account response data.
+     *
+     * @param verifyUpdateUniversityRequestDTO the verify update university request dto
+     * @return the response data
+     */
+    ResponseData<?> verifyAccount(VerifyUpdateUniversityRequestDTO verifyUpdateUniversityRequestDTO);
 }
