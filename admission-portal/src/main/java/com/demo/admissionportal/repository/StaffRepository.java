@@ -45,4 +45,7 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
      * @return the staff
      */
     Staff findByEmail(String email);
+
+    Optional<Staff> findFirstByUsernameOrEmail(String username, String email);
+
 }
