@@ -6,23 +6,23 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
- * The type Admin token.
+ * The type University token.
  */
 @Getter
 @Setter
-@Builder
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "admin_token")
-public class AdminToken {
+@Builder
+@Table(name = "university_token")
+public class UniversityToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @NotNull
-    @Column(name = "admin_token")
-    private String adminToken;
+    @Column(name = "university_token")
+    private String universityToken;
 
     @NotNull
     @Column(name = "token_type")
@@ -31,17 +31,17 @@ public class AdminToken {
 
     @NotNull
     @Column(name = "expired")
-    private boolean expired;
+    private boolean expired = false;
 
     @NotNull
     @Column(name = "revoked")
     private boolean revoked;
 
     @NotNull
-    @Column(name = "refresh_token_admin_token")
-    private String refreshTokenAdminToken;
+    @Column(name = "refresh_token_university_token")
+    private String refreshTokenUniversityToken;
 
     @ManyToOne
-    @JoinColumn(name = "[admin_id]")
-    private Admin admin;
+    @JoinColumn(name = "[university_id]")
+    private University university;
 }

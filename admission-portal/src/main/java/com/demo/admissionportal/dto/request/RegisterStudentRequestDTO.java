@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -51,6 +53,7 @@ public class RegisterStudentRequestDTO implements Serializable {
     @PastOrPresent(message = "Ngày sinh không được vượt ngày hiện tại")
     @JsonSerialize(using = DateSerializer.class)
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    @Temporal(TemporalType.DATE)
     private Date birthday;
     @NotNull(message = "Lớp không thể để trống")
     private int educationLevel;
