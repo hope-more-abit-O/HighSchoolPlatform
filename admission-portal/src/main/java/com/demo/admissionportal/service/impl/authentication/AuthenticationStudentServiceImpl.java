@@ -7,7 +7,7 @@ import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
-import com.demo.admissionportal.dto.request.VerifyStudentRequestDTO;
+import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.*;
@@ -194,19 +194,19 @@ public class AuthenticationStudentServiceImpl implements AuthenticationStudentSe
     }
 
     @Override
-    public ResponseData<?> verifyAccount(VerifyStudentRequestDTO verifyStudentRequestDTO) {
-        String storedOtp = otpService.getOTP(verifyStudentRequestDTO.getEmail());
-        LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyStudentRequestDTO.getEmail());
+    public ResponseData<?> verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        String storedOtp = otpService.getOTP(verifyAccountRequestDTO.getEmail());
+        LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyAccountRequestDTO.getEmail());
         if (storedOtp == null) {
             return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
         }
-        if (!storedOtp.equals(verifyStudentRequestDTO.getOtpFromEmail())) {
+        if (!storedOtp.equals(verifyAccountRequestDTO.getOtpFromEmail())) {
             return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
         }
         // Setting 10 minutes for OTP
         if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
             // Get data from Redis Cache
-            Student studentFromRedis = otpService.getStudent(verifyStudentRequestDTO.getEmail());
+            Student studentFromRedis = otpService.getStudent(verifyAccountRequestDTO.getEmail());
 
             // Save data in DB
             var createStudent = studentRepository.save(studentFromRedis);
