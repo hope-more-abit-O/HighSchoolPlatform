@@ -54,8 +54,7 @@ public class Staff implements UserDetails {
     private String avatar;
 
     @NotNull
-    @Column(name = "phone"
-    )
+    @Column(name = "phone")
     private String phone;
 
     @Enumerated(EnumType.STRING)

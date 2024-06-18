@@ -3,7 +3,7 @@ package com.demo.admissionportal.controller.authentication;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterStudentRequestDTO;
-import com.demo.admissionportal.dto.request.VerifyStudentRequestDTO;
+import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.RegenerateOTPRequestDTO;
@@ -40,7 +40,7 @@ public class AuthenticationStudentController {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<LoginResponseDTO> registerStudentAccount = authenticationStudentService.register(request);
-        if (registerStudentAccount.getStatus() == ResponseCode.C200.getCode()) {
+        if (registerStudentAccount.getStatus() == ResponseCode.C206.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerStudentAccount);
         } else if (registerStudentAccount.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(registerStudentAccount);
@@ -83,15 +83,15 @@ public class AuthenticationStudentController {
     /**
      * Verify account response entity.
      *
-     * @param verifyStudentRequestDTO the verify student request dto
+     * @param verifyAccountRequestDTO the verify student request dto
      * @return the response entity
      */
     @PostMapping("/verify-account")
-    public ResponseEntity<ResponseData<?>> verifyAccount(@RequestBody VerifyStudentRequestDTO verifyStudentRequestDTO) {
-        if (verifyStudentRequestDTO == null) {
+    public ResponseEntity<ResponseData<?>> verifyAccount(@RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        if (verifyAccountRequestDTO == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
-        ResponseData<?> verifyAccount = authenticationStudentService.verifyAccount(verifyStudentRequestDTO);
+        ResponseData<?> verifyAccount = authenticationStudentService.verifyAccount(verifyAccountRequestDTO);
         if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(verifyAccount);
         } else if (verifyAccount.getStatus() == ResponseCode.C201.getCode()) {
@@ -100,6 +100,12 @@ public class AuthenticationStudentController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(verifyAccount);
     }
 
+    /**
+     * Regenerate otp response entity.
+     *
+     * @param requestDTO the request dto
+     * @return the response entity
+     */
     @PostMapping("/regenerate-otp")
     public ResponseEntity<ResponseData<?>> regenerateOtp(@RequestBody RegenerateOTPRequestDTO requestDTO) {
         if (requestDTO == null) {
