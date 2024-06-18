@@ -3,10 +3,10 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.dto.PaginationDTO;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.StaffService;
@@ -14,14 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -40,26 +39,6 @@ public class StaffServiceImpl implements StaffService {
     private final UniversityRepository universityRepository;
     private final StudentRepository studentRepository;
 
-    private final Map<String, String> allowedSortField = Map.of(
-            "name", "name",
-            "phone", "phone"
-    );
-    private Sort getSort(List<String> orders) {
-        Sort sort = Sort.unsorted();
-        for (String order : orders) {
-            String[] parts = order.split("_");
-            String field = parts[0];
-            String direction = parts[1];
-            if (allowedSortField.containsKey(field)) {
-                Sort.Order sortOrder = new Sort.Order(Sort.Direction.fromString(direction), allowedSortField.get(field));
-                sort = sort.and(Sort.by(sortOrder));
-            } else {
-                throw new RuntimeException("Invalid sort parameter: " + field);
-            }
-        }
-        return sort;
-    }
-
     /**
      * @param request
      * @return
@@ -67,104 +46,119 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<?> registerStaff(RegisterStaffRequestDTO request) {
         try {
-            log.info("Starting registration process for email, username: {}", request.getEmail(), request.getUsername());
+            log.info("Starting registration process for email: {}, username: {}", request.getEmail(), request.getUsername());
             if (request == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Request bị trống");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Yêu cầu tạo tài khoản bị trống !");
             }
             // Case 1 : Existed By Email
-            Student checkStudentExistedByEmail = studentRepository.findByEmail(request.getEmail().trim());
-            Staff checkStaffExistedByEmail = staffRepository.findByEmail(request.getEmail().trim());
-            Optional<Consultant> checkConsultantExistedByEmail = consultantRepository.findByEmail(request.getEmail().trim());
-            University checkUniversityExistedByEmail = universityRepository.findByEmail(request.getEmail().trim());
-            Admin checkAdminExistedByEmail = adminRepository.findByEmail(request.getEmail().trim());
-            if (checkStudentExistedByEmail != null || checkStaffExistedByEmail != null || checkConsultantExistedByEmail.isPresent()
-                    || checkUniversityExistedByEmail != null || checkAdminExistedByEmail != null) {
-                log.error("Email {} is already existed", request.getEmail());
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được tài khoản khác sử dụng");
+            String email = request.getEmail().trim();
+            Student checkStudentExistedByEmail = studentRepository.findByEmail(email);
+            Staff checkStaffExistedByEmail = staffRepository.findByEmail(email);
+            Optional<Consultant> checkConsultantExistedByEmail = consultantRepository.findByEmail(email);
+            University checkUniversityExistedByEmail = universityRepository.findByEmail(email);
+            Admin checkAdminExistedByEmail = adminRepository.findByEmail(email);
+            if (checkStudentExistedByEmail != null || checkStaffExistedByEmail != null || checkConsultantExistedByEmail.isPresent() || checkUniversityExistedByEmail != null || checkAdminExistedByEmail != null) {
+                log.error("Email {} is already existed", email);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được đăng kí bởi một tài khoản khác !");
             }
             // Case 2: Existed By UserName
-            Optional<Student> checkStudentExistedByUserName = studentRepository.findByUsername(request.getUsername().trim());
-            Optional<Staff> checkStaffExistedByUserName = staffRepository.findByUsername(request.getUsername().trim());
-            Optional<Consultant> checkConsultantExistedByUserName = consultantRepository.findByUsername(request.getUsername().trim());
-            University checkUniversityExistedByUserName = universityRepository.findByUsername(request.getUsername().trim());
-            Optional<Admin> checkAdminExistedByUsername = adminRepository.findByUsername(request.getUsername().trim());
-            if (checkStudentExistedByUserName.isPresent() || checkStaffExistedByUserName.isPresent() || checkConsultantExistedByUserName.isPresent()
-                    || checkUniversityExistedByUserName != null || checkAdminExistedByUsername.isPresent()) {
-                log.error("Username {} is already existed", request.getUsername());
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng");
+            String username = request.getUsername().trim();
+            Optional<Student> checkStudentExistedByUserName = studentRepository.findByUsername(username);
+            Optional<Staff> checkStaffExistedByUserName = staffRepository.findByUsername(username);
+            Optional<Consultant> checkConsultantExistedByUserName = consultantRepository.findByUsername(username);
+            Optional<University> checkUniversityExistedByUserName = universityRepository.findByUsername(username);
+            Optional<Admin> checkAdminExistedByUsername = adminRepository.findByUsername(username);
+            if (checkStudentExistedByUserName.isPresent() || checkStaffExistedByUserName.isPresent() || checkConsultantExistedByUserName.isPresent() || checkUniversityExistedByUserName.isPresent() || checkAdminExistedByUsername.isPresent()) {
+                log.error("Username {} is already existed", username);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Tên đăng nhập đã được đăng kí bởi một tài khoản khác !");
             }
             // Case 3: Existed By Phone
-            Student checkStudentExistedByPhone = studentRepository.findByPhone(request.getPhone().trim());
-            Staff checkStaffExistedExistedByPhone = staffRepository.findByPhone(request.getPhone().trim());
-            Optional<Consultant> checkConsultantExistedByPhone = consultantRepository.findByPhone(request.getPhone().trim());
-            University checkUniversityExistedByPhone = universityRepository.findByPhone(request.getPhone().trim());
-            Admin checkAdminExistedByPhone = adminRepository.findAdminByPhone(request.getPhone().trim());
-            if (checkStudentExistedByPhone != null || checkStaffExistedExistedByPhone != null || checkConsultantExistedByPhone.isPresent()
-                    || checkUniversityExistedByPhone != null || checkAdminExistedByPhone != null) {
-                log.error("Phone {} is already existed", request.getPhone());
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng");
+            String phone = request.getPhone().trim();
+            Student checkStudentExistedByPhone = studentRepository.findByPhone(phone);
+            Staff checkStaffExistedExistedByPhone = staffRepository.findByPhone(phone);
+            Optional<Consultant> checkConsultantExistedByPhone = consultantRepository.findByPhone(phone);
+            Optional<University> checkUniversityExistedByPhone = universityRepository.findByPhone(phone);
+            Admin checkAdminExistedByPhone = adminRepository.findAdminByPhone(phone);
+            if (checkStudentExistedByPhone != null || checkStaffExistedExistedByPhone != null || checkConsultantExistedByPhone.isPresent() || checkUniversityExistedByPhone.isPresent() || checkAdminExistedByPhone != null) {
+                log.error("Phone {} is already existed", phone);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được đăng kí sử dụng bởi một tài khoản khác !");
             }
             Staff newStaff = modelMapper.map(request, Staff.class);
             newStaff.setPassword(passwordEncoder.encode(request.getPassword()));
-            newStaff.setStatus(AccountStatus.ACTIVE.name());
             newStaff.setRole(Role.STAFF);
+            newStaff.setStatus(AccountStatus.ACTIVE.name());
             staffRepository.save(newStaff);
-            log.info("Staff registered successfully with email: {}", request.getEmail());
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", newStaff);
+            log.info("Admin registered successfully with email: {}, username: {}", email, username);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công!", newStaff);
         } catch (Exception e) {
-            log.error("Registering staff with email failed: {}", e.getMessage());
-            return new ResponseData<>(ResponseCode.C201.getCode(), "Tạo nhân viên thất bại, vui lòng kiểm tra lại !");
+            log.error("Registering admin with email: {}, username: {} failed: {}", request.getEmail(), request.getUsername(), e.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên viên tạo thất bại!", e);
         }
     }
+
     @Override
-    public PaginationDTO<Staff> getAllStaffs(int page, int size, Map<String, String> filters, List<String> order) {
-        Pageable pageable = PageRequest.of(page - 1, size, getSort(order));
-        String nameFilter = filters.getOrDefault("name", null);
-        String phoneFilter = filters.getOrDefault("phone", null);
-        Page<Staff> staffPage = staffRepository.findAll(nameFilter, phoneFilter, pageable);
-        return PaginationDTO.<Staff>builder()
-                .pageNum(page)
-                .pageSize(size)
-                .totalPageNum(staffPage.getTotalPages())
-                .totalItems(staffPage.getTotalElements())
-                .items(staffPage.getContent())
-                .build();
+    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String name, String email, String phone, Pageable pageable) {
+        log.info("Get all staff with filters: Username: {}, Name: {}, Email: {}, Phone: {}", username, name, email, phone);
+        List<StaffResponseDTO> staffResponse = new ArrayList<>();
+        Page<Staff> staffPage = staffRepository.findAll(username, name, email, phone, pageable);
+        staffPage.getContent().forEach(s -> staffResponse.add(modelMapper.map(s, StaffResponseDTO.class)));
+        Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
+        log.info("Successfully retrieved list of staffs", staffPage);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
     }
+
     @Override
-    public ResponseData<Staff> getStaffById(Integer id) {
+    public ResponseData<?> getStaffById(int id) {
         Optional<Staff> staff = staffRepository.findById(id);
-        if (staff.isPresent()) {
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Success", staff.get());
-        } else {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Staff not found");
+        if (staff.isEmpty()) {
+            log.warn("Staff with id: {} not found", id);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên này !");
+        }
+        Staff getStaff = staff.get();
+        StaffResponseDTO result = modelMapper.map(getStaff, StaffResponseDTO.class);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
+    }
+
+    @Override
+    public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
+        Optional<Staff> existStaffOptional = staffRepository.findById(id);
+
+        if (existStaffOptional.isEmpty()) {
+            log.warn("Staff with id: {} not found", id);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã {}: " + id);
+        }
+        Staff existStaff = existStaffOptional.get();
+        try {
+            log.info("Starting update process for Staff name: {}", request.getName());
+            modelMapper.map(request, existStaff);
+            existStaff.setPassword(passwordEncoder.encode(request.getPassword()));
+            staffRepository.save(existStaff);
+            StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+            log.info("Staff update successfully with ID: {}", existStaff.getId());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công !", staffResponseDTO);
+        } catch (Exception e) {
+            log.error("Error updateStaff with id: {}", id, e);
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau !");
         }
     }
+
+
     @Override
-    public ResponseData<Staff> updateStaff(Integer id, UpdateStaffRequestDTO request) {
-        Optional<Staff> optionalStaff = staffRepository.findById(id);
-        if (optionalStaff.isPresent()) {
-            Staff staff = optionalStaff.get();
-            modelMapper.map(request, staff);
-            staffRepository.save(staff);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Staff updated successfully", staff);
-        } else {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Staff not found");
+    public ResponseData<?> deleteStaffById(int id) {
+        try {
+            log.info("Starting delete process for staff ID: {}", id);
+            Staff existingStaff = staffRepository.findById(id).orElse(null);
+            if (existingStaff == null) {
+                log.warn("Staff with ID: {} not found", id);
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
+            }
+            existingStaff.setStatus(AccountStatus.INACTIVE.name());
+            staffRepository.save(existingStaff);
+            log.info("Staff with ID: {} is INACTIVE", id);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Xóa nhân viên thành công !");
+        } catch (Exception e) {
+            log.error("Delete staff with ID failed: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
         }
-    }
-    @Override
-    public ResponseData<Void> deleteStaff(Integer id) {
-        Optional<Staff> optionalStaff = staffRepository.findById(id);
-        if (optionalStaff.isPresent()) {
-            Staff staff = optionalStaff.get();
-            staff.setStatus(AccountStatus.INACTIVE.name());
-            staffRepository.save(staff);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Staff deleted successfully");
-        } else {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Staff not found");
-        }
-    }
-    @Override
-    public Staff getStaffById(int id){
-        return staffRepository.findById(id).orElse(null);
     }
 }
