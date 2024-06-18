@@ -1,9 +1,6 @@
 package com.demo.admissionportal.config.authentication.filter;
 
-import com.demo.admissionportal.repository.AdminTokenRepository;
-import com.demo.admissionportal.repository.ConsultantTokenRepository;
-import com.demo.admissionportal.repository.StaffTokenRepository;
-import com.demo.admissionportal.repository.StudentTokenRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.JwtService;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
@@ -35,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final StaffTokenRepository staffTokenRepository;
     private final AdminTokenRepository adminTokenRepository;
     private final ConsultantTokenRepository consultantTokenRepository;
+    private final UniversityTokenRepository universityTokenRepository;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -60,25 +58,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     public boolean isTokenValid(String jwt) {
-        boolean isTokenValid = studentTokenRepository.findByTokenStudent(jwt)
+        return isStudentTokenValid(jwt) ||
+                isStaffTokenValid(jwt) ||
+                isAdminTokenValid(jwt) ||
+                isConsultantTokenValid(jwt) ||
+                isUniversityTokenValid(jwt);
+    }
+
+    private boolean isStudentTokenValid(String jwt) {
+        return studentTokenRepository.findByTokenStudent(jwt)
                 .map(t -> !t.isExpired() && !t.isRevoked())
                 .orElse(false);
+    }
 
-        if (!isTokenValid) {
-            isTokenValid = staffTokenRepository.findByStaffToken(jwt)
-                    .map(t -> !t.isExpired() && !t.isRevoked())
-                    .orElse(false);
-            if (!isTokenValid) {
-                isTokenValid = adminTokenRepository.findByAdminToken(jwt)
-                        .map(t -> !t.isExpired() && !t.isRevoked())
-                        .orElse(false);
-                if(!isTokenValid){
-                    isTokenValid = consultantTokenRepository.findByConsultantToken(jwt)
-                            .map(t -> !t.isExpired() && !t.isRevoked())
-                            .orElse(false);
-                }
-            }
-        }
-        return isTokenValid;
+    private boolean isStaffTokenValid(String jwt) {
+        return staffTokenRepository.findByStaffToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
+    }
+
+    private boolean isAdminTokenValid(String jwt) {
+        return adminTokenRepository.findByAdminToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
+    }
+
+    private boolean isConsultantTokenValid(String jwt) {
+        return consultantTokenRepository.findByConsultantToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
+    }
+
+    private boolean isUniversityTokenValid(String jwt) {
+        return universityTokenRepository.findByUniversityToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
     }
 }
