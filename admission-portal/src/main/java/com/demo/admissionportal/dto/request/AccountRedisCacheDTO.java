@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -56,6 +58,7 @@ public class AccountRedisCacheDTO implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = DateSerializer.class)
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    @Temporal(TemporalType.DATE)
     private Date birthday;
 
     @NotNull
