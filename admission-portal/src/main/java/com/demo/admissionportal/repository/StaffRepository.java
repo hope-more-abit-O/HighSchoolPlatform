@@ -61,5 +61,8 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
             "(:phone IS NULL OR s.phone LIKE %:phone%)", nativeQuery = true)
     Page<Staff> findAll(String username, String name, String email, String phone, Pageable pageable);
 
+    Optional<Staff> findFirstByUsernameOrEmail(String username, String email);
+
+
 }
 
