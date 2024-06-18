@@ -1,11 +1,13 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.university.CreateUniversityTicketRequestDTO;
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.UniversityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -49,5 +51,10 @@ public class UniversityController {
             return new ResponseData<>(ResponseCode.C205.getCode(), ResponseCode.C205.getMessage());
         }
         return universityService.createUniversityFail(request);
+    }
+
+    @PostMapping("/create-ticket")
+    public ResponseEntity<?> createTicket(@RequestBody @Valid CreateUniversityTicketRequestDTO request) {
+        return null;
     }
 }
