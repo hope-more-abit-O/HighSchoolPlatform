@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
@@ -73,6 +72,7 @@ public class Student implements UserDetails {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = DateSerializer.class)
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    @Temporal(TemporalType.DATE)
     private Date birthday;
 
     @NotNull
