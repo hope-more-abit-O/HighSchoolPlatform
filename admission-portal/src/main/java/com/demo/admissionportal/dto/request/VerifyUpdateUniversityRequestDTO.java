@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * The type Verify student request dto.
+ * The type Verify update university request dto.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class VerifyStudentRequestDTO implements Serializable {
+public class VerifyUpdateUniversityRequestDTO implements Serializable {
+    private Integer universityId;
     private String email;
     private String otpFromEmail;
 }

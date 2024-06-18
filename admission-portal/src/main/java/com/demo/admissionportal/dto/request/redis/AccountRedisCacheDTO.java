@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.request;
+package com.demo.admissionportal.dto.request.redis;
 
 import com.demo.admissionportal.constants.Role;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -11,7 +11,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

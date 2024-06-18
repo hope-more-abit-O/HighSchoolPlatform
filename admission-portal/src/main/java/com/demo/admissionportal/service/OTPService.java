@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.entity.Student;
+import com.demo.admissionportal.entity.University;
 
 import java.time.LocalDateTime;
 
@@ -55,4 +56,20 @@ public interface OTPService {
      * @return the student
      */
     Student getStudent(String email);
+
+    /**
+     * Save university.
+     *
+     * @param email      the email
+     * @param university the university
+     */
+    void saveUniversity(String email, University university);
+
+    /**
+     * Gets university.
+     *
+     * @param email the email
+     * @return the university
+     */
+    University getUniversity(String email);
 }

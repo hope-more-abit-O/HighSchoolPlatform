@@ -1,8 +1,10 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.dto.request.AccountRedisCacheDTO;
+import com.demo.admissionportal.dto.request.redis.AccountRedisCacheDTO;
+import com.demo.admissionportal.dto.request.redis.UpdateUniRedisCacheDTO;
 import com.demo.admissionportal.entity.Student;
+import com.demo.admissionportal.entity.University;
 import com.demo.admissionportal.entity.redis.OTPRedisCache;
 import com.demo.admissionportal.service.OTPService;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +79,7 @@ public class OTPServiceImpl implements OTPService {
     // Save student in Redis Cache
     @Override
     public void saveStudent(String email, Student student) {
-        AccountRedisCacheDTO account = convertRedisCacheDTO(student);
+        AccountRedisCacheDTO account = convertStudentRedisCacheDTO(student);
         redisTemplate.opsForValue().set(email + "_info", account);
     }
 
@@ -94,7 +96,7 @@ public class OTPServiceImpl implements OTPService {
     }
 
     // Convert Student to AccountRedisCacheDTO
-    private AccountRedisCacheDTO convertRedisCacheDTO(Student student) {
+    private AccountRedisCacheDTO convertStudentRedisCacheDTO(Student student) {
         return AccountRedisCacheDTO.builder()
                 .username(student.getUsername())
                 .firstname(student.getFirstname())
@@ -133,4 +135,51 @@ public class OTPServiceImpl implements OTPService {
                 .build();
     }
 
+    @Override
+    public void saveUniversity(String email, University university) {
+        UpdateUniRedisCacheDTO account = convertUniversityRedisCacheDTO(university);
+        redisTemplate.opsForValue().set("update_" + email + "_info", account);
+    }
+
+    @Override
+    public University getUniversity(String email) {
+        log.info("Retrieving university by email: {}", email);
+        UpdateUniRedisCacheDTO uniRedisCacheDTO = (UpdateUniRedisCacheDTO) redisTemplate.opsForValue().get("update_" + email + "_info");
+        if (uniRedisCacheDTO == null) {
+            log.warn("No email found: {}", (Object) null);
+            return null;
+        }
+        return converToUniversity(uniRedisCacheDTO);
+    }
+
+    private UpdateUniRedisCacheDTO convertUniversityRedisCacheDTO(University university) {
+        return UpdateUniRedisCacheDTO.builder()
+                .code(university.getCode())
+                .username(university.getUsername())
+                .name(university.getName())
+                .email(university.getEmail())
+                .description(university.getDescription())
+                .password(university.getPassword())
+                .phone(university.getPhone())
+                .type(university.getType())
+                .avatar(university.getAvatar())
+                .status(university.getStatus())
+                .build();
+    }
+
+    private University converToUniversity(UpdateUniRedisCacheDTO updateUniRedisCacheDTO) {
+        return University.builder()
+                .code(updateUniRedisCacheDTO.getCode())
+                .username(updateUniRedisCacheDTO.getUsername())
+                .name(updateUniRedisCacheDTO.getName())
+                .email(updateUniRedisCacheDTO.getEmail())
+                .description(updateUniRedisCacheDTO.getDescription())
+                .password(updateUniRedisCacheDTO.getPassword())
+                .phone(updateUniRedisCacheDTO.getPhone())
+                .type(updateUniRedisCacheDTO.getType())
+                .avatar(updateUniRedisCacheDTO.getAvatar())
+                .status(updateUniRedisCacheDTO.getStatus())
+                .role(Role.STAFF.name())
+                .build();
+    }
 }
