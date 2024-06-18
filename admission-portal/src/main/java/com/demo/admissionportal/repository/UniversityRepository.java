@@ -50,18 +50,18 @@ public interface UniversityRepository extends JpaRepository<University, Integer>
     University findByEmail(String email);
 
     /**
-     * Find by username university.
+     * Find by username optional.
      *
      * @param username the username
-     * @return the university
+     * @return the optional
      */
-    University findByUsername(String username);
+    Optional<University> findByUsername(String username);
 
     /**
-     * Find by phone university.
+     * Find by phone optional.
      *
      * @param phone the phone
-     * @return the university
+     * @return the optional
      */
-    University findByPhone(String phone);
+    Optional<University> findByPhone(String phone);
 }
