@@ -47,10 +47,11 @@ public class SecurityConfiguration {
                                         "/swagger-ui/**",
                                         "/webjars/**",
                                         "/swagger-ui.html",
-                                "/api/v1/unversity/**",
-                                "/api/v1/consultant/**",
+                                        "/api/v1/unversity/**",
+                                        "/api/v1/consultant/**",
                                         "/api/v1/file/**",
-                                        "/api/v1/create-university-ticket/**"
+                                        "/api/v1/create-university-ticket/**",
+                                        "/api/v1/address/**"
                                         )
                                 .permitAll()
                                 .anyRequest()
