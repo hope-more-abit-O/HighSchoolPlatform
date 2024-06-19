@@ -16,9 +16,6 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-/**
- * The type Security configuration.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -29,13 +26,6 @@ public class SecurityConfiguration {
     private final LogoutHandler logoutHandler;
     private static final String AUTHENTICATION_API = "/api/v1/auth";
 
-    /**
-     * Security filter chain security filter chain.
-     *
-     * @param http the http
-     * @return the security filter chain
-     * @throws Exception the exception
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -43,9 +33,10 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         req -> req
                                 .requestMatchers("api/v1/subject/**").hasAuthority("ADMIN")
+//                                .requestMatchers("/api/v1/staffs/list-all").hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API + "/**",
-                                        "/api/v1/admins/**",
                                         "/api/v1/staffs/**",
+                                        "/api/v1/admins/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

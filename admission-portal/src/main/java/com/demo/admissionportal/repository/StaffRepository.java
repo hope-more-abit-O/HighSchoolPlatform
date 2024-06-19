@@ -1,9 +1,17 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
+import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
 import com.demo.admissionportal.entity.Staff;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -46,6 +54,15 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
      */
     Staff findByEmail(String email);
 
+    @Query(value = "SELECT * FROM Staff s WHERE " +
+            "(:username IS NULL OR s.username LIKE %:username%) AND " +
+            "(:name IS NULL OR s.name LIKE %:name%) AND " +
+            "(:email IS NULL OR s.email LIKE %:email%) AND " +
+            "(:phone IS NULL OR s.phone LIKE %:phone%)", nativeQuery = true)
+    Page<Staff> findAll(String username, String name, String email, String phone, Pageable pageable);
+
     Optional<Staff> findFirstByUsernameOrEmail(String username, String email);
 
+
 }
+
