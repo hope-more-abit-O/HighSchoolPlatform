@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.consultant.UniversityRegisterConsultantRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.entity.ConsultantResponseDTO;
 
 /**
  * Service interface for managing consultant-related operations.
@@ -19,4 +20,5 @@ public interface ConsultantService {
      * @return A response containing the creation result and consultant data.
      */
     ResponseData<?> universityCreateConsultant(UniversityRegisterConsultantRequestDTO request);
+    public ResponseData<ConsultantResponseDTO> getConsultantById(Integer id);
 }

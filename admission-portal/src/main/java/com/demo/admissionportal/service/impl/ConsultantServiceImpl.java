@@ -3,7 +3,6 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.consultant.UniversityRegisterConsultantRequestDTO;
 import com.demo.admissionportal.dto.response.CreateConsultantResponse;
-import com.demo.admissionportal.dto.response.CreateUniversityResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.ConsultantResponseDTO;
 import com.demo.admissionportal.dto.response.entity.sub_entity.UniversityConsultantResponseDTO;
@@ -19,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Implement of Consultant Service.
@@ -64,6 +65,26 @@ public class ConsultantServiceImpl implements ConsultantService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Tạo nhân viên thất bại, vui lòng kiểm tra lại !");
         }
     }
+
+    /**
+     * Retrieves information for a consultant by their ID.
+     *
+     * @param id The unique identifier of the consultant to retrieve.
+     * @return A response containing the consultant information or an error message if the consultant is not found.
+     */
+    public ResponseData<ConsultantResponseDTO> getConsultantById(Integer id){
+        log.info("Getting consultant info with id: {}", id);
+        Optional<Consultant> consultant = consultantRepository.findById(id);
+        if (consultant.isPresent()){
+            log.info("Consultant found with id: {}", id);
+            return ResponseData.ok("Tìm thấy thông tin của tư vấn viên.", modelMapper.map(consultant.get(), ConsultantResponseDTO.class));
+        }
+
+        log.warn("Consultant not found with id: {}", id);
+        return ResponseData.error("Tư vấn viên với id: " + id + " không tồn tại");
+    }
+
+
 
     /**
      * Creates a new consultant and associates them with a university.
