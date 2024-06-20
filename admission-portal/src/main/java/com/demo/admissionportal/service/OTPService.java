@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.entity.Staff;
 import com.demo.admissionportal.entity.Student;
 import com.demo.admissionportal.entity.University;
 
@@ -17,7 +18,7 @@ public interface OTPService {
      * @param timeGenerate the time generate
      */
     void saveOTP(String email, String otp, LocalDateTime timeGenerate);
-
+    void saveEmail(String email);
     /**
      * Gets otp.
      *
@@ -72,4 +73,9 @@ public interface OTPService {
      * @return the university
      */
     University getUniversity(String email);
+
+    void saveStaff(String email);
+
+    Staff getStaff(String email);
+
 }

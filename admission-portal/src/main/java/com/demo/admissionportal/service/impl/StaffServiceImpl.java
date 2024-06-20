@@ -3,13 +3,19 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.util.EmailUtil;
+import com.demo.admissionportal.util.OTPUtil;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The type Staff service.
@@ -38,6 +45,9 @@ public class StaffServiceImpl implements StaffService {
     private final ConsultantRepository consultantRepository;
     private final UniversityRepository universityRepository;
     private final StudentRepository studentRepository;
+    private final EmailUtil emailUtil;
+    private final OTPService otpService;
+    private final OTPUtil otpUtil;
 
     /**
      * @param request
@@ -160,5 +170,38 @@ public class StaffServiceImpl implements StaffService {
             log.error("Delete staff with ID failed: {}", e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
         }
+    }
+
+    @Override
+    public ResponseData<?> ResetPasswordRequest(ResetPasswordRequest request) {
+        Staff existingStaff = staffRepository.findByEmail(request.email());
+        if (existingStaff == null) {
+            log.warn("Staff with email: {} not found", request.email());
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
+        }
+        Staff foundStaff = staffRepository.getAccountByEmail(request.email());
+        UUID resetToken = UUID.randomUUID();
+        foundStaff.setResetPassToken(resetToken.toString());
+        staffRepository.save(foundStaff);
+        // save redis
+        otpService.saveEmail(request.email());
+        otpService.saveStaff(request.email());
+        String resetPassLink = "https://localhost:3000/staff/reset-password/" + resetToken;
+        String message = "Bạn hãy nhập vào đường link để tạo lại mật khẩu: " + resetPassLink;
+        String subject = "Cổng thông tin tuyển sinh - Tạo lại mật khẩu cho tài khoản: "+ foundStaff.getId();
+        emailUtil.sendHtmlEmail(request.email(), subject, message);
+        return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi đường dẫn tạo lại mật khẩu vào Email. Xin vui lòng kiểm tra");
+    }
+    @Override
+    @Transactional(rollbackOn = {RuntimeException.class, Exception.class})
+    public ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request) {
+        Staff foundStaff = staffRepository.getAccountByEmail(request.email());
+        if(foundStaff == null){
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không được tìm thấy !");
+        }
+        foundStaff.setPassword(passwordEncoder.encode(request.newPassword()));
+        foundStaff.setResetPassToken(null);
+        staffRepository.save(foundStaff);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), true);
     }
 }

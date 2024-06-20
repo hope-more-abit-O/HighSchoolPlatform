@@ -85,4 +85,16 @@ public class EmailUtil {
         }
         return isSuccess;
     }
+    public void sendHtmlEmail(String to, String subject, String htmlMessage) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlMessage, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
 }

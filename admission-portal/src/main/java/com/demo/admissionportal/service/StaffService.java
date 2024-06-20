@@ -1,6 +1,8 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
@@ -28,5 +30,8 @@ public interface StaffService {
     ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id);
 
     ResponseData<?> deleteStaffById(int id);
+
+    ResponseData<?> ResetPasswordRequest(ResetPasswordRequest request);
+    ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request);
 
 }
