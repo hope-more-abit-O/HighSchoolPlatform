@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public interface StaffService {
     ResponseData<?> deleteStaffById(int id);
 
     ResponseData<?> ResetPasswordRequest(ResetPasswordRequest request);
-    ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request);
+
+    ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request, String resetToken);
 
 }

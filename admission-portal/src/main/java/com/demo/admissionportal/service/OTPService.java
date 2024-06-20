@@ -1,10 +1,13 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
 import com.demo.admissionportal.entity.Staff;
 import com.demo.admissionportal.entity.Student;
 import com.demo.admissionportal.entity.University;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * The interface Otp serivice.
@@ -18,7 +21,8 @@ public interface OTPService {
      * @param timeGenerate the time generate
      */
     void saveOTP(String email, String otp, LocalDateTime timeGenerate);
-    void saveEmail(String email);
+
+    void saveObject(Role role, Integer id, UUID resetToken);
     /**
      * Gets otp.
      *
@@ -74,8 +78,11 @@ public interface OTPService {
      */
     University getUniversity(String email);
 
-    void saveStaff(String email);
 
-    Staff getStaff(String email);
+    ResetPasswordAccountRedisCacheDTO getResetPasswordAccountRedisCacheDTO(UUID resetToken);
+
+    void saveStaff(String email, Integer id, UUID resetToken);
+
+//    Staff getStaff(String email, Integer id, UUID resetToken);
 
 }

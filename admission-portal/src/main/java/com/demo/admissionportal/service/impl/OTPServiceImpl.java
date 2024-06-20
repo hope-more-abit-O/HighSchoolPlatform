@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,9 +36,9 @@ public class OTPServiceImpl implements OTPService {
     }
 
     @Override
-    public void saveEmail(String email) {
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = new ResetPasswordAccountRedisCacheDTO(email);
-        redisTemplate.opsForValue().set(email + "_email", resetPasswordAccountRedisCacheDTO);
+    public void saveObject(Role role, Integer id, UUID resetToken) {
+        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = new ResetPasswordAccountRedisCacheDTO(role, id);
+        redisTemplate.opsForValue().set("resetpw_" + resetToken , resetPasswordAccountRedisCacheDTO);
     }
 
     /**
@@ -160,17 +161,17 @@ public class OTPServiceImpl implements OTPService {
     }
 
     @Override
-    public Staff getStaff(String email) {
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = (ResetPasswordAccountRedisCacheDTO) redisTemplate.opsForValue().get("resetPass_" + email + "_info");
+    public ResetPasswordAccountRedisCacheDTO getResetPasswordAccountRedisCacheDTO(UUID resetToken) {
+        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = (ResetPasswordAccountRedisCacheDTO) redisTemplate.opsForValue().get("resetpw_" + resetToken);
         if (resetPasswordAccountRedisCacheDTO == null ){
             log.warn("No email found: {}", (Object) null);
             return null;
         }
-        return convertToStaff(resetPasswordAccountRedisCacheDTO);
+        return resetPasswordAccountRedisCacheDTO;
     }
 
     @Override
-    public void saveStaff(String email) {
+    public void saveStaff(String email, Integer id, UUID resetToken) {
         redisTemplate.opsForValue().set("resetpass_" + email + "_info", email);
     }
     private UpdateUniRedisCacheDTO convertUniversityRedisCacheDTO(University university) {
@@ -205,12 +206,14 @@ public class OTPServiceImpl implements OTPService {
     }
     private ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO(Staff staff){
         return ResetPasswordAccountRedisCacheDTO.builder()
-                .email(staff.getEmail())
+                .id(staff.getId())
+                .role(staff.getRole())
                 .build();
     }
     private Staff convertToStaff(ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO){
         return Staff.builder()
-                .email(resetPasswordAccountRedisCacheDTO.getEmail())
+                .id(resetPasswordAccountRedisCacheDTO.getId())
+                .role(resetPasswordAccountRedisCacheDTO.getRole())
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
+import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
 import com.demo.admissionportal.entity.*;
@@ -14,7 +15,6 @@ import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.StaffService;
 import com.demo.admissionportal.util.EmailUtil;
-import com.demo.admissionportal.util.OTPUtil;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,6 @@ public class StaffServiceImpl implements StaffService {
     private final StudentRepository studentRepository;
     private final EmailUtil emailUtil;
     private final OTPService otpService;
-    private final OTPUtil otpUtil;
 
     /**
      * @param request
@@ -175,33 +174,35 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<?> ResetPasswordRequest(ResetPasswordRequest request) {
         Staff existingStaff = staffRepository.findByEmail(request.email());
+
         if (existingStaff == null) {
             log.warn("Staff with email: {} not found", request.email());
             return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
         }
-        Staff foundStaff = staffRepository.getAccountByEmail(request.email());
         UUID resetToken = UUID.randomUUID();
-        foundStaff.setResetPassToken(resetToken.toString());
-        staffRepository.save(foundStaff);
+        existingStaff.setResetPassToken(resetToken.toString());
         // save redis
-        otpService.saveEmail(request.email());
-        otpService.saveStaff(request.email());
+        otpService.saveObject(existingStaff.getRole(), existingStaff.getId(), resetToken);
+        otpService.saveStaff(existingStaff.getEmail(), existingStaff.getId(), resetToken );
         String resetPassLink = "https://localhost:3000/staff/reset-password/" + resetToken;
         String message = "Bạn hãy nhập vào đường link để tạo lại mật khẩu: " + resetPassLink;
-        String subject = "Cổng thông tin tuyển sinh - Tạo lại mật khẩu cho tài khoản: "+ foundStaff.getId();
+        String subject = "Cổng thông tin tuyển sinh - Tạo lại mật khẩu cho tài khoản: "+ existingStaff.getId();
         emailUtil.sendHtmlEmail(request.email(), subject, message);
         return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi đường dẫn tạo lại mật khẩu vào Email. Xin vui lòng kiểm tra");
     }
     @Override
     @Transactional(rollbackOn = {RuntimeException.class, Exception.class})
-    public ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request) {
-        Staff foundStaff = staffRepository.getAccountByEmail(request.email());
+    public ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request, String resetToken) {
+
+        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = otpService.getResetPasswordAccountRedisCacheDTO(UUID.fromString(resetToken));
+
+        Optional<Staff> foundStaff = staffRepository.findById(resetPasswordAccountRedisCacheDTO.getId());
         if(foundStaff == null){
             return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không được tìm thấy !");
         }
-        foundStaff.setPassword(passwordEncoder.encode(request.newPassword()));
-        foundStaff.setResetPassToken(null);
-        staffRepository.save(foundStaff);
+        foundStaff.get().setPassword(passwordEncoder.encode(request.newPassword()));
+        foundStaff.get().setResetPassToken(null);
+        staffRepository.save(foundStaff.get());
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), true);
     }
 }
