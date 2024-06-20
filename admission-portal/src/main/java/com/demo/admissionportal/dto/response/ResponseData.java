@@ -4,6 +4,7 @@ package com.demo.admissionportal.dto.response;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,7 @@ public class ResponseData<T> {
         }
         return new ResponseData<>(ResponseCode.C201.getCode(), message, errors);
     }
-    public static ResponseData<?> error(String message) {
+    public static <T> ResponseData<T> error(String message) {
         Map<String, String> errors = new HashMap<>();
         return new ResponseData<>(ResponseCode.C201.getCode(), message);
     }
@@ -80,7 +81,7 @@ public class ResponseData<T> {
         return new ResponseData<>(ResponseCode.C201.getCode(), message, errors);
     }
 
-    public static ResponseData<?> ok(String message, Object data) {
+    public static <T> ResponseData<T> ok(String message, T data) {
         return new ResponseData<>(ResponseCode.C200.getCode(), message, data);
     }
 }
