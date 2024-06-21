@@ -1,6 +1,8 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -19,8 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @Table(name = "[consultant]")
-public class Consultant implements UserDetails {
-
+public class Consultant implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -43,8 +44,9 @@ public class Consultant implements UserDetails {
     @Column(name = "phone")
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private String role;
+    private Role role = Role.CONSULTANT;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -55,6 +57,24 @@ public class Consultant implements UserDetails {
     @JsonIgnore
     private List<ConsultantToken> tokens;
 
+    @JsonIgnore
+    private String resetPassToken;
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public Integer getId() {
+        return this.id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
+
     public Consultant(String username, String name, String email, String password, String phone) {
         this.username = username;
         this.name = name;
@@ -63,12 +83,11 @@ public class Consultant implements UserDetails {
         this.avatar = "default_avatar.png";
         this.phone = phone;
         this.status = AccountStatus.ACTIVE;
-        this.role = "CONSULTANT";
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

@@ -36,4 +36,5 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     Student findByPhone(String phone);
 
     Optional<Student> findFirstByUsernameOrEmail(String username, String email);
+
 }
