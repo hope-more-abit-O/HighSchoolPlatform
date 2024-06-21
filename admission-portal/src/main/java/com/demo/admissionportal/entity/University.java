@@ -45,6 +45,9 @@ public class University implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "address_id")
+    private Integer addressId;
+
     @Column(name = "description", nullable = false)
     private String description;
 

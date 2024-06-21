@@ -45,4 +45,15 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
     Admin findByEmail(String email);
 
     Optional<Admin> findFirstByUsernameOrEmail(String username, String email);
+
+    Optional<Admin> findFirstByPhoneAndIdNot(String phone, Integer id);
+    Optional<Admin> findFirstByPhone(String phone);
+
+    Optional<Admin> findFirstByEmail(String email);
+
+    Optional<Admin> findFirstByEmailAndIdNot(String email, Integer id);
+
+    Optional<Admin> findFirstByUsername(String username);
+
+    Optional<Admin> findFirstByUsernameAndIdNot(String username, Integer id);
 }

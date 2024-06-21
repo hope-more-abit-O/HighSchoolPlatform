@@ -36,6 +36,7 @@ public class SecurityConfiguration {
 //                                .requestMatchers("/api/v1/staffs/list-all").hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API + "/**",
                                         "/api/v1/staffs/**",
+                                        "/api/v1/university/**",
                                         "/api/v1/admins/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",

@@ -13,12 +13,26 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * Data Transfer Object (DTO) representing a detailed address response.
+ *
+ * This DTO encapsulates the specific address details along with
+ * the names of the associated province, district, and ward.
+ */
 public class AddressResponseDTO {
     private String specificAddress;
     private String provinceName;
     private String districtName;
     private String wardName;
 
+    /**
+     * Constructs an AddressResponseDTO with address details.
+     *
+     * @param address  The Address object containing the specific address.
+     * @param province The Province object providing the province/city name.
+     * @param district The District object providing the district/town name.
+     * @param ward     The Ward object providing the ward/commune name.
+     */
     public AddressResponseDTO(Address address, Province province, District district, Ward ward) {
         this.specificAddress = address.getSpecificAddress();
         this.provinceName = province.getName();
