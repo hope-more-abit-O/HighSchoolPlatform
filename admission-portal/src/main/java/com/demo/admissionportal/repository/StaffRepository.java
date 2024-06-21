@@ -63,7 +63,6 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
 
     Optional<Staff> findFirstByUsernameOrEmail(String username, String email);
 
-    Staff getAccountByEmail(String email);
 
 
 }

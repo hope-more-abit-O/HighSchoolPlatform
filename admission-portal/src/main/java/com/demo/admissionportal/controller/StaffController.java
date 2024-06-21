@@ -113,35 +113,5 @@ public class StaffController {
         log.error("Failed to delete staff: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
-    @PostMapping("/reset/password")
-    @Operation(summary = "Yêu cầu tạo lại mật khẩu ( nhận mã token qua email )")
-    public ResponseEntity<?> requestResetPassword(@RequestBody ResetPasswordRequest request){
-        log.info("Reset password request:");
-        ResponseData<?> result = staffService.ResetPasswordRequest(request);
-        if (result.getStatus() == ResponseCode.C206.getCode()){
-            log.info("Reset password successfully for Staff !");
-            return ResponseEntity.ok(result);
-        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
-            log.warn("Staff not found !");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-        }
-        log.error("Failed to reset password for Staff ");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-    }
-    @PostMapping("/password/confirm/{resetToken}")
-    @Operation(summary = "Xác nhân yêu cầu tạo lại mật khẩu ")
-    public ResponseEntity<?> confirmResetPassword(@RequestBody ConfirmResetPasswordRequest request,
-                                                  @PathVariable @Valid String resetToken){
-        log.info("Confirmation for reset password:");
-        ResponseData<?> result = staffService.confirmResetPassword(request, resetToken);
-        if(result.getStatus() == ResponseCode.C200.getCode()){
-            log.info("Password reset confirmed ");
-            return ResponseEntity.ok(result);
-        } else if (result.getStatus() == ResponseCode.C203.getCode()){
-            log.warn("Staff not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-        }
-        log.error("Failed to reset password");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-    }
+
 }

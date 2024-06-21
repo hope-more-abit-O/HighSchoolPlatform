@@ -21,8 +21,6 @@ public interface OTPService {
      * @param timeGenerate the time generate
      */
     void saveOTP(String email, String otp, LocalDateTime timeGenerate);
-
-    void saveObject(Role role, Integer id, UUID resetToken);
     /**
      * Gets otp.
      *
@@ -79,10 +77,6 @@ public interface OTPService {
     University getUniversity(String email);
 
 
-    ResetPasswordAccountRedisCacheDTO getResetPasswordAccountRedisCacheDTO(UUID resetToken);
 
-    void saveStaff(String email, Integer id, UUID resetToken);
-
-//    Staff getStaff(String email, Integer id, UUID resetToken);
 
 }

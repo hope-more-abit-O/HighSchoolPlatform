@@ -170,39 +170,4 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
         }
     }
-
-    @Override
-    public ResponseData<?> ResetPasswordRequest(ResetPasswordRequest request) {
-        Staff existingStaff = staffRepository.findByEmail(request.email());
-
-        if (existingStaff == null) {
-            log.warn("Staff with email: {} not found", request.email());
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
-        }
-        UUID resetToken = UUID.randomUUID();
-        existingStaff.setResetPassToken(resetToken.toString());
-        // save redis
-        otpService.saveObject(existingStaff.getRole(), existingStaff.getId(), resetToken);
-        otpService.saveStaff(existingStaff.getEmail(), existingStaff.getId(), resetToken );
-        String resetPassLink = "https://localhost:3000/staff/reset-password/" + resetToken;
-        String message = "Bạn hãy nhập vào đường link để tạo lại mật khẩu: " + resetPassLink;
-        String subject = "Cổng thông tin tuyển sinh - Tạo lại mật khẩu cho tài khoản: "+ existingStaff.getId();
-        emailUtil.sendHtmlEmail(request.email(), subject, message);
-        return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi đường dẫn tạo lại mật khẩu vào Email. Xin vui lòng kiểm tra");
-    }
-    @Override
-    @Transactional(rollbackOn = {RuntimeException.class, Exception.class})
-    public ResponseData<?> confirmResetPassword(ConfirmResetPasswordRequest request, String resetToken) {
-
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = otpService.getResetPasswordAccountRedisCacheDTO(UUID.fromString(resetToken));
-
-        Optional<Staff> foundStaff = staffRepository.findById(resetPasswordAccountRedisCacheDTO.getId());
-        if(foundStaff == null){
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không được tìm thấy !");
-        }
-        foundStaff.get().setPassword(passwordEncoder.encode(request.newPassword()));
-        foundStaff.get().setResetPassToken(null);
-        staffRepository.save(foundStaff.get());
-        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), true);
-    }
 }

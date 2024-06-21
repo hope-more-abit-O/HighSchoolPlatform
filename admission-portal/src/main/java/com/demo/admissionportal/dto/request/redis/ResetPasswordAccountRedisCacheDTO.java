@@ -17,5 +17,5 @@ import java.util.UUID;
 public class ResetPasswordAccountRedisCacheDTO implements Serializable {
     private Role role;
     private Integer id;
-
+    private int resetTokenTimeout;
 }

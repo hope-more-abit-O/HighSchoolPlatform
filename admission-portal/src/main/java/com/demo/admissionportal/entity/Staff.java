@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "staff")
 @Builder
-public class Staff implements UserDetails {
+public class Staff implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -62,7 +63,6 @@ public class Staff implements UserDetails {
     @JsonIgnore
     private String resetPassToken;
 
-
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
@@ -72,6 +72,31 @@ public class Staff implements UserDetails {
     @OneToMany(mappedBy = "staff")
     @JsonIgnore
     private List<StaffToken> tokens;
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

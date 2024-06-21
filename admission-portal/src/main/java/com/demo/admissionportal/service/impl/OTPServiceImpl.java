@@ -2,9 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.redis.AccountRedisCacheDTO;
-import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
 import com.demo.admissionportal.dto.request.redis.UpdateUniRedisCacheDTO;
-import com.demo.admissionportal.entity.Staff;
 import com.demo.admissionportal.entity.Student;
 import com.demo.admissionportal.entity.University;
 import com.demo.admissionportal.entity.redis.OTPRedisCache;
@@ -13,11 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
 /**
  * The type Otp service.
  */
@@ -34,13 +29,6 @@ public class OTPServiceImpl implements OTPService {
         OTPRedisCache account = new OTPRedisCache(email, otp, timeGenerate, 10);
         redisTemplate.opsForValue().set(email + "_otp", account, 3, TimeUnit.MINUTES);
     }
-
-    @Override
-    public void saveObject(Role role, Integer id, UUID resetToken) {
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = new ResetPasswordAccountRedisCacheDTO(role, id);
-        redisTemplate.opsForValue().set("resetpw_" + resetToken , resetPasswordAccountRedisCacheDTO);
-    }
-
     /**
      * Gets otp.
      *
@@ -58,7 +46,6 @@ public class OTPServiceImpl implements OTPService {
         log.info("Retrieved account: {}", account);
         return account.getOtp();
     }
-
     /**
      * Delete otp.
      *
@@ -84,14 +71,12 @@ public class OTPServiceImpl implements OTPService {
             return null;
         }
     }
-
     // Save student in Redis Cache
     @Override
     public void saveStudent(String email, Student student) {
         AccountRedisCacheDTO account = convertStudentRedisCacheDTO(student);
         redisTemplate.opsForValue().set(email + "_info", account);
     }
-
     // Get student in Redis Cache
     @Override
     public Student getStudent(String email) {
@@ -103,7 +88,6 @@ public class OTPServiceImpl implements OTPService {
         }
         return converToStudent(student);
     }
-
     // Convert Student to AccountRedisCacheDTO
     private AccountRedisCacheDTO convertStudentRedisCacheDTO(Student student) {
         return AccountRedisCacheDTO.builder()
@@ -123,7 +107,6 @@ public class OTPServiceImpl implements OTPService {
                 .role(Role.STUDENT)
                 .build();
     }
-
     // Convert Student to AccountRedisCacheDTO
     private Student converToStudent(AccountRedisCacheDTO accountRedisCacheDTO) {
         return Student.builder()
@@ -143,7 +126,6 @@ public class OTPServiceImpl implements OTPService {
                 .role(Role.STUDENT)
                 .build();
     }
-
     @Override
     public void saveUniversity(String email, University university) {
         UpdateUniRedisCacheDTO account = convertUniversityRedisCacheDTO(university);
@@ -159,21 +141,6 @@ public class OTPServiceImpl implements OTPService {
         }
         return converToUniversity(uniRedisCacheDTO);
     }
-
-    @Override
-    public ResetPasswordAccountRedisCacheDTO getResetPasswordAccountRedisCacheDTO(UUID resetToken) {
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = (ResetPasswordAccountRedisCacheDTO) redisTemplate.opsForValue().get("resetpw_" + resetToken);
-        if (resetPasswordAccountRedisCacheDTO == null ){
-            log.warn("No email found: {}", (Object) null);
-            return null;
-        }
-        return resetPasswordAccountRedisCacheDTO;
-    }
-
-    @Override
-    public void saveStaff(String email, Integer id, UUID resetToken) {
-        redisTemplate.opsForValue().set("resetpass_" + email + "_info", email);
-    }
     private UpdateUniRedisCacheDTO convertUniversityRedisCacheDTO(University university) {
         return UpdateUniRedisCacheDTO.builder()
                 .code(university.getCode())
@@ -188,7 +155,6 @@ public class OTPServiceImpl implements OTPService {
                 .status(university.getStatus())
                 .build();
     }
-
     private University converToUniversity(UpdateUniRedisCacheDTO updateUniRedisCacheDTO) {
         return University.builder()
                 .code(updateUniRedisCacheDTO.getCode())
@@ -201,19 +167,7 @@ public class OTPServiceImpl implements OTPService {
                 .type(updateUniRedisCacheDTO.getType())
                 .avatar(updateUniRedisCacheDTO.getAvatar())
                 .status(updateUniRedisCacheDTO.getStatus())
-                .role(Role.STAFF.name())
-                .build();
-    }
-    private ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO(Staff staff){
-        return ResetPasswordAccountRedisCacheDTO.builder()
-                .id(staff.getId())
-                .role(staff.getRole())
-                .build();
-    }
-    private Staff convertToStaff(ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO){
-        return Staff.builder()
-                .id(resetPasswordAccountRedisCacheDTO.getId())
-                .role(resetPasswordAccountRedisCacheDTO.getRole())
+                .role(Role.STAFF)
                 .build();
     }
 }

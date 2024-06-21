@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -30,7 +31,7 @@ import java.util.List;
 @Setter
 @Builder
 @Table(name = "student")
-public class Student implements UserDetails {
+public class Student implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -107,6 +108,24 @@ public class Student implements UserDetails {
     @OneToMany(mappedBy = "student")
     @JsonIgnore
     private List<StudentToken> tokens;
+
+    @JsonIgnore
+    private String resetPassToken;
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public Integer getId() {
+        return this.id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
 
     @Override
     @JsonIgnore

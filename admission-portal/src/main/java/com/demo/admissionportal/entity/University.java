@@ -1,7 +1,9 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +27,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class University implements UserDetails {
+public class University implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -69,8 +71,37 @@ public class University implements UserDetails {
     @JsonIgnore
     private List<UniversityToken> tokens;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private String role;
+    private Role role = Role.UNIVERSITY;
+
+    @JsonIgnore
+    private String resetPassToken;
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
 
     /**
      * Instantiates a new University.
@@ -91,8 +122,7 @@ public class University implements UserDetails {
         this.description = "Hãy thêm miêu tả về trường của bạn đây";
         this.type = type;
         this.status = AccountStatus.PENDING;
-        this.avatar = "unversity_avatar.png";
-        this.role = "UNIVERSITY";
+        this.avatar = "university_avatar.png";
     }
 
     /**
@@ -115,16 +145,15 @@ public class University implements UserDetails {
         this.description = description;
         this.type = type;
         this.status = AccountStatus.PENDING;
-        this.avatar = "unversity_avatar.png";
-        this.role = "UNIVERSITY";
+        this.avatar = "university_avatar.png";
     }
 
     /**
-     * Gets fail unversity.
+     * Gets fail university.
      *
-     * @return the fail unversity
+     * @return the fail university
      */
-    public static University getFailUnversity() {
+    public static University getFailUniversity() {
         return University.builder()
                 .avatar(null)
                 .id(null)
@@ -135,7 +164,7 @@ public class University implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
