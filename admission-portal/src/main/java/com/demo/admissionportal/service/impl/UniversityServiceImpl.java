@@ -2,7 +2,10 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
+import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.VerifyUpdateUniversityRequestDTO;
+import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityRequestDTO;
 import com.demo.admissionportal.dto.response.CreateUniversityResponse;
@@ -31,6 +34,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implement of University Service.
@@ -106,7 +110,7 @@ public class UniversityServiceImpl implements UniversityService {
     public ResponseData<?> createUniversityFail(StaffRegisterUniversityRequestDTO request) {
         try {
             request.trim();
-            University universityRegister = University.getFailUnversity();
+            University universityRegister = University.getFailUniversity();
             universityRepository.save(universityRegister);
             log.info("Consultant registered successfully with email: {}", request.getEmail());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Trường đại học được tạo thành công !", universityRegister);

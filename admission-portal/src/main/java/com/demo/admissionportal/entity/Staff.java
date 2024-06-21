@@ -1,13 +1,11 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,7 +24,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "staff")
-public class Staff implements UserDetails {
+@Builder
+public class Staff implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -61,6 +60,8 @@ public class Staff implements UserDetails {
     @Column(name = "role")
     private Role role;
 
+    @JsonIgnore
+    private String resetPassToken;
 
     @NotNull
     @Nationalized
@@ -71,6 +72,31 @@ public class Staff implements UserDetails {
     @OneToMany(mappedBy = "staff")
     @JsonIgnore
     private List<StaffToken> tokens;
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

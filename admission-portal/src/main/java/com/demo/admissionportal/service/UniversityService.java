@@ -1,5 +1,7 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
+import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.VerifyUpdateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
@@ -53,4 +55,5 @@ public interface UniversityService {
      * @return the response data
      */
     ResponseData<?> verifyAccount(VerifyUpdateUniversityRequestDTO verifyUpdateUniversityRequestDTO);
+
 }

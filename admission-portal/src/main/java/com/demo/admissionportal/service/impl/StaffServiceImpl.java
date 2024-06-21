@@ -3,13 +3,19 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.ConfirmResetPasswordRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
+import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.StaffResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.util.EmailUtil;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The type Staff service.
@@ -38,6 +45,8 @@ public class StaffServiceImpl implements StaffService {
     private final ConsultantRepository consultantRepository;
     private final UniversityRepository universityRepository;
     private final StudentRepository studentRepository;
+    private final EmailUtil emailUtil;
+    private final OTPService otpService;
 
     /**
      * @param request
