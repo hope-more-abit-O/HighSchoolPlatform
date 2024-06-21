@@ -66,16 +66,6 @@ public class UpdateUniversityRequestDTO implements Serializable {
     private String description;
 
     /**
-     * The password of the university.
-     *
-     * @NotNull(message = "Mật khẩu không được để trống")
-     * @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&\\s]{8,40}$", message = "Mật khẩu phải từ 8 đến 4o ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt, và không được để khoảng trống ở đầu và cuối!")
-     */
-    @NotNull(message = "Mật khẩu không được để trống")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&\\s]{8,40}$", message = "Mật khẩu phải từ 8 đến 4o ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt, và không được để khoảng trống ở đầu và cuối!")
-    private String password;
-
-    /**
      * The phone number of the university.
      *
      * @NotNull(message = "Số điện thoại không được để trống")
@@ -85,6 +75,29 @@ public class UpdateUniversityRequestDTO implements Serializable {
     @Pattern(regexp = "0\\d{9,10}", message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
 
+    /**
+     * The specific address. This field is mandatory.
+     */
+    @NotNull(message = "Địa chỉ cụ thể không được để trống")
+    private String specificAddress;
+
+    /**
+     * The ID of the province/city. This field is mandatory.
+     */
+    @NotNull(message = "Mã tỉnh / thành phố không được để trống")
+    private Integer provinceId;
+
+    /**
+     * The ID of the district/town. This field is mandatory.
+     */
+    @NotNull(message = "Mã quận / huyện phố không được để trống")
+    private Integer districtId;
+
+    /**
+     * The ID of the ward/commune. This field is mandatory.
+     */
+    @NotNull(message = "Mã phường / xã phố không được để trống")
+    private Integer wardId;
     /**
      * The type of the university.
      *
@@ -97,7 +110,4 @@ public class UpdateUniversityRequestDTO implements Serializable {
 
     @NotNull()
     private String avatar;
-
-    @Enumerated(EnumType.STRING)
-    private AccountStatus status;
 }

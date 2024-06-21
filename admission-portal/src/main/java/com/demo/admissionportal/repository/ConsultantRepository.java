@@ -44,4 +44,16 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Integer>
      * @return the optional
      */
     Optional<Consultant> findByUsername(String username);
+
+    Optional<Consultant> findFirstByPhone(String phoneNumber);
+
+    Optional<Consultant> findFirstByPhoneAndIdNot(String phoneNumber, Integer id);
+
+    Optional<Consultant> findFirstByEmail(String email);
+
+    Optional<Consultant> findFirstByEmailAndIdNot(String email, Integer id);
+
+    Optional<Consultant> findFirstByUsername(String username);
+
+    Optional<Consultant> findFirstByUsernameAndIdNot(String username, Integer id);
 }

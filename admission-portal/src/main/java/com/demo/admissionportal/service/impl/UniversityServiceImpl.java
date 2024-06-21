@@ -13,14 +13,16 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.entity.UniversityResponseDTO;
 import com.demo.admissionportal.dto.response.entity.sub_entity.StaffUniversityResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.address.Address;
 import com.demo.admissionportal.entity.sub_entity.StaffUniversity;
+import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.UnSupportedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.StaffUniversityRepository;
-import com.demo.admissionportal.service.OTPService;
-import com.demo.admissionportal.service.StaffService;
-import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.service.*;
 import com.demo.admissionportal.util.EmailUtil;
 import com.demo.admissionportal.util.OTPUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
@@ -43,6 +45,7 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UniversityServiceImpl implements UniversityService {
     private final UniversityRepository universityRepository;
     private final StaffUniversityRepository staffUniversityRepository;
@@ -52,34 +55,8 @@ public class UniversityServiceImpl implements UniversityService {
     private final OTPService otpService;
     private final OTPUtil otpUtil;
     private final EmailUtil emailUtil;
-    private final StaffRepository staffRepository;
-    private final ConsultantRepository consultantRepository;
-    private final StudentRepository studentRepository;
-    private final AdminRepository adminRepository;
-
-    /**
-     * Constructs a new instance of {@code UniversityServiceImpl}.
-     *
-     * @param universityRepository      The repository for managing universities.
-     * @param staffUniversityRepository The repository for managing staff-university associations.
-     * @param staffService              The service for managing staff information.
-     * @param modelMapper               The model mapper for object mapping.
-     */
-    @Autowired
-    public UniversityServiceImpl(UniversityRepository universityRepository, StaffUniversityRepository staffUniversityRepository, StaffService staffService, ModelMapper modelMapper, PasswordEncoder passwordEncoder, OTPService otpService, OTPUtil otpUtil, EmailUtil emailUtil, StaffRepository staffRepository, ConsultantRepository consultantRepository, StudentRepository studentRepository, AdminRepository adminRepository) {
-        this.universityRepository = universityRepository;
-        this.staffUniversityRepository = staffUniversityRepository;
-        this.staffService = staffService;
-        this.modelMapper = modelMapper;
-        this.passwordEncoder = passwordEncoder;
-        this.otpService = otpService;
-        this.otpUtil = otpUtil;
-        this.emailUtil = emailUtil;
-        this.staffRepository = staffRepository;
-        this.consultantRepository = consultantRepository;
-        this.studentRepository = studentRepository;
-        this.adminRepository = adminRepository;
-    }
+    private final ValidationService validationService;
+    private final AddressService addressService;
 
     /**
      * Creates a new university and associates it with a staff member.
@@ -152,72 +129,68 @@ public class UniversityServiceImpl implements UniversityService {
     public University getUniversityById(Integer id) {
         return universityRepository.findById(id).orElse(null);
     }
-
+    /**
+     * Updates an existing university's information.
+     *
+     * This method handles the update process for a university, including validation
+     * of unique fields (email, username, phone), sending an OTP for verification,
+     * and saving updates to both the database and cache.
+     *
+     * @param updateUniversityRequestDTO An object containing the updated information for the university.
+     * @return A {@link ResponseData} object indicating the result of the operation: <br>
+     *         - {@link ResponseCode#C206} (): If the OTP is successfully sent to the university's email. <br>
+     *         - {@link ResponseCode#C203} (Not Found): If the university with the given ID is not found. <br>
+     *         - {@link ResponseCode#C208} (Unsupported): If an unsupported operation is attempted. <br>
+     *         - {@link ResponseCode#C204} (Conflict): If a data conflict occurs, such as duplicate email, username, or phone. <br>
+     *         - {@link ResponseCode#C203} (Internal Server Error): If any other error occurs during the update process.
+     */
     public ResponseData<University> updateUniversity(UpdateUniversityRequestDTO updateUniversityRequestDTO) {
         try {
+            boolean resetEmail = false;
             log.info("Start to find university with id: {} ", updateUniversityRequestDTO.getId());
-            University university = universityRepository.findUniversitiesById(updateUniversityRequestDTO.getId());
-            if (university == null) {
+            Optional<University> optionalUniversity = universityRepository.findById(updateUniversityRequestDTO.getId());
+            if (optionalUniversity.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy trường đại học");
             }
+            University university = optionalUniversity.get();
             String newEmail = updateUniversityRequestDTO.getEmail().trim();
             String newUsername = updateUniversityRequestDTO.getUsername().trim();
             String newPhone = updateUniversityRequestDTO.getPhone().trim();
 
             // Case 1 : Existed By Email
-            if (university.getEmail() == null) {
-                if (isEmailExisted(newEmail)) {
-                    log.error("Email {} is already existed", newEmail);
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được tài khoản khác sử dụng");
-                }
-            } else {
-                if (!university.getEmail().equals(newEmail)) {
-                    if (isEmailExisted(newEmail)) {
-                        log.error("Email {} is already existed", newEmail);
-                        return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã được tài khoản khác sử dụng");
-                    }
-                }
+            if (university.getEmail() == null || !university.getEmail().equals(newEmail)){
+                validationService.validateEmail(newEmail, university);
+                resetEmail = true;
             }
 
             // Case 2: Existed By UserName
-            if (university.getUsername() == null) {
-                if (isUsernameExisted(newUsername)) {
-                    log.error("Username {} is already existed", newUsername);
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng");
-                }
-            } else {
-                if (!university.getUsername().equals(newUsername)) {
-                    if (isUsernameExisted(newUsername)) {
-                        log.error("Username {} is already existed", newUsername);
-                        return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã được tài khoản khác sử dụng");
-                    }
-                }
-            }
+            if (university.getUsername() == null || !university.getUsername().equals(newUsername))
+                validationService.validateUsername(newUsername, university);
 
             // Case 3: Existed By Phone
-            if (university.getPhone() == null) {
-                if (isPhoneExisted(newPhone)) {
-                    log.error("Phone {} is already existed", newPhone);
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng");
-                }
-            } else {
-                if (!university.getPhone().equals(newPhone)) {
-                    if (isPhoneExisted(newPhone)) {
-                        log.error("Phone {} is already existed", newPhone);
-                        return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã được tài khoản khác sử dụng");
-                    }
-                }
-            }
+            if (university.getPhone() == null || !university.getPhone().equals(newPhone))
+                validationService.validatePhoneNumber(university.getPhone(), university);
+
+            Address address = addressService.createAddressReturnAddress(updateUniversityRequestDTO.getSpecificAddress(),
+                    updateUniversityRequestDTO.getProvinceId(),
+                    updateUniversityRequestDTO.getDistrictId(),
+                    updateUniversityRequestDTO.getWardId());
+
             university.setCode(updateUniversityRequestDTO.getCode());
             university.setName(updateUniversityRequestDTO.getName());
             university.setUsername(newUsername);
             university.setEmail(newEmail);
             university.setDescription(updateUniversityRequestDTO.getDescription());
             university.setAvatar(updateUniversityRequestDTO.getAvatar());
-            university.setPassword(passwordEncoder.encode(updateUniversityRequestDTO.getPassword()));
             university.setPhone(newPhone);
-            university.setStatus(updateUniversityRequestDTO.getStatus());
+            university.setType(university.getType());
+            university.setAddressId(address.getId());
 
+
+            if (!resetEmail) {
+                universityRepository.save(university);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhập trường đại học.");
+            }
             // Sending OTP to Email
             String otp = otpUtil.generateOTP();
             if (!emailUtil.sendOtpEmailForUpdate(updateUniversityRequestDTO.getEmail(), otp)) {
@@ -232,11 +205,29 @@ public class UniversityServiceImpl implements UniversityService {
             return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
 
         } catch (Exception ex) {
-            log.error("Update university with email: {}", ex.getMessage());
+            log.error(ex.getMessage());
+            if (ex.getClass().equals(UnSupportedException.class))
+                return new ResponseData<>(ResponseCode.C208.getCode(), "Không hỗ trợ phương thức.");
+            if (ex.getClass().equals(DataExistedException.class))
+                return new ResponseData<>(ResponseCode.C204.getCode(), ex.getMessage());
             return new ResponseData<>(ResponseCode.C203.getCode(), "Cập nhật trường đại học thất bại");
         }
     }
 
+    /**
+     * Verifies a university account update using a provided OTP (One-Time Password).
+     *
+     * This method checks the validity of the provided OTP against a stored OTP associated
+     * with the university's email address. If the OTP is valid and within the time limit,
+     * the university's information is updated in the database with the data
+     * previously stored in the cache during the update process.
+     *
+     * @param verifyUpdateUniversityRequestDTO An object containing the university ID and the OTP provided by the user.
+     * @return A {@link ResponseData} object indicating the result of the verification: <br>
+     *         - {@link ResponseCode#C200} (SUCCESSFULLY): If the OTP is valid, not expired, and the university update is successful. <br>
+     *         - {@link ResponseCode#C201} (FAILED): If the OTP is invalid, expired, or there are issues retrieving it. <br>
+     *         - {@link ResponseCode#C203} (NOT FOUND): If the university with the provided ID is not found in the database. <br>
+     */
     @Override
     public ResponseData<?> verifyAccount(VerifyUpdateUniversityRequestDTO verifyUpdateUniversityRequestDTO) {
         String otp = otpService.getOTP(verifyUpdateUniversityRequestDTO.getEmail());
@@ -253,46 +244,27 @@ public class UniversityServiceImpl implements UniversityService {
             University universityFromRedis = otpService.getUniversity(verifyUpdateUniversityRequestDTO.getEmail());
 
             // Get data from DB
-            University university = universityRepository.findUniversitiesById(verifyUpdateUniversityRequestDTO.getUniversityId());
-            university.setCode(universityFromRedis.getCode());
-            university.setName(universityFromRedis.getName());
-            university.setUsername(universityFromRedis.getUsername());
-            university.setEmail(universityFromRedis.getEmail());
-            university.setDescription(universityFromRedis.getDescription());
-            university.setAvatar(universityFromRedis.getAvatar());
-            university.setPassword(universityFromRedis.getPassword());
-            university.setPhone(universityFromRedis.getPhone());
-            university.setStatus(universityFromRedis.getStatus());
+            Optional<University> university = universityRepository.findById(verifyUpdateUniversityRequestDTO.getUniversityId());
+            if (university.isEmpty())
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy trường đại học");
+
+            university.get().setCode(universityFromRedis.getCode());
+            university.get().setName(universityFromRedis.getName());
+            university.get().setUsername(universityFromRedis.getUsername());
+            university.get().setEmail(universityFromRedis.getEmail());
+            university.get().setDescription(universityFromRedis.getDescription());
+            university.get().setAvatar(universityFromRedis.getAvatar());
+            university.get().setPassword(universityFromRedis.getPassword());
+            university.get().setPhone(universityFromRedis.getPhone());
+            university.get().setStatus(universityFromRedis.getStatus());
 
             // Update data in DB
-            var createStudent = universityRepository.save(university);
+            var createStudent = universityRepository.save(university.get());
             log.info("University has been updated: {}", createStudent);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được cập nhật");
         } else {
             return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
         }
     }
-    private boolean isEmailExisted(String email) {
-        return studentRepository.findByEmail(email) != null ||
-                staffRepository.findByEmail(email) != null ||
-                consultantRepository.findByEmail(email).isPresent() ||
-                universityRepository.findByEmail(email) != null ||
-                adminRepository.findByEmail(email) != null;
-    }
 
-    private boolean isUsernameExisted(String username) {
-        return studentRepository.findByUsername(username).isPresent() ||
-                staffRepository.findByUsername(username).isPresent() ||
-                consultantRepository.findByUsername(username).isPresent() ||
-                universityRepository.findByUsername(username).isPresent() ||
-                adminRepository.findByUsername(username).isPresent();
-    }
-
-    private boolean isPhoneExisted(String phone) {
-        return studentRepository.findByPhone(phone) != null ||
-                staffRepository.findByPhone(phone) != null ||
-                consultantRepository.findByPhone(phone).isPresent() ||
-                universityRepository.findByPhone(phone).isPresent() ||
-                adminRepository.findAdminByPhone(phone) != null;
-    }
 }

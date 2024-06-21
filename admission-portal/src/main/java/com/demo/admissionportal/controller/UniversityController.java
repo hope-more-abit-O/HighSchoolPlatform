@@ -1,8 +1,6 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.university.CreateUniversityTicketRequestDTO;
-import com.demo.admissionportal.dto.request.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.VerifyUpdateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.university.StaffRegisterUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityRequestDTO;
@@ -22,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 13 /06/2024
  */
 @RestController
-@RequestMapping("/api/v1/unversity")
+@RequestMapping("/api/v1/university")
 @RequiredArgsConstructor
 public class UniversityController {
     private final UniversityService universityService;

@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +65,16 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     Optional<Staff> findFirstByUsernameOrEmail(String username, String email);
 
 
+    Optional<Staff> findFirstByPhone(String phoneNumber);
 
+    Optional<Staff> findFirstByPhoneAndIdNot(String phoneNumber, Integer id);
+
+    Optional<Staff> findFirstByEmail(String email);
+
+    Optional<Staff> findFirstByEmailAndIdNot(String email, Integer id);
+
+    Optional<Staff> findFirstByUsername(String username);
+
+    Optional<Staff> findFirstByUsernameAndIdNot(String username, Integer id);
 }
 
