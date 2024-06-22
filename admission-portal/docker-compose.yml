@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  admission-portal:
+    image: admission-portal-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.217.104:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_DEV
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: Baolong28!
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: anh123456bhh@gmail.com
+      SPRING_MAIL_PASSWORD: kmqc wztm wimk abaq
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
+      EXPIRATION: 86400000
+      REFRESH_TOKEN_EXPIRATION: 3600
+      SERVER_SSL_KEY_ALIAS: uap-https
+      SERVER_SSL_KEY_STORE: classpath:uap.jsk
+      SERVER_SSL_KEY_STORE_TYPE: JKS
+      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
+    networks:
+      - my-network
+    depends_on:
+      - sqlserver
+      - redis
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "Baolong28!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - my-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
