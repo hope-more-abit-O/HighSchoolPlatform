@@ -48,7 +48,10 @@ services:
   redis:
     image: redis:latest
     ports:
-      - "6379:6379"
+      - "11813:11813"
+    environment:
+      REDIS_HOST: redis-11813.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com
+      REDIS_PASSWORD: kjyLndVSeOEwoSD7Eu5knzsRxfiRR8CA
     networks:
       - my-network
 
