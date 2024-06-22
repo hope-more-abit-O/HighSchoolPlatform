@@ -129,20 +129,21 @@ public class UniversityServiceImpl implements UniversityService {
     public University getUniversityById(Integer id) {
         return universityRepository.findById(id).orElse(null);
     }
+
     /**
      * Updates an existing university's information.
-     *
+     * <p>
      * This method handles the update process for a university, including validation
      * of unique fields (email, username, phone), sending an OTP for verification,
      * and saving updates to both the database and cache.
      *
      * @param updateUniversityRequestDTO An object containing the updated information for the university.
      * @return A {@link ResponseData} object indicating the result of the operation: <br>
-     *         - {@link ResponseCode#C206} (): If the OTP is successfully sent to the university's email. <br>
-     *         - {@link ResponseCode#C203} (Not Found): If the university with the given ID is not found. <br>
-     *         - {@link ResponseCode#C208} (Unsupported): If an unsupported operation is attempted. <br>
-     *         - {@link ResponseCode#C204} (Conflict): If a data conflict occurs, such as duplicate email, username, or phone. <br>
-     *         - {@link ResponseCode#C203} (Internal Server Error): If any other error occurs during the update process.
+     * - {@link ResponseCode#C206} (): If the OTP is successfully sent to the university's email. <br>
+     * - {@link ResponseCode#C203} (Not Found): If the university with the given ID is not found. <br>
+     * - {@link ResponseCode#C208} (Unsupported): If an unsupported operation is attempted. <br>
+     * - {@link ResponseCode#C204} (Conflict): If a data conflict occurs, such as duplicate email, username, or phone. <br>
+     * - {@link ResponseCode#C203} (Internal Server Error): If any other error occurs during the update process.
      */
     public ResponseData<University> updateUniversity(UpdateUniversityRequestDTO updateUniversityRequestDTO) {
         try {
@@ -158,7 +159,7 @@ public class UniversityServiceImpl implements UniversityService {
             String newPhone = updateUniversityRequestDTO.getPhone().trim();
 
             // Case 1 : Existed By Email
-            if (university.getEmail() == null || !university.getEmail().equals(newEmail)){
+            if (university.getEmail() == null || !university.getEmail().equals(newEmail)) {
                 validationService.validateEmail(newEmail, university);
                 resetEmail = true;
             }
@@ -169,7 +170,7 @@ public class UniversityServiceImpl implements UniversityService {
 
             // Case 3: Existed By Phone
             if (university.getPhone() == null || !university.getPhone().equals(newPhone))
-                validationService.validatePhoneNumber(university.getPhone(), university);
+                validationService.validatePhoneNumber(newPhone, university);
 
             Address address = addressService.createAddressReturnAddress(updateUniversityRequestDTO.getSpecificAddress(),
                     updateUniversityRequestDTO.getProvinceId(),
@@ -216,7 +217,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     /**
      * Verifies a university account update using a provided OTP (One-Time Password).
-     *
+     * <p>
      * This method checks the validity of the provided OTP against a stored OTP associated
      * with the university's email address. If the OTP is valid and within the time limit,
      * the university's information is updated in the database with the data
@@ -224,9 +225,9 @@ public class UniversityServiceImpl implements UniversityService {
      *
      * @param verifyUpdateUniversityRequestDTO An object containing the university ID and the OTP provided by the user.
      * @return A {@link ResponseData} object indicating the result of the verification: <br>
-     *         - {@link ResponseCode#C200} (SUCCESSFULLY): If the OTP is valid, not expired, and the university update is successful. <br>
-     *         - {@link ResponseCode#C201} (FAILED): If the OTP is invalid, expired, or there are issues retrieving it. <br>
-     *         - {@link ResponseCode#C203} (NOT FOUND): If the university with the provided ID is not found in the database. <br>
+     * - {@link ResponseCode#C200} (SUCCESSFULLY): If the OTP is valid, not expired, and the university update is successful. <br>
+     * - {@link ResponseCode#C201} (FAILED): If the OTP is invalid, expired, or there are issues retrieving it. <br>
+     * - {@link ResponseCode#C203} (NOT FOUND): If the university with the provided ID is not found in the database. <br>
      */
     @Override
     public ResponseData<?> verifyAccount(VerifyUpdateUniversityRequestDTO verifyUpdateUniversityRequestDTO) {
