@@ -19,7 +19,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user")
+@Table(name = "[user]")
 @Builder
 public class User implements UserDetails{
     @Id
@@ -46,12 +46,6 @@ public class User implements UserDetails{
     @Column(name = "avatar")
     private String avatar;
 
-    @NotNull
-    @Nationalized
-    @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
-    private String status;
-
     @Column(name = "create_time")
     private Date createTime;
 
@@ -60,6 +54,12 @@ public class User implements UserDetails{
 
     @Column(name = "update_time")
     private Date updateTime;
+
+    @NotNull
+    @Nationalized
+    @ColumnDefault("'ACTIVE'")
+    @Column(name = "status", nullable = false)
+    private String status;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore

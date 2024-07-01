@@ -82,8 +82,8 @@ public class ApplicationConfig implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username){
-        Optional<User> userDetails = userRepository.findByUsername(username);
-        if (userDetails.isPresent()) return userDetails.get();
-        throw new UsernameNotFoundException("Không tìm thấy user");
+        Optional<User> userDetails = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username));
+        return userDetails.orElse(null);
     }
 }

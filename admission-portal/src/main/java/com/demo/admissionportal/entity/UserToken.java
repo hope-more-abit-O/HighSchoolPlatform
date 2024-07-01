@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "user_token")
+@Table(name = "[user_token]")
 public class UserToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
