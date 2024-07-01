@@ -21,11 +21,10 @@ public enum Role {
     /**
      * Highschool role.
      */
-    HIGHSCHOOL,
     /**
      * Student role.
      */
-    STUDENT,
+    USER,
     /**
      * University role.
      */
