@@ -27,9 +27,6 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwtExpired}")
     private long jwtExpired;
 
-    @Value("${refresh_token_expiration}")
-    private long refreshTokenExpiration;
-
     @Override
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -97,9 +94,5 @@ public class JwtServiceImpl implements JwtService {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
-    }
-
-    public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails, refreshTokenExpiration);
     }
 }

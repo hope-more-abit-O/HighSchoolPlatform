@@ -4,7 +4,7 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.service.AuthenticationAdminService;
+import com.demo.admissionportal.service.AuthenticationUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,14 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * The type Authentication admin controller.
- */
 @RestController
-@RequestMapping("/api/v1/auth/admins")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthenticationAdminController {
-    private final AuthenticationAdminService authenticationAdminService;
+public class AuthenticationController {
+    private final AuthenticationUserService authenticationAdminService;
 
     /**
      * Login response entity.

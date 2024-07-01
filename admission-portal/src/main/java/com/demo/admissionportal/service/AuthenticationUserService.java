@@ -4,10 +4,7 @@ import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 
-/**
- * The interface Authentication university service.
- */
-public interface AuthenticationUniversityService {
+public interface AuthenticationUserService {
     /**
      * Login response data.
      *
