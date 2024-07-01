@@ -37,5 +37,4 @@ public interface JwtService {
      * @param userDetails the user details
      * @return the string
      */
-    String generateRefreshToken(UserDetails userDetails);
 }

@@ -40,10 +40,9 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             var jwtToken = jwtService.generateToken(user);
-            var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
-            saveUserToken(user, jwtToken, refreshToken);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).refreshToken(refreshToken).build());
+            saveUserToken(user, jwtToken);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
@@ -62,14 +61,13 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
         userTokenRepository.saveAll(validUserTokens);
     }
 
-    private void saveUserToken(User user, String jwtToken, String refreshToken) {
+    private void saveUserToken(User user, String jwtToken) {
         var token = UserToken.builder()
                 .user(user)
                 .token(jwtToken)
                 .tokenType(TokenType.BEARER)
                 .expired(false)
                 .revoked(false)
-                .refreshToken(refreshToken)
                 .build();
         userTokenRepository.save(token);
     }

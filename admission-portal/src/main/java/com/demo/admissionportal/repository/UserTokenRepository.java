@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The interface User token repository.
+ */
 @Repository
 public interface UserTokenRepository extends JpaRepository<UserToken, Integer> {
 

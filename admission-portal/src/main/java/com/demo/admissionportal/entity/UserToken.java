@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * The type User token.
+ */
 @Getter
 @Setter
 @Entity
@@ -33,10 +36,6 @@ public class UserToken {
     @NotNull
     @Column(name = "revoked")
     private boolean revoked;
-
-    @NotNull
-    @Column(name = "refresh_token")
-    private String refreshToken;
 
     @ManyToOne
     @JoinColumn(name = "[user_id]")

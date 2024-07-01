@@ -40,7 +40,7 @@ public class LogoutConfig implements LogoutHandler {
             } else {
                 response.setStatus(HttpStatus.OK.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                response.getWriter().write("{\"message\": \"Logout successful\"}");
+                response.getWriter().write("{\"message\": \"Logout successfully\"}");
             }
         } catch (Exception ex) {
             log.error("Error when log out {}", ex.getMessage());
