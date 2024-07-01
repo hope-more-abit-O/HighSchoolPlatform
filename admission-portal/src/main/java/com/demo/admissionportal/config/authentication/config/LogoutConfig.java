@@ -19,11 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class LogoutConfig implements LogoutHandler {
-    private final StudentTokenRepository studentTokenRepository;
-    private final AdminTokenRepository adminTokenRepository;
-    private final StaffTokenRepository staffTokenRepository;
-    private final ConsultantTokenRepository consultantTokenRepository;
-    private final UniversityTokenRepository universityTokenRepository;
+    private final UserTokenRepository userTokenRepository;
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -37,13 +33,7 @@ public class LogoutConfig implements LogoutHandler {
                 return;
             }
             jwt = authHeader.substring(7);
-            boolean checkAdminTokenExisted = isAdminTokenValid(jwt);
-            boolean checkStaffTokenExisted = isStaffTokenValid(jwt);
-            boolean checkUniversityTokenExisted = isUniversityTokenValid(jwt);
-            boolean checkConsultantTokenExisted = isConsultantTokenValid(jwt);
-            boolean checkStudentTokenExisted = isStudentTokenValid(jwt);
-            if (!checkStaffTokenExisted && !checkAdminTokenExisted && !checkUniversityTokenExisted
-                    && !checkConsultantTokenExisted && !checkStudentTokenExisted) {
+            if (!isUserTokenValid(jwt)) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.getWriter().write("{\"message\": \"Token is not valid\"}");
@@ -58,61 +48,13 @@ public class LogoutConfig implements LogoutHandler {
         }
     }
 
-    private boolean isStudentTokenValid(String jwt) {
-        var studentToken = studentTokenRepository.findByTokenStudent(jwt)
+    private boolean isUserTokenValid(String jwt) {
+        var userToken = userTokenRepository.findByToken(jwt)
                 .orElse(null);
-        if (studentToken != null) {
-            studentToken.setExpired(true);
-            studentToken.setRevoked(true);
-            studentTokenRepository.save(studentToken);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isStaffTokenValid(String jwt) {
-        var staffToken = staffTokenRepository.findByStaffToken(jwt)
-                .orElse(null);
-        if (staffToken != null) {
-            staffToken.setExpired(true);
-            staffToken.setRevoked(true);
-            staffTokenRepository.save(staffToken);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isAdminTokenValid(String jwt) {
-        var adminToken = adminTokenRepository.findByAdminToken(jwt)
-                .orElse(null);
-        if (adminToken != null) {
-            adminToken.setExpired(true);
-            adminToken.setRevoked(true);
-            adminTokenRepository.save(adminToken);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isConsultantTokenValid(String jwt) {
-        var consultantToken = consultantTokenRepository.findByConsultantToken(jwt)
-                .orElse(null);
-        if (consultantToken != null) {
-            consultantToken.setExpired(true);
-            consultantToken.setRevoked(true);
-            consultantTokenRepository.save(consultantToken);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isUniversityTokenValid(String jwt) {
-        var universityToken = universityTokenRepository.findByUniversityToken(jwt)
-                .orElse(null);
-        if (universityToken != null) {
-            universityToken.setExpired(true);
-            universityToken.setRevoked(true);
-            universityTokenRepository.save(universityToken);
+        if (userToken != null) {
+            userToken.setExpired(true);
+            userToken.setRevoked(true);
+            userTokenRepository.save(userToken);
             return true;
         }
         return false;

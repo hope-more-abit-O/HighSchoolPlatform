@@ -1,89 +1,69 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
-
-@Entity
-@Setter
 @Getter
+@Setter
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@Table(name = "[consultant]")
-public class Consultant implements UserDetails, ResetPassword {
+@Table(name = "user")
+@Builder
+public class User implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
+    @NotNull
     @Column(name = "username")
     private String username;
 
-    @Column(name = "name")
-    private String name;
-
+    @NotNull
     @Column(name = "email")
     private String email;
 
+    @NotNull
     @Column(name = "password")
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @Column(name = "avatar")
     private String avatar;
 
-    @Column(name = "phone")
-    private String phone;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private Role role = Role.CONSULTANT;
-
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private AccountStatus status;
+    @Nationalized
+    @ColumnDefault("'ACTIVE'")
+    @Column(name = "status", nullable = false)
+    private String status;
 
-    @OneToMany(mappedBy = "consultant")
+    @Column(name = "create_time")
+    private Date createTime;
+
+    @Column(name = "create_by")
+    private Integer createBy;
+
+    @Column(name = "update_time")
+    private Date updateTime;
+
+    @OneToMany(mappedBy = "user")
     @JsonIgnore
-    private List<ConsultantToken> tokens;
-
-    @JsonIgnore
-    private String resetPassToken;
-
-    @Override
-    public void setResetPassToken(String token) {
-        this.resetPassToken = token;
-    }
-
-    @Override
-    public Integer getId() {
-        return this.id;
-    }
-
-    @Override
-    public Role getRole() {
-        return role;
-    }
-
-    public Consultant(String username, String name, String email, String password, String phone) {
-        this.username = username;
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.avatar = "default_avatar.png";
-        this.phone = phone;
-        this.status = AccountStatus.ACTIVE;
-    }
+    private List<UserToken> tokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
