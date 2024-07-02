@@ -27,7 +27,7 @@ public class SecurityConfiguration {
     private static final String AUTHENTICATION_API = "/api/v1/auth/**";
     private static final String USER_API = "/api/v1/user/**";
     private static final String STAFF_API = "/api/v1/staff/**";
-//    private static final String ADMIN_API ="/api/v1/admin/**";
+    private static final String ADMIN_API ="/api/v1/admin/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,9 +37,9 @@ public class SecurityConfiguration {
                         req -> req
                                 .requestMatchers(USER_API).hasAuthority("STAFF")
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
-//                                .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
+                                .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
-                                        "/api/v1/admin/**",
+                                        "/account/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

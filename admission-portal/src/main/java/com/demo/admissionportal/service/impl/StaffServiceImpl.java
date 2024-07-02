@@ -3,6 +3,8 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.ActiveStaffRequest;
+import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
@@ -21,12 +23,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,10 +44,10 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<RegisterStaffResponse> registerStaff(RegisterStaffRequestDTO request) {
-        if (staffInfoRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã tồn tại !");
         }
-        if (staffInfoRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -68,6 +68,7 @@ public class StaffServiceImpl implements StaffService {
         staffInfo.setStatus("ACTIVE");
         staffInfo.setAvatar("image.png");
         staffInfo.setCreateTime(new Date());
+        staffInfo.setNote(null);
         staffInfo.setAdminId(adminId);
         staffInfo.setAdmin(admin);
         staffInfo.setCreateBy(adminId);
@@ -81,10 +82,10 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName, String lastName, String email, String phone, Pageable pageable) {
-        log.info("Get all staff with filters: Username: {}, firstName: {}, lastName: {}, Email: {}, Phone: {}", username, firstName, lastName, email, phone);
+    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String status, Pageable pageable) {
+        log.info("Get all staff with filters: Username: {}, firstName: {}, middleName: {}, lastName: {}, Email: {}, Phone: {}, Status: {}", username, firstName, middleName, lastName, email, phone, status);
         List<StaffResponseDTO> staffResponse = new ArrayList<>();
-        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, lastName, email, phone, pageable);
+        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         staffPage.getContent().forEach(s -> staffResponse.add(modelMapper.map(s, StaffResponseDTO.class)));
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
         log.info("Successfully retrieved list of staffs:{}", staffPage);
@@ -105,29 +106,35 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
-        Optional<StaffInfo> existStaffOptional = staffInfoRepository.findById(id);
+        Optional<StaffInfo> existStaff = staffInfoRepository.findById(id);
 
-        if (existStaffOptional.isEmpty()) {
+        if (existStaff.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã {}: " + id);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
         }
-        StaffInfo existStaff = existStaffOptional.get();
+        StaffInfo staff = existStaff.get();
+        if (!staff.getEmail().equals(request.getEmail())) {
+            Optional<User> existUser = userRepository.findByEmail(request.getEmail());
+            if (existUser.isPresent() && !existUser.get().getId().equals(staff.getId())) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
+            }
+        }
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-            modelMapper.map(request, existStaff);
-            existStaff.setPassword(passwordEncoder.encode(request.getPassword()));
-            staffInfoRepository.save(existStaff);
-            StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
-            log.info("Staff update successfully with ID: {}", existStaff.getId());
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công !", staffResponseDTO);
+            modelMapper.map(request, staff);
+            staff.setPassword(passwordEncoder.encode(request.getPassword()));
+            staffInfoRepository.save(staff);
+            StaffResponseDTO staffResponseDTO = modelMapper.map(staff, StaffResponseDTO.class);
+            log.info("Staff updated successfully with ID: {}", staff.getId());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
         } catch (Exception e) {
-            log.error("Error updateStaff with id: {}", id, e);
-            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau !");
+            log.error("Error updating staff with id: {}", id, e);
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
         }
     }
 
     @Override
-    public ResponseData<?> deleteStaffById(int id) {
+    public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {
         try {
             log.info("Starting delete process for staff ID: {}", id);
             StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
@@ -136,6 +143,7 @@ public class StaffServiceImpl implements StaffService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
             }
             existingStaff.setStatus(AccountStatus.INACTIVE.name());
+            existingStaff.setNote(request.note());
             staffInfoRepository.save(existingStaff);
             log.info("Staff with ID: {} is INACTIVE", id);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Xóa nhân viên thành công !");
@@ -146,7 +154,7 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public ResponseData<?> activateStaffById(int id) {
+    public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {
         try {
             Optional<StaffInfo> optionalStaff = staffInfoRepository.findById(id);
             if (optionalStaff.isEmpty()) {
@@ -158,6 +166,7 @@ public class StaffServiceImpl implements StaffService {
             if (AccountStatus.INACTIVE.name().equals(existingStaff.getStatus())) {
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE.name());
+                existingStaff.setNote(request.note());
                 staffInfoRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
             } else {

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,16 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class StaffController {
     private final StaffService staffService;
 
-    @PostMapping("/register")
-    public ResponseEntity<ResponseData<RegisterStaffResponse>> registerStaff(@RequestBody @Valid RegisterStaffRequestDTO request) {
-        ResponseData<RegisterStaffResponse> response = staffService.registerStaff(request);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
     @GetMapping("/{id}")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);

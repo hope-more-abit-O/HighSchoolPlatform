@@ -33,10 +33,10 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
             "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
             "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
             "(:email IS NULL OR u.email LIKE %:email%) AND " +
-            "(:phone IS NULL OR s.phone LIKE %:phone%) " +
-            "(:status IS NULL OR s.status LIKE %:status%)" +
-            "ORDER BY s.create_time DESC", nativeQuery = true)
-    Page<StaffInfo> findAll(String username, String firstName, String lastName, String email, String phone, Pageable pageable);
+            "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
+            "(:status IS NULL OR u.status LIKE %:status%)" +
+            "ORDER BY u.create_time DESC", nativeQuery = true)
+    Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String status, Pageable pageable);
 
     Optional<User> findByStatus(String status);
 }

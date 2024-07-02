@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.resetPassword.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
@@ -54,6 +55,9 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
 
         if (existingAccount instanceof User) {
             User user = (User) existingAccount;
+            if (user.getStatus().equals(AccountStatus.INACTIVE.name())){
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không tồn tại !");
+            }
             if (user.getRole() == Role.ADMIN) {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Email không hợp lệ");
             }
