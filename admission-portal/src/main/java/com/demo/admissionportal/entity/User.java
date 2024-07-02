@@ -1,7 +1,9 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -11,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user]")
 @Builder
 public class User implements UserDetails {
@@ -70,6 +74,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<UserToken> tokens;
+
 
     @Override
     @JsonIgnore
