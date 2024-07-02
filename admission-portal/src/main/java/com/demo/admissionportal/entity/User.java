@@ -4,16 +4,16 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
+import org.springframework.data.annotation.Transient;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user]")
 @Builder
-public class User implements UserDetails {
+public class User implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -74,6 +74,35 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<UserToken> tokens;
+
+    @JsonIgnore
+    @Transient
+    private String resetPassToken;
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public void setResetPassToken(String token) {
+        this.resetPassToken = token;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Override
+    public Role getRole() {
+        return role;
+    }
 
 
     @Override

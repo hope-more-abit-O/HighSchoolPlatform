@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -26,5 +27,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the optional
      */
     Optional<User> findByEmail(String username);
+    Optional<User> findByRole(Role role);
 
 }
