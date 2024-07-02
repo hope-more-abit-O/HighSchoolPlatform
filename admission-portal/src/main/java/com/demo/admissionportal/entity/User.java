@@ -18,14 +18,13 @@ import java.util.List;
 /**
  * The type User.
  */
-@Getter
-@Setter
+@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "[user]")
 @Builder
-public class User implements UserDetails{
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -59,10 +58,13 @@ public class User implements UserDetails{
     @Column(name = "update_time")
     private Date updateTime;
 
+    @Column(name = "update_by")
+    private Integer updateBy;
+
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @OneToMany(mappedBy = "user")
@@ -70,26 +72,31 @@ public class User implements UserDetails{
     private List<UserToken> tokens;
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }
