@@ -18,8 +18,7 @@ import java.util.List;
 /**
  * The type User.
  */
-@Getter
-@Setter
+@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -59,10 +58,13 @@ public class User implements UserDetails{
     @Column(name = "update_time")
     private Date updateTime;
 
+    @Column(name = "update_by")
+    private Integer updateBy;
+
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @OneToMany(mappedBy = "user")
