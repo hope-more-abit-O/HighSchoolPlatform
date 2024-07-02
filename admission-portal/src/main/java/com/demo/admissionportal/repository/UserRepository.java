@@ -27,7 +27,15 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the optional
      */
     Optional<User> findByEmail(String username);
+
+    /**
+     * Find by role optional.
+     *
+     * @param role the role
+     * @return the optional
+     */
     Optional<User> findByRole(Role role);
+
 
     /**
      * Find user by id user.
@@ -35,5 +43,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @param id the id
      * @return the user
      */
-    User findUserById(int id);
+    User findUserById(Integer id);
 }

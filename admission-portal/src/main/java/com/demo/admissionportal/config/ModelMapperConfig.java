@@ -23,6 +23,7 @@ public class ModelMapperConfig {
     public ModelMapper GetmodelMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+        modelMapper.getConfiguration().setAmbiguityIgnored(true);
         modelMapper.addConverter(new LocalDateTimeConverter());
         modelMapper.addConverter(new AccountStatusConverter());
         modelMapper.addConverter(new GenderStatusConverter());
