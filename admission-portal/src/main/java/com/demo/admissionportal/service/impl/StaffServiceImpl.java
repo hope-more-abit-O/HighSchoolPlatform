@@ -5,6 +5,7 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.StaffInfoRepository;
@@ -15,12 +16,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -72,4 +78,17 @@ public class StaffServiceImpl implements StaffService {
         RegisterStaffResponse response = new RegisterStaffResponse(staffInfo.getUsername(), staffInfo.getEmail(), staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName(), staffInfo.getPhone());
         return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", response);
     }
+
+    @Override
+    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String name, String email, String phone, Pageable pageable) {
+        log.info("Get all staff with filters: Username: {}, Name: {}, Email: {}, Phone: {}", username, name, email, phone);
+        List<StaffResponseDTO> staffResponse = new ArrayList<>();
+        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, name, email, phone, pageable);
+        staffPage.getContent().forEach(s -> staffResponse.add(modelMapper.map(s, StaffResponseDTO.class)));
+        Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
+        log.info("Successfully retrieved list of staffs:{}", staffPage);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
+    }
+
+
 }
