@@ -21,15 +21,14 @@ import java.util.List;
 /**
  * The type User.
  */
-@Getter
-@Setter
+@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user]")
 @Builder
-public class User implements UserDetails, ResetPassword {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -55,7 +54,7 @@ public class User implements UserDetails, ResetPassword {
     private String avatar;
 
     @Column(name = "create_time")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     @Column(name = "create_by")
     private Integer createBy;
@@ -63,10 +62,13 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "update_time")
     private Date updateTime;
 
+    @Column(name = "update_by")
+    private Integer updateBy;
+
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
     @OneToMany(mappedBy = "user")
@@ -75,26 +77,31 @@ public class User implements UserDetails, ResetPassword {
 
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }

@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -57,7 +58,7 @@ public class StaffServiceImpl implements StaffService {
         staffInfo.setRole(Role.STAFF);
         staffInfo.setStatus("ACTIVE");
         staffInfo.setAvatar("image.png");
-        staffInfo.setCreateTime(LocalDateTime.now());
+        staffInfo.setCreateTime(new Date());
         staffInfo.setAdminId(adminId);
         staffInfo.setAdmin(admin);
         staffInfo.setCreateBy(adminId);

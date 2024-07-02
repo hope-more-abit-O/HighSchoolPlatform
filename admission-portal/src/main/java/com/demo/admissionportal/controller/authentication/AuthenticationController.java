@@ -2,10 +2,10 @@ package com.demo.admissionportal.controller.authentication;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
-import com.demo.admissionportal.dto.request.RegisterAdminRequestDTO;
-import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
+import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
+import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
-import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import jakarta.validation.Valid;
@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * The type Authentication controller.
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -41,5 +44,53 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
+    }
+
+    /**
+     * Register response entity.
+     *
+     * @param request the request
+     * @return the response entity
+//     */
+    @PostMapping("/register")
+    public ResponseEntity<ResponseData<RegisterUserRequestDTO>> register(@RequestBody @Valid RegisterUserRequestDTO request) {
+        if (request == null) {
+            new ResponseEntity<ResponseData<RegisterUserRequestDTO>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<RegisterUserRequestDTO> registerAccount = authenticationUserService.register(request);
+        if (registerAccount.getStatus() == ResponseCode.C206.getCode()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(registerAccount);
+        } else if (registerAccount.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(registerAccount);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(registerAccount);
+    }
+
+    @PostMapping("/verify-account")
+    public ResponseEntity<ResponseData<?>> verifyAccount(@RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        if (verifyAccountRequestDTO == null) {
+            new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<?> verifyAccount = authenticationUserService.verifyAccount(verifyAccountRequestDTO);
+        if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(verifyAccount);
+        } else if (verifyAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(verifyAccount);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(verifyAccount);
+    }
+
+    @PostMapping("/regenerate-otp")
+    public ResponseEntity<ResponseData<?>> regenerateOtp(@RequestBody RegenerateOTPRequestDTO requestDTO) {
+        if (requestDTO == null) {
+            new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<?> regenerateOtp = authenticationUserService.regenerateOtp(requestDTO);
+        if (regenerateOtp.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(regenerateOtp);
+        } else if (regenerateOtp.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(regenerateOtp);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(regenerateOtp);
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -35,7 +36,7 @@ public class AdminServiceImpl implements AdminService {
         adminInfo.setPassword(passwordEncoder.encode(request.getPassword()));
         adminInfo.setRole(Role.ADMIN);
         adminInfo.setAvatar("image.png");
-        adminInfo.setCreateTime(LocalDateTime.now());
+        adminInfo.setCreateTime(new Date());
         adminInfo.setStatus("ACTIVE");
 
         adminInfoRepository.save(adminInfo);
