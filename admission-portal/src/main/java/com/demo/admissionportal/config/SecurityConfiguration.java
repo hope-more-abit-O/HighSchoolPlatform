@@ -24,7 +24,8 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
-    private static final String AUTHENTICATION_API = "/api/v1/auth";
+    private static final String AUTHENTICATION_API = "/api/v1/auth/**";
+    private static final String USER_API = "/api/v1/user/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,7 +33,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers(AUTHENTICATION_API + "/**",
+                                .requestMatchers(USER_API).hasAuthority("STAFF")
+                                .requestMatchers(AUTHENTICATION_API,
                                         "/api/v1/admin/**",
                                         "/api/v1/staff/**",
                                         "/v2/api-docs",
@@ -46,7 +48,7 @@ public class SecurityConfiguration {
                                         "/webjars/**",
                                         "/swagger-ui.html",
                                         "/api/v1/file/**"
-                                        )
+                                )
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
