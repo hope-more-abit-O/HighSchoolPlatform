@@ -75,6 +75,8 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<UserToken> tokens;
 
+    @Column(name = "note")
+    private String note;
 
     @Override
     @JsonIgnore

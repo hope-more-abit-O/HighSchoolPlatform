@@ -9,6 +9,8 @@ import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.AuthenticationUserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
 
@@ -39,7 +42,7 @@ public class AuthenticationController {
         }
         ResponseData<LoginResponseDTO> loginAccount = authenticationUserService.login(request);
         if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(loginAccount);
+            return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
         }
