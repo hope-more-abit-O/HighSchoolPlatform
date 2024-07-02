@@ -1,11 +1,14 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
+import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+
+import java.security.Principal;
 
 /**
  * The interface Authentication user service.
@@ -42,4 +45,13 @@ public interface AuthenticationUserService {
      * @return the response data
      */
     ResponseData<?> regenerateOtp(RegenerateOTPRequestDTO requestDTO);
+
+    /**
+     * Change password response data.
+     *
+     * @param changePasswordRequestDTO the change password request dto
+     * @param principal                the principal
+     * @return the response data
+     */
+    ResponseData<?> changePassword(ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal);
 }

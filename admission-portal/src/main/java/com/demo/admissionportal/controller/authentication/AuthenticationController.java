@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller.authentication;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
+import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
@@ -12,10 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 /**
  * The type Authentication controller.
@@ -51,7 +51,8 @@ public class AuthenticationController {
      *
      * @param request the request
      * @return the response entity
-//     */
+     * //
+     */
     @PostMapping("/register")
     public ResponseEntity<ResponseData<RegisterUserRequestDTO>> register(@RequestBody @Valid RegisterUserRequestDTO request) {
         if (request == null) {
@@ -92,5 +93,19 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(regenerateOtp);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(regenerateOtp);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
+        if (changePasswordRequestDTO == null) {
+            new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<?> changePasswordAccount = authenticationUserService.changePassword(changePasswordRequestDTO, principal);
+        if (changePasswordAccount.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(changePasswordAccount);
+        } else if (changePasswordAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(changePasswordAccount);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(changePasswordAccount);
     }
 }
