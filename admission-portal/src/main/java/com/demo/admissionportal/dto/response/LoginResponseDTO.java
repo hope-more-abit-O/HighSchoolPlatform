@@ -15,5 +15,4 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class LoginResponseDTO implements Serializable {
     private String accessToken;
-    private String refreshToken;
 }

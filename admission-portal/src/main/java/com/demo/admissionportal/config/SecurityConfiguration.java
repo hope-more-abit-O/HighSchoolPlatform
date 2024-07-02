@@ -32,11 +32,9 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers("api/v1/subject/**").hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API + "/**",
-                                        "/account/**",
-                                        "/api/v1/staffs/**",
-                                        "/api/v1/admins/**",
+                                        "/api/v1/admin/**",
+                                        "/api/v1/staff/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -47,10 +45,7 @@ public class SecurityConfiguration {
                                         "/swagger-ui/**",
                                         "/webjars/**",
                                         "/swagger-ui.html",
-                                "/api/v1/unversity/**",
-                                "/api/v1/consultant/**",
-                                        "/api/v1/file/**",
-                                        "/api/v1/create-university-ticket/**"
+                                        "/api/v1/file/**"
                                         )
                                 .permitAll()
                                 .anyRequest()

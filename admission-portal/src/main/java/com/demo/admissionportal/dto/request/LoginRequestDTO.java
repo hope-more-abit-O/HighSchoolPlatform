@@ -18,6 +18,5 @@ public class LoginRequestDTO {
     @NotNull(message = "Username không thể để trống")
     private String username;
     @NotNull(message = "Mật khẩu không thể để trống !")
-    @EnumPassword(message = "Mật khẩu phải từ 8 đến 16 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt!")
     private String password;
 }
