@@ -1,16 +1,12 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.dto.request.redis.ResetPasswordAccountRedisCacheDTO;
-import com.demo.admissionportal.entity.Staff;
-import com.demo.admissionportal.entity.Student;
-import com.demo.admissionportal.entity.University;
+import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.UserInfo;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
- * The interface Otp serivice.
+ * The interface Otp service.
  */
 public interface OTPService {
     /**
@@ -21,6 +17,16 @@ public interface OTPService {
      * @param timeGenerate the time generate
      */
     void saveOTP(String email, String otp, LocalDateTime timeGenerate);
+
+    /**
+     * Save user.
+     *
+     * @param email    the email
+     * @param user     the user
+     * @param userInfo the user info
+     */
+    void saveUser(String email, User user, UserInfo userInfo);
+
     /**
      * Gets otp.
      *
@@ -28,13 +34,6 @@ public interface OTPService {
      * @return the otp
      */
     String getOTP(String email);
-
-    /**
-     * Delete otp.
-     *
-     * @param email the email
-     */
-    void deleteOTP(String email);
 
     /**
      * Gets otp date time.
@@ -45,38 +44,25 @@ public interface OTPService {
     LocalDateTime getOTPDateTime(String email);
 
     /**
-     * Save student.
-     *
-     * @param email   the email
-     * @param student the student
-     */
-    void saveStudent(String email, Student student);
-
-    /**
-     * Gets student.
+     * Gets user.
      *
      * @param email the email
-     * @return the student
+     * @return the user
      */
-    Student getStudent(String email);
+    User getUser(String email);
 
     /**
-     * Save university.
-     *
-     * @param email      the email
-     * @param university the university
-     */
-    void saveUniversity(String email, University university);
-
-    /**
-     * Gets university.
+     * Gets user info.
      *
      * @param email the email
-     * @return the university
+     * @return the user info
      */
-    University getUniversity(String email);
+    UserInfo getUserInfo(String email);
 
-
-
-
+    /**
+     * Delete otp.
+     *
+     * @param email the email
+     */
+    void deleteOTP(String email);
 }

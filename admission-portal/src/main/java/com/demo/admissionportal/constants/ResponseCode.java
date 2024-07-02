@@ -33,7 +33,12 @@ public enum ResponseCode {
     /**
      * C 207 response code.
      */
-    C207(7, "INTERNAL_SERVER_ERROR");
+    C207(7, "INTERNAL_SERVER_ERROR"),
+
+    /**
+     * C 208 response code.
+     */
+    C208(8, "UNSUPPORTED OPERATION");
     private int code;
     private String message;
 
