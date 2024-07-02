@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
     /**
-     * Find user by id user info.
+     * Find user info by id user info.
      *
      * @param id the id
      * @return the user info
      */
-    UserInfo findUserById(Integer id);
+    UserInfo findUserInfoById(Integer id);
 }

@@ -1,8 +1,8 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.UserService;
@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
+/**
+ * The type User controller.
+ */
 @RestController
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
@@ -23,12 +28,28 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("{id}")
-    public ResponseEntity<ResponseData<UserResponseDTO>> getUser(@PathVariable Integer id) {
-        if (id == null || id < 0) {
-            new ResponseEntity<ResponseData<UserResponseDTO>>(HttpStatus.BAD_REQUEST);
+    /**
+     * Gets user.
+     *
+     * @return the user
+     */
+    @GetMapping("/list")
+    public ResponseEntity<ResponseData<List<UserResponseDTO>>> getUser() {
+        ResponseData<List<UserResponseDTO>> user = userService.getUser();
+        if (user.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        } else if (user.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
         }
-        ResponseData<UserResponseDTO> user = userService.getUser(id);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
+    }
+
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<ResponseData<UserProfileResponseDTO>> getUserById(@PathVariable("id") Integer id) {
+        if (id == null || id < 0) {
+            new ResponseEntity<ResponseData<UserProfileResponseDTO>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<UserProfileResponseDTO> user = userService.getUserById(id);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
