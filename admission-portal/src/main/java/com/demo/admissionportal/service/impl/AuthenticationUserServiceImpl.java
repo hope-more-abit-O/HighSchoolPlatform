@@ -114,8 +114,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
             // Map OTP in Redis Cache
             otpService.saveOTP(request.getEmail(), otp, LocalDateTime.now());
-
-
+            
             // Map user table
             User user = modelMapper.map(request, User.class);
             user.setRole(Role.USER);

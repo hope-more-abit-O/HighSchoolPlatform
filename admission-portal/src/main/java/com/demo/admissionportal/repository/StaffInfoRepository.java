@@ -27,10 +27,16 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      */
     Optional<User> findByEmail(String username);
 
-    @Query(value = "SELECT * FROM Staff s WHERE " +
-            "(:username IS NULL OR s.username LIKE %:username%) AND " +
-            "(:name IS NULL OR s.name LIKE %:name%) AND " +
-            "(:email IS NULL OR s.email LIKE %:email%) AND " +
-            "(:phone IS NULL OR s.phone LIKE %:phone%)", nativeQuery = true)
-    Page<StaffInfo> findAll(String username, String name, String email, String phone, Pageable pageable);
+    @Query(value = "SELECT * FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
+            "(:username IS NULL OR u.username LIKE %:username%) AND " +
+            "(:firstName IS NULL OR s.first_name LIKE %:firstName%) AND " +
+            "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
+            "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
+            "(:email IS NULL OR u.email LIKE %:email%) AND " +
+            "(:phone IS NULL OR s.phone LIKE %:phone%) " +
+            "(:status IS NULL OR s.status LIKE %:status%)" +
+            "ORDER BY s.create_time DESC", nativeQuery = true)
+    Page<StaffInfo> findAll(String username, String firstName, String lastName, String email, String phone, Pageable pageable);
+
+    Optional<User> findByStatus(String status);
 }
