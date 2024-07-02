@@ -2,7 +2,10 @@ package com.demo.admissionportal.controller.authentication;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterAdminRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
+import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import jakarta.validation.Valid;
@@ -18,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
-    private final AuthenticationUserService authenticationAdminService;
+    private final AuthenticationUserService authenticationUserService;
 
     /**
      * Login response entity.
@@ -31,7 +34,7 @@ public class AuthenticationController {
         if (request == null) {
             new ResponseEntity<ResponseData<LoginResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
-        ResponseData<LoginResponseDTO> loginAccount = authenticationAdminService.login(request);
+        ResponseData<LoginResponseDTO> loginAccount = authenticationUserService.login(request);
         if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {

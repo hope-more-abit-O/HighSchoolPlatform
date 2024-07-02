@@ -33,6 +33,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         req -> req
                                 .requestMatchers(AUTHENTICATION_API + "/**",
+                                        "/api/v1/admin/**",
+                                        "/api/v1/staff/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
