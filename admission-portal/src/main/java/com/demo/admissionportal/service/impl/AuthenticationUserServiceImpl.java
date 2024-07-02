@@ -5,6 +5,7 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
+import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
@@ -29,6 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -186,5 +188,27 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             log.error("regenerateOtp error: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), ex.getMessage());
         }
+    }
+
+    @Override
+    public ResponseData<?> changePassword(ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
+        try {
+            var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+
+            // Check if the current password is correct
+            if (!passwordEncoder.matches(changePasswordRequestDTO.getCurrentPassword(), user.getPassword())) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Sai mật khẩu");
+            }
+            // Check if the two password is the same
+            if (!changePasswordRequestDTO.getNewPassword().equals(changePasswordRequestDTO.getConfirmPassword())) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Mật khẩu không giống nhau");
+            }
+            user.setPassword(passwordEncoder.encode(changePasswordRequestDTO.getNewPassword()));
+            userRepository.save(user);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đổi mật khẩu thành công");
+        } catch (Exception ex) {
+            log.error("changePassword error: {}", ex.getMessage());
+        }
+        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lôỗi khi đổi mật khẩu");
     }
 }

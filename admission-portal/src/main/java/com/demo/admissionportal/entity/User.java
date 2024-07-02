@@ -4,7 +4,6 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -75,6 +74,8 @@ public class User implements UserDetails, ResetPassword {
     @JsonIgnore
     private List<UserToken> tokens;
 
+    @Column(name = "note")
+    private String note;
     @JsonIgnore
     @Transient
     private String resetPassToken;
