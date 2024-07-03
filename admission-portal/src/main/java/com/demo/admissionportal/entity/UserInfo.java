@@ -1,14 +1,13 @@
 package com.demo.admissionportal.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
-import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Nationalized;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -18,11 +17,9 @@ import java.util.Date;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user_info")
-public class UserInfo {
-    @Id
-    @Column(name = "user_id")
-    private Integer id;
+@Table(name = "[user_info]")
+@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
+public class UserInfo extends User implements Serializable {
 
     @NotNull
     @Nationalized

@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
@@ -34,35 +35,27 @@ public class UserServiceImpl implements UserService {
     private final WardRepository wardRepository;
 
     @Override
-    public ResponseData<List<UserResponseDTO>> getUser() {
+    public ResponseData<List<UserResponseDTO>> getUser(String username, String email) {
         try {
-            UserResponseDTO userResponseDTO = new UserResponseDTO();
-            List<User> users = userRepository.findAll();
-            List<UserInfo> userInfos = userInfoRepository.findAll();
-            List<UserResponseDTO> userResponseDTOs = new ArrayList<>();
-            for (User user : users) {
-                // Map user with user_info
-                UserInfo userInfo = userInfos.stream()
-                        .filter(ui -> ui.getId().equals(user.getId()))
-                        .findFirst()
-                        .orElse(null);
-                if (userInfo != null) {
-                    // Add element userResponseDTO to List<userResponseDTO>
-                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-                    String dateString = formatter.format(new Date());
-                    userResponseDTO.setUsername(user.getUsername());
-                    userResponseDTO.setEmail(user.getEmail());
-                    userResponseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                    userResponseDTO.setStatus(user.getStatus());
-                    userResponseDTO.setCreate_time(dateString);
-                    userResponseDTO.setNote(user.getNote());
-                    userResponseDTOs.add(userResponseDTO);
-                }
-            }
-            if (userResponseDTOs.isEmpty()) {
+            List<UserInfo> userInfos = userInfoRepository.findAllUser(username, email);
+            if (userInfos.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOs);
+            UserResponseDTO responseDTO = new UserResponseDTO();
+            List<UserResponseDTO> userResponseDTOS = new ArrayList<>();
+            // Add Object to List<Object> and map with UserInfo
+            for (UserInfo userInfo : userInfos) {
+                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                String dateString = formatter.format(new Date());
+                responseDTO.setUsername(userInfo.getUsername());
+                responseDTO.setEmail(userInfo.getEmail());
+                responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
+                responseDTO.setStatus(userInfo.getStatus());
+                responseDTO.setCreate_time(dateString);
+                responseDTO.setNote(userInfo.getNote());
+                userResponseDTOS.add(responseDTO);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOS);
         } catch (Exception ex) {
             log.error("Error while getting list user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
@@ -153,6 +146,31 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex) {
             log.error("Error while update user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
+        }
+    }
+
+    @Override
+    public ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO) {
+        try {
+            if (id == null || id < 0 || requestDTO == null) {
+                new ResponseEntity<ResponseData<User>>(HttpStatus.BAD_REQUEST);
+            }
+            User user = userRepository.findUserById(id);
+            if (user == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+            }
+            if (user.getStatus().equals("ACTIVE")) {
+                user.setNote(requestDTO.getNote());
+                user.setStatus("INACTIVE");
+            } else {
+                user.setNote(requestDTO.getNote());
+                user.setStatus("ACTIVE");
+            }
+            userRepository.save(user);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công");
+        } catch (Exception ex) {
+            log.error("Error while change status user: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi thay đổi trạng thái user");
         }
     }
 }
