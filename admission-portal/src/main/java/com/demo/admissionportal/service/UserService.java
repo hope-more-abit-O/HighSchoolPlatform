@@ -1,6 +1,8 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,4 +32,13 @@ public interface UserService extends UserDetailsService {
     ResponseData<UserProfileResponseDTO> getUserById(Integer id);
     UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 
+
+    /**
+     * Update user response data.
+     *
+     * @param id         the id
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 }

@@ -2,7 +2,9 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
@@ -10,11 +12,9 @@ import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +24,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The type User service.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -88,7 +91,6 @@ public class UserServiceImpl implements UserService{
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
             userProfileResponseDTO.setEmail(user.getEmail());
             userProfileResponseDTO.setUsername(user.getUsername());
-            userProfileResponseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
             userProfileResponseDTO.setGender(userInfo.getGender());
 
             // Convert dd-MM-YYYY
@@ -103,6 +105,8 @@ public class UserServiceImpl implements UserService{
             userProfileResponseDTO.setWard(ward);
             userProfileResponseDTO.setDistrict(district);
             userProfileResponseDTO.setProvince(province);
+            userProfileResponseDTO.setAvatar(user.getAvatar());
+
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy user", userProfileResponseDTO);
         } catch (Exception ex) {
             log.error("Error while getting user: {}", ex.getMessage());
@@ -121,5 +125,48 @@ public class UserServiceImpl implements UserService{
     public List<User> getListUser() {
         List<User> ls = userRepository.findByRole(Role.USER);
         return ls;
+    }
+
+    @Override
+    public ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO) {
+        try {
+
+            if (id == null || id < 0 || requestDTO == null) {
+                new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
+            }
+            UserInfo userInfo = userInfoRepository.findUserInfoById(id);
+            User user = userRepository.findUserById(id);
+            // Get user profile
+            if (userInfo == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+            }
+            // Update profile
+            userInfo.setFirstname(requestDTO.getFirstname());
+            userInfo.setMiddleName(requestDTO.getMiddle_name());
+            userInfo.setLastName(requestDTO.getLastname());
+            userInfo.setGender(requestDTO.getGender());
+            userInfo.setPhone(requestDTO.getPhone());
+
+            userInfo.setBirthday(requestDTO.getBirthday());
+            userInfo.setProvince(requestDTO.getProvince());
+            userInfo.setDistrict(requestDTO.getDistrict());
+            userInfo.setWard(requestDTO.getWard());
+            userInfo.setEducationLevel(requestDTO.getEducation_level());
+            userInfo.setPhone(requestDTO.getPhone());
+            userInfo.setSpecificAddress(requestDTO.getSpecific_address());
+            user.setAvatar(requestDTO.getAvatar());
+
+            // Save update time
+            Date date = new Date();
+            user.setUpdateTime(date);
+
+            userRepository.save(user);
+            userInfoRepository.save(userInfo);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công");
+        } catch (Exception ex) {
+            log.error("Error while update user: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
+        }
     }
 }
