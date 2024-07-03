@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -143,8 +145,7 @@ public class UserServiceImpl implements UserService {
             user.setAvatar(requestDTO.getAvatar());
 
             // Save update time
-            Date date = new Date();
-            user.setUpdateTime(date);
+            user.setUpdateTime(new Date());
 
             userRepository.save(user);
             userInfoRepository.save(userInfo);
@@ -154,5 +155,13 @@ public class UserServiceImpl implements UserService {
             log.error("Error while update user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
         }
+    }
+
+    @Override
+    public User findById(Integer id) throws ResourceNotFoundException {
+        return userRepository.findById(id).orElseThrow(() -> {
+            log.error("User's account with id: {} not found.", id);
+            return new ResourceNotFoundException("User's account with id: " + id + " not found");
+        });
     }
 }

@@ -8,18 +8,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object (DTO) used for representing an action performer.
+ *
+ * @Field id The unique identifier (ID) of the user who performed the action.
+ * @Field username The username of the action performer.
+ * @Field email The email address of the action performer (optional).
+ * @Field role The user's role (e.g., "ADMIN", "USER").
+ */
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ActionerDTO {
     private Integer id;
-    private String name;
-    private Role role;
-
-    public ActionerDTO(User account, UniversityInfo universityInfo){
-        this.id = account.getId();
-        this.name = universityInfo.getName();
-        this.role = account.getRole();
-    }
+    private String username;
+    private String email;
+    private String role;
 }

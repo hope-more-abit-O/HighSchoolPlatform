@@ -32,6 +32,7 @@ public class GlobalExceptionHandler {
         });
         return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Sai format", errors);
     }
+
     /**
      * Handle validation exceptions response data.
      *
@@ -42,5 +43,29 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleDataExistedExceptions(DataExistedException ex) {
         return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Dữ liệu đã tồn tại", ex.getMessage());
+    }
+
+    /**
+     * Handle validation exceptions response data.
+     *
+     * @param ex the ex
+     * @return the response data
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseData<Object> handleResourceNotFountExceptions(ResourceNotFoundException ex) {
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Dữ liệu đã tồn tại", ex.getMessage());
+    }
+
+    /**
+     * Handle validation exceptions response data.
+     *
+     * @param ex the ex
+     * @return the response data
+     */
+    @ExceptionHandler(StoreDataFailedException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseData<Object> handleStoreDataFailedException(StoreDataFailedException ex) {
+        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Dữ liệu đã tồn tại", ex.getMessage());
     }
 }

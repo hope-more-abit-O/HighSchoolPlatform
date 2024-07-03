@@ -6,6 +6,30 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * Represents detailed information about a university.
+ *
+ * <p> This entity stores information specific to universities, including their name,
+ * code, type, and other relevant details.
+ *
+ * <p> Example Usage:
+ * <pre>
+ * {@code
+ * UniversityInfo universityInfo = UniversityInfo.builder()
+ *     .universityId(1)
+ *     .createUniversityRequestId(101)
+ *     .name("Example University")
+ *     .code("EU")
+ *     .description("A prestigious institution of higher learning.")
+ *     .coverImage("image.jpg")
+ *     .type(UniversityType.PUBLIC)
+ *     .build();
+ *
+ * // ... Use a repository to persist the universityInfo object ...
+ * }
+ * </pre>
+ *
+ */
 @Getter
 @Setter
 @Entity

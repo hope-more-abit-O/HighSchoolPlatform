@@ -1,70 +1,87 @@
 package com.demo.admissionportal.dto.entity.consultant;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Gender;
-import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
-import com.demo.admissionportal.entity.*;
-import lombok.*;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
+import com.demo.admissionportal.entity.ConsultantInfo;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Date;
-
-
-@Data
-@Builder
+/**
+ * ConsultantResponseDTO is a data transfer object that encapsulates the response data
+ * for a consultant, including details about the university they are associated with,
+ * their personal information, and additional notes.
+ *
+ * <p>This class contains the following properties:
+ * <ul>
+ *   <li>{@link UniversityInfoResponseDTO} university - Information about the associated university</li>
+ *   <li>{@link String} name - The name of the consultant</li>
+ *   <li>{@link String} phone - The phone number of the consultant</li>
+ *   <li>{@link String} address - The address of the consultant</li>
+ *   <li>{@link String} note - Any additional notes about the consultant</li>
+ *   <li>{@link Gender} gender - The gender of the consultant</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Example usage:
+ * <pre>
+ * {@code
+ * ConsultantResponseDTO consultantResponse = new ConsultantResponseDTO();
+ * consultantResponse.convertName(consultantInfo);
+ * }
+ * </pre>
+ * </p>
+ *
+ * @see UniversityInfoResponseDTO
+ * @see Gender
+ */
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConsultantResponseDTO {
-    private Integer id;
-    private InfoUniversityResponseDTO university;
-    private String email;
-    private String username;
-    private String avatar;
+    private UniversityInfoResponseDTO university;
     private String name;
     private String phone;
     private String address;
     private String note;
     private Gender gender;
-    private Role role;
-    private Date createTime;
-    private ActionerDTO createBy;
-    private Date updateTime;
-    private ActionerDTO updateBy;
-    private AccountStatus status;
 
-    public ConsultantResponseDTO(User account, ConsultantInfo consultantInfo, InfoUniversityResponseDTO university, ActionerDTO createBy, ActionerDTO updateBy) {
-        this.id = account.getId();
-        this.university = university;
-        this.email = account.getEmail();
-        this.username = account.getUsername();
-        this.avatar = account.getAvatar();
-        this.name = consultantInfo.getFirstname() + " " + consultantInfo.getMiddleName() + " "  + consultantInfo.getLastName();
-        this.phone = consultantInfo.getPhone();
-        this.address = consultantInfo.getSpecificAddress() + ", " + consultantInfo.getWard().getName() + ", " + consultantInfo.getDistrict().getName() + ", " + consultantInfo.getProvince().getName();
-        this.note = ""; //TODO: update
-        this.gender = consultantInfo.getGender();
-        this.role = account.getRole();
-        this.createTime = account.getCreateTime();
-        this.createBy = createBy;
-        this.updateTime = account.getUpdateTime();
-        this.updateBy = updateBy;
-        this.status = account.getStatus();
-    }
-    public ConsultantResponseDTO(User account, ConsultantInfo consultantInfo, InfoUniversityResponseDTO university, ActionerDTO createBy) {
-        this.id = account.getId();
-        this.university = university;
-        this.email = account.getEmail();
-        this.username = account.getUsername();
-        this.avatar = account.getAvatar();
-        this.name = consultantInfo.getFirstname() + " " + consultantInfo.getMiddleName() + " "  + consultantInfo.getLastName();
-        this.phone = consultantInfo.getPhone();
-        this.address = consultantInfo.getSpecificAddress() + ", " + consultantInfo.getWard().getName() + ", " + consultantInfo.getDistrict().getName() + ", " + consultantInfo.getProvince().getName();
-        this.note = ""; //TODO: update
-        this.gender = consultantInfo.getGender();
-        this.role = account.getRole();
-        this.createTime = account.getCreateTime();
-        this.createBy = createBy;
-        this.status = account.getStatus();
+    /**
+     * Converts the individual name components of the given {@link ConsultantInfo} into a full name
+     * and sets it to the {@code name} property of this {@code InfoConsultantResponseDTO}.
+     *
+     * <p>The full name is constructed by concatenating the first name, middle name (if present), and last name,
+     * with each component separated by a space. Leading and trailing spaces are trimmed from the final name.</p>
+     *
+     * <p>Example usage:
+     * <pre>
+     * {@code
+     * ConsultantInfo consultantInfo = new ConsultantInfo();
+     * consultantInfo.setFirstname("John");
+     * consultantInfo.setMiddleName("Michael");
+     * consultantInfo.setLastName("Doe");
+     *
+     * InfoConsultantResponseDTO consultantResponse = new InfoConsultantResponseDTO();
+     * consultantResponse.convertName(consultantInfo);
+     *
+     * // The name property of consultantResponse will be set to "John Michael Doe"
+     * }
+     * </pre>
+     * </p>
+     *
+     * @param consultantInfo the {@code ConsultantInfo} object containing the name components to be converted
+     * @see ConsultantInfo
+     */
+    public void convertName(ConsultantInfo consultantInfo){
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append(consultantInfo.getFirstname()).append(" ");
+        if (consultantInfo.getMiddleName() != null && !consultantInfo.getMiddleName().isEmpty())
+            nameBuilder.append(consultantInfo.getMiddleName()).append(" ");
+        nameBuilder.append(consultantInfo.getLastName()).append(" ");
+
+        this.setName(nameBuilder.toString().trim());
     }
 }

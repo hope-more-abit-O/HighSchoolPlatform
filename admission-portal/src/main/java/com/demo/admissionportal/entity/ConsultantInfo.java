@@ -7,7 +7,43 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
-
+/**
+ * Represents detailed information about a consultant.
+ *
+ * <p>This entity stores comprehensive information related to a consultant,
+ * including their personal details, contact information, and address.
+ *
+ * <p> Example Usage:
+ * <pre>
+ * {@code
+ * // Create Province, District, and Ward objects first (or fetch them from a data source).
+ * Province someProvince = new Province(1, "Some Province");
+ * District someDistrict = new District(1, "Some District");
+ * Ward someWard = new Ward(1, "Some Ward");
+ *
+ * // Create a ConsultantInfo instance
+ * ConsultantInfo consultantInfo = new ConsultantInfo(
+ *     1,                              // Consultant ID
+ *     123,                            // University ID
+ *     "John",                         // First name
+ *     "Doe",                          // Middle Name
+ *     "Consultant",                   // Last name
+ *     "1234567890",                   // Phone Number
+ *     "123 Main Street",              // Specific address
+ *     Gender.MALE,                    // Gender
+ *     someProvince,                   // Province object
+ *     someDistrict,                   // District object
+ *     someWard                        // Ward object
+ * );
+ *
+ * // ... Use a repository to persist the consultantInfo object
+ * }
+ * </pre>
+ *
+ * @see javax.persistence.Entity - Marks this class as a JPA entity for database mapping.
+ * @see lombok.Getter - Generates getter methods for all fields.
+ * @see lombok.Setter - Generates setter methods for all fields.
+ */
 @Getter
 @Setter
 @Entity

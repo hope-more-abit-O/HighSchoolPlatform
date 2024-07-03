@@ -5,6 +5,8 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -36,4 +38,6 @@ public interface UserService {
      * @return the response data
      */
     ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
+
+    public User findById(Integer id) throws ResourceNotFoundException;
 }

@@ -1,44 +1,31 @@
 package com.demo.admissionportal.dto.entity.university;
 
-import com.demo.admissionportal.constants.AccountStatus;
-import com.demo.admissionportal.constants.UniversityType;
-import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.create_university_request.InfoCreateUniversityRequestResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
-
+/**
+ * Data Transfer Object (DTO) used for transferring comprehensive university information responses.
+ * @see InfoCreateUniversityRequestResponseDTO
+ *
+ * @Field name The name of the university.
+ * @Field code The university's code (optional).
+ * @Field type The type of university (optional).
+ * @Field createUniversityRequest An {@link InfoCreateUniversityRequestResponseDTO} object representing the university creation request.
+ * @Field description A description of the university (optional).
+ * @Field coverImage A URL or path to the university's cover image (optional).
+ */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UniversityResponseDTO {
-    private Integer id;
-
-    private String universityName;
-
-    private String universityCode;
-
-    private String universityEmail;
-
-    private String universityUsername;
-
-    private UniversityType universityType;
-
-    private String note;
-
-    private List<String> documents;
-
-    private Date createTime;
-
-    private ActionerDTO createBy;
-
-    private Date updateTime;
-
-    private ActionerDTO updateBy;
-
-    private AccountStatus status;
+    private String name;
+    private String code;
+    private String type;
+    private InfoCreateUniversityRequestResponseDTO createUniversityRequest;
+    private String description;
+    private String coverImage;
 }

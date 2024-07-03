@@ -1,9 +1,7 @@
 package com.demo.admissionportal.config;
 
 
-import com.demo.admissionportal.converter.AccountStatusConverter;
-import com.demo.admissionportal.converter.GenderStatusConverter;
-import com.demo.admissionportal.converter.LocalDateTimeConverter;
+import com.demo.admissionportal.converter.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +25,8 @@ public class ModelMapperConfig {
         modelMapper.addConverter(new LocalDateTimeConverter());
         modelMapper.addConverter(new AccountStatusConverter());
         modelMapper.addConverter(new GenderStatusConverter());
+        modelMapper.addConverter(new RoleToStringConverter());
+        modelMapper.addConverter(new DateToStringConverter());
         return modelMapper;
     }
 
