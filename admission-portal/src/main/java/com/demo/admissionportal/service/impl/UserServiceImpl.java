@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
@@ -12,17 +13,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ProvinceRepository provinceRepository;
@@ -103,5 +108,18 @@ public class UserServiceImpl implements UserService {
             log.error("Error while getting user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found!");
+        }
+        return user.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    }
+    public List<User> getListUser() {
+        List<User> ls = userRepository.findByRole(Role.USER);
+        return ls;
     }
 }

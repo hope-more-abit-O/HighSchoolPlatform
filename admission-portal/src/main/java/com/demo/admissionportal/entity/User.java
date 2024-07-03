@@ -79,6 +79,8 @@ public class User implements UserDetails, ResetPassword {
     @JsonIgnore
     @Transient
     private String resetPassToken;
+    @Transient
+    private String providerId;
 
     @Override
     public String getEmail() {

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="ISO-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-size: cover;
+            width: 100%;
+            height: 100%;
+            background-image: url("https://preview.colorlib.com/theme/bootstrap/login-form-20/images/bg.jpg.webp");
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand {
+            color: #fff;
+        }
+        .navbar-brand:hover {
+            color: #ddd;
+        }
+        .card {
+            margin-top: 60px;
+            padding: 10px;
+            color: #585858;
+        }
+        .login-heading {
+            margin-bottom: 20px;
+        }
+        .social-login img {
+            width: 30px;
+            height: auto;
+            margin-right: 10px;
+        }
+        .social-login a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navigation bar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">Hi</a>
+    </div>
+</nav>
+
+<!-- Main container -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <h1 class="text-center login-heading">Login</h1>
+                <form action="/login" method="post">
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input id="email" class="form-control" required="" autofocus="autofocus" name="username" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input id="password" class="form-control" type="password" required="" name="password" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                        <p class="text-center mt-3">New User? <a href="/registration">Register here</a></p>
+                    </div>
+                </form>
+
+                <!-- Social login buttons -->
+                <div class="form-group text-center social-login">
+                    <h2>
+                        <a href="/oauth2/authorization/google" class="btn btn-outline-secondary btn-block">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" style="width:30px;height:auto;">
+                            Login with Google
+                        </a>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,7 +1,8 @@
 package com.demo.admissionportal.config.authentication.config;
 
-import com.demo.admissionportal.entity.*;
-import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * The type Application config.
@@ -27,6 +25,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class ApplicationConfig implements UserDetailsService {
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      * User details service user details service.
@@ -36,8 +35,7 @@ public class ApplicationConfig implements UserDetailsService {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            Optional<User> studentDetails = userRepository.findByUsername(username)
-                    .or(() -> userRepository.findByEmail(username));
+            Optional<User> studentDetails = userRepository.findByUsername(username).or(() -> userRepository.findByEmail(username));
             if (studentDetails.isPresent()) {
                 return studentDetails.get();
             }
@@ -45,17 +43,17 @@ public class ApplicationConfig implements UserDetailsService {
         };
     }
 
-    /**
-     * Authentication provider authentication provider.
-     *
-     * @return the authentication provider
-     */
+    //    /**
+//     * Authentication provider authentication provider.
+//     *
+//     * @return the authentication provider
+//     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
     }
 
     /**
@@ -81,9 +79,8 @@ public class ApplicationConfig implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username){
-        Optional<User> userDetails = userRepository.findByUsername(username)
-                .or(() -> userRepository.findByEmail(username));
+    public UserDetails loadUserByUsername(String username) {
+        Optional<User> userDetails = userRepository.findByUsername(username).or(() -> userRepository.findByEmail(username));
         return userDetails.orElse(null);
     }
 }
