@@ -110,7 +110,7 @@ public class ValidationServiceImpl implements ValidationService {
     /**
      * Checks if a phone number is already associated with any user, consultant, or university account.
      *
-     * <p> This method queries multiple repositories (`userInfoRepository`, `consultantInfoRepository`, `universityInfoRepository`)
+     * <p> This method queries multiple repositories (`userInfoRepository`, `consultantInfoRepository`)
      * to determine if the given phone number is already in use within the system.
      *
      * <p>Example Usage:
@@ -140,8 +140,7 @@ public class ValidationServiceImpl implements ValidationService {
         log.info("Checking phone number availability.");
         boolean phoneAlreadyExists = Stream.of(
                 userInfoRepository.findFirstByPhone(phone),
-                consultantInfoRepository.findFirstByPhone(phone),
-                universityInfoRepository.findFirstByPhone(phone)
+                consultantInfoRepository.findFirstByPhone(phone)
         ).anyMatch(Optional::isPresent);
         if (phoneAlreadyExists) {
             log.error("Phone number: {} is already taken!", phone);

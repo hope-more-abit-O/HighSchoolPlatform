@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
@@ -18,9 +19,11 @@ public interface UserService {
     /**
      * Gets user.
      *
+     * @param username the username
+     * @param email    the email
      * @return the user
      */
-    ResponseData<List<UserResponseDTO>> getUser();
+    ResponseData<List<UserResponseDTO>> getUser(String username, String email);
 
     /**
      * Gets user by id.
@@ -39,5 +42,13 @@ public interface UserService {
      */
     ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 
+    /**
+     * Change status response data.
+     *
+     * @param id         the id
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
     public User findById(Integer id) throws ResourceNotFoundException;
 }

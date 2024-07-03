@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, Integer> {
-    Optional<UniversityInfo> findFirstByPhone(Object unknownAttr1);
+
 }
