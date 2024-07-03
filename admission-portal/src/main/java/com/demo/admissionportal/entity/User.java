@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -59,11 +60,13 @@ public class User implements UserDetails{
     @Column(name = "update_time")
     private Date updateTime;
 
+    @Column(name = "update_by")
+    private Integer updateBy;
+
     @NotNull
-    @Nationalized
-    @ColumnDefault("'ACTIVE'")
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
@@ -92,5 +95,18 @@ public class User implements UserDetails{
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public User(String username, String email, String password, Role role, Integer createBy){
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.createBy = createBy;
+        this.updateBy = null;
+        this.createTime = new Date();
+        this.updateTime = null;
+        this.avatar = "default.png";
+        this.status = AccountStatus.ACTIVE;
     }
 }

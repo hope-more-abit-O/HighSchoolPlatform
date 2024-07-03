@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isUserTokenValid(String jwt){
         return userTokenRepository.findByToken(jwt)
-                .map(t -> !t.isExpired() && t.isRevoked())
+                .map(t -> !t.isExpired() && !t.isRevoked())
                 .orElse(false);
     }
 }
