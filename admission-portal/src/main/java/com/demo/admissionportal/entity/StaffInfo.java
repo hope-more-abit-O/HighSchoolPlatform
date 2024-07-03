@@ -1,41 +1,30 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.util.EnumPassword;
-import com.demo.admissionportal.util.EnumPhone;
-import com.demo.admissionportal.util.EnumStaffUsernameValidator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * The type Staff info.
+ */
+@Entity
 @Getter
 @Setter
-@Entity
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "staff_info")
-@Builder
-public class StaffInfo {
-
-    @Id
-    @Column(name = "staff_id", nullable = false, updatable = false)
-    private Integer staffId;
-
-    @Column(name = "admin_id", nullable = false, updatable = false)
+@PrimaryKeyJoinColumn(name = "staff_id")
+public class StaffInfo extends User {
+    @Column(name = "admin_id")
     private Integer adminId;
-
-    @Column(nullable = false)
+    @Column(name = "first_name")
     private String firstName;
-
-    @Column(nullable = false)
+    @Column(name = "middle_name")
     private String middleName;
-
-    @Column(nullable = false)
+    @Column(name = "last_name")
     private String lastName;
-
-    @NotNull(message = "Số điện thoại không thể để trống !")
-    @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
+    @Column(name = "phone")
     private String phone;
-
+    @ManyToOne
+    @JoinColumn(name = "admin_id", insertable = false, updatable = false)
+    private User admin;
 }

@@ -5,24 +5,25 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
-@Getter
-@Setter
+/**
+ * The type Ward.
+ */
+@Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "ward")
 public class Ward {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Integer id;
 
-    @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "name")
     private String name;
 
 }
