@@ -1,6 +1,8 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 
@@ -25,4 +27,13 @@ public interface UserService {
      * @return the user by id
      */
     ResponseData<UserProfileResponseDTO> getUserById(Integer id);
+
+    /**
+     * Update user response data.
+     *
+     * @param id         the id
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 }

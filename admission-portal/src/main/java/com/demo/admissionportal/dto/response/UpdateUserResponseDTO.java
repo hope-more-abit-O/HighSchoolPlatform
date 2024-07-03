@@ -11,19 +11,17 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * The type User profile response dto.
+ * The type Update user response dto.
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileResponseDTO implements Serializable {
+public class UpdateUserResponseDTO implements Serializable {
     private String firstname;
-    private String lastname;
     private String middle_name;
+    private String last_name;
     private String gender;
-    private String email;
-    private String username;
     private String birthday;
     private String phone;
     private String education_level;
@@ -31,5 +29,4 @@ public class UserProfileResponseDTO implements Serializable {
     private Province province;
     private District district;
     private Ward ward;
-    private String avatar;
 }
