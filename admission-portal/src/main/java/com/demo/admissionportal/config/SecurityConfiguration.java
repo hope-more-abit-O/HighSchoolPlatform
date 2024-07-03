@@ -39,6 +39,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        "/account/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
