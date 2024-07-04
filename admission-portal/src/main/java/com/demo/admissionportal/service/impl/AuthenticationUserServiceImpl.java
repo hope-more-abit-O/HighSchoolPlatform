@@ -14,12 +14,14 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.UserToken;
+import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.UserInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.UserTokenRepository;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.JwtService;
 import com.demo.admissionportal.service.OTPService;
+import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.EmailUtil;
 import com.demo.admissionportal.util.OTPUtil;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +54,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final OTPUtil otpUtil;
     private final EmailUtil emailUtil;
     private final OTPService otpService;
+    private final ValidationService validationService;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -99,13 +102,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     @Override
     public ResponseData<RegisterUserRequestDTO> register(RegisterUserRequestDTO request) {
         try {
-            var checkExisted = userRepository.findByEmail(request.getEmail())
-                    .or(() -> userRepository.findByUsername(request.getUsername()))
-                    .orElse(null);
-            if (checkExisted != null) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Tài khoản hoặc email đã tồn tại");
-            }
-
+            validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
             // Sending OTP to Email
             String otp = otpUtil.generateOTP();
             if (!emailUtil.sendOtpEmail(request.getEmail(), otp)) {
@@ -129,6 +126,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             otpService.saveUser(request.getEmail(), user, userInfo);
 
             return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
         } catch (Exception ex) {
             log.error("Error occurred while register: {}", ex.getMessage());
         }
