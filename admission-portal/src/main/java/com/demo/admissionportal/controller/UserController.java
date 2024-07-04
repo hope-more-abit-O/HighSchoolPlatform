@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class UserController {
      * @return the user
      */
     @GetMapping("/list")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<List<UserResponseDTO>>> getUser(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email
@@ -56,6 +58,7 @@ public class UserController {
      * @return the user by id
      */
     @GetMapping("/profile/{id}")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<UserProfileResponseDTO>> getUserById(@PathVariable("id") Integer id) {
         if (id == null || id < 0) {
             new ResponseEntity<ResponseData<UserProfileResponseDTO>>(HttpStatus.BAD_REQUEST);
@@ -77,6 +80,7 @@ public class UserController {
      * @return the response entity
      */
     @PatchMapping("/profile/{id}")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<UpdateUserResponseDTO>> updateUser(@PathVariable("id") Integer id, @RequestBody @Valid UpdateUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
             new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
@@ -91,6 +95,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/change-status/")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
             new ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>>(HttpStatus.BAD_REQUEST);
