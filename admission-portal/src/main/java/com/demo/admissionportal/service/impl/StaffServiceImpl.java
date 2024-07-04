@@ -15,7 +15,7 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.StaffService;
-import com.demo.admissionportal.util.EmailUtil;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -28,7 +28,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

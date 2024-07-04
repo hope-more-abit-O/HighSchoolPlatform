@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.service.FirebaseStorageService;
-import com.demo.admissionportal.util.FirebaseUtil;
+import com.demo.admissionportal.util.impl.FirebaseUtil;
 import com.google.cloud.storage.Bucket;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

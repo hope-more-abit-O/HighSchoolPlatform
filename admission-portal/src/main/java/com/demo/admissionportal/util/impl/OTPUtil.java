@@ -1,4 +1,4 @@
-package com.demo.admissionportal.util;
+package com.demo.admissionportal.util.impl;
 
 import org.springframework.stereotype.Component;
 
