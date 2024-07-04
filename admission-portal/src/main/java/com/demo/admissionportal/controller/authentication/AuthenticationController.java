@@ -57,11 +57,11 @@ public class AuthenticationController {
      * @return the response entity //
      */
     @PostMapping("/register")
-    public ResponseEntity<ResponseData<RegisterUserRequestDTO>> register(@RequestBody @Valid RegisterUserRequestDTO request) {
+    public ResponseEntity<ResponseData<?>> register(@RequestBody @Valid RegisterUserRequestDTO request) {
         if (request == null) {
-            new ResponseEntity<ResponseData<RegisterUserRequestDTO>>(HttpStatus.BAD_REQUEST);
+            new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
-        ResponseData<RegisterUserRequestDTO> registerAccount = authenticationUserService.register(request);
+        ResponseData<?> registerAccount = authenticationUserService.register(request);
         if (registerAccount.getStatus() == ResponseCode.C206.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerAccount);
         } else if (registerAccount.getStatus() == ResponseCode.C204.getCode()) {
