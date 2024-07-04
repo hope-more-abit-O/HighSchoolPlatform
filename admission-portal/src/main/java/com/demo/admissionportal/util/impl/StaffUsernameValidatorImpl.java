@@ -1,7 +1,7 @@
 package com.demo.admissionportal.util.impl;
 
 
-import com.demo.admissionportal.util.EnumStaffUsernameValidator;
+import com.demo.admissionportal.util.enum_validator.EnumStaffUsernameValidator;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
