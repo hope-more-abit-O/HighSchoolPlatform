@@ -35,7 +35,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers(USER_API).hasAuthority("STAFF")
+                                .requestMatchers(USER_API).hasAnyAuthority("STAFF","USER")
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
