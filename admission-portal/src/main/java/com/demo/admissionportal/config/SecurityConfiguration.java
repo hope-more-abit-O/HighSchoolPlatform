@@ -40,15 +40,15 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
+    private final LogoutHandler logoutHandler;
     private static final String AUTHENTICATION_API = "/api/v1/auth/**";
     private static final String USER_API = "/api/v1/user/**";
     private static final String STAFF_API = "/api/v1/staff/**";
     private static final String ADMIN_API = "/api/v1/admin/**";
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AuthenticationProvider authenticationProvider;
     private final UserService userService;
     private final UserRepository userRepository;
-    private final LogoutHandler logoutHandler;
     private final PasswordEncoder passwordEncoder;
     private final CustomOAuth2UserService customOAuth2UserService;
 
@@ -56,33 +56,30 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req -> req
-                        .requestMatchers(STAFF_API)
-                        .hasAuthority(Role.STAFF.name())
-                        .requestMatchers(ADMIN_API)
-                        .hasAuthority(Role.ADMIN.name())
-                        .requestMatchers(AUTHENTICATION_API,
-                                "/login/**",
-                                "/oauth2/**",
-                                "/account/**",
-                                "/v2/api-docs",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/swagger-ui/**",
-                                "/webjars/**",
-                                "/swagger-ui.html",
-                                "/api/v1/file/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
-                .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/403"))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(STATELESS))
+                .authorizeHttpRequests(
+                        req -> req
+                                .requestMatchers(USER_API).hasAnyAuthority("STAFF","USER")
+                                .requestMatchers(STAFF_API).hasAuthority("STAFF")
+                                .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
+                                .requestMatchers(AUTHENTICATION_API,
+                                        "/account/**",
+                                        "/v2/api-docs",
+                                        "/v3/api-docs",
+                                        "/v3/api-docs/**",
+                                        "/swagger-resources",
+                                        "/swagger-resources/**",
+                                        "/configuration/ui",
+                                        "/configuration/security",
+                                        "/swagger-ui/**",
+                                        "/webjars/**",
+                                        "/swagger-ui.html",
+                                        "/api/v1/file/**"
+                                )
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(authorization -> authorization
@@ -94,10 +91,10 @@ public class SecurityConfiguration {
                         .successHandler(authenticationSuccessHandler())
                         .failureHandler(authenticationFailureHandler()))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(log -> log.logoutUrl(AUTHENTICATION_API + "/logout")
-                        .addLogoutHandler(logoutHandler)
-                        .logoutSuccessHandler((
-                                request, response, authentication) -> SecurityContextHolder.clearContext()));
+                .logout(
+                        log -> log.logoutUrl(AUTHENTICATION_API + "/logout")
+                                .addLogoutHandler(logoutHandler)
+                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()));
 
         return http.build();
     }

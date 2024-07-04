@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
@@ -11,14 +12,16 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.UserToken;
+import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.UserInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.UserTokenRepository;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.JwtService;
 import com.demo.admissionportal.service.OTPService;
-import com.demo.admissionportal.util.EmailUtil;
-import com.demo.admissionportal.util.OTPUtil;
+import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.EmailUtil;
+import com.demo.admissionportal.util.impl.OTPUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -49,6 +52,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final OTPUtil otpUtil;
     private final EmailUtil emailUtil;
     private final OTPService otpService;
+    private final ValidationService validationService;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -96,13 +100,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     @Override
     public ResponseData<RegisterUserRequestDTO> register(RegisterUserRequestDTO request) {
         try {
-            var checkExisted = userRepository.findByEmail(request.getEmail())
-                    .or(() -> userRepository.findByUsername(request.getUsername()))
-                    .orElse(null);
-            if (checkExisted != null) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Tài khoản hoặc email đã tồn tại");
-            }
-
+            validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
             // Sending OTP to Email
             String otp = otpUtil.generateOTP();
             if (!emailUtil.sendOtpEmail(request.getEmail(), otp)) {
@@ -115,7 +113,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             // Map user table
             User user = modelMapper.map(request, User.class);
             user.setRole(Role.USER);
-            user.setStatus(AccountStatus.ACTIVE.name());
+            user.setStatus(AccountStatus.ACTIVE);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setCreateTime(new Date());
             user.setProviderId(Provider.local.name());
@@ -127,6 +125,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             otpService.saveUser(request.getEmail(), user, userInfo);
 
             return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
         } catch (Exception ex) {
             log.error("Error occurred while register: {}", ex.getMessage());
         }
@@ -207,5 +207,23 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             log.error("changePassword error: {}", ex.getMessage());
         }
         return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lôỗi khi đổi mật khẩu");
+    }
+
+    @Override
+    public ResponseData<User> checkEmailExisted(EmailRequestDTO requestDTO) {
+        try {
+            if (requestDTO == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            var account = userRepository.findUserByEmail(requestDTO.getEmail());
+            if (account == null) {
+                return new ResponseData<>(ResponseCode.C206.getCode(), "User không tồn tại trong hệ thống. Hãy đăng ký!");
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "User tồn tại trong hệ thống", account);
+
+        } catch (Exception ex) {
+            log.error("checkEmailExisted error: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), ex.getMessage());
+        }
     }
 }

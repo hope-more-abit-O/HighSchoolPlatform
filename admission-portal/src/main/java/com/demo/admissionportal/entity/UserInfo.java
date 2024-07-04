@@ -1,43 +1,56 @@
 package com.demo.admissionportal.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.proxy.HibernateProxy;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 
-@Getter
-@Setter
-@ToString
-@RequiredArgsConstructor
+/**
+ * The type User info.
+ */
+@Data
 @Entity
 @AllArgsConstructor
-@Table(name = "user_info")
-public class UserInfo {
+@NoArgsConstructor
+@Table(name = "[user_info]")
+@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
+public class UserInfo extends User implements Serializable {
 
-    @Id
-    @Column(name = "user_id")
-    private Integer id;
-
+    @NotNull
+    @Nationalized
     @Column(name = "firstname")
     private String firstname;
 
+    @NotNull
+    @Nationalized
     @Column(name = "middle_name")
     private String middleName;
 
+    @NotNull
+    @Nationalized
     @Column(name = "last_name")
     private String lastName;
 
     @Column(name = "phone")
     private String phone;
 
+    @NotNull
+    @Nationalized
     @Column(name = "gender")
     private String gender;
 
+    @NotNull
+    @Nationalized
     @Column(name = "specific_address")
     private String specificAddress;
 
+    @NotNull
+    @Nationalized
     @Column(name = "education_level")
     private String educationLevel;
 
@@ -53,20 +66,4 @@ public class UserInfo {
     @Column(name = "birthday")
     @Temporal(TemporalType.DATE)
     private Date birthday;
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
-        if (thisEffectiveClass != oEffectiveClass) return false;
-        UserInfo userInfo = (UserInfo) o;
-        return getId() != null && Objects.equals(getId(), userInfo.getId());
-    }
-
-    @Override
-    public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
-    }
 }

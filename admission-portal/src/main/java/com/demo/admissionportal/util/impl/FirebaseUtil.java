@@ -1,4 +1,4 @@
-package com.demo.admissionportal.util;
+package com.demo.admissionportal.util.impl;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

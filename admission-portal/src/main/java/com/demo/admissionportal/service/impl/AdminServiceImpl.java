@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.RegisterAdminRequestDTO;
@@ -37,7 +38,7 @@ public class AdminServiceImpl implements AdminService {
         adminInfo.setRole(Role.ADMIN);
         adminInfo.setAvatar("image.png");
         adminInfo.setCreateTime(new Date());
-        adminInfo.setStatus("ACTIVE");
+        adminInfo.setStatus(AccountStatus.ACTIVE);
 
         adminInfoRepository.save(adminInfo);
 

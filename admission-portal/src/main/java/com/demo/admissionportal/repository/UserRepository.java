@@ -5,7 +5,6 @@ import com.demo.admissionportal.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -35,7 +34,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @param role the role
      * @return the optional
      */
-    List<User> findByRole(Role role);
+    Optional<User> findByRole(Role role);
 
 
     /**
@@ -45,6 +44,30 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the user
      */
     User findUserById(Integer id);
+
+    /**
+     * Find first by username optional.
+     *
+     * @param username the username
+     * @return the optional
+     */
+    Optional<User> findFirstByUsername(String username);
+
+    /**
+     * Find first by email optional.
+     *
+     * @param email the email
+     * @return the optional
+     */
+    Optional<User> findFirstByEmail(String email);
+
+    /**
+     * Find user by email user.
+     *
+     * @param email the email
+     * @return the user
+     */
+    User findUserByEmail(String email);
     Optional<User> findByUsernameAndProviderId(String username, String providerId);
 
 }

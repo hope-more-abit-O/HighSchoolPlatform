@@ -84,4 +84,16 @@ public class ResponseData<T> {
     public static <T> ResponseData<T> ok(String message, T data) {
         return new ResponseData<>(ResponseCode.C200.getCode(), message, data);
     }
+
+    public static <T> ResponseData<T> ok(String message) {
+        return new ResponseData<>(ResponseCode.C200.getCode(), message);
+    }
+
+    public static <T> ResponseData<T> created(String message, T data) {
+        return new ResponseData<>(ResponseCode.C206.getCode(), message, data);
+    }
+
+    public static <T> ResponseData<T> created(String message) {
+        return new ResponseData<>(ResponseCode.C206.getCode(), message);
+    }
 }

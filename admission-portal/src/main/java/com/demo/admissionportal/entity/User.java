@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,11 +9,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.Transient;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -26,44 +27,59 @@ import java.util.List;
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user]")
-@Builder
 public class User implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @NotNull
+    @Column(name = "username")
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @NotNull
+    @Column(name = "email")
     private String email;
 
-    @Column(nullable = false)
+    @NotNull
+    @Column(name = "password")
     private String password;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", insertable = false, updatable = false)
     private Role role;
 
-    @Column(nullable = true)
+    @Column(name = "avatar")
     private String avatar;
 
-    @Column(nullable = false)
-    private String status;
-
-    @Column(nullable = false)
+    @Column(name = "create_time")
     private Date createTime;
 
-    @Column(nullable = true)
+    @Column(name = "create_by")
+    private Integer createBy;
+
+    @Column(name = "update_time")
     private Date updateTime;
+
+    @Column(name = "update_by")
+    private Integer updateBy;
+
+    @NotNull
+    @ColumnDefault("'ACTIVE'")
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
+
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<UserToken> tokens;
+
+    @Column(name = "note")
+    private String note;
 
     @Column(nullable = true)
     private String providerId;
 
-    @Column(name = "create_by")
-    private Integer createBy;
-    @Column(name = "note")
-    private String note;
     @JsonIgnore
     @Transient
     private String resetPassToken;
@@ -122,5 +138,18 @@ public class User implements UserDetails, ResetPassword {
     @JsonIgnore
     public boolean isEnabled() {
         return true;
+    }
+
+    public User(String username, String email, String password, Role role, Integer createBy){
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.createBy = createBy;
+        this.updateBy = null;
+        this.createTime = new Date();
+        this.updateTime = null;
+        this.avatar = "default.png";
+        this.status = AccountStatus.ACTIVE;
     }
 }

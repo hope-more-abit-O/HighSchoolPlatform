@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
+import java.io.Serializable;
+
 /**
  * The type Ward.
  */
@@ -16,7 +18,7 @@ import org.hibernate.annotations.Nationalized;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "ward")
-public class Ward {
+public class Ward implements Serializable {
     @Id
     @Column(name = "id")
     private Integer id;
