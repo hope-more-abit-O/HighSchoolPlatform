@@ -31,6 +31,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -45,36 +46,36 @@ public class SecurityConfiguration {
     private static final String ADMIN_API = "/api/v1/admin/**";
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private final CustomOAuth2UserService oAuth2UserService;
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final LogoutHandler logoutHandler;
+    private final PasswordEncoder passwordEncoder;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                .requestMatchers(STAFF_API)
-                .hasAuthority(Role.STAFF.name())
-                .requestMatchers(ADMIN_API)
-                .hasAuthority(Role.ADMIN.name())
-                .requestMatchers(AUTHENTICATION_API,
-                        "/login/**",
-                        "/oauth2/**",
-                        "/account/**",
-                        "/v2/api-docs",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-resources",
-                        "/swagger-resources/**",
-                        "/configuration/ui",
-                        "/configuration/security",
-                        "/swagger-ui/**",
-                        "/webjars/**",
-                        "/swagger-ui.html",
-                        "/api/v1/file/**")
+                        .requestMatchers(STAFF_API)
+                        .hasAuthority(Role.STAFF.name())
+                        .requestMatchers(ADMIN_API)
+                        .hasAuthority(Role.ADMIN.name())
+                        .requestMatchers(AUTHENTICATION_API,
+                                "/login/**",
+                                "/oauth2/**",
+                                "/account/**",
+                                "/v2/api-docs",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "/swagger-ui.html",
+                                "/api/v1/file/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated())
@@ -84,13 +85,12 @@ public class SecurityConfiguration {
                         .sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/login")
                         .authorizationEndpoint(authorization -> authorization
                                 .baseUri("/oauth2/authorization"))
                         .redirectionEndpoint(redirection -> redirection
                                 .baseUri("/login/oauth2/code/*"))
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oAuth2UserService))
+                                .userService(customOAuth2UserService))
                         .successHandler(authenticationSuccessHandler())
                         .failureHandler(authenticationFailureHandler()))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -109,9 +109,10 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationFailureHandler authenticationFailureHandler() {
         SimpleUrlAuthenticationFailureHandler failureHandler = new SimpleUrlAuthenticationFailureHandler("/signup");
-        failureHandler.setUseForward(true); // use forward instead of redirect
+        failureHandler.setUseForward(true);
         return failureHandler;
     }
+
 
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
@@ -127,25 +128,16 @@ public class SecurityConfiguration {
             private String determineTargetUrl(Authentication authentication) {
                 DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
                 String email = oidcUser.getEmail();
-
-                User user = userRepository.findByEmail(email).orElseGet(() -> {
-                    // Create and save a new user if not found
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setUsername(email);
-                    newUser.setPassword(passwordEncoder.encode("oauth2user")); // Set a default password
-                    newUser.setRole(Role.USER);
-                    newUser.setCreateTime(new java.util.Date());
-                    newUser.setStatus("ACTIVE");
-                    User savedUser = userRepository.save(newUser);
-                    System.out.println("Created new user with ID: " + savedUser.getId());
-                    return savedUser;
-                });
+                User user = userRepository.findByEmail(email)
+                        .orElseGet(() -> {
+                            // Register and save a new user if not found
+                            Map<String, Object> attributes = oidcUser.getAttributes();
+                            return customOAuth2UserService.registerNewUser(attributes);
+                        });
 
                 System.out.println("User found or created: " + user.getEmail());
                 return "/api/v1/user/profile/" + user.getId();
             }
-
         };
     }
 }

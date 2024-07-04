@@ -30,57 +30,43 @@ import java.util.List;
 public class User implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
 
-    @NotNull
-    @Column(name = "username")
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @NotNull
-    @Column(name = "email")
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotNull
-    @Column(name = "password")
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
     private Role role;
 
-    @Column(name = "avatar")
+    @Column(nullable = true)
     private String avatar;
 
-    @Column(name = "create_time")
+    @Column(nullable = false)
+    private String status;
+
+    @Column(nullable = false)
     private Date createTime;
+
+    @Column(nullable = true)
+    private Date updateTime;
+
+    @Column(nullable = true)
+    private String providerId;
 
     @Column(name = "create_by")
     private Integer createBy;
-
-    @Column(name = "update_time")
-    private Date updateTime;
-
-    @Column(name = "update_by")
-    private Integer updateBy;
-
-    @NotNull
-    @Nationalized
-    @ColumnDefault("'ACTIVE'")
-    @Column(name = "status")
-    private String status;
-
-    @OneToMany(mappedBy = "user")
-    @JsonIgnore
-    private List<UserToken> tokens;
-
     @Column(name = "note")
     private String note;
     @JsonIgnore
     @Transient
     private String resetPassToken;
-    @Transient
-    private String providerId;
 
     @Override
     public String getEmail() {
