@@ -1,7 +1,7 @@
 package com.demo.admissionportal.util.impl;
 
 import com.demo.admissionportal.dto.request.resetPass.request.ConfirmResetPasswordRequest;
-import com.demo.admissionportal.util.EnumMatchedPassword;
+import com.demo.admissionportal.util.enum_validator.EnumMatchedPassword;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

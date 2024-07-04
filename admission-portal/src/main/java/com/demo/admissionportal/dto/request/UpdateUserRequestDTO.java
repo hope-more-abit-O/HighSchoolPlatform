@@ -2,8 +2,8 @@ package com.demo.admissionportal.dto.request;
 
 import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
-import com.demo.admissionportal.util.EnumPhone;
-import com.demo.admissionportal.util.EnumValue;
+import com.demo.admissionportal.util.enum_validator.EnumPhone;
+import com.demo.admissionportal.util.enum_validator.EnumValue;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.Valid;
