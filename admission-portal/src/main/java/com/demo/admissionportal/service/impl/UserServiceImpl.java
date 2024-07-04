@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setUsername(userInfo.getUsername());
                 responseDTO.setEmail(userInfo.getEmail());
                 responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(AccountStatus.ACTIVE.name()); //TODO: conflict
+                responseDTO.setStatus(userInfo.getStatus().name());
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getNote());
                 userResponseDTOS.add(responseDTO);
