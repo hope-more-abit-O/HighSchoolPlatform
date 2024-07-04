@@ -2,10 +2,10 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.CreateConsultantRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.ConsultantInfo;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.service.ConsultantInfoService;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,5 +53,10 @@ public class ConsultantController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(consultantInfoService.getById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<ConsultantInfo> get(){
+        return ResponseEntity.ok(consultantInfoService.get());
     }
 }

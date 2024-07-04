@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Nationalized;
 
+import java.io.Serializable;
+
 /**
  * Represents a Province entity, mapped to the "province" table in the database.
  *
@@ -38,7 +40,7 @@ import org.hibernate.annotations.Nationalized;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "province")
-public class Province {
+public class Province implements Serializable {
     @Id
     @Column(name = "id")
     private Integer id;

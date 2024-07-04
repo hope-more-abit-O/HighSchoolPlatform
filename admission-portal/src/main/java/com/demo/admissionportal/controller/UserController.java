@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -102,5 +103,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
+    }
+
+    @GetMapping
+    public ResponseEntity<User> test(){
+        return ResponseEntity.ok(userService.findById(79));
     }
 }

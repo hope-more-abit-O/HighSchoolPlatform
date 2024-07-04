@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
+
+import java.io.Serializable;
+
 /**
  * Represents detailed information about a consultant.
  *
@@ -40,7 +43,6 @@ import org.hibernate.annotations.Nationalized;
  * }
  * </pre>
  *
- * @see javax.persistence.Entity - Marks this class as a JPA entity for database mapping.
  * @see lombok.Getter - Generates getter methods for all fields.
  * @see lombok.Setter - Generates setter methods for all fields.
  */
@@ -49,7 +51,9 @@ import org.hibernate.annotations.Nationalized;
 @Entity
 @NoArgsConstructor
 @Table(name = "consultant_info")
-public class ConsultantInfo {
+@DiscriminatorValue("CONSULTANT")
+@PrimaryKeyJoinColumn(name = "consultant_id", referencedColumnName = "id")
+public class ConsultantInfo extends User {
     @Id
     @Column(name = "consultant_id", nullable = false)
     private Integer id;
@@ -86,17 +90,26 @@ public class ConsultantInfo {
     @Column(name = "gender", nullable = false)
     private Gender gender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "province_id")
     private Province province;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "district_id")
     private District district;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ward_id")
     private Ward ward;
+
+//    @Column(name = "province_id")
+//    private Integer province;
+//
+//    @Column(name = "district_id")
+//    private Integer district;
+//
+//    @Column(name = "ward_id")
+//    private Integer ward;
 
     public ConsultantInfo(Integer id, Integer universityId, String firstname, String middleName, String lastName, String phone, String specificAddress, Gender gender, Province province, District district, Ward ward) {
         this.id = id;
@@ -111,5 +124,20 @@ public class ConsultantInfo {
         this.district = district;
         this.ward = ward;
     }
+
+
+//    public ConsultantInfo(Integer id, Integer universityId, String firstname, String middleName, String lastName, String phone, String specificAddress, Gender gender, Province province, District district, Ward ward) {
+//        this.id = id;
+//        this.universityId = universityId;
+//        this.firstname = firstname;
+//        this.middleName = middleName;
+//        this.lastName = lastName;
+//        this.phone = phone;
+//        this.specificAddress = specificAddress;
+//        this.gender = gender;
+//        this.province = province.getId();
+//        this.district = district.getId();
+//        this.ward = ward.getId();
+//    }
 
 }

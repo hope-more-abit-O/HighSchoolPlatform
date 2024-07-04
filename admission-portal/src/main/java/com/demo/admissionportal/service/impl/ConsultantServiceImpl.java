@@ -82,6 +82,10 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
                 generateConsultantResponse(findById(id))
         );
     }
+    @Override
+    public ConsultantInfo get() throws ResourceNotFoundException {
+        return consultantInfoRepository.findById(86).get();
+    }
 
     /**
      * Creates a new consultant account and associated information.

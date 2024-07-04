@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Nationalized;
 
+import java.io.Serializable;
+
 /**
  * Represents a District entity, mapped to the "district" table in the database.
  *
@@ -36,7 +38,7 @@ import org.hibernate.annotations.Nationalized;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "district")
-public class District {
+public class District implements Serializable {
     @Id
     @Column(name = "id")
     private Integer id;
