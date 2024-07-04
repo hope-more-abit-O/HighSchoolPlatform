@@ -85,4 +85,6 @@ public class RegisterUserRequestDTO implements Serializable {
     @Temporal(TemporalType.DATE)
     @NotNull(message = "Ngày sinh không được để trống")
     private Date birthday;
+
+    private String provider;
 }

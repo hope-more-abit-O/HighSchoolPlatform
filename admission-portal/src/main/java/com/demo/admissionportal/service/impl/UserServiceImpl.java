@@ -60,12 +60,12 @@ public class UserServiceImpl implements UserService {
             for (UserInfo userInfo : userInfos) {
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
-                responseDTO.setUsername(userInfo.getUsername());
-                responseDTO.setEmail(userInfo.getEmail());
+                responseDTO.setUsername(userInfo.getUser().getUsername());
+                responseDTO.setEmail(userInfo.getUser().getEmail());
                 responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(userInfo.getStatus().name());
+                responseDTO.setStatus(userInfo.getUser().getStatus().name());
                 responseDTO.setCreate_time(dateString);
-                responseDTO.setNote(userInfo.getNote());
+                responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOS);
