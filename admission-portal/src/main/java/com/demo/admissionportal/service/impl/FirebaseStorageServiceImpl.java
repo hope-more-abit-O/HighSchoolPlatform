@@ -31,7 +31,7 @@ public class FirebaseStorageServiceImpl implements FirebaseStorageService {
     public String uploadMultipleFiles(MultipartFile[] images) throws IOException {
         StringBuilder responseBuilder = new StringBuilder();
         List<String> response = new ArrayList<>(); // Build a response string
-        Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-dev.appspot.com");
+        Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-28300.appspot.com");
         for (MultipartFile imageFile : images) {
             String fileName = UUID.randomUUID().toString() + "." + getExtension(Objects.requireNonNull(imageFile.getOriginalFilename()));
             bucket.create(fileName, imageFile.getBytes(), imageFile.getContentType());
@@ -49,7 +49,7 @@ public class FirebaseStorageServiceImpl implements FirebaseStorageService {
      * @throws IOException If an I/O error occurs during the upload process.
      */
     public String uploadFile(MultipartFile file) throws IOException {
-        Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-dev.appspot.com");
+        Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-28300.appspot.com");
         String fileName = UUID.randomUUID().toString() + "." + getExtension(Objects.requireNonNull(file.getOriginalFilename()));
         FirebaseUtil.getStorageClient().bucket("highschoolvn-28300.appspot.com").create(fileName, file.getBytes(), file.getContentType());
         return fileName.toString();
