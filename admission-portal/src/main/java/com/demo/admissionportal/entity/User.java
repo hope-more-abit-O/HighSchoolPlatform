@@ -77,6 +77,9 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "note")
     private String note;
 
+    @Column(nullable = true)
+    private String providerId;
+
     @JsonIgnore
     @Transient
     private String resetPassToken;

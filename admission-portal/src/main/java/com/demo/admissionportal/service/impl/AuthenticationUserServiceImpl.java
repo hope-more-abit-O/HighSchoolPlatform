@@ -1,9 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.constants.AccountStatus;
-import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.constants.TokenType;
+import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
 import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
@@ -119,6 +116,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             user.setStatus(AccountStatus.ACTIVE);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setCreateTime(new Date());
+            user.setProviderId(Provider.local.name());
 
             // Map user_info table
             UserInfo userInfo = modelMapper.map(request, UserInfo.class);

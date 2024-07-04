@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
@@ -16,13 +17,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The type User service.
@@ -30,7 +35,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ProvinceRepository provinceRepository;
@@ -57,6 +62,9 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getNote());
                 userResponseDTOS.add(responseDTO);
+            }
+            if (userResponseDTOS.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOS);
         } catch (Exception ex) {
@@ -107,6 +115,15 @@ public class UserServiceImpl implements UserService {
             log.error("Error while getting user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found!");
+        }
+        return user.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     @Override
