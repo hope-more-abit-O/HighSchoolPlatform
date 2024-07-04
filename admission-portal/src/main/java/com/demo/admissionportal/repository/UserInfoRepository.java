@@ -34,5 +34,12 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
             "AND (:email IS NULL OR u.email LIKE %:email%)",
             nativeQuery = true)
     List<UserInfo> findAllUser(String username, String email);
+
+    /**
+     * Find first by phone optional.
+     *
+     * @param phone the phone
+     * @return the optional
+     */
     Optional<UserInfo> findFirstByPhone(String phone);
 }
