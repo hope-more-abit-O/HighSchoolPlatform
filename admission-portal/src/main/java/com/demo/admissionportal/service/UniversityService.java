@@ -1,13 +1,16 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.UniversityServiceImpl;
 
 /**
@@ -52,7 +55,7 @@ public interface UniversityService {
      * @throws ResourceNotFoundException If no university is found matching the given ID.
      *
      * @see UniversityFullResponseDTO
-     * @see UserResponseDTO
+     * @see UserResponseDTOV2
      * @see UniversityResponseDTO
      */
     public UniversityFullResponseDTO getUniversityFullResponseById(Integer id);
@@ -94,7 +97,7 @@ public interface UniversityService {
      * @see InfoUserResponseDTO
      * @see InfoUniversityResponseDTO
      */
-    public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id);
+    public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException;
     /**
      * Retrieves a {@link UniversityInfo} entity by its unique identifier (ID).
      *
@@ -124,4 +127,7 @@ public interface UniversityService {
      * @see UniversityInfo
      */
     public UniversityInfo findById(Integer id) throws ResourceNotFoundException;
+
+    //TODO: javadoc
+    public ResponseData updateUniversityStatus(Integer id, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException;
 }

@@ -28,4 +28,7 @@ public class Ward implements Serializable {
     @Column(name = "name")
     private String name;
 
+    public Ward(Integer id) {
+        this.id = id;
+    }
 }

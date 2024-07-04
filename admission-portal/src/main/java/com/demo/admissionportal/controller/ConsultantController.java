@@ -1,12 +1,16 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.ConsultantInfo;
+import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.service.ConsultantInfoService;
+import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.service.ConsultantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/consultant")
 @RequiredArgsConstructor
 public class ConsultantController {
-    private final ConsultantInfoService consultantInfoService;
+    private final ConsultantService consultantService;
 
     /**
      * Creates a new consultant.
@@ -36,7 +40,7 @@ public class ConsultantController {
     @PostMapping
     public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
             throws DataExistedException {
-        return ResponseEntity.ok(consultantInfoService.createConsultant(request));
+        return ResponseEntity.ok(consultantService.createConsultant(request));
     }
 
     /**
@@ -52,11 +56,22 @@ public class ConsultantController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(consultantInfoService.getById(id));
+        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
-    @GetMapping
-    public ResponseEntity<ConsultantInfo> get(){
-        return ResponseEntity.ok(consultantInfoService.get());
+    @PutMapping("/update")
+    public ResponseEntity<?> seftUpdateConsultantInfo(@RequestBody SelfUpdateConsultantInfoRequest request){
+        return ResponseEntity.ok(consultantService.selfUpdateConsultantInfo(request));
+    }
+
+
+    @PutMapping("/update-for")
+    public ResponseEntity<?> updateConsultantInfo(@RequestBody UpdateConsultantInfoByIdRequest request){
+        return ResponseEntity.ok(consultantService.updateConsultantInfoById(request));
+    }
+
+    @PatchMapping("/{id}/change-status")
+    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request) throws BadRequestException, StoreDataFailedException, DataExistedException {
+        return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
     }
 }

@@ -2,24 +2,30 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.consultant.ConsultantFullResponseDTO;
+import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.ConsultantInfoRequest;
+import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
-import com.demo.admissionportal.service.ConsultantInfoService;
+import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
+import com.demo.admissionportal.util.impl.AddressUtils;
+import com.demo.admissionportal.util.impl.NameUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +37,7 @@ import java.util.stream.Stream;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ConsultantServiceImpl implements ConsultantInfoService {
+public class ConsultantServiceImpl implements ConsultantService {
     private final ConsultantInfoRepository consultantInfoRepository;
     private final ValidationServiceImpl validationServiceImpl;
     private final DistrictRepository districtRepository;
@@ -40,9 +46,10 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
-    private final UniversityInfoRepository universityInfoRepository;
     private final UniversityService universityService;
     private final UserService userService;
+    private final ProvinceServiceImpl provinceServiceImpl;
+    private final DistrictServiceImpl districtServiceImpl;
     private UniversityInfoService universityInfoService;
 
     /**
@@ -50,14 +57,14 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
      *
      * <p>This method fetches detailed information about a consultant based
      * on the provided ID. It combines user account data with consultant-specific
-     * information into a {@link ConsultantFullResponseDTO}.
+     * information into a {@link FullConsultantResponseDTO}.
      *
      * <p>Example usage:
      * <pre>
      * {@code
      * Integer consultantId = 1;
      * try {
-     *     ConsultantFullResponseDTO consultantDetails = consultantService.getById(consultantId);
+     *     ConsultantFullResponseDTO consultantDetails = consultantService.getFullConsultantById(consultantId);
      *     // ... further processing using the consultantDetails
      * } catch (ResourceNotFoundException e) {
      *     // ... handle the exception (log or return an appropriate response)
@@ -66,25 +73,21 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
      * </pre>
      *
      * @param id The ID of the consultant to retrieve details for.
-     * @return A {@link ConsultantFullResponseDTO} populated with the
+     * @return A {@link FullConsultantResponseDTO} populated with the
      *         consultant's account information and consultant details.
      * @throws ResourceNotFoundException If no consultant is found with
      *                                    the provided ID.
      *
-     * @see ConsultantFullResponseDTO
-     * @see UserResponseDTO
+     * @see FullConsultantResponseDTO
+     * @see UserResponseDTOV2
      * @see ConsultantResponseDTO
      */
     @Override
-    public ConsultantFullResponseDTO getById(Integer id) throws ResourceNotFoundException {
-        return new ConsultantFullResponseDTO(
-                generateAccountResponse(userService.findById(id)),
-                generateConsultantResponse(findById(id))
+    public FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException {
+        return new FullConsultantResponseDTO(
+                userService.mappingResponse(userService.findById(id)),
+                mappingResponse(findById(id))
         );
-    }
-    @Override
-    public ConsultantInfo get() throws ResourceNotFoundException {
-        return consultantInfoRepository.findById(86).get();
     }
 
     /**
@@ -179,43 +182,6 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
     }
 
     /**
-     * Generates a {@link UserResponseDTO} representation of a {@link User} object,
-     * including information about the creator and last updater.
-     *
-     * <p> This method maps basic user details from a {@link User} object
-     * to a {@link UserResponseDTO}. Additionally, it retrieves details of the
-     * creating and updating users (using {@link UserService#findById} and maps
-     * them to {@link ActionerDTO} objects within the response.
-     *
-     * <p>Example usage:
-     * <pre>
-     * {@code
-     * User user = // ... retrieve a User object ...
-     * UserResponseDTO responseDTO = generateAccountResponse(user);
-     * // ... further processing using the populated responseDTO
-     * }
-     * </pre>
-     *
-     * @param account The {@link User} object used to populate the response DTO.
-     * @return A {@link UserResponseDTO} containing mapped user data,
-     *         as well as creator and updater details as {@link ActionerDTO} objects.
-     *
-     * @see User
-     * @see UserResponseDTO
-     * @see ActionerDTO
-     * @see UserService
-     */
-    protected UserResponseDTO generateAccountResponse(User account){
-        UserResponseDTO accountResponse = modelMapper.map(account, UserResponseDTO.class);
-        accountResponse.setCreateBy(modelMapper.map(userService.findById(account.getCreateBy()), ActionerDTO.class));
-        if (account.getUpdateBy() == null)
-            accountResponse.setUpdateBy(null);
-        else
-            accountResponse.setUpdateBy(modelMapper.map(userService.findById(account.getUpdateBy()), ActionerDTO.class));
-        return accountResponse;
-    }
-
-    /**
      * Generates a {@link ConsultantResponseDTO} from a {@link ConsultantInfo} object.
      *
      * <p> This method maps the base information from the {@link ConsultantInfo} object
@@ -241,10 +207,12 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
      * @see ConsultantResponseDTO
      * @see UniversityService
      */
-    protected ConsultantResponseDTO generateConsultantResponse(ConsultantInfo info){
+    protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
+        infoResponse.setName(NameUtils.getFullName(info.getFirstname(), info.getMiddleName(), info.getLastName()));
         infoResponse.setUniversity(universityService.getUniversityInfoResponseById(info.getUniversityId()));
-        infoResponse.convertName(info);
+        infoResponse.setAddress(AddressUtils.getFullAddress(info.getSpecificAddress(), info.getWard(), info.getDistrict(), info.getProvince()));
+
         return infoResponse;
     }
 
@@ -281,4 +249,51 @@ public class ConsultantServiceImpl implements ConsultantInfoService {
         });
     }
 
+    public ResponseData selfUpdateConsultantInfo(SelfUpdateConsultantInfoRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException {
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        ConsultantInfo consultantInfo = findById(consultantId);
+        updateConsultantInfo(consultantInfo, request);
+
+        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
+    }
+
+    public ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException {
+        ConsultantInfo consultantInfo = findById(request.getId());
+        updateConsultantInfo(consultantInfo, request);
+
+        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
+    }
+
+    private void updateConsultantInfo(ConsultantInfo consultantInfo, ConsultantInfoRequest request)
+            throws StoreDataFailedException {
+        consultantInfo.setFirstname(request.getFirstName());
+        consultantInfo.setMiddleName(request.getMiddleName());
+        consultantInfo.setLastName(request.getLastName());
+        consultantInfo.setPhone(request.getPhone());
+        consultantInfo.setSpecificAddress(request.getSpecificAddress());
+        consultantInfo.setProvince(provinceServiceImpl.findById(request.getProvinceId()));
+        consultantInfo.setDistrict(districtServiceImpl.findById(request.getDistrictId()));
+        consultantInfo.setWard(wardRepository.findWardById(request.getWardId()));
+
+        save(consultantInfo);
+    }
+
+    public ConsultantInfo save(ConsultantInfo consultantInfo) throws StoreDataFailedException{
+        try {
+            if (consultantInfoRepository.save(consultantInfo) == null)
+                throw new Exception();
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Lưu thông tin tư vấn viên thất bại");
+        }
+        return consultantInfo;
+    }
+
+    public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws ResourceNotFoundException, BadRequestException, StoreDataFailedException {
+        userService.changeStatus(id, request.getNote(), "tư vấn viên");
+        return ResponseData.ok("Cập nhập tư vấn viên thành công");
+    }
 }

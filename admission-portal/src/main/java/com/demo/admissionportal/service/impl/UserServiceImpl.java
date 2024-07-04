@@ -2,6 +2,9 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -10,19 +13,24 @@ import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
+import jakarta.mail.Store;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type User service.
@@ -36,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final ProvinceRepository provinceRepository;
     private final DistrictRepository districtRepository;
     private final WardRepository wardRepository;
+    private final ModelMapper modelMapper;
+
 
     @Override
     public ResponseData<List<UserResponseDTO>> getUser(String username, String email) {
@@ -177,10 +187,62 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(Integer id){
-        return userRepository.findById(id).orElseThrow( () ->{
+    public User findById(Integer id) {
+        return userRepository.findById(id).orElseThrow(() -> {
             log.error("User's account with id: {} not found.", id);
             return new ResourceNotFoundException("User's account with id: " + id + " not found");
         });
+    }
+
+    @Override
+    public UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException {
+        UserResponseDTOV2 responseDTO = modelMapper.map(user, UserResponseDTOV2.class);
+        ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
+        responseDTO.setCreateBy(actionerDTO);
+
+        if (user.getUpdateBy() == null) //Case 1: updateBy == null
+            responseDTO.setUpdateBy(null);
+        else if (Objects.equals(user.getCreateBy(), user.getUpdateBy())) //Case 2: updateBy == createBy
+            responseDTO.setUpdateBy(actionerDTO);
+        else //Case 3: updateBy != createBy
+            responseDTO.setUpdateBy(modelMapper.map(findById(user.getUpdateBy()), ActionerDTO.class));
+
+        return responseDTO;
+    }
+
+    @Override
+    public User update(User user, String name) throws StoreDataFailedException {
+        User result;
+        try {
+            result = userRepository.save(user);
+            if (result == null)
+                throw new Exception();
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Lưu " + name + " thất bại.");
+        }
+        return result;
+    }
+
+    public User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, BadRequestException, ResourceNotFoundException {
+        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User account = findById(id);
+
+        if (id == null || id < 0){
+            throw new BadRequestException("Id phải tồn tại và lớn hơn 0");
+        }
+
+        if (account.getStatus().equals(AccountStatus.ACTIVE))
+            account.setStatus(AccountStatus.INACTIVE);
+        else account.setStatus(AccountStatus.ACTIVE);
+        account.setNote(note);
+        account.setUpdateTime(new Date());
+        account.setUpdateBy(actionerId);
+        try {
+            userRepository.save(account);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
+        }
+        return account;
     }
 }
