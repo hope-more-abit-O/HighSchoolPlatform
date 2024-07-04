@@ -98,13 +98,56 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     }
 
     @Override
-    public ResponseData<RegisterUserRequestDTO> register(RegisterUserRequestDTO request) {
+    public ResponseData<?> register(RegisterUserRequestDTO request) {
         try {
-            validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
-            // Sending OTP to Email
             String otp = otpUtil.generateOTP();
-            if (!emailUtil.sendOtpEmail(request.getEmail(), otp)) {
-                throw new RuntimeException("Không thể gửi OTP xin vui lòng thử lại");
+            validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
+            if (request.getProvider().equals(ProviderType.SYSTEM.name())) {
+                // Sending OTP to Email
+
+                if (!emailUtil.sendOtpEmail(request.getEmail(), otp)) {
+                    throw new RuntimeException("Không thể gửi OTP xin vui lòng thử lại");
+                }
+                // Map OTP in Redis Cache
+                otpService.saveOTP(request.getEmail(), otp, LocalDateTime.now());
+
+
+                // Map user table
+                User user = modelMapper.map(request, User.class);
+                user.setRole(Role.USER);
+                user.setStatus(AccountStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+                user.setCreateTime(new Date());
+                user.setProvider(ProviderType.SYSTEM);
+
+                // Map user_info table
+                UserInfo userInfo = modelMapper.map(request, UserInfo.class);
+
+                // Save student in Redis Cache
+                otpService.saveUser(request.getEmail(), user, userInfo);
+
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+            } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
+                User user = modelMapper.map(request, User.class);
+                user.setRole(Role.USER);
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+                user.setCreateTime(new Date());
+                user.setProvider(ProviderType.GOOGLE);
+                user.setStatus(AccountStatus.ACTIVE);
+                var createUser = userRepository.save(user);
+
+                UserInfo userInfo = modelMapper.map(request, UserInfo.class);
+                userInfo.setId(createUser.getId());
+                userInfo.setUser(createUser);
+                userInfoRepository.save(userInfo);
+
+                LoginRequestDTO account = new LoginRequestDTO();
+                account.setUsername(request.getUsername());
+                account.setPassword(request.getPassword());
+
+                var loginAccount = login(account);
+
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã đăng ký thành công", loginAccount);
             }
 
             // Map OTP in Redis Cache
@@ -125,6 +168,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             otpService.saveUser(request.getEmail(), user, userInfo);
 
             return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+
         } catch (DataExistedException de) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
         } catch (Exception ex) {
@@ -153,6 +197,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             // Save data in DB
             var createUser = userRepository.save(userFromRedis);
             userInfoFromRedis.setId(createUser.getId());
+            userInfoFromRedis.setUser(createUser);
             userInfoRepository.save(userInfoFromRedis);
             log.info("User has been verified: {}", createUser);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");

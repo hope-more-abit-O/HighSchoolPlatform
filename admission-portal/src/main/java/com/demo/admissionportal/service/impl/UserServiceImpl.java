@@ -55,12 +55,12 @@ public class UserServiceImpl implements UserService{
             for (UserInfo userInfo : userInfos) {
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
-                responseDTO.setUsername(userInfo.getUsername());
-                responseDTO.setEmail(userInfo.getEmail());
+                responseDTO.setUsername(userInfo.getUser().getUsername());
+                responseDTO.setEmail(userInfo.getUser().getEmail());
                 responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(userInfo.getStatus().name());
+                responseDTO.setStatus(userInfo.getUser().getStatus().name());
                 responseDTO.setCreate_time(dateString);
-                responseDTO.setNote(userInfo.getNote());
+                responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
             }
             if (userResponseDTOS.isEmpty()) {
@@ -194,8 +194,8 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public User findById(Integer id){
-        return userRepository.findById(id).orElseThrow( () ->{
+    public User findById(Integer id) {
+        return userRepository.findById(id).orElseThrow(() -> {
             log.error("User's account with id: {} not found.", id);
             return new ResourceNotFoundException("User's account with id: " + id + " not found");
         });

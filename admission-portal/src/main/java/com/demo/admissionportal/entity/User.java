@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.ProviderType;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,7 +47,7 @@ public class User implements UserDetails, ResetPassword {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", insertable = false, updatable = false)
+    @Column(name = "role")
     private Role role;
 
     @Column(name = "avatar")
@@ -69,6 +70,10 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
+
+    @Column(name = "provider")
+    @Enumerated(EnumType.STRING)
+    private ProviderType provider;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore

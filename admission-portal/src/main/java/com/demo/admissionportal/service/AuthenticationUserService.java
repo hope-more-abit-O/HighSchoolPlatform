@@ -31,7 +31,7 @@ public interface AuthenticationUserService {
      * @param request the request
      * @return the response data
      */
-    ResponseData<RegisterUserRequestDTO> register(RegisterUserRequestDTO request);
+    ResponseData<?> register(RegisterUserRequestDTO request);
 
     /**
      * Verify account response data.

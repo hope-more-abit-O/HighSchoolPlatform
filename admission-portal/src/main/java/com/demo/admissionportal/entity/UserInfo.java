@@ -18,8 +18,10 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "[user_info]")
-@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "id")
-public class UserInfo extends User implements Serializable {
+public class UserInfo implements Serializable {
+    @Id
+    @Column(name = "user_id")
+    private Integer id;
 
     @NotNull
     @Nationalized
@@ -66,4 +68,8 @@ public class UserInfo extends User implements Serializable {
     @Column(name = "birthday")
     @Temporal(TemporalType.DATE)
     private Date birthday;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private User user;
 }
