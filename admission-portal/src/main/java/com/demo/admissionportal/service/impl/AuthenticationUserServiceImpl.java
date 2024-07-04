@@ -6,6 +6,7 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.TokenType;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
@@ -208,5 +209,23 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             log.error("changePassword error: {}", ex.getMessage());
         }
         return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lôỗi khi đổi mật khẩu");
+    }
+
+    @Override
+    public ResponseData<User> checkEmailExisted(EmailRequestDTO requestDTO) {
+        try {
+            if (requestDTO == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            var account = userRepository.findUserByEmail(requestDTO.getEmail());
+            if (account == null) {
+                return new ResponseData<>(ResponseCode.C206.getCode(), "User không tồn tại trong hệ thống. Hãy đăng ký!");
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "User tồn tại trong hệ thống", account);
+
+        } catch (Exception ex) {
+            log.error("checkEmailExisted error: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), ex.getMessage());
+        }
     }
 }
