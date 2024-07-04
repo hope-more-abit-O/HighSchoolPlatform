@@ -1,37 +1,35 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.SubjectStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.util.Date;
 
 /**
- * The type Subject group.
+ * The type Subject.
  */
 @Data
 @Entity
-@Table(name = "subject_group")
-public class SubjectGroup {
+@Table(name = "subject")
+public class Subject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
-    @Size(max = 3)
+    @Size(max = 40)
     @NotNull
+    @Nationalized
     @Column(name = "name")
     private String name;
 
-    @Size(max = 255)
-    @NotNull
-    @Nationalized
-    @ColumnDefault("ACTIVE")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private SubjectStatus status;
 
     @Column(name = "create_time")
     private Date createTime;
@@ -44,5 +42,4 @@ public class SubjectGroup {
 
     @Column(name = "update_by")
     private Integer updateBy;
-
 }

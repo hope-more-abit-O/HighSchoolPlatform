@@ -124,7 +124,6 @@ public class StaffServiceImpl implements StaffService {
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
             modelMapper.map(request, staff);
-            staff.setPassword(passwordEncoder.encode(request.getPassword()));
             staffInfoRepository.save(staff);
             StaffResponseDTO staffResponseDTO = modelMapper.map(staff, StaffResponseDTO.class);
             log.info("Staff updated successfully with ID: {}", staff.getId());
@@ -163,18 +162,14 @@ public class StaffServiceImpl implements StaffService {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-
             StaffInfo existingStaff = optionalStaff.get();
-            if (AccountStatus.INACTIVE.name().equals(existingStaff.getStatus())) {
+             AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);
                 existingStaff.setNote(request.note());
                 staffInfoRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
-            } else {
-                log.info("Staff with ID: {} is already ACTIVE", id);
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Nhân viên đã được kích hoạt trước đó!");
-            }
+
         } catch (Exception e) {
             log.error("Activation of staff with ID: {} failed: {}", id, e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
