@@ -52,18 +52,17 @@ public class ValidationServiceImpl implements ValidationService {
      *
      * @param username The username string to check for availability.
      * @return `true` if the username is available (not taken). Throws
-     *        a `DataExistedException` otherwise.
-     * @throws DataExistedException  If a user with the given username
-     *                               is found in the database.
+     * a `DataExistedException` otherwise.
+     * @throws DataExistedException If a user with the given username
+     *                              is found in the database.
      */
     public boolean validateUsername(String username) throws DataExistedException {
         log.info("Checking username availability.");
         String errorMessage = "Tên tài khoản hoặc username đã được sử dụng";
         if (userRepository.findFirstByUsername(username).isPresent()) {
-            log.error("Username: {} not available!", username);
+            log.error("Username: {} available!", username);
             throw new DataExistedException(errorMessage);
         }
-        log.info("Email: {} available.", username);
         return true;
     }
 
@@ -93,17 +92,16 @@ public class ValidationServiceImpl implements ValidationService {
      *
      * @param email The email address to validate.
      * @return `true` if the email is available (not in use); throws
-     *         a `DataExistedException` otherwise.
+     * a `DataExistedException` otherwise.
      * @throws DataExistedException If a user with the specified email already exists.
      */
     public boolean validateEmail(String email) throws DataExistedException {
         log.info("Checking email availability.");
         String errorMessage = "Email đã được sử dụng";
         if (userRepository.findFirstByEmail(email).isPresent()) {
-            log.error("Username: {} not available!", email);
+            log.error("Email: {} available!", email);
             throw new DataExistedException(errorMessage);
         }
-        log.info("Email: {} available.", email);
         return true;
     }
 
@@ -132,7 +130,7 @@ public class ValidationServiceImpl implements ValidationService {
      *
      * @param phone The phone number to validate.
      * @return `true` if the phone number is available;
-     *         throws a {@link DataExistedException} if the phone number is already in use.
+     * throws a {@link DataExistedException} if the phone number is already in use.
      * @throws DataExistedException If the provided phone number already exists in any of
      *                              the checked repositories.
      */
@@ -146,9 +144,9 @@ public class ValidationServiceImpl implements ValidationService {
             log.error("Phone number: {} is already taken!", phone);
             throw new DataExistedException("Số điện thoại đã được sử dụng");
         }
-        log.info("Email: {} available.", phone);
         return true;
     }
+
     /**
      * Validates username, email, and phone number for registration.
      *
@@ -182,11 +180,10 @@ public class ValidationServiceImpl implements ValidationService {
      * @param email    The email address of the new user.
      * @param phone    The phone number of the new user.
      * @return `true` if all the inputs (username, email, and phone)
-     *         are available for a new user. Otherwise, throws
-     *         a {@link DataExistedException}.
+     * are available for a new user. Otherwise, throws
+     * a {@link DataExistedException}.
      * @throws DataExistedException if any of the provided values
-     *                             (username, email, phone) are already in use.
-     *
+     *                              (username, email, phone) are already in use.
      * @see #validateUsername(String)
      * @see #validateEmail(String)
      * @see #validatePhoneNumber(String)
@@ -194,6 +191,7 @@ public class ValidationServiceImpl implements ValidationService {
     public boolean validateRegister(String username, String email, String phone) throws DataExistedException {
         return validateUsername(username) && validateEmail(email) && validatePhoneNumber(phone);
     }
+
     /**
      * Validates username, email, and phone number for registration.
      *
@@ -225,11 +223,10 @@ public class ValidationServiceImpl implements ValidationService {
      * @param username The desired username for the new user.
      * @param email    The email address of the new user.
      * @return `true` if all the inputs (username, email)
-     *         are available for a new user. Otherwise, throws
-     *         a {@link DataExistedException}.
+     * are available for a new user. Otherwise, throws
+     * a {@link DataExistedException}.
      * @throws DataExistedException if any of the provided values
-     *                             (username, email, phone) are already in use.
-     *
+     *                              (username, email, phone) are already in use.
      * @see #validateUsername(String)
      * @see #validateEmail(String)
      */
