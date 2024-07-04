@@ -35,15 +35,6 @@ public class UserController {
      *
      * @return the user
      */
-    @GetMapping("/dashboard")
-    public String home() {
-        return "dashboard";
-    }
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-
 
     @GetMapping("/list")
     public ResponseEntity<ResponseData<List<UserResponseDTO>>> getUser() {
