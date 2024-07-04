@@ -36,12 +36,13 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "university_info")
-@Builder
-public class UniversityInfo{
+@DiscriminatorValue("UNIVERSITY")
+@PrimaryKeyJoinColumn(name = "university_id", referencedColumnName = "id")
+public class UniversityInfo extends User{
 
     @Id
     @Column(name = "university_id", nullable = false, updatable = false)
-    private Integer universityId;
+    private Integer id;
 
     @NotNull
     @Column
@@ -66,16 +67,16 @@ public class UniversityInfo{
     @Enumerated(EnumType.STRING)
     private UniversityType type;
 
-    public UniversityInfo(Integer universityId, Integer createUniversityRequestId, String name, UniversityType type) {
-        this.universityId = universityId;
+    public UniversityInfo(Integer id, Integer createUniversityRequestId, String name, UniversityType type) {
+        this.id = id;
         this.createUniversityRequestId = createUniversityRequestId;
         this.name = name;
         this.description = "";
         this.type = type;
         this.coverImage = "cover.png";
     }
-    public UniversityInfo(Integer universityId, CreateUniversityRequest createUniversityRequest) {
-        this.universityId = universityId;
+    public UniversityInfo(Integer id, CreateUniversityRequest createUniversityRequest) {
+        this.id = id;
         this.createUniversityRequestId = createUniversityRequest.getId();
         this.name = createUniversityRequest.getUniversityName();
         this.code = createUniversityRequest.getUniversityCode();

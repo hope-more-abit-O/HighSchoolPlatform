@@ -3,6 +3,7 @@ package com.demo.admissionportal.service;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantFullResponseDTO;
 import com.demo.admissionportal.dto.request.CreateConsultantRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.ConsultantInfo;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
@@ -78,4 +79,6 @@ public interface ConsultantInfoService {
      * @see ConsultantFullResponseDTO
      */
     ConsultantFullResponseDTO getById(Integer id) throws ResourceNotFoundException;
+
+    ConsultantInfo get() throws ResourceNotFoundException;
 }

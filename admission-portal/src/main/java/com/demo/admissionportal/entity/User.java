@@ -27,7 +27,6 @@ import java.util.List;
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user]")
-@Builder
 public class User implements UserDetails, ResetPassword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,7 +46,7 @@ public class User implements UserDetails, ResetPassword {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
+    @Column(name = "role", insertable = false, updatable = false)
     private Role role;
 
     @Column(name = "avatar")
