@@ -2,11 +2,13 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.User;
 
 import java.security.Principal;
 
@@ -54,4 +56,12 @@ public interface AuthenticationUserService {
      * @return the response data
      */
     ResponseData<?> changePassword(ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal);
+
+    /**
+     * Check email existed response data.
+     *
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<User> checkEmailExisted(EmailRequestDTO requestDTO);
 }
