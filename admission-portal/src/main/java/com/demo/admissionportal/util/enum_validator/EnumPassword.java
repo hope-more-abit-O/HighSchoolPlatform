@@ -1,5 +1,6 @@
-package com.demo.admissionportal.util;
+package com.demo.admissionportal.util.enum_validator;
 
+import com.demo.admissionportal.util.impl.EnumPasswordValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

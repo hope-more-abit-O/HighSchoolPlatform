@@ -1,4 +1,4 @@
-package com.demo.admissionportal.util;
+package com.demo.admissionportal.util.impl;
 
 import com.demo.admissionportal.entity.StaffInfo;
 import jakarta.mail.MessagingException;

@@ -1,8 +1,8 @@
 package com.demo.admissionportal.dto.request;
 
-import com.demo.admissionportal.util.EnumPassword;
-import com.demo.admissionportal.util.EnumPhone;
-import com.demo.admissionportal.util.EnumStaffUsernameValidator;
+import com.demo.admissionportal.util.enum_validator.EnumPassword;
+import com.demo.admissionportal.util.enum_validator.EnumPhone;
+import com.demo.admissionportal.util.enum_validator.EnumStaffUsernameValidator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
