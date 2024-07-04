@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
@@ -8,6 +9,7 @@ import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +53,7 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setUsername(userInfo.getUsername());
                 responseDTO.setEmail(userInfo.getEmail());
                 responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(userInfo.getStatus());
+                responseDTO.setStatus(AccountStatus.ACTIVE.name()); //TODO: conflict
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getNote());
                 userResponseDTOS.add(responseDTO);
@@ -136,8 +139,7 @@ public class UserServiceImpl implements UserService {
             user.setAvatar(requestDTO.getAvatar());
 
             // Save update time
-            Date date = new Date();
-            user.setUpdateTime(date);
+            user.setUpdateTime(new Date());
 
             userRepository.save(user);
             userInfoRepository.save(userInfo);
@@ -159,12 +161,12 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
-            if (user.getStatus().equals("ACTIVE")) {
+            if (user.getStatus().equals(AccountStatus.ACTIVE)) {
                 user.setNote(requestDTO.getNote());
-                user.setStatus("INACTIVE");
+                user.setStatus(AccountStatus.INACTIVE);
             } else {
                 user.setNote(requestDTO.getNote());
-                user.setStatus("ACTIVE");
+                user.setStatus(AccountStatus.ACTIVE);
             }
             userRepository.save(user);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công");
@@ -172,5 +174,13 @@ public class UserServiceImpl implements UserService {
             log.error("Error while change status user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi thay đổi trạng thái user");
         }
+    }
+
+    @Override
+    public User findById(Integer id){
+        return userRepository.findById(id).orElseThrow( () ->{
+            log.error("User's account with id: {} not found.", id);
+            return new ResourceNotFoundException("User's account with id: " + id + " not found");
+        });
     }
 }

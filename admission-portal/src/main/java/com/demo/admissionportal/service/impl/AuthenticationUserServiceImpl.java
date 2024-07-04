@@ -118,7 +118,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             // Map user table
             User user = modelMapper.map(request, User.class);
             user.setRole(Role.USER);
-            user.setStatus(AccountStatus.ACTIVE.name());
+            user.setStatus(AccountStatus.ACTIVE);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setCreateTime(new Date());
 

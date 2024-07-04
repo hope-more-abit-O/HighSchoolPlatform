@@ -44,4 +44,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the user
      */
     User findUserById(Integer id);
+    Optional<User> findFirstByUsername(String username);
+
+    Optional<User> findFirstByEmail(String email);
+
 }

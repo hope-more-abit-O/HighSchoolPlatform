@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
+import java.util.Optional;
+
 /**
  * The interface User info repository.
  */
@@ -32,4 +34,5 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
             "AND (:email IS NULL OR u.email LIKE %:email%)",
             nativeQuery = true)
     List<UserInfo> findAllUser(String username, String email);
+    Optional<UserInfo> findFirstByPhone(String phone);
 }

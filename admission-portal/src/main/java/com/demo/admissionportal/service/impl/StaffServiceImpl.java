@@ -27,6 +27,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +67,7 @@ public class StaffServiceImpl implements StaffService {
         StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
         staffInfo.setPassword(passwordEncoder.encode(generatedPassword));
         staffInfo.setRole(Role.STAFF);
-        staffInfo.setStatus("ACTIVE");
+        staffInfo.setStatus(AccountStatus.ACTIVE);
         staffInfo.setAvatar("image.png");
         staffInfo.setCreateTime(new Date());
         staffInfo.setNote(null);
@@ -142,7 +144,7 @@ public class StaffServiceImpl implements StaffService {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
             }
-            existingStaff.setStatus(AccountStatus.INACTIVE.name());
+            existingStaff.setStatus(AccountStatus.INACTIVE);
             existingStaff.setNote(request.note());
             staffInfoRepository.save(existingStaff);
             log.info("Staff with ID: {} is INACTIVE", id);
@@ -165,7 +167,7 @@ public class StaffServiceImpl implements StaffService {
             StaffInfo existingStaff = optionalStaff.get();
             if (AccountStatus.INACTIVE.name().equals(existingStaff.getStatus())) {
                 log.info("Activating INACTIVE staff with ID: {}", id);
-                existingStaff.setStatus(AccountStatus.ACTIVE.name());
+                existingStaff.setStatus(AccountStatus.ACTIVE);
                 existingStaff.setNote(request.note());
                 staffInfoRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");

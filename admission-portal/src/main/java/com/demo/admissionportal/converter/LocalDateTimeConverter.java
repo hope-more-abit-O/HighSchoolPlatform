@@ -22,7 +22,9 @@ public class LocalDateTimeConverter extends AbstractConverter<LocalDateTime, Str
      */
     @Override
     protected String convert(LocalDateTime localDateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+        if (localDateTime == null)
+            return null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return localDateTime.format(formatter);
     }
 }

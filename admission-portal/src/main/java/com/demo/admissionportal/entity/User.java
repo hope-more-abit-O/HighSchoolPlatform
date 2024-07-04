@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,11 +9,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.Transient;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -65,10 +66,10 @@ public class User implements UserDetails, ResetPassword {
     private Integer updateBy;
 
     @NotNull
-    @Nationalized
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
@@ -76,6 +77,7 @@ public class User implements UserDetails, ResetPassword {
 
     @Column(name = "note")
     private String note;
+
     @JsonIgnore
     @Transient
     private String resetPassToken;
@@ -134,5 +136,18 @@ public class User implements UserDetails, ResetPassword {
     @JsonIgnore
     public boolean isEnabled() {
         return true;
+    }
+
+    public User(String username, String email, String password, Role role, Integer createBy){
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.createBy = createBy;
+        this.updateBy = null;
+        this.createTime = new Date();
+        this.updateTime = null;
+        this.avatar = "default.png";
+        this.status = AccountStatus.ACTIVE;
     }
 }
