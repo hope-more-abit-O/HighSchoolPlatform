@@ -13,6 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -27,7 +32,7 @@ public class SecurityConfiguration {
     private static final String AUTHENTICATION_API = "/api/v1/auth/**";
     private static final String USER_API = "/api/v1/user/**";
     private static final String STAFF_API = "/api/v1/staff/**";
-    private static final String ADMIN_API ="/api/v1/admin/**";
+    private static final String ADMIN_API = "/api/v1/admin/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,7 +40,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers(USER_API).hasAnyAuthority("STAFF","USER")
+                                .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
@@ -58,11 +63,23 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .logout(
                         log -> log.logoutUrl(AUTHENTICATION_API + "/logout")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
