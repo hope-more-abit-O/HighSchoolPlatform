@@ -3,7 +3,6 @@ package com.demo.admissionportal.controller.authentication;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
-import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
@@ -88,7 +87,9 @@ public class AuthenticationController {
         if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(verifyAccount);
         } else if (verifyAccount.getStatus() == ResponseCode.C201.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(verifyAccount);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(verifyAccount);
+        } else if (verifyAccount.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(verifyAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(verifyAccount);
     }

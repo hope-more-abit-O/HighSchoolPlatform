@@ -167,33 +167,39 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
     @Override
     public ResponseData<?> verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        String storedOtp = otpService.getOTP(verifyAccountRequestDTO.getEmail());
-        LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyAccountRequestDTO.getEmail());
-        if (storedOtp == null) {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
+        try {
+            String storedOtp = otpService.getOTP(verifyAccountRequestDTO.getEmail());
+            LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyAccountRequestDTO.getEmail());
+            if (storedOtp == null) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
+            }
+            if (!storedOtp.equals(verifyAccountRequestDTO.getOtpFromEmail())) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
+            }
+            // Setting 10 minutes for OTP
+            if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
+
+                // Get data from Redis Cache
+                User userFromRedis = otpService.getUser(verifyAccountRequestDTO.getEmail());
+                UserInfo userInfoFromRedis = otpService.getUserInfo(verifyAccountRequestDTO.getEmail());
+
+                validationService.validateRegister(userFromRedis.getUsername(), userFromRedis.getEmail(), userInfoFromRedis.getPhone());
+                // Save data in DB
+                var createUser = userRepository.save(userFromRedis);
+                userInfoFromRedis.setId(createUser.getId());
+                userInfoFromRedis.setUser(createUser);
+                userInfoRepository.save(userInfoFromRedis);
+                log.info("User has been verified: {}", createUser);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
+            } else {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
+            }
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Tài khoản đã tồn tại trong hệ thống!");
+        } catch (Exception ex) {
+            log.error("Error occurred while verify: {}", ex.getMessage());
         }
-        if (!storedOtp.equals(verifyAccountRequestDTO.getOtpFromEmail())) {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
-        }
-        // Setting 10 minutes for OTP
-        if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
-
-            // Get data from Redis Cache
-            User userFromRedis = otpService.getUser(verifyAccountRequestDTO.getEmail());
-            UserInfo userInfoFromRedis = otpService.getUserInfo(verifyAccountRequestDTO.getEmail());
-
-            // Save data in DB
-            var createUser = userRepository.save(userFromRedis);
-            userInfoFromRedis.setId(createUser.getId());
-            userInfoFromRedis.setUser(createUser);
-            userInfoRepository.save(userInfoFromRedis);
-            log.info("User has been verified: {}", createUser);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
-        } else {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
-        }
-
-
+        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", null);
     }
 
     @Override
