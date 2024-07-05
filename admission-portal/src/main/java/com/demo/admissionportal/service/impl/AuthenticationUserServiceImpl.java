@@ -62,7 +62,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                     .or(() -> userRepository.findByEmail(request.getUsername()))
                     .orElseThrow(null);
             if (user == null) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
             }
             var jwtToken = jwtService.generateToken(user);
             revokeAllUserTokens(user);
@@ -72,7 +72,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
             log.error("Error occurred while login: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
         }
     }
 
