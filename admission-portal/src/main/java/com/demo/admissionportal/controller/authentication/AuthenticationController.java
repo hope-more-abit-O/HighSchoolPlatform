@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -122,6 +123,7 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PutMapping("/change-password")
+    @PreAuthorize("hasAnyAuthority('STAFF','USER','ADMIN','CONSULTANT','UNIVERSITY')")
     public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
         if (changePasswordRequestDTO == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
