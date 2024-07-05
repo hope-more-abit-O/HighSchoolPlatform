@@ -44,10 +44,10 @@ public class UserServiceImpl implements UserService {
             if (userInfos.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
-            UserResponseDTO responseDTO = new UserResponseDTO();
             List<UserResponseDTO> userResponseDTOS = new ArrayList<>();
             // Add Object to List<Object> and map with UserInfo
             for (UserInfo userInfo : userInfos) {
+                UserResponseDTO responseDTO = new UserResponseDTO();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
                 responseDTO.setUsername(userInfo.getUser().getUsername());
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOS);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user",userResponseDTOS);
         } catch (Exception ex) {
             log.error("Error while getting list user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
