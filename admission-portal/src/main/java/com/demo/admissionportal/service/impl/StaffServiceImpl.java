@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
+import com.demo.admissionportal.entity.AdminInfo;
 import com.demo.admissionportal.entity.StaffInfo;
 
 import com.demo.admissionportal.entity.User;
@@ -60,8 +61,9 @@ public class StaffServiceImpl implements StaffService {
         if (!(principal instanceof User)) {
             return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
         }
-        User admin = (User) principal;
+        AdminInfo admin = (AdminInfo) principal;
         Integer adminId = admin.getId();
+        log.info("ADMIN ID: {} ", adminId);
 
         String generatedPassword = RandomStringUtils.randomAlphanumeric(10);
         StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
@@ -70,10 +72,10 @@ public class StaffServiceImpl implements StaffService {
         staffInfo.setStatus(AccountStatus.ACTIVE);
         staffInfo.setAvatar("image.png");
         staffInfo.setCreateTime(new Date());
+        staffInfo.setCreateBy(adminId);
         staffInfo.setNote(null);
         staffInfo.setAdminId(adminId);
         staffInfo.setAdmin(admin);
-        staffInfo.setCreateBy(adminId);
 
         log.debug("StaffInfo createBy before save: {}", staffInfo.getCreateBy());
         staffInfoRepository.save(staffInfo);
