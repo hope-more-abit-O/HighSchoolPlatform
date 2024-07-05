@@ -47,13 +47,13 @@ public class RegisterUserRequestDTO implements Serializable {
     private String avatar;
 
     @NotNull(message = "Họ tên không được để trống")
-    private String firstname;
+    private String firstName;
 
     @NotNull(message = "Tên đệm không được để trống")
-    private String middle_name;
+    private String middleName;
 
     @NotNull(message = "Tên không được để trống")
-    private String lastname;
+    private String lastName;
 
     @NotNull(message = "Số điện thoại không được để trống")
     @EnumPhone(message = "Số điện thoại từ 10 - 11")
