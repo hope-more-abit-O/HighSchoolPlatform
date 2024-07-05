@@ -45,7 +45,9 @@ public class AuthenticationController {
         if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginAccount);
+        } else if(loginAccount.getStatus() == ResponseCode.C201.getCode()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
     }
