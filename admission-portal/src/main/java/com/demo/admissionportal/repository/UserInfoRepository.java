@@ -1,10 +1,11 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.UserInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
 
 import java.util.Optional;
 
@@ -25,15 +26,16 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
      *
      * @param username the username
      * @param email    the email
+     * @param pageable the pageable
      * @return the list
      */
     @Query(value = "SELECT * " +
             "FROM user_info uf " +
             "JOIN [user] u ON u.id = uf.user_id " +
             "WHERE (:username IS NULL OR u.username LIKE %:username%) " +
-            "AND (:email IS NULL OR u.email LIKE %:email%)",
-            nativeQuery = true)
-    List<UserInfo> findAllUser(String username, String email);
+            "AND (:email IS NULL OR u.email LIKE %:email%) " +
+            "ORDER BY u.create_time DESC", nativeQuery = true)
+    Page<UserInfo> findAll(String username, String email, Pageable pageable);
 
     /**
      * Find first by phone optional.
