@@ -14,12 +14,14 @@ import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,15 +40,12 @@ public class UserServiceImpl implements UserService {
     private final WardRepository wardRepository;
 
     @Override
-    public ResponseData<List<UserResponseDTO>> getUser(String username, String email) {
+    public ResponseData<Page<UserResponseDTO>> getUser(String username, String email, Pageable pageable) {
         try {
-            List<UserInfo> userInfos = userInfoRepository.findAllUser(username, email);
-            if (userInfos.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
-            }
             List<UserResponseDTO> userResponseDTOS = new ArrayList<>();
-            // Add Object to List<Object> and map with UserInfo
-            for (UserInfo userInfo : userInfos) {
+            Page<UserInfo> userPage = userInfoRepository.findAll(username, email, pageable);
+            // Map UserInfo to UserResponseDTO
+            userPage.forEach(userInfo -> {
                 UserResponseDTO responseDTO = new UserResponseDTO();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
@@ -57,8 +56,10 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
-            }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user",userResponseDTOS);
+            });
+
+            Page<UserResponseDTO> result = new PageImpl<>(userResponseDTOS, pageable, userPage.getTotalElements());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", result);
         } catch (Exception ex) {
             log.error("Error while getting list user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
