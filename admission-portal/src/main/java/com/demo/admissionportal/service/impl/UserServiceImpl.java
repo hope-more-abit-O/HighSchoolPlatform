@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService{
                 String dateString = formatter.format(new Date());
                 responseDTO.setUsername(userInfo.getUser().getUsername());
                 responseDTO.setEmail(userInfo.getUser().getEmail());
-                responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
+                responseDTO.setName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
                 responseDTO.setStatus(userInfo.getUser().getStatus().name());
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getUser().getNote());
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService{
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
             userProfileResponseDTO.setEmail(user.getEmail());
             userProfileResponseDTO.setUsername(user.getUsername());
-            userProfileResponseDTO.setFirstname(userInfo.getFirstname());
+            userProfileResponseDTO.setFirstname(userInfo.getFirstName());
             userProfileResponseDTO.setMiddle_name(userInfo.getMiddleName());
             userProfileResponseDTO.setLastname(userInfo.getLastName());
             userProfileResponseDTO.setGender(userInfo.getGender());
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService{
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             // Update profile
-            userInfo.setFirstname(requestDTO.getFirstname());
+            userInfo.setFirstName(requestDTO.getFirstname());
             userInfo.setMiddleName(requestDTO.getMiddle_name());
             userInfo.setLastName(requestDTO.getLastname());
             userInfo.setGender(requestDTO.getGender());

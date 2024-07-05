@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller.authentication;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
@@ -45,7 +46,9 @@ public class AuthenticationController {
         if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginAccount);
+        } else if (loginAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
     }
@@ -76,9 +79,9 @@ public class AuthenticationController {
      * @param verifyAccountRequestDTO the verify account request dto
      * @return the response entity
      */
-    @PostMapping("/verify-account")
-    public ResponseEntity<ResponseData<?>> verifyAccount(@RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        if (verifyAccountRequestDTO == null) {
+    @PostMapping("/verify-account/{sUID}")
+    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        if (verifyAccountRequestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> verifyAccount = authenticationUserService.verifyAccount(verifyAccountRequestDTO);

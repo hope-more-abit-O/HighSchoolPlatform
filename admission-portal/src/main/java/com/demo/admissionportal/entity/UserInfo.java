@@ -26,7 +26,7 @@ public class UserInfo implements Serializable {
     @NotNull
     @Nationalized
     @Column(name = "first_name")
-    private String firstname;
+    private String firstName;
 
     @NotNull
     @Nationalized
