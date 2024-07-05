@@ -33,7 +33,7 @@ public class SecurityConfiguration {
     private static final String USER_API = "/api/v1/user/**";
     private static final String STAFF_API = "/api/v1/staff/**";
     private static final String ADMIN_API = "/api/v1/admin/**";
-
+    private static final String CHATBOT ="/api/v1/chat/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -43,7 +43,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
-                                .requestMatchers(AUTHENTICATION_API,
+                                .requestMatchers(AUTHENTICATION_API, CHATBOT,
                                         "/account/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",

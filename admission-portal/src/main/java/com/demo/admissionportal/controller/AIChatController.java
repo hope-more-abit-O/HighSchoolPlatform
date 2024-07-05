@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.ChatCompletionRequest;
 import com.demo.admissionportal.dto.response.ChatCompletionResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -27,8 +28,8 @@ public class AIChatController {
 //    }
 
     @PostMapping("/prompt")
-    public String getOpenAIResponse(@RequestBody String prompt){
-        ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest("gpt-3.5-turbo",prompt);
+    public String getOpenAIResponse(@RequestBody @Valid String prompt){
+        ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest("gpt-3.5-turbo", prompt);
         ChatCompletionResponse chatCompletionResponse = restTemplate.postForObject("https://api.openai.com/v1/chat/completions", chatCompletionRequest, ChatCompletionResponse.class);
         return chatCompletionResponse.getChoices().get(0).getMessage().getContent();
     }
