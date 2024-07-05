@@ -27,7 +27,6 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
 
@@ -123,6 +122,7 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PutMapping("/change-password")
+    @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAnyAuthority('STAFF','USER','ADMIN','CONSULTANT','UNIVERSITY')")
     public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
         if (changePasswordRequestDTO == null) {
