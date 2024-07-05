@@ -80,8 +80,8 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PostMapping("/verify-account/{sUID}")
-    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") CodeVerifyAccountRequestDTO requestDTO, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        if (verifyAccountRequestDTO == null || requestDTO == null) {
+    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        if (verifyAccountRequestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> verifyAccount = authenticationUserService.verifyAccount(verifyAccountRequestDTO);
