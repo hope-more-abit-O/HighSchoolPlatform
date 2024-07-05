@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
@@ -22,6 +23,7 @@ import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.OTPUtil;
+import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -53,6 +55,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final EmailUtil emailUtil;
     private final OTPService otpService;
     private final ValidationService validationService;
+    private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -125,8 +128,12 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
                 // Save student in Redis Cache
                 otpService.saveUser(request.getEmail(), user, userInfo);
+                CodeVerifyAccountRequestDTO verifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
 
-                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+                // Generate sUID
+                verifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", verifyAccountRequestDTO);
             } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
                 User user = modelMapper.map(request, User.class);
                 user.setRole(Role.USER);
