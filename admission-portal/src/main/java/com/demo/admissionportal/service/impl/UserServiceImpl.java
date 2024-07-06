@@ -88,9 +88,9 @@ public class UserServiceImpl implements UserService {
             if (userInfo == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
-            Ward ward = wardRepository.findWardById(userInfo.getWard());
-            District district = districtRepository.findDistrictById(userInfo.getDistrict());
-            Province province = provinceRepository.findProvinceById(userInfo.getProvince());
+            Ward ward = wardRepository.findWardById(userInfo.getWard().getId());
+            District district = districtRepository.findDistrictById(userInfo.getDistrict().getId());
+            Province province = provinceRepository.findProvinceById(userInfo.getProvince().getId());
 
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
             userProfileResponseDTO.setEmail(user.getEmail());
@@ -142,9 +142,14 @@ public class UserServiceImpl implements UserService {
             userInfo.setPhone(requestDTO.getPhone());
 
             userInfo.setBirthday(requestDTO.getBirthday());
-            userInfo.setProvince(requestDTO.getProvince());
-            userInfo.setDistrict(requestDTO.getDistrict());
-            userInfo.setWard(requestDTO.getWard());
+
+            Ward ward = wardRepository.findWardById(requestDTO.getWard());
+            District district = districtRepository.findDistrictById(requestDTO.getDistrict());
+            Province province = provinceRepository.findProvinceById(requestDTO.getProvince());
+
+            userInfo.setProvince(province);
+            userInfo.setDistrict(district);
+            userInfo.setWard(ward);
             userInfo.setEducationLevel(requestDTO.getEducation_level());
             userInfo.setPhone(requestDTO.getPhone());
             userInfo.setSpecificAddress(requestDTO.getSpecific_address());
@@ -230,7 +235,7 @@ public class UserServiceImpl implements UserService {
 
         User account = findById(id);
 
-        if (id == null || id < 0){
+        if (id == null || id < 0) {
             throw new BadRequestException("Id phải tồn tại và lớn hơn 0");
         }
 
@@ -242,7 +247,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateBy(actionerId);
         try {
             userRepository.save(account);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
         }
         return account;

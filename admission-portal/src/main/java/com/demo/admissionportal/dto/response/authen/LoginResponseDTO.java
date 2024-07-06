@@ -1,11 +1,7 @@
-package com.demo.admissionportal.dto.response;
+package com.demo.admissionportal.dto.response.authen;
 
-import com.demo.admissionportal.constants.Gender;
-import com.demo.admissionportal.entity.District;
-import com.demo.admissionportal.entity.Province;
-import com.demo.admissionportal.entity.Ward;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,10 +16,15 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoginResponseDTO implements Serializable {
     private String accessToken;
     private UserLoginResponseDTO user;
     private UserInfoResponseDTO userInfo;
+    private AdminInfoResponseDTO adminInfo;
+    private ConsultantInfoResponseDTO consultantInfo;
+    private StaffInfoResponseDTO staffInfo;
+    private UniversityInfoResponseDTO universityInfo;
 
     /**
      * The type User login response dto.
