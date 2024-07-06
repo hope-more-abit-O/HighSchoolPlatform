@@ -33,30 +33,6 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Gets user.
-     *
-     * @param username the username
-     * @param email    the email
-     * @param pageable the pageable
-     * @return the user
-     */
-    @GetMapping("/list")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            Pageable pageable
-    ) {
-        ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, email, pageable);
-        if (user.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(user);
-        } else if (user.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
-    }
-
-    /**
      * Gets user by id.
      *
      * @param id the id
@@ -99,27 +75,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
-    /**
-     * Change status response entity.
-     *
-     * @param id         the id
-     * @param requestDTO the request dto
-     * @return the response entity
-     */
-    @PostMapping("/{id}/change-status/")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
-        if (id == null || id < 0 || requestDTO == null) {
-            new ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>>(HttpStatus.BAD_REQUEST);
-        }
-        ResponseData<ChangeStatusUserRequestDTO> user = userService.changeStatus(id, requestDTO);
-        if (user.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(user);
-        } else if (user.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
-    }
 
     /**
      * Test response entity.

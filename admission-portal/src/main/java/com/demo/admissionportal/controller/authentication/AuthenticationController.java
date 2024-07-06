@@ -7,7 +7,7 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
-import com.demo.admissionportal.dto.response.LoginResponseDTO;
+import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;

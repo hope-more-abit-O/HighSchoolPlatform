@@ -62,7 +62,7 @@ public class ConsultantInfo {
 
     @NotNull
     @Nationalized
-    @Column(name = "firstname", nullable = false, length = 30)
+    @Column(name = "first_name", nullable = false, length = 30)
     private String firstname;
 
     @NotNull

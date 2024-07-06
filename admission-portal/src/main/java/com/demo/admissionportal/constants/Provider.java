@@ -1,6 +1,15 @@
 package com.demo.admissionportal.constants;
 
+/**
+ * The enum Provider.
+ */
 public enum Provider {
-    local,
-    google
+    /**
+     * Local provider.
+     */
+    LOCAL,
+    /**
+     * Google provider.
+     */
+    GOOGLE
 }
