@@ -47,7 +47,7 @@ public class ConsultantResponseDTO {
     private String phone;
     private String address;
     private String note;
-    private Gender gender;
+    private String gender;
 
     /**
      * Converts the individual name components of the given {@link ConsultantInfo} into a full name

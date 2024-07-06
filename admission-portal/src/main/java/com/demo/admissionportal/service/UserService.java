@@ -1,5 +1,7 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -8,6 +10,8 @@ import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -60,5 +64,9 @@ public interface UserService {
      * @return the user
      * @throws ResourceNotFoundException the resource not found exception
      */
+    //TODO: javadoc
     public User findById(Integer id) throws ResourceNotFoundException;
+    public UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException;
+    public User update(User user, String name) throws StoreDataFailedException;
+    User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, BadRequestException, ResourceNotFoundException;
 }

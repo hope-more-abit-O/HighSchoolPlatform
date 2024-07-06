@@ -1,22 +1,31 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,6 +39,7 @@ public class UniversityServiceImpl implements UniversityService {
     private final UniversityInfoService universityInfoService;
     private final UniversityInfoRepository universityInfoRepository;
     private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
 
     /**
      * Retrieves detailed information about a university, combining account
@@ -63,7 +73,7 @@ public class UniversityServiceImpl implements UniversityService {
      * @throws ResourceNotFoundException If no university is found matching the given ID.
      *
      * @see UniversityFullResponseDTO
-     * @see UserResponseDTO
+     * @see UserResponseDTOV2
      * @see UniversityResponseDTO
      */
     @Override
@@ -71,9 +81,8 @@ public class UniversityServiceImpl implements UniversityService {
         User account = userService.findById(id);
         UniversityInfo info = universityInfoRepository.findById(id).get();
 
-        UserResponseDTO accountResponse = modelMapper.map(account, UserResponseDTO.class);
         UniversityResponseDTO fullInfo = modelMapper.map(info, UniversityResponseDTO.class);
-        return new UniversityFullResponseDTO(accountResponse, fullInfo);
+        return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
     }
 
     /**
@@ -115,7 +124,7 @@ public class UniversityServiceImpl implements UniversityService {
      * @see InfoUniversityResponseDTO
      */
     @Override
-    public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id){
+    public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException{
         return new UniversityInfoResponseDTO(
                 modelMapper.map(userService.findById(id), InfoUserResponseDTO.class),
                 modelMapper.map(universityInfoService.findById(id), InfoUniversityResponseDTO.class)
@@ -157,4 +166,52 @@ public class UniversityServiceImpl implements UniversityService {
             return new ResourceNotFoundException("University's information with id: " + id + " not found");
         });
     }
+
+
+    @Transactional
+    public UniversityInfo saveUniversityInfo(UniversityInfo universityInfo) throws StoreDataFailedException{
+        try {
+            universityInfo = universityInfoRepository.save(universityInfo);
+            if (universityInfo == null)
+                throw new Exception();
+        } catch (Exception e){
+            throw new StoreDataFailedException("Lưu thông tin trường đại học thất bại");
+        }
+        return universityInfo;
+    }
+
+    public ResponseData updateUniversityStatus(Integer id, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException {
+        Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User uniAccount = userService.findById(id);
+
+        if (uniAccount.getStatus().equals(status))
+            return ResponseData.ok("Trạng thái trường đại học không đúng.");
+
+        if (!uniAccount.getRole().equals(Role.UNIVERSITY))
+            throw new ResourceNotFoundException("Không tồn tại trường đại học với id: " + id);
+        uniAccount.setStatus(status);
+        try {
+            userRepository.save(uniAccount);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Cập nhập trạng thái trường đại học thất bại.");
+        }
+
+        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
+    }
+
+    @Transactional
+    public ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException{
+        UniversityInfo universityInfo = findById(request.getId());
+
+        universityInfo.setName(request.getName());
+        universityInfo.setDescription(request.getDescription());
+        universityInfo.setCoverImage(request.getCoverImage());
+        universityInfo.setType(UniversityType.valueOf(request.getType()));
+        universityInfo.setCode(request.getCode());
+
+        saveUniversityInfo(universityInfo);
+        return ResponseData.ok("Cập nhập thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
+    }
+
 }

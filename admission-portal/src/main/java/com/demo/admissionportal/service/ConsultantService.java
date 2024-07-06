@@ -1,17 +1,20 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.dto.entity.consultant.ConsultantFullResponseDTO;
+import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.request.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.ConsultantInfo;
+import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
+import org.apache.coyote.BadRequestException;
 
 /**
  * Defines the contract for managing consultant information, including creation and retrieval.
  */
-public interface ConsultantInfoService {
+public interface ConsultantService {
 
     /**
      * Creates a new consultant account and associated information.
@@ -71,14 +74,18 @@ public interface ConsultantInfoService {
      * </pre>
      *
      * @param id The unique identifier of the consultant.
-     * @return A {@link ConsultantFullResponseDTO} containing
+     * @return A {@link FullConsultantResponseDTO} containing
      *         comprehensive consultant details.
      * @throws ResourceNotFoundException If no consultant is found with
      *                                    the specified `id`.
      *
-     * @see ConsultantFullResponseDTO
+     * @see FullConsultantResponseDTO
      */
-    ConsultantFullResponseDTO getById(Integer id) throws ResourceNotFoundException;
+    FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException;
 
-    ConsultantInfo get() throws ResourceNotFoundException;
+    ResponseData selfUpdateConsultantInfo(SelfUpdateConsultantInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException;
+
+    ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request) throws ResourceNotFoundException, StoreDataFailedException;
+
+    ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws ResourceNotFoundException, BadRequestException, StoreDataFailedException;
 }

@@ -1,6 +1,10 @@
 package com.demo.admissionportal.dto.entity.create_university_request;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -50,6 +54,10 @@ import java.util.List;
  *
  * @see ActionerDTO
  */
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateUniversityRequestDTO {
     private Integer id;
     private String universityName;

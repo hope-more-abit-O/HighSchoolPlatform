@@ -48,4 +48,7 @@ public class District implements Serializable {
     @Column(name = "name")
     private String name;
 
+    public District(Integer id) {
+        this.id = id;
+    }
 }

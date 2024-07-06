@@ -96,7 +96,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .build();
         try{
             CreateUniversityRequest result = createUniversityRequestRepository.save(createUniversityRequest);
-            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.");
+            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", createUniversityRequest.getId());
         } catch (Exception e){
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
         }
@@ -127,6 +127,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      */
     @Transactional
     public ResponseData adminAction(Integer id, CreateUniversityRequestStatus status) throws ResourceNotFoundException, StoreDataFailedException {
+        Integer uniId = 0;
         Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Admin ID: {}", adminId);
 
@@ -146,11 +147,12 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 User uni = userRepository.save(
                         new User(createUniversityRequest.getUniversityUsername(),
                                 createUniversityRequest.getUniversityEmail(),
-                                passwordEncoder.encode(UUID.randomUUID().toString()),
+                                passwordEncoder.encode("passgivay"),
                                 Role.UNIVERSITY,
                                 adminId
                         )
                 );
+                uniId = uni.getId();
                 log.info("Creating and storing University Account succeed");
 
                 log.info("Creating and storing University Information");
@@ -167,12 +169,12 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
             createUniversityRequestRepository.save(createUniversityRequest);
             log.info("Updating and storing Create university request succeed");
+            return ResponseData.ok("Tạo tài khoản trường học thành công.", uniId);
         } catch (Exception e){
             log.error(e.getMessage());
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");
         }
 
-        return ResponseData.ok("Tạo tài khoản trường học thành công.");
     }
 
     /**

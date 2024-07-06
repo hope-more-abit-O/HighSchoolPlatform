@@ -27,6 +27,7 @@ public class ModelMapperConfig {
         modelMapper.addConverter(new GenderStatusConverter());
         modelMapper.addConverter(new RoleToStringConverter());
         modelMapper.addConverter(new DateToStringConverter());
+        modelMapper.addConverter(new UniversityTypeToStringConverter());
         return modelMapper;
     }
 
