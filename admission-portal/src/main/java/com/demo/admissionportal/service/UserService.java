@@ -8,6 +8,9 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
@@ -19,7 +22,7 @@ import org.springframework.data.domain.Pageable;
 /**
  * The interface User service.
  */
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
     /**
      * Gets user.
@@ -38,6 +41,8 @@ public interface UserService {
      * @return the user by id
      */
     ResponseData<UserProfileResponseDTO> getUserById(Integer id);
+    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+
 
     /**
      * Update user response data.

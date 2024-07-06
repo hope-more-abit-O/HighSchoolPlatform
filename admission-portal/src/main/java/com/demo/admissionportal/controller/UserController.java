@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
+
 /**
  * The type User controller.
  */
@@ -80,7 +82,7 @@ public class UserController {
      * @return the response entity
      */
     @GetMapping
-    public ResponseEntity<User> test() {
+    public ResponseEntity<User> test(){
         return ResponseEntity.ok(userService.findById(79));
     }
 }

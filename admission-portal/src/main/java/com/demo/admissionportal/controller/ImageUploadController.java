@@ -46,4 +46,3 @@ public class ImageUploadController {
         return ResponseEntity.ok(imageUrl);
     }
 }
-

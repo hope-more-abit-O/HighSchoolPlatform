@@ -13,8 +13,6 @@ public class UpdateStaffRequestDTO {
     @NotNull
     private String email;
     @NotNull
-    private String password;
-    @NotNull
     private String avatar;
     @NotNull
     private String phone;
