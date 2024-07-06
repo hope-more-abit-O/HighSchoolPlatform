@@ -10,7 +10,9 @@ import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
+import com.demo.admissionportal.entity.AdminInfo;
 import com.demo.admissionportal.entity.StaffInfo;
+
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
@@ -59,8 +61,9 @@ public class StaffServiceImpl implements StaffService {
         if (!(principal instanceof User)) {
             return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
         }
-        User admin = (User) principal;
+        AdminInfo admin = (AdminInfo) principal;
         Integer adminId = admin.getId();
+        log.info("ADMIN ID: {} ", adminId);
 
         String generatedPassword = RandomStringUtils.randomAlphanumeric(10);
         StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
@@ -69,10 +72,10 @@ public class StaffServiceImpl implements StaffService {
         staffInfo.setStatus(AccountStatus.ACTIVE);
         staffInfo.setAvatar("image.png");
         staffInfo.setCreateTime(new Date());
+        staffInfo.setCreateBy(adminId);
         staffInfo.setNote(null);
         staffInfo.setAdminId(adminId);
         staffInfo.setAdmin(admin);
-        staffInfo.setCreateBy(adminId);
 
         log.debug("StaffInfo createBy before save: {}", staffInfo.getCreateBy());
         staffInfoRepository.save(staffInfo);
@@ -123,7 +126,6 @@ public class StaffServiceImpl implements StaffService {
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
             modelMapper.map(request, staff);
-            staff.setPassword(passwordEncoder.encode(request.getPassword()));
             staffInfoRepository.save(staff);
             StaffResponseDTO staffResponseDTO = modelMapper.map(staff, StaffResponseDTO.class);
             log.info("Staff updated successfully with ID: {}", staff.getId());
@@ -162,18 +164,14 @@ public class StaffServiceImpl implements StaffService {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-
             StaffInfo existingStaff = optionalStaff.get();
-            if (AccountStatus.INACTIVE.name().equals(existingStaff.getStatus())) {
+             AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);
                 existingStaff.setNote(request.note());
                 staffInfoRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
-            } else {
-                log.info("Staff with ID: {} is already ACTIVE", id);
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Nhân viên đã được kích hoạt trước đó!");
-            }
+
         } catch (Exception e) {
             log.error("Activation of staff with ID: {} failed: {}", id, e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");

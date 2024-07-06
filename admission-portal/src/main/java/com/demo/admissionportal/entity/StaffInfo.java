@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,4 +28,14 @@ public class StaffInfo extends User {
     @ManyToOne
     @JoinColumn(name = "admin_id", insertable = false, updatable = false)
     private User admin;
+
+    public StaffInfo(String username, String email, String password, Role role, Integer createBy, Integer adminId, User admin, String phone, String lastName, String middleName, String firstName) {
+        super(username, email, password, role, createBy);
+        this.adminId = adminId;
+        this.admin = admin;
+        this.phone = phone;
+        this.lastName = lastName;
+        this.middleName = middleName;
+        this.firstName = firstName;
+    }
 }

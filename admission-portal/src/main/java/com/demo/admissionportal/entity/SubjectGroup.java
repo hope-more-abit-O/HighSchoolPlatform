@@ -7,6 +7,8 @@ import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.Date;
+
 /**
  * The type Subject group.
  */
@@ -30,5 +32,17 @@ public class SubjectGroup {
     @ColumnDefault("ACTIVE")
     @Column(name = "status")
     private String status;
+
+    @Column(name = "create_time")
+    private Date createTime;
+
+    @Column(name = "create_by")
+    private Integer createBy;
+
+    @Column(name = "update_time")
+    private Date updateTime;
+
+    @Column(name = "update_by")
+    private Integer updateBy;
 
 }
