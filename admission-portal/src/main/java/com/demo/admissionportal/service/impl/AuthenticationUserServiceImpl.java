@@ -166,7 +166,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             user.setStatus(AccountStatus.ACTIVE);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setCreateTime(new Date());
-            user.setProviderId(Provider.local.name());
+            user.setProvider(ProviderType.SYSTEM);
 
             // Map user_info table
             UserInfo userInfo = modelMapper.map(request, UserInfo.class);

@@ -7,13 +7,18 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
+import com.demo.admissionportal.dto.request.resetPass.request.ConfirmResetPasswordRequest;
+import com.demo.admissionportal.dto.request.resetPass.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.response.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;
+import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,8 +32,11 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
+
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
+    private final ResetPasswordService resetPasswordService;
 
     /**
      * Login response entity.
@@ -155,5 +163,44 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(account);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(account);
+    }
+    @PostMapping("/reset-password")
+    @Operation(summary = "Yêu cầu tạo lại mật khẩu ( nhận mã token qua email )")
+    public ResponseEntity<?> requestResetPassword(@RequestBody ResetPasswordRequest request) {
+        log.info("Reset password request for email: {}", request.email());
+        ResponseData<?> result = resetPasswordService.resetPasswordRequest(request);
+        if (result.getStatus() == ResponseCode.C206.getCode()) {
+            log.info("Reset password token sent !");
+            return ResponseEntity.ok(result);
+        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
+            log.warn("User not found !");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        log.error("Failed to reset password for User ");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    /**
+     * Confirms the reset password request using the reset token.
+     *
+     * @param request the confirm reset password request
+     * @param resetToken the reset token
+     * @return the response entity
+     */
+    @PostMapping("/confirm-password/{resetToken}")
+    @Operation(summary = "Xác nhận yêu cầu tạo lại mật khẩu ")
+    public ResponseEntity<?> confirmResetPassword(@RequestBody @Valid ConfirmResetPasswordRequest request,
+                                                  @PathVariable @Valid String resetToken) {
+        log.info("Confirmation for reset password with token: {}", resetToken);
+        ResponseData<?> result = resetPasswordService.confirmResetPassword(request, resetToken);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            log.info("Password reset confirmed ");
+            return ResponseEntity.ok(result);
+        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
+            log.warn("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        log.error("Failed to reset password");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 }

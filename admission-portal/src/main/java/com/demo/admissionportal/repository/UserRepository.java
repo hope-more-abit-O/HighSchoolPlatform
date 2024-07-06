@@ -68,6 +68,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the user
      */
     User findUserByEmail(String email);
-    Optional<User> findByUsernameAndProviderId(String username, String providerId);
-
 }
