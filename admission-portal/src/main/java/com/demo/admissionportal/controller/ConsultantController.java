@@ -59,6 +59,7 @@ public class ConsultantController {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
+    //TODO: JAVADOC
     @PutMapping("/update")
     public ResponseEntity<?> seftUpdateConsultantInfo(@RequestBody SelfUpdateConsultantInfoRequest request){
         return ResponseEntity.ok(consultantService.selfUpdateConsultantInfo(request));
@@ -70,7 +71,7 @@ public class ConsultantController {
         return ResponseEntity.ok(consultantService.updateConsultantInfoById(request));
     }
 
-    @PatchMapping("/{id}/change-status")
+    @PatchMapping("/change-status/{id}")
     public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request) throws BadRequestException, StoreDataFailedException, DataExistedException {
         return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
     }

@@ -51,9 +51,7 @@ import java.io.Serializable;
 @Entity
 @NoArgsConstructor
 @Table(name = "consultant_info")
-@DiscriminatorValue("CONSULTANT")
-@PrimaryKeyJoinColumn(name = "consultant_id", referencedColumnName = "id")
-public class ConsultantInfo extends User {
+public class ConsultantInfo {
     @Id
     @Column(name = "consultant_id", nullable = false)
     private Integer id;

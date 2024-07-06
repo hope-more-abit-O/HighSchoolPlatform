@@ -178,7 +178,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         }
         log.info("Storing consultant's information succeed.");
 
-        return ResponseData.created("Tạo tư vấn viên thành công.");
+        return ResponseData.created("Tạo tư vấn viên thành công.", consultant.getId());
     }
 
     /**
@@ -245,7 +245,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     public ConsultantInfo findById(Integer id) throws ResourceNotFoundException{
         return consultantInfoRepository.findById(id).orElseThrow(() -> {
             log.error("Consultant's information with id: {} not found.", id);
-            return new ResourceNotFoundException("University's information with id: " + id + " not found");
+            return new ResourceNotFoundException("Tư vấn viên với Id: " + id + " không tìm tấy");
         });
     }
 
