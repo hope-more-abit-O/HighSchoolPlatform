@@ -8,15 +8,13 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
-import com.demo.admissionportal.dto.response.LoginResponseDTO;
+import com.demo.admissionportal.dto.response.authen.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.UserToken;
 import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.repository.UserInfoRepository;
-import com.demo.admissionportal.repository.UserRepository;
-import com.demo.admissionportal.repository.UserTokenRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.JwtService;
 import com.demo.admissionportal.service.OTPService;
@@ -56,6 +54,10 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final OTPService otpService;
     private final ValidationService validationService;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
+    private final StaffInfoRepository staffInfoRepository;
+    private final AdminInfoRepository adminInfoRepository;
+    private final UniversityInfoRepository universityInfoRepository;
+    private final ConsultantInfoRepository consultantInfoRepository;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -67,10 +69,51 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
             }
+
+            var userInfo = userInfoRepository.findUserInfoById(user.getId());
+            var staffInfo = staffInfoRepository.findStaffInfoById(user.getId());
+            var adminInfo = adminInfoRepository.findAdminInfoById(user.getId());
+            var universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+            var consultantInfo = consultantInfoRepository.findConsultantInfoById(user.getId());
+
+            // Initialize response DTOs
+            UserInfoResponseDTO userInfoResponseDTO = null;
+            StaffInfoResponseDTO staffInfoResponseDTO = null;
+            AdminInfoResponseDTO adminInfoResponseDTO = null;
+            UniversityInfoResponseDTO universityInfoResponseDTO = null;
+            ConsultantInfoResponseDTO consultantInfoResponseDTO = null;
+
+            // Map userInfo with custom info
+            if (userInfo != null) {
+                userInfoResponseDTO = modelMapper.map(userInfo, UserInfoResponseDTO.class);
+            } else if (staffInfo != null) {
+                staffInfoResponseDTO = modelMapper.map(staffInfo, StaffInfoResponseDTO.class);
+                staffInfoResponseDTO.setAdminId(staffInfo.getAdminId());
+            }
+
+            if (adminInfo != null) {
+                adminInfoResponseDTO = modelMapper.map(adminInfo, AdminInfoResponseDTO.class);
+            }
+            if (universityInfo != null) {
+                universityInfoResponseDTO = modelMapper.map(universityInfo, UniversityInfoResponseDTO.class);
+            }
+            if (consultantInfo != null) {
+                consultantInfoResponseDTO = modelMapper.map(consultantInfo, ConsultantInfoResponseDTO.class);
+            }
+
             var jwtToken = jwtService.generateToken(user);
             revokeAllUserTokens(user);
             saveUserToken(user, jwtToken);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).build());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
+                    .accessToken(jwtToken)
+                    .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
+                    .userInfo(userInfoResponseDTO)
+                    .staffInfo(staffInfoResponseDTO)
+                    .universityInfo(universityInfoResponseDTO)
+                    .consultantInfo(consultantInfoResponseDTO)
+                    .adminInfo(adminInfoResponseDTO)
+                    .build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403

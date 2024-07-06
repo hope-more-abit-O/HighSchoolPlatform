@@ -56,14 +56,17 @@ public class UserInfo implements Serializable {
     @Column(name = "education_level")
     private String educationLevel;
 
-    @Column(name = "province_id")
-    private Integer province;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "province_id")
+    private Province province;
 
-    @Column(name = "district_id")
-    private Integer district;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "district_id")
+    private District district;
 
-    @Column(name = "ward_id")
-    private Integer ward;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ward_id")
+    private Ward ward;
 
     @Column(name = "birthday")
     @Temporal(TemporalType.DATE)

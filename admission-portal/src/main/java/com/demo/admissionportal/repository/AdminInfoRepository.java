@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * The interface Admin info repository.
+ */
 public interface AdminInfoRepository extends JpaRepository<AdminInfo, Integer> {
     /**
      * Find by username optional.
@@ -22,4 +25,12 @@ public interface AdminInfoRepository extends JpaRepository<AdminInfo, Integer> {
      * @return the optional
      */
     Optional<User> findByEmail(String username);
+
+    /**
+     * Find admin info by id admin info.
+     *
+     * @param id the id
+     * @return the admin info
+     */
+    AdminInfo findAdminInfoById(Integer id);
 }
