@@ -67,10 +67,15 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
             }
+            var userInfo = userInfoRepository.findUserInfoById(user.getId());
             var jwtToken = jwtService.generateToken(user);
             revokeAllUserTokens(user);
             saveUserToken(user, jwtToken);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder().accessToken(jwtToken).build());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
+                    .accessToken(jwtToken)
+                    .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
+                    .userInfo(modelMapper.map(userInfo, LoginResponseDTO.UserInfoResponseDTO.class))
+                    .build());
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
