@@ -36,9 +36,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "university_info")
-@DiscriminatorValue("UNIVERSITY")
-@PrimaryKeyJoinColumn(name = "university_id", referencedColumnName = "id")
-public class UniversityInfo extends User{
+public class UniversityInfo{
 
     @Id
     @Column(name = "university_id", nullable = false, updatable = false)

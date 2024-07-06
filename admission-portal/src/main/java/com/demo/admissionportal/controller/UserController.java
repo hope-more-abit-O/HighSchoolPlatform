@@ -12,12 +12,13 @@ import com.demo.admissionportal.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 
 /**
@@ -36,15 +37,17 @@ public class UserController {
      *
      * @param username the username
      * @param email    the email
+     * @param pageable the pageable
      * @return the user
      */
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<List<UserResponseDTO>>> getUser(
+    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email
+            @RequestParam(required = false) String email,
+            Pageable pageable
     ) {
-        ResponseData<List<UserResponseDTO>> user = userService.getUser(username, email);
+        ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, email, pageable);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
@@ -96,6 +99,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
+    /**
+     * Change status response entity.
+     *
+     * @param id         the id
+     * @param requestDTO the request dto
+     * @return the response entity
+     */
     @PostMapping("/{id}/change-status/")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
@@ -111,6 +121,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
+    /**
+     * Test response entity.
+     *
+     * @return the response entity
+     */
     @GetMapping
     public ResponseEntity<User> test(){
         return ResponseEntity.ok(userService.findById(79));

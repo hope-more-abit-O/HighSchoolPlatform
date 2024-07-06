@@ -50,4 +50,7 @@ public class Province implements Serializable {
     @Column(name = "name")
     private String name;
 
+    public Province(Integer id) {
+        this.id = id;
+    }
 }

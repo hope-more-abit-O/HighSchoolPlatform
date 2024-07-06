@@ -78,20 +78,6 @@ public class AdminController {
         log.error("Failed to Get staff by ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
-    @PutMapping("/update-staff/{id}")
-    public ResponseEntity<ResponseData<StaffResponseDTO>> updateStaff(@RequestBody @Valid UpdateStaffRequestDTO request, @PathVariable Integer id) {
-        log.info("Received request to update staff: {}", request);
-        ResponseData<StaffResponseDTO> result = staffService.updateStaff(request, id);
-        if (result.getStatus() == ResponseCode.C200.getCode()) {
-            log.info("Staff updated successfully with ID: {}", id);
-            return ResponseEntity.ok(result);
-        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
-            log.warn("Staff not found with ID: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-        }
-        log.error("Failed to update staff: {}", request);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-    }
     @DeleteMapping("/delete-staff/{id}")
     public ResponseEntity<?> deleteStaffById(@Valid @PathVariable int id, @Valid @RequestBody DeleteStaffRequest request) {
         log.info("Received request to delete staff with ID: {} and note: {}", id, request.note());

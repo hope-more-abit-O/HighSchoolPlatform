@@ -21,6 +21,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InfoUniversityResponseDTO {
+    private Integer id;
     private String name;
     private String code;
     private String type;
