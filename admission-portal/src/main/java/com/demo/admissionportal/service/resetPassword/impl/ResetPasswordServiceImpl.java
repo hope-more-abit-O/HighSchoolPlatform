@@ -61,7 +61,6 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Email không hợp lệ");
             }
             UUID resetToken = UUID.randomUUID();
-            existingAccount.setResetPassToken(resetToken.toString());
             saveObject(existingAccount.getRole(), existingAccount.getId(), resetToken);
 
             String resetPassLink = "https://localhost:3000/reset-password/" + resetToken;
@@ -109,7 +108,6 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
             }
 
             foundUser.setPassword(passwordEncoder.encode(request.getNewPassword().trim()));
-            foundUser.setResetPassToken(null);
 
             switch (user.getRole()) {
                 case STAFF:

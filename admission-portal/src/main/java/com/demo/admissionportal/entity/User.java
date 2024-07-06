@@ -85,19 +85,12 @@ public class User implements UserDetails, ResetPassword {
     @Column(nullable = true)
     private String providerId;
 
-    @JsonIgnore
-    @Transient
-    private String resetPassToken;
 
     @Override
     public String getEmail() {
         return email;
     }
 
-    @Override
-    public void setResetPassToken(String token) {
-        this.resetPassToken = token;
-    }
 
     @Override
     public void setPassword(String password) {
