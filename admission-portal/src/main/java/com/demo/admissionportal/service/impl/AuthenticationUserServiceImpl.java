@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
+import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
@@ -22,6 +23,7 @@ import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.OTPUtil;
+import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -53,6 +55,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final EmailUtil emailUtil;
     private final OTPService otpService;
     private final ValidationService validationService;
+    private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -62,7 +65,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                     .or(() -> userRepository.findByEmail(request.getUsername()))
                     .orElseThrow(null);
             if (user == null) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
             }
             var jwtToken = jwtService.generateToken(user);
             revokeAllUserTokens(user);
@@ -72,7 +75,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403
             log.error("Error occurred while login: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Tên đăng nhập hoặc mật khẩu không đúng");
         }
     }
 
@@ -125,8 +128,12 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
                 // Save student in Redis Cache
                 otpService.saveUser(request.getEmail(), user, userInfo);
+                CodeVerifyAccountRequestDTO verifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
 
-                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra");
+                // Generate sUID
+                verifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", verifyAccountRequestDTO);
             } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
                 User user = modelMapper.map(request, User.class);
                 user.setRole(Role.USER);
@@ -160,33 +167,39 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
     @Override
     public ResponseData<?> verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        String storedOtp = otpService.getOTP(verifyAccountRequestDTO.getEmail());
-        LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyAccountRequestDTO.getEmail());
-        if (storedOtp == null) {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
+        try {
+            String storedOtp = otpService.getOTP(verifyAccountRequestDTO.getEmail());
+            LocalDateTime storeLocalDateTime = otpService.getOTPDateTime(verifyAccountRequestDTO.getEmail());
+            if (storedOtp == null) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn không tồn tại");
+            }
+            if (!storedOtp.equals(verifyAccountRequestDTO.getOtpFromEmail())) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
+            }
+            // Setting 10 minutes for OTP
+            if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
+
+                // Get data from Redis Cache
+                User userFromRedis = otpService.getUser(verifyAccountRequestDTO.getEmail());
+                UserInfo userInfoFromRedis = otpService.getUserInfo(verifyAccountRequestDTO.getEmail());
+
+                validationService.validateRegister(userFromRedis.getUsername(), userFromRedis.getEmail(), userInfoFromRedis.getPhone());
+                // Save data in DB
+                var createUser = userRepository.save(userFromRedis);
+                userInfoFromRedis.setId(createUser.getId());
+                userInfoFromRedis.setUser(createUser);
+                userInfoRepository.save(userInfoFromRedis);
+                log.info("User has been verified: {}", createUser);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
+            } else {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
+            }
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Tài khoản đã tồn tại trong hệ thống!");
+        } catch (Exception ex) {
+            log.error("Error occurred while verify: {}", ex.getMessage());
         }
-        if (!storedOtp.equals(verifyAccountRequestDTO.getOtpFromEmail())) {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP không hợp lệ");
-        }
-        // Setting 10 minutes for OTP
-        if (Duration.between(storeLocalDateTime, LocalDateTime.now()).getSeconds() < 10 * 60) {
-
-            // Get data from Redis Cache
-            User userFromRedis = otpService.getUser(verifyAccountRequestDTO.getEmail());
-            UserInfo userInfoFromRedis = otpService.getUserInfo(verifyAccountRequestDTO.getEmail());
-
-            // Save data in DB
-            var createUser = userRepository.save(userFromRedis);
-            userInfoFromRedis.setId(createUser.getId());
-            userInfoFromRedis.setUser(createUser);
-            userInfoRepository.save(userInfoFromRedis);
-            log.info("User has been verified: {}", createUser);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
-        } else {
-            return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");
-        }
-
-
+        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", null);
     }
 
     @Override

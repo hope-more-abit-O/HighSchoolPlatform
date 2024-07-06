@@ -12,8 +12,9 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 /**
  * The interface User service.
@@ -25,9 +26,10 @@ public interface UserService {
      *
      * @param username the username
      * @param email    the email
+     * @param pageable the pageable
      * @return the user
      */
-    ResponseData<List<UserResponseDTO>> getUser(String username, String email);
+    ResponseData<Page<UserResponseDTO>> getUser(String username, String email, Pageable pageable);
 
     /**
      * Gets user by id.
@@ -54,6 +56,14 @@ public interface UserService {
      * @return the response data
      */
     ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
+
+    /**
+     * Find by id user.
+     *
+     * @param id the id
+     * @return the user
+     * @throws ResourceNotFoundException the resource not found exception
+     */
     //TODO: javadoc
     public User findById(Integer id) throws ResourceNotFoundException;
     public UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException;

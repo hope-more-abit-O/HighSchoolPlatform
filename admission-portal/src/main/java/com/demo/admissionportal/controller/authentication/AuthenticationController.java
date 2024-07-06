@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -26,7 +27,6 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
 
@@ -45,7 +45,9 @@ public class AuthenticationController {
         if (loginAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginAccount);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginAccount);
+        } else if (loginAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
     }
@@ -76,16 +78,18 @@ public class AuthenticationController {
      * @param verifyAccountRequestDTO the verify account request dto
      * @return the response entity
      */
-    @PostMapping("/verify-account")
-    public ResponseEntity<ResponseData<?>> verifyAccount(@RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        if (verifyAccountRequestDTO == null) {
+    @PostMapping("/verify-account/{sUID}")
+    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+        if (verifyAccountRequestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
         ResponseData<?> verifyAccount = authenticationUserService.verifyAccount(verifyAccountRequestDTO);
         if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(verifyAccount);
         } else if (verifyAccount.getStatus() == ResponseCode.C201.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(verifyAccount);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(verifyAccount);
+        } else if (verifyAccount.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(verifyAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(verifyAccount);
     }
@@ -118,6 +122,8 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PutMapping("/change-password")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAnyAuthority('STAFF','USER','ADMIN','CONSULTANT','UNIVERSITY')")
     public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
         if (changePasswordRequestDTO == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);

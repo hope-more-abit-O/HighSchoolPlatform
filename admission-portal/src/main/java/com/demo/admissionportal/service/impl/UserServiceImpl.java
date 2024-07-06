@@ -19,6 +19,9 @@ import com.demo.admissionportal.service.UserService;
 import jakarta.mail.Store;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -48,27 +51,26 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseData<List<UserResponseDTO>> getUser(String username, String email) {
+    public ResponseData<Page<UserResponseDTO>> getUser(String username, String email, Pageable pageable) {
         try {
-            List<UserInfo> userInfos = userInfoRepository.findAllUser(username, email);
-            if (userInfos.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
-            }
-            UserResponseDTO responseDTO = new UserResponseDTO();
             List<UserResponseDTO> userResponseDTOS = new ArrayList<>();
-            // Add Object to List<Object> and map with UserInfo
-            for (UserInfo userInfo : userInfos) {
+            Page<UserInfo> userPage = userInfoRepository.findAll(username, email, pageable);
+            // Map UserInfo to UserResponseDTO
+            userPage.forEach(userInfo -> {
+                UserResponseDTO responseDTO = new UserResponseDTO();
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
                 responseDTO.setUsername(userInfo.getUser().getUsername());
                 responseDTO.setEmail(userInfo.getUser().getEmail());
-                responseDTO.setName(userInfo.getFirstname() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
+                responseDTO.setName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
                 responseDTO.setStatus(userInfo.getUser().getStatus().name());
                 responseDTO.setCreate_time(dateString);
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
-            }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", userResponseDTOS);
+            });
+
+            Page<UserResponseDTO> result = new PageImpl<>(userResponseDTOS, pageable, userPage.getTotalElements());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", result);
         } catch (Exception ex) {
             log.error("Error while getting list user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
@@ -93,7 +95,7 @@ public class UserServiceImpl implements UserService {
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
             userProfileResponseDTO.setEmail(user.getEmail());
             userProfileResponseDTO.setUsername(user.getUsername());
-            userProfileResponseDTO.setFirstname(userInfo.getFirstname());
+            userProfileResponseDTO.setFirstname(userInfo.getFirstName());
             userProfileResponseDTO.setMiddle_name(userInfo.getMiddleName());
             userProfileResponseDTO.setLastname(userInfo.getLastName());
             userProfileResponseDTO.setGender(userInfo.getGender());
@@ -133,7 +135,7 @@ public class UserServiceImpl implements UserService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             // Update profile
-            userInfo.setFirstname(requestDTO.getFirstname());
+            userInfo.setFirstName(requestDTO.getFirstname());
             userInfo.setMiddleName(requestDTO.getMiddle_name());
             userInfo.setLastName(requestDTO.getLastname());
             userInfo.setGender(requestDTO.getGender());
