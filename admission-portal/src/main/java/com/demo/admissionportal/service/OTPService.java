@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserInfo;
 
@@ -65,4 +66,21 @@ public interface OTPService {
      * @param email the email
      */
     void deleteOTP(String email);
+
+    /**
+     * S uid string.
+     *
+     * @param email                       the email
+     * @param codeVerifyAccountRequestDTO the code verify account request dto
+     * @return the string
+     */
+    void savesUID(String email, CodeVerifyAccountRequestDTO codeVerifyAccountRequestDTO);
+
+    /**
+     * Gets uid.
+     *
+     * @param email the email
+     * @return the uid
+     */
+    String getsUID(String email);
 }

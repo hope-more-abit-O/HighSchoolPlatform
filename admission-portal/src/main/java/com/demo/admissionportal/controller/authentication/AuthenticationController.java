@@ -7,13 +7,19 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
-import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
+import com.demo.admissionportal.dto.request.resetPass.request.ConfirmResetPasswordRequest;
+import com.demo.admissionportal.dto.request.resetPass.request.ResetPasswordRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;
+import com.demo.admissionportal.service.OTPService;
+import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,8 +33,11 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
+    private final OTPService otpService;
+    private ResetPasswordService resetPasswordService;
 
     /**
      * Login response entity.
@@ -82,6 +91,10 @@ public class AuthenticationController {
     public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
         if (verifyAccountRequestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
+        }
+        String sUIDRedis = otpService.getsUID(verifyAccountRequestDTO.getEmail());
+        if (!sUID.equals(sUIDRedis)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), " sUID không đúng"));
         }
         ResponseData<?> verifyAccount = authenticationUserService.verifyAccount(verifyAccountRequestDTO);
         if (verifyAccount.getStatus() == ResponseCode.C200.getCode()) {
@@ -155,5 +168,51 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(account);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(account);
+    }
+
+    /**
+     * Handles a request to reset the password by sending a reset token via email.
+     *
+     * @param request the reset password request
+     * @return the response entity
+     */
+    @PostMapping("/reset/password")
+    @Operation(summary = "Yêu cầu tạo lại mật khẩu ( nhận mã token qua email )")
+    public ResponseEntity<?> requestResetPassword(@RequestBody ResetPasswordRequest request) {
+        log.info("Reset password request for email: {}", request.email());
+        ResponseData<?> result = resetPasswordService.resetPasswordRequest(request);
+        if (result.getStatus() == ResponseCode.C206.getCode()) {
+            log.info("Reset password token sent !");
+            return ResponseEntity.ok(result);
+        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
+            log.warn("User not found !");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        log.error("Failed to reset password for User ");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    /**
+     * Confirms the reset password request using the reset token.
+     *
+     * @param request    the confirm reset password request
+     * @param resetToken the reset token
+     * @return the response entity
+     */
+    @PostMapping("/password/confirm/{resetToken}")
+    @Operation(summary = "Xác nhận yêu cầu tạo lại mật khẩu ")
+    public ResponseEntity<?> confirmResetPassword(@RequestBody @Valid ConfirmResetPasswordRequest request,
+                                                  @PathVariable @Valid String resetToken) {
+        log.info("Confirmation for reset password with token: {}", resetToken);
+        ResponseData<?> result = resetPasswordService.confirmResetPassword(request, resetToken);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            log.info("Password reset confirmed ");
+            return ResponseEntity.ok(result);
+        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
+            log.warn("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        log.error("Failed to reset password");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 }

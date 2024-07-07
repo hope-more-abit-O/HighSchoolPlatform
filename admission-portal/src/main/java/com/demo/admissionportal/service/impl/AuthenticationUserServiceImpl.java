@@ -8,8 +8,8 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
-import com.demo.admissionportal.dto.response.authen.*;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.authen.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.*;
@@ -178,12 +178,14 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
                 // Save student in Redis Cache
                 otpService.saveUser(request.getEmail(), user, userInfo);
-                CodeVerifyAccountRequestDTO verifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
+                CodeVerifyAccountRequestDTO codeVerifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
 
                 // Generate sUID
-                verifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+                codeVerifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+                // Save sUID in Redis
+                otpService.savesUID(request.getEmail(), codeVerifyAccountRequestDTO);
 
-                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", verifyAccountRequestDTO);
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", codeVerifyAccountRequestDTO);
             } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
                 User user = modelMapper.map(request, User.class);
                 user.setRole(Role.USER);
