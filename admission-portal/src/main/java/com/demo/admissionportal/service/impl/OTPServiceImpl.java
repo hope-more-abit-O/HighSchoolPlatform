@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.dto.request.authen.CodeVerifyAccountRequestDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.redis.OTPRedisCache;
@@ -87,5 +88,21 @@ public class OTPServiceImpl implements OTPService {
     @Override
     public void deleteOTP(String email) {
         redisTemplate.delete(email + "_otp");
+    }
+
+    @Override
+    public void savesUID(String email, CodeVerifyAccountRequestDTO codeVerifyAccountRequestDTO) {
+        redisTemplate.opsForValue().set(email + "_sUID", codeVerifyAccountRequestDTO);
+    }
+
+    @Override
+    public String getsUID(String email) {
+        log.info("Retrieving sUID by email: {}", email);
+        CodeVerifyAccountRequestDTO codeVerifyAccountRequestDTO = (CodeVerifyAccountRequestDTO) redisTemplate.opsForValue().get(email + "_sUID");
+        if (codeVerifyAccountRequestDTO == null) {
+            log.warn("No sUID found: {}", (Object) null);
+            return null;
+        }
+        return codeVerifyAccountRequestDTO.getSUID();
     }
 }
