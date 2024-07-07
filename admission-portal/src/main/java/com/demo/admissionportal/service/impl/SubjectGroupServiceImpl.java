@@ -102,7 +102,6 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
 
 
             for (SubjectGroupSubject subjectGroupSubject : subjectGroupSubjects) {
-                // Save subject group mappings
                 subjectGroupSubject.setSubjectGroupId(subjectGroup.getId());
                 subjectGroupSubject.setCreateTime(new Date());
                 subjectGroupSubject.setCreateBy(staffId);

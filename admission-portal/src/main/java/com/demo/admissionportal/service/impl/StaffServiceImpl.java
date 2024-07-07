@@ -10,7 +10,6 @@ import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
-import com.demo.admissionportal.entity.AdminInfo;
 import com.demo.admissionportal.entity.StaffInfo;
 
 import com.demo.admissionportal.entity.User;
@@ -143,13 +142,12 @@ public class StaffServiceImpl implements StaffService {
         }
     }
 
-
     @Override
     public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {
         try {
             log.info("Starting delete process for staff ID: {}", id);
             StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
-            if (existingStaff == null) {
+            if (existingStaff == null || existingStaff.getStatus() == AccountStatus.INACTIVE) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
             }
@@ -167,12 +165,14 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {
         try {
-            Optional<StaffInfo> optionalStaff = staffInfoRepository.findById(id);
-            if (optionalStaff.isEmpty()) {
+            StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
+            if (existingStaff == null) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-            StaffInfo existingStaff = optionalStaff.get();
+            if (existingStaff.getStatus() == AccountStatus.ACTIVE){
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
+            }
              AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);

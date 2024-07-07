@@ -69,4 +69,6 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      * @return the staff info
      */
     StaffInfo findStaffInfoById(Integer id);
+
+
 }
