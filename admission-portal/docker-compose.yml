@@ -18,8 +18,8 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: anh123456bhh@gmail.com
-      SPRING_MAIL_PASSWORD: kmqc wztm wimk abaq
+      SPRING_MAIL_USERNAME: highschoolvn10@gmail.com
+      SPRING_MAIL_PASSWORD: zrle latv mjdq neqr
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
