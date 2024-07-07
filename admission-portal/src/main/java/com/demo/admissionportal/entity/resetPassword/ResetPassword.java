@@ -12,14 +12,6 @@ public interface ResetPassword {
      * @return the email
      */
     String getEmail();
-
-    /**
-     * Sets the reset password token.
-     *
-     * @param token the reset password token
-     */
-    void setResetPassToken(String token);
-
     /**
      * Sets the new password.
      *

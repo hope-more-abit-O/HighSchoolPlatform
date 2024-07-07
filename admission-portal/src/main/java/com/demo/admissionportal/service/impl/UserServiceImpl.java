@@ -6,6 +6,7 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
@@ -26,13 +27,17 @@ import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Objects;
 
 /**
@@ -41,7 +46,7 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ProvinceRepository provinceRepository;
@@ -88,9 +93,9 @@ public class UserServiceImpl implements UserService {
             if (userInfo == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
-            Ward ward = wardRepository.findWardById(userInfo.getWard());
-            District district = districtRepository.findDistrictById(userInfo.getDistrict());
-            Province province = provinceRepository.findProvinceById(userInfo.getProvince());
+            Ward ward = wardRepository.findWardById(userInfo.getWard().getId());
+            District district = districtRepository.findDistrictById(userInfo.getDistrict().getId());
+            Province province = provinceRepository.findProvinceById(userInfo.getProvince().getId());
 
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
             userProfileResponseDTO.setEmail(user.getEmail());
@@ -122,6 +127,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found!");
+        }
+        return user.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    }
+
+    @Override
     public ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO) {
         try {
 
@@ -142,9 +156,14 @@ public class UserServiceImpl implements UserService {
             userInfo.setPhone(requestDTO.getPhone());
 
             userInfo.setBirthday(requestDTO.getBirthday());
-            userInfo.setProvince(requestDTO.getProvince());
-            userInfo.setDistrict(requestDTO.getDistrict());
-            userInfo.setWard(requestDTO.getWard());
+
+            Ward ward = wardRepository.findWardById(requestDTO.getWard());
+            District district = districtRepository.findDistrictById(requestDTO.getDistrict());
+            Province province = provinceRepository.findProvinceById(requestDTO.getProvince());
+
+            userInfo.setProvince(province);
+            userInfo.setDistrict(district);
+            userInfo.setWard(ward);
             userInfo.setEducationLevel(requestDTO.getEducation_level());
             userInfo.setPhone(requestDTO.getPhone());
             userInfo.setSpecificAddress(requestDTO.getSpecific_address());
@@ -230,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
         User account = findById(id);
 
-        if (id == null || id < 0){
+        if (id == null || id < 0) {
             throw new BadRequestException("Id phải tồn tại và lớn hơn 0");
         }
 
@@ -242,7 +261,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateBy(actionerId);
         try {
             userRepository.save(account);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
         }
         return account;
