@@ -10,7 +10,6 @@ import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
-import com.demo.admissionportal.entity.AdminInfo;
 import com.demo.admissionportal.entity.StaffInfo;
 
 import com.demo.admissionportal.entity.User;
@@ -61,7 +60,7 @@ public class StaffServiceImpl implements StaffService {
         if (!(principal instanceof User)) {
             return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
         }
-        AdminInfo admin = (AdminInfo) principal;
+        User admin = (User) principal;
         Integer adminId = admin.getId();
         log.info("ADMIN ID: {} ", adminId);
 
@@ -110,25 +109,32 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
-        Optional<StaffInfo> existStaff = staffInfoRepository.findById(id);
+        Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
 
-        if (existStaff.isEmpty()) {
+        if (existStaffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
         }
-        StaffInfo staff = existStaff.get();
-        if (!staff.getEmail().equals(request.getEmail())) {
+
+        StaffInfo existStaff = existStaffOpt.get();
+        if (!existStaff.getEmail().equals(request.getEmail())) {
             Optional<User> existUser = userRepository.findByEmail(request.getEmail());
-            if (existUser.isPresent() && !existUser.get().getId().equals(staff.getId())) {
+            if (existUser.isPresent() && !existUser.get().getId().equals(existStaff.getId())) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
             }
         }
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-            modelMapper.map(request, staff);
-            staffInfoRepository.save(staff);
-            StaffResponseDTO staffResponseDTO = modelMapper.map(staff, StaffResponseDTO.class);
-            log.info("Staff updated successfully with ID: {}", staff.getId());
+
+            existStaff.setFirstName(request.getFirstName());
+            existStaff.setMiddleName(request.getMiddleName());
+            existStaff.setLastName(request.getLastName());
+            existStaff.setEmail(request.getEmail());
+            existStaff.setPhone(request.getPhone());
+
+            staffInfoRepository.save(existStaff);
+            StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+            log.info("Staff updated successfully with ID: {}", existStaff.getId());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
         } catch (Exception e) {
             log.error("Error updating staff with id: {}", id, e);
@@ -141,7 +147,7 @@ public class StaffServiceImpl implements StaffService {
         try {
             log.info("Starting delete process for staff ID: {}", id);
             StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
-            if (existingStaff == null) {
+            if (existingStaff == null || existingStaff.getStatus() == AccountStatus.INACTIVE) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
             }
@@ -159,12 +165,14 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {
         try {
-            Optional<StaffInfo> optionalStaff = staffInfoRepository.findById(id);
-            if (optionalStaff.isEmpty()) {
+            StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
+            if (existingStaff == null) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-            StaffInfo existingStaff = optionalStaff.get();
+            if (existingStaff.getStatus() == AccountStatus.ACTIVE){
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
+            }
              AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);
