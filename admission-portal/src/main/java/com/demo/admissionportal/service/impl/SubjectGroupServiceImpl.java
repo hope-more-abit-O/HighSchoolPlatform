@@ -219,10 +219,10 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     }
 
     @Override
-    public ResponseData<Page<SubjectGroupResponseDTO>> findAll(Pageable pageable) {
+    public ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, String status, Pageable pageable) {
         log.info("Get all subject groups");
 
-        Page<SubjectGroup> subjectGroupPage = subjectGroupRepository.findAll(pageable);
+        Page<SubjectGroup> subjectGroupPage = subjectGroupRepository.findAll(groupName, subjectName, status, pageable);
 
         List<SubjectGroupResponseDTO> subjectGroupResponses = subjectGroupPage.getContent().stream().map(subjectGroup -> {
             List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(subjectGroup.getId()).stream().map(sgs -> {
@@ -241,8 +241,6 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
 
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), subjectGroupResponsePage);
     }
-
-
     @Override
     public ResponseData<?> deleteSubjectGroup(Integer id) {
         try {
@@ -255,6 +253,33 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học được xóa thành công !");
         } catch (Exception e){
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa tổ hợp môn học !");
+        }
+    }
+    @Override
+    public ResponseData<?> activateSubjectGroup(Integer id) {
+        try {
+            Optional<SubjectGroup> optionalSubjectGroup = subjectGroupRepository.findById(id);
+            if (optionalSubjectGroup.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học không được tìm thấy !");
+            }
+
+            SubjectGroup subjectGroup = optionalSubjectGroup.get();
+            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectGroupId(subjectGroup.getId());
+
+            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
+                Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
+                if (subject == null || subject.getStatus() == SubjectStatus.INACTIVE) {
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Không thể kích hoạt tổ hợp môn học khi có môn học không hoạt động !");
+                }
+            }
+
+            subjectGroup.setStatus(SubjectStatus.ACTIVE.name());
+            subjectGroupRepository.save(subjectGroup);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt tổ hợp môn học thành công !");
+        } catch (Exception e) {
+            log.error("Error occurred while activating SubjectGroup: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt tổ hợp môn học !");
         }
     }
 }

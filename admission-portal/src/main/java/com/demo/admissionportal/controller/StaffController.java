@@ -1,8 +1,10 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.service.StaffService;
 import com.demo.admissionportal.service.SubjectGroupService;
@@ -122,6 +124,29 @@ public class StaffController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
+    @GetMapping("/list-all-subjects")
+    public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) SubjectStatus status,
+            Pageable pageable) {
+
+        ResponseData<Page<SubjectResponseDTO>> result = subjectService.findAll(name, status, pageable);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+    @GetMapping("/get-subject/{id}")
+    public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
+        ResponseData<Subject> response = subjectService.getSubjectById(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
     @PostMapping("/create-subject")
     public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
@@ -132,23 +157,40 @@ public class StaffController {
             return ResponseEntity.status(createdSubject.getStatus()).body(createdSubject);
         }
     }
-
-
+    @PutMapping("/activate-subject/{id}")
+    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
+        ResponseData<?> response = subjectService.activateSubject(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    @DeleteMapping("/delete-subject/{id}")
+    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id){
+        ResponseData<?> response = subjectService.deleteSubject(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
     @PostMapping("/create-subject-group")
     public ResponseEntity<ResponseData<?>> createSubjectGroup(@Valid @RequestBody CreateSubjectGroupRequestDTO request) {
-        if (request == null || request.isEmpty()) {
+        if (request == null ) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Request cannot be null or empty"));
         }
         ResponseData<?> response = subjectGroupService.createSubjectGroup(request);
-        // If request is successful
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         }
-        // If duplicate fields are found
         else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
-        // For other errors
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
@@ -176,14 +218,20 @@ public class StaffController {
         }
     }
     @GetMapping("/list-all-subject-groups")
-    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAll(
-//            @RequestParam(defaultValue = "") String name,
-//            @RequestParam(defaultValue = "") String subjectName,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("create_time").descending());
-        ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(pageable);
+    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(
+            @RequestParam(required = false) String groupName,
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+        ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(groupName, subjectName, status, pageable);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+    @PutMapping("/activate-subject-group/{id}")
+    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
+        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);
         }
