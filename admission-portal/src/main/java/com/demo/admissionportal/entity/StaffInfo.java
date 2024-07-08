@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.ProviderType;
 import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
