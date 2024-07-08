@@ -70,7 +70,7 @@ public class AdminController {
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) AccountStatus status,
             Pageable pageable) {
         ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName,middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -107,8 +107,7 @@ public class AdminController {
         log.error("Failed to delete staff with ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
-
-    @PostMapping("/activate-staff/{id}")
+    @PutMapping("/activate-staff/{id}")
     public ResponseEntity<?> activateStaffById(@PathVariable int id, @RequestBody ActiveStaffRequest request) {
         log.info("Received request to activate staff with ID: {} and note: {}", id, request.note());
         ResponseData<?> result = staffService.activateStaffById(id, request);

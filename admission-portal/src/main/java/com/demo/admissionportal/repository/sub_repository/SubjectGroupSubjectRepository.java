@@ -11,4 +11,5 @@ import java.util.List;
 public interface SubjectGroupSubjectRepository extends JpaRepository<SubjectGroupSubject, SubjectGroupSubjectId> {
     boolean existsBySubjectIdAndSubjectGroupId(Integer subjectId, Integer subjectGroupId);
     List<SubjectGroupSubject> findBySubjectGroupId(Integer subjectGroupId);
+    List<SubjectGroupSubject> findBySubjectId(Integer subjectId);
 }

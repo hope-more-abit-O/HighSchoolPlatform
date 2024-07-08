@@ -131,7 +131,7 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
                     break;
             }
         }
-        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), foundUser);
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Resest mật khẩu thành công !");
     }
 
     /**

@@ -22,8 +22,4 @@ public class CreateSubjectGroupRequestDTO {
     @NotNull(message = "Danh sách môn học không được để trống")
     @Size(min = 3, max = 3, message = "Danh sách môn học phải chứa đúng 3 môn học!")
     private List<Integer> subjectIds;
-
-    public boolean isEmpty() {
-        return (name == null && name.isEmpty() || subjectIds == null && subjectIds.isEmpty());
-    }
 }

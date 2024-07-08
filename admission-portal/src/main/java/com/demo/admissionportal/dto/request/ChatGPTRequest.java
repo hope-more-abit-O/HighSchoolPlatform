@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class ChatCompletionRequest {
+public class ChatGPTRequest {
     private String model;
     private List<ChatMessage> messages;
 
-    public ChatCompletionRequest(String model, String prompt) {
+    public ChatGPTRequest(String model, String prompt) {
         this.model = model;
-        this.messages = new ArrayList<ChatMessage>();
+        this.messages = new ArrayList<>();
         this.messages.add(new ChatMessage("user", prompt));
     }
 }
