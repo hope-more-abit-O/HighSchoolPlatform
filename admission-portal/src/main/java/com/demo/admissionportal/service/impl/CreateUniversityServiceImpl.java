@@ -3,8 +3,8 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
-import com.demo.admissionportal.dto.request.CreateUniversityRequestRequest;
-import com.demo.admissionportal.dto.response.PostCreateUniversityRequestResponse;
+import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
+import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.entity.UniversityInfo;
@@ -16,6 +16,7 @@ import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.CreateUniversityService;
 import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +38,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
     private final UserRepository userRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final ValidationService validationService;
+    private final EmailUtil emailUtil;
 
     /**
      * Handles the creation of a university creation request.
@@ -96,7 +96,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .build();
         try{
             CreateUniversityRequest result = createUniversityRequestRepository.save(createUniversityRequest);
-            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", createUniversityRequest.getId());
+            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", modelMapper.map(result, CreateUniversityRequestDTO.class));
         } catch (Exception e){
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
         }
@@ -126,7 +126,8 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      * @see StoreDataFailedException
      */
     @Transactional
-    public ResponseData adminAction(Integer id, CreateUniversityRequestStatus status) throws ResourceNotFoundException, StoreDataFailedException {
+    @Override
+    public ResponseData adminAction(Integer id, CreateUniversityRequestStatus status, String note) throws ResourceNotFoundException, StoreDataFailedException {
         Integer uniId = 0;
         Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Admin ID: {}", adminId);
@@ -135,16 +136,17 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         CreateUniversityRequest createUniversityRequest = findById(id);
         log.info("Get CreateUniversityRequest by Id: {} succeed.", id);
 
-
-        log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-        validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-        log.info("Check username, email available succeed.");
-
         log.info("Saving to database.");
+        User uni = null;
         try{
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
+
+                log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+                validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+                log.info("Check username, email available succeed.");
+
                 log.info("Creating and storing University Account");
-                User uni = userRepository.save(
+                uni = userRepository.save(
                         new User(createUniversityRequest.getUniversityUsername(),
                                 createUniversityRequest.getUniversityEmail(),
                                 passwordEncoder.encode("passgivay"),
@@ -166,10 +168,16 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             createUniversityRequest.setUpdateBy(adminId);
             createUniversityRequest.setUpdateTime(new Date());
             createUniversityRequest.setConfirmBy(adminId);
+            createUniversityRequest.setNote(note);
 
             createUniversityRequestRepository.save(createUniversityRequest);
             log.info("Updating and storing Create university request succeed");
-            return ResponseData.ok("Tạo tài khoản trường học thành công.", uniId);
+
+            if (uni != null){
+                emailUtil.sendAccountPasswordRegister(uni, "passlagivay");
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", modelMapper.map(uni, User.class));
+            }
+            return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (Exception e){
             log.error(e.getMessage());
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");
