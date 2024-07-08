@@ -51,7 +51,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
-                                .requestMatchers(SUBJECT_API, SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
+//                                .requestMatchers(SUBJECT_API, SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(AUTHENTICATION_API, CHATBOT,
                                         "/v2/api-docs",
                                         "/v3/api-docs",

@@ -119,46 +119,49 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
 
     @Override
     public ResponseData<?> updateSubjectGroup(Integer id, UpdateSubjectGroupRequestDTO request) {
-        Optional<SubjectGroup> existSubjectGroup = subjectGroupRepository.findById(id);
-        if (existSubjectGroup.isEmpty()) {
+        SubjectGroup existSubjectGroup = subjectGroupRepository.findById(id).orElse(null);
+        if (existSubjectGroup == null) {
             log.warn("Subject group with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C204.getCode(), "Tổ hợp môn học không tồn tại !");
         }
-        SubjectGroup subjectGroup = existSubjectGroup.get();
+        if (existSubjectGroup.getStatus().equals(SubjectStatus.INACTIVE.name())) {
+            log.warn("Subject group with id: {} not found", id);
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Tổ hợp môn học không tồn tại !");
+        }
         try {
             //check if update name
-            log.info("Starting update process for Subject group with ID: {}", subjectGroup.getId());
+            log.info("Starting update process for Subject group with ID: {}", existSubjectGroup.getId());
             if (request.getName() != null && !request.getName().isEmpty()) {
-                subjectGroup.setName(request.getName());
+                existSubjectGroup.setName(request.getName());
                 log.info("Updated SubjectGroup name to {}", request.getName());
             }
             //check if update status
             if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-                subjectGroup.setStatus(request.getStatus());
+                existSubjectGroup.setStatus(request.getStatus());
                 log.info("Updated SubjectGroup status to {}", request.getStatus());
             }
             //save to database
-            subjectGroupRepository.save(subjectGroup);
+            subjectGroupRepository.save(existSubjectGroup);
             //when update with new subject, delete current relationship of that subject group id
             if (request.getSubjectIds() != null && !request.getSubjectIds().isEmpty()) {
-                List<SubjectGroupSubject> existingSubjects = subjectGroupSubjectRepository.findBySubjectGroupId(subjectGroup.getId());
+                List<SubjectGroupSubject> existingSubjects = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId());
                 for (SubjectGroupSubject existingSubject : existingSubjects) {
                     if (!request.getSubjectIds().contains(existingSubject.getSubjectId())) {
                         subjectGroupSubjectRepository.delete(existingSubject);
-                        log.info("Deleted relationship for subject ID {} from subject group ID {}", existingSubject.getSubjectId(), subjectGroup.getId());
+                        log.info("Deleted relationship for subject ID {} from subject group ID {}", existingSubject.getSubjectId(), existSubjectGroup.getId());
                     }
                 }
                 //Check subject exist with typed subjectId
                 for (Integer subjectId : request.getSubjectIds()) {
                     //check relationship between subject and subjectGroupId
-                    boolean exists = subjectGroupSubjectRepository.existsBySubjectIdAndSubjectGroupId(subjectId, subjectGroup.getId());
+                    boolean exists = subjectGroupSubjectRepository.existsBySubjectIdAndSubjectGroupId(subjectId, existSubjectGroup.getId());
                     if (!exists) {
                         //if not exist, find the subject by id
                         Subject subject = subjectRepository.findById(subjectId).orElse(null);
                         if (subject != null) {
                             //if subject is exist, add into subject_group_subject table
-                            subjectGroupSubjectRepository.save(new SubjectGroupSubject(subjectId, subjectGroup.getId()));
-                            log.info("Add new map list for subject ID {} to subject group ID {}", subjectId, subjectGroup.getId());
+                            subjectGroupSubjectRepository.save(new SubjectGroupSubject(subjectId, existSubjectGroup.getId()));
+                            log.info("Add new map list for subject ID {} to subject group ID {}", subjectId, existSubjectGroup.getId());
                         } else {
                             //if not exist return message
                             log.warn("Subject with id: {} not found !", subjectId);
@@ -168,8 +171,8 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 }
             }
             //map subject with subject group
-            log.info("Subject Group update successfully with ID: {}", subjectGroup.getId());
-            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(subjectGroup.getId())
+            log.info("Subject Group update successfully with ID: {}", existSubjectGroup.getId());
+            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId())
                     .stream()
                     .map(subjectGroupSubject -> {
                         Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
@@ -180,7 +183,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                     })
                     .toList();
             //add subject group
-            SubjectGroupResponseDTO result = modelMapper.map(subjectGroup, SubjectGroupResponseDTO.class);
+            SubjectGroupResponseDTO result = modelMapper.map(existSubjectGroup, SubjectGroupResponseDTO.class);
             //the subject_group will include subject in response
             result.setSubjects(subjectResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật tổ hợp môn học thành công !", result);
@@ -242,6 +245,16 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
 
     @Override
     public ResponseData<?> deleteSubjectGroup(Integer id) {
-        return null;
+        try {
+            SubjectGroup subjectGroup = subjectGroupRepository.findById(id).orElse(null);
+            if (subjectGroup == null || subjectGroup.getStatus().equals(SubjectStatus.INACTIVE.name())) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học không được tìm thấy !");
+            }
+            subjectGroup.setStatus(SubjectStatus.INACTIVE.name());
+            subjectGroupRepository.save(subjectGroup);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học được xóa thành công !");
+        } catch (Exception e){
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa tổ hợp môn học !");
+        }
     }
 }
