@@ -18,6 +18,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserProfileResponseDTO implements Serializable {
+    private Integer id;
     private String firstname;
     private String lastname;
     private String middle_name;

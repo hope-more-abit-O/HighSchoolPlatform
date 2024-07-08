@@ -1,17 +1,15 @@
 package com.demo.admissionportal.controller;
 
-import com.demo.admissionportal.dto.request.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
-import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
-import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,28 +18,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/consultant")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class ConsultantController {
     private final ConsultantService consultantService;
-
-    /**
-     * Creates a new consultant.
-     *
-     * <p>Receives a consultant creation request, delegates
-     * the creation logic to the service layer, and returns a
-     * response indicating success or failure.
-     *
-     * @param request The consultant creation request data, expected
-     *               as a JSON object in the request body.
-     * @return  A ResponseEntity containing the result of the operation
-     *          with a suitable HTTP status code (e.g., 201 Created for success).
-     * @throws DataExistedException  If the provided data conflicts
-     *                                 with existing records.
-     */
-    @PostMapping
-    public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
-            throws DataExistedException {
-        return ResponseEntity.ok(consultantService.createConsultant(request));
-    }
 
     /**
      * Retrieves details of a consultant by their ID.
@@ -55,24 +35,21 @@ public class ConsultantController {
      *             if the consultant is not found).
      */
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
     //TODO: JAVADOC
-    @PutMapping("/update")
-    public ResponseEntity<?> seftUpdateConsultantInfo(@RequestBody SelfUpdateConsultantInfoRequest request){
+    @PutMapping("/update/info")
+    public ResponseEntity<?> seftUpdateConsultantInfo(@RequestBody @Valid SelfUpdateConsultantInfoRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
         return ResponseEntity.ok(consultantService.selfUpdateConsultantInfo(request));
     }
 
-
-    @PutMapping("/update-for")
-    public ResponseEntity<?> updateConsultantInfo(@RequestBody UpdateConsultantInfoByIdRequest request){
-        return ResponseEntity.ok(consultantService.updateConsultantInfoById(request));
-    }
-
-    @PatchMapping("/change-status/{id}")
-    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request) throws BadRequestException, StoreDataFailedException, DataExistedException {
-        return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
+    @PutMapping("/update/address")
+    public ResponseEntity<?> seftUpdateConsultantAddress(@RequestBody @Valid UpdateConsultantAddressRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
+        return ResponseEntity.ok(consultantService.selfUpdateConsultantAddress(request));
     }
 }

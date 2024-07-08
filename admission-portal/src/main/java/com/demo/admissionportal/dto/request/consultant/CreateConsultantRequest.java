@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.request;
+package com.demo.admissionportal.dto.request.consultant;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -52,16 +52,6 @@ public class CreateConsultantRequest {
     private String email;
 
     /**
-     * The password of the consultant.
-     *
-     * @NotNull(message = "Mật khẩu không được để trống")
-     * @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&\\s]{8,40}$", message = "Mật khẩu phải từ 8 đến 4o ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt, và không được để khoảng trống ở đầu và cuối!")
-     */
-    @NotNull(message = "Mật khẩu không được để trống")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&\\s]{8,40}$", message = "Mật khẩu phải từ 8 đến 4o ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt, và không được để khoảng trống ở đầu và cuối!")
-    private String password;
-
-    /**
      * The phone number of the consultant.
      *
      * @NotNull(message = "Số điện thoại không được để trống")
@@ -70,21 +60,6 @@ public class CreateConsultantRequest {
     @NotNull(message = "Số điện thoại không được để trống")
     @Pattern(regexp = "0\\d{9,10}", message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
-
-    @NotNull
-    private String gender;
-
-    @NotNull
-    private String specificAddress;
-
-    @NotNull
-    private Integer provinceId;
-
-    @NotNull
-    private Integer districtId;
-
-    @NotNull
-    private Integer wardId;
     /**
      * Trims whitespace from all fields.
      */
@@ -94,7 +69,6 @@ public class CreateConsultantRequest {
         middleName = middleName.trim();
         lastName = lastName.trim();
         email = email.trim();
-        password = password.trim();
         phone = phone.trim();
     }
 }

@@ -9,6 +9,7 @@ import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
@@ -27,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 /**
  * Provides methods for managing and retrieving university-related information.
@@ -180,7 +183,7 @@ public class UniversityServiceImpl implements UniversityService {
         return universityInfo;
     }
 
-    public ResponseData updateUniversityStatus(Integer id, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException {
+    public ResponseData updateUniversityStatus(Integer id, AccountStatus status, DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         User uniAccount = userService.findById(id);
@@ -191,6 +194,10 @@ public class UniversityServiceImpl implements UniversityService {
         if (!uniAccount.getRole().equals(Role.UNIVERSITY))
             throw new ResourceNotFoundException("Không tồn tại trường đại học với id: " + id);
         uniAccount.setStatus(status);
+        uniAccount.setNote(request.note());
+        uniAccount.setUpdateBy(adminId);
+        uniAccount.setUpdateTime(new Date());
+
         try {
             userRepository.save(uniAccount);
         } catch (Exception e){
@@ -200,6 +207,14 @@ public class UniversityServiceImpl implements UniversityService {
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
 
+    @Override
+    public UniversityFullResponseDTO getUniversityFullResponse() {
+        User account = userService.findById(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+        UniversityInfo info = findById(account.getId());
+
+        UniversityResponseDTO fullInfo = modelMapper.map(info, UniversityResponseDTO.class);
+        return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
+    }
     @Transactional
     public ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException{
         UniversityInfo universityInfo = findById(request.getId());
@@ -212,6 +227,20 @@ public class UniversityServiceImpl implements UniversityService {
 
         saveUniversityInfo(universityInfo);
         return ResponseData.ok("Cập nhập thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
+    }
+
+    @Override
+    public ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException {
+        Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User uniAccount = userService.findById(id);
+
+        if (!uniAccount.getRole().equals(Role.UNIVERSITY))
+            throw new ResourceNotFoundException("Không tồn tại trường đại học với id: " + id);
+
+        userService.changeStatus(id, note, "trường học");
+
+        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
 
 }

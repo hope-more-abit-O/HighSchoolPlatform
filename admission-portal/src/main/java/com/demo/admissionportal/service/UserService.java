@@ -1,6 +1,5 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
@@ -8,6 +7,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.exception.NotAllowedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -53,13 +53,7 @@ public interface UserService extends UserDetailsService {
      */
     ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 
-    /**
-     * Change status response data.
-     *
-     * @param id         the id
-     * @param requestDTO the request dto
-     * @return the response data
-     */
+
     ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
 
     /**
@@ -70,8 +64,11 @@ public interface UserService extends UserDetailsService {
      * @throws ResourceNotFoundException the resource not found exception
      */
     //TODO: javadoc
-    public User findById(Integer id) throws ResourceNotFoundException;
-    public UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException;
-    public User update(User user, String name) throws StoreDataFailedException;
-    User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, BadRequestException, ResourceNotFoundException;
+    User findById(Integer id) throws ResourceNotFoundException;
+    UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException;
+    User save(User user, String name) throws StoreDataFailedException;
+    User updateUser(Integer id, String username, String email, Integer updateById, String name) throws ResourceNotFoundException, StoreDataFailedException;
+    User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeConsultantStatus(Integer account, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException;
+
 }
