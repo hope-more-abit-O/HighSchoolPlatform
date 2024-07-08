@@ -1,13 +1,22 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.*;
+import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
+import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.entity.AdminInfo;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.AdminService;
+import com.demo.admissionportal.service.CreateUniversityService;
 import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.service.UniversityService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +30,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
+@PreAuthorize("hasAuthority('ADMIN')")
 @Slf4j
 public class AdminController {
     private final AdminService adminService;
     private final StaffService staffService;
+    private final CreateUniversityService createUniversityService;
+    private final UniversityService universityService;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
@@ -65,6 +78,7 @@ public class AdminController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
     @GetMapping("/get-staff/{id}")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);
@@ -78,6 +92,7 @@ public class AdminController {
         log.error("Failed to Get staff by ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
     @DeleteMapping("/delete-staff/{id}")
     public ResponseEntity<?> deleteStaffById(@Valid @PathVariable int id, @Valid @RequestBody DeleteStaffRequest request) {
         log.info("Received request to delete staff with ID: {} and note: {}", id, request.note());
@@ -92,6 +107,7 @@ public class AdminController {
         log.error("Failed to delete staff with ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
     @PostMapping("/activate-staff/{id}")
     public ResponseEntity<?> activateStaffById(@PathVariable int id, @RequestBody ActiveStaffRequest request) {
         log.info("Received request to activate staff with ID: {} and note: {}", id, request.note());
@@ -109,4 +125,20 @@ public class AdminController {
         log.error("Failed to activate staff with ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    @PutMapping("/create-university/accept/{id}")
+    public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
+        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.note()));
+    }
+
+    @PutMapping("/create-university/reject/{id}")
+    public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
+        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.note()));
+    }
+
+    @PatchMapping("/university/change-status/{id}")
+    public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
+        return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
+    }
+
 }

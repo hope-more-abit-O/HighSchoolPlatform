@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.request;
+package com.demo.admissionportal.dto.request.create_univeristy_request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

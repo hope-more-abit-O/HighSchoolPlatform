@@ -2,22 +2,21 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
-import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
-import jakarta.mail.Store;
+import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,7 +30,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,6 +51,8 @@ public class UserServiceImpl implements UserService{
     private final DistrictRepository districtRepository;
     private final WardRepository wardRepository;
     private final ModelMapper modelMapper;
+    private final ValidationService validationService;
+
 
 
     @Override
@@ -235,7 +235,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public User update(User user, String name) throws StoreDataFailedException {
+    public User save(User user, String name) throws StoreDataFailedException {
         User result;
         try {
             result = userRepository.save(user);
@@ -247,14 +247,10 @@ public class UserServiceImpl implements UserService{
         return result;
     }
 
-    public User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, BadRequestException, ResourceNotFoundException {
+    public User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException {
         Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         User account = findById(id);
-
-        if (id == null || id < 0) {
-            throw new BadRequestException("Id phải tồn tại và lớn hơn 0");
-        }
 
         if (account.getStatus().equals(AccountStatus.ACTIVE))
             account.setStatus(AccountStatus.INACTIVE);
@@ -269,4 +265,39 @@ public class UserServiceImpl implements UserService{
         }
         return account;
     }
+    public User changeConsultantStatus(Integer id, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException {
+        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User account = findById(id);
+
+        if (!account.getCreateBy().equals(actionerId))
+            throw new NotAllowedException("Không thể thực hiện hành động vì tư vấn viên không dưới quyền quản lý.");
+        if (account.getStatus().equals(AccountStatus.ACTIVE))
+            account.setStatus(AccountStatus.INACTIVE);
+        else account.setStatus(AccountStatus.ACTIVE);
+
+        account.setNote(note);
+        account.setUpdateTime(new Date());
+        account.setUpdateBy(actionerId);
+        try {
+            userRepository.save(account);
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Cập nhập trạng thái tư vấn viên thất bại.");
+        }
+        return account;
+    }
+
+    public User updateUser(Integer id, String username, String email, Integer updateById, String name) throws StoreDataFailedException{
+        User user = findById(id);
+        validationService.validateRegister(username, email);
+
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setUpdateBy(updateById);
+        user.setUpdateTime(new Date());
+
+        return save(user, name);
+    }
+
+
 }

@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
@@ -58,7 +59,7 @@ public interface UniversityService {
      * @see UserResponseDTOV2
      * @see UniversityResponseDTO
      */
-    public UniversityFullResponseDTO getUniversityFullResponseById(Integer id);
+    UniversityFullResponseDTO getUniversityFullResponseById(Integer id);
     /**
      * Retrieves a university's information, combining both user and
      * university-specific data.
@@ -97,7 +98,7 @@ public interface UniversityService {
      * @see InfoUserResponseDTO
      * @see InfoUniversityResponseDTO
      */
-    public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException;
+    UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException;
     /**
      * Retrieves a {@link UniversityInfo} entity by its unique identifier (ID).
      *
@@ -126,8 +127,10 @@ public interface UniversityService {
      *
      * @see UniversityInfo
      */
-    public UniversityInfo findById(Integer id) throws ResourceNotFoundException;
+    UniversityInfo findById(Integer id) throws ResourceNotFoundException;
 
     //TODO: javadoc
-    public ResponseData updateUniversityStatus(Integer id, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException;
+    UniversityFullResponseDTO getUniversityFullResponse();
+
+    ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException;
 }

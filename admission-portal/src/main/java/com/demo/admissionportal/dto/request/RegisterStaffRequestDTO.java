@@ -21,8 +21,6 @@ public class RegisterStaffRequestDTO {
     @NotNull(message = "Tên Email không thể để trống !")
     @Email(message = "Email phải có định dạng hợp lệ!")
     private String email;
-    @EnumPassword(message = "Mật khẩu phải từ 8 đến 16 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt!")
-    private String password;
     @NotNull(message = "Họ không thể để trống !")
     private String firstName;
     private String middleName;
