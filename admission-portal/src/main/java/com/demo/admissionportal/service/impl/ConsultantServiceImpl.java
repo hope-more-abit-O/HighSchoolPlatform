@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
@@ -197,7 +198,10 @@ public class ConsultantServiceImpl implements ConsultantService {
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
         infoResponse.setName(NameUtils.getFullName(info.getFirstname(), info.getMiddleName(), info.getLastName()));
         infoResponse.setUniversity(universityService.getUniversityInfoResponseById(info.getUniversityId()));
-        infoResponse.setAddress(AddressUtils.getFullAddress(info.getSpecificAddress(), info.getWard(), info.getDistrict(), info.getProvince()));
+        if (info.getSpecificAddress() == null || info.getProvince() == null || info.getWard() == null || info.getDistrict() == null){
+            infoResponse.setAddress(null);
+        } else
+            infoResponse.setAddress(AddressUtils.getFullAddress(info.getSpecificAddress(), info.getWard(), info.getDistrict(), info.getProvince()));
 
         return infoResponse;
     }
@@ -299,8 +303,8 @@ public class ConsultantServiceImpl implements ConsultantService {
         return consultantInfo;
     }
 
-    public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws ResourceNotFoundException, BadRequestException, StoreDataFailedException {
-        userService.changeStatus(id, request.getNote(), "tư vấn viên");
+    public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
+        userService.changeConsultantStatus(id, request.getNote());
         return ResponseData.ok("Cập nhập tư vấn viên thành công");
     }
 }

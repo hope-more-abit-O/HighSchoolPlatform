@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseData<Object> handleResourceNotFountExceptions(ResourceNotFoundException ex) {
-        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Dữ liệu đã tồn tại", ex.getMessage());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Dữ liệu không tồn tại.", ex.getMessage());
     }
 
     /**
@@ -66,6 +66,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StoreDataFailedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseData<Object> handleStoreDataFailedException(StoreDataFailedException ex) {
-        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Dữ liệu đã tồn tại", ex.getMessage());
+        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Lưu thông tin thất bại.", ex.getMessage());
+    }
+
+    /**
+     * Handle validation exceptions response data.
+     *
+     * @param ex the ex
+     * @return the response data
+     */
+    @ExceptionHandler(NotAllowedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
+        return new ResponseData<>(HttpStatus.UNAUTHORIZED.value(), "Không có quyền thực hiện.", ex.getMessage());
     }
 }

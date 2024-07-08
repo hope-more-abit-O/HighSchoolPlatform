@@ -47,7 +47,8 @@ public class UniversityController {
     }
 
     @PatchMapping("/consultant/change-status/{id}")
-    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request) throws BadRequestException, StoreDataFailedException, DataExistedException, NotAllowedException {
+    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request)
+            throws BadRequestException, StoreDataFailedException, DataExistedException, NotAllowedException {
         return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
     }
 

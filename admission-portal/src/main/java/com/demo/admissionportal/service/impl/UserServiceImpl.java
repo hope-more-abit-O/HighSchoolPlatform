@@ -11,6 +11,7 @@ import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
@@ -258,6 +259,27 @@ public class UserServiceImpl implements UserService{
             userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
+        }
+        return account;
+    }
+    public User changeConsultantStatus(Integer id, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException {
+        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User account = findById(id);
+
+        if (!account.getCreateBy().equals(actionerId))
+            throw new NotAllowedException("Không thể thực hiện hành động vì tư vấn viên không dưới quyền quản lý.");
+        if (account.getStatus().equals(AccountStatus.ACTIVE))
+            account.setStatus(AccountStatus.INACTIVE);
+        else account.setStatus(AccountStatus.ACTIVE);
+
+        account.setNote(note);
+        account.setUpdateTime(new Date());
+        account.setUpdateBy(actionerId);
+        try {
+            userRepository.save(account);
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Cập nhập trạng thái tư vấn viên thất bại.");
         }
         return account;
     }

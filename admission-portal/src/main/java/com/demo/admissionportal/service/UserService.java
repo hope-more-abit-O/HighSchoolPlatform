@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.exception.NotAllowedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -68,5 +69,6 @@ public interface UserService extends UserDetailsService {
     User save(User user, String name) throws StoreDataFailedException;
     User updateUser(Integer id, String username, String email, Integer updateById, String name) throws ResourceNotFoundException, StoreDataFailedException;
     User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeConsultantStatus(Integer account, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException;
 
 }

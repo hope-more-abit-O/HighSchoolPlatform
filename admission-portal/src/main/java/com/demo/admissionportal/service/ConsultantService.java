@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdR
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import org.apache.coyote.BadRequestException;
@@ -88,5 +89,5 @@ public interface ConsultantService {
 
     ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request) throws ResourceNotFoundException, StoreDataFailedException;
 
-    ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws ResourceNotFoundException, BadRequestException, StoreDataFailedException;
+    ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException,ResourceNotFoundException, BadRequestException, StoreDataFailedException;
     ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request) throws ResourceNotFoundException, StoreDataFailedException;}

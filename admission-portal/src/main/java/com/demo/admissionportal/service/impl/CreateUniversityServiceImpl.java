@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
@@ -95,7 +96,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .build();
         try{
             CreateUniversityRequest result = createUniversityRequestRepository.save(createUniversityRequest);
-            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", createUniversityRequest.getId());
+            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", modelMapper.map(result, CreateUniversityRequestDTO.class));
         } catch (Exception e){
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
         }
@@ -135,15 +136,15 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         CreateUniversityRequest createUniversityRequest = findById(id);
         log.info("Get CreateUniversityRequest by Id: {} succeed.", id);
 
-
-        log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-        validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-        log.info("Check username, email available succeed.");
-
         log.info("Saving to database.");
         User uni = null;
         try{
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
+
+                log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+                validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+                log.info("Check username, email available succeed.");
+
                 log.info("Creating and storing University Account");
                 uni = userRepository.save(
                         new User(createUniversityRequest.getUniversityUsername(),
@@ -170,10 +171,13 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             createUniversityRequest.setNote(note);
 
             createUniversityRequestRepository.save(createUniversityRequest);
-            if (uni != null)
-                emailUtil.sendAccountPasswordRegister(uni, "passlagivay");
             log.info("Updating and storing Create university request succeed");
-            return ResponseData.ok("Tạo tài khoản trường học thành công.", uniId);
+
+            if (uni != null){
+                emailUtil.sendAccountPasswordRegister(uni, "passlagivay");
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", modelMapper.map(uni, User.class));
+            }
+            return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (Exception e){
             log.error(e.getMessage());
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");

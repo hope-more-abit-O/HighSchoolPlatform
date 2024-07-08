@@ -79,7 +79,6 @@ public class ConsultantInfo {
     @Column(name = "phone", length = 11)
     private String phone;
 
-    @NotNull
     @Nationalized
     @Column(name = "specific_address", nullable = false)
     private String specificAddress;
