@@ -3,8 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
-import com.demo.admissionportal.dto.request.CreateUniversityRequestRequest;
-import com.demo.admissionportal.dto.response.PostCreateUniversityRequestResponse;
+import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.entity.UniversityInfo;
@@ -16,6 +15,7 @@ import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.CreateUniversityService;
 import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +37,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
     private final UserRepository userRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final ValidationService validationService;
+    private final EmailUtil emailUtil;
 
     /**
      * Handles the creation of a university creation request.
@@ -126,7 +125,8 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      * @see StoreDataFailedException
      */
     @Transactional
-    public ResponseData adminAction(Integer id, CreateUniversityRequestStatus status) throws ResourceNotFoundException, StoreDataFailedException {
+    @Override
+    public ResponseData adminAction(Integer id, CreateUniversityRequestStatus status, String note) throws ResourceNotFoundException, StoreDataFailedException {
         Integer uniId = 0;
         Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Admin ID: {}", adminId);
@@ -141,10 +141,11 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         log.info("Check username, email available succeed.");
 
         log.info("Saving to database.");
+        User uni = null;
         try{
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
                 log.info("Creating and storing University Account");
-                User uni = userRepository.save(
+                uni = userRepository.save(
                         new User(createUniversityRequest.getUniversityUsername(),
                                 createUniversityRequest.getUniversityEmail(),
                                 passwordEncoder.encode("passgivay"),
@@ -166,8 +167,11 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             createUniversityRequest.setUpdateBy(adminId);
             createUniversityRequest.setUpdateTime(new Date());
             createUniversityRequest.setConfirmBy(adminId);
+            createUniversityRequest.setNote(note);
 
             createUniversityRequestRepository.save(createUniversityRequest);
+            if (uni != null)
+                emailUtil.sendAccountPasswordRegister(uni, "passlagivay");
             log.info("Updating and storing Create university request succeed");
             return ResponseData.ok("Tạo tài khoản trường học thành công.", uniId);
         } catch (Exception e){

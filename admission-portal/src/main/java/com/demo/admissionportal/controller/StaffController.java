@@ -1,10 +1,15 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.service.CreateUniversityService;
 import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -28,6 +33,31 @@ import org.springframework.web.bind.annotation.*;
 public class StaffController {
     private final StaffService staffService;
     private final UserService userService;
+    private final CreateUniversityService createUniversityService;
+    private final UniversityService universityService;
+
+    /**
+     * Handles the submission of a university creation request.
+     *
+     * <p> This endpoint receives a request to create a new university
+     * and delegates the processing to the `CreateUniversityService`.
+     *
+     * @param request The creation request data provided in the request body (JSON).
+     * @return        A ResponseEntity containing the operation's result (success or failure details)
+     *                and an appropriate HTTP status code.
+     * @throws DataExistedException  If the request conflicts with existing data (e.g., duplicate names).
+     *
+     * @see CreateUniversityRequestRequest
+     * @see ResponseData
+     */
+    @PostMapping("/create-university")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<?> sendCreateUniversityRequest(@RequestBody @Valid CreateUniversityRequestRequest request){
+        ResponseData<PostCreateUniversityRequestResponse> response = createUniversityService.createCreateUniversityRequest(request);
+        if (response.getStatus() != ResponseCode.C200.getCode())
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * Gets staff by id.
@@ -36,6 +66,7 @@ public class StaffController {
      * @return the staff by id
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
@@ -57,6 +88,7 @@ public class StaffController {
      * @return the response entity
      */
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<StaffResponseDTO>> updateStaff(@RequestBody @Valid UpdateStaffRequestDTO request, @PathVariable Integer id) {
         log.info("Received request to update staff: {}", request);
         ResponseData<StaffResponseDTO> result = staffService.updateStaff(request, id);
@@ -117,4 +149,8 @@ public class StaffController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
+    @GetMapping("/university/{id}")
+    public ResponseEntity<UniversityFullResponseDTO> getUniversityInfoById(@PathVariable Integer id) {
+        return ResponseEntity.ok(universityService.getUniversityFullResponseById(id));
+    }
 }

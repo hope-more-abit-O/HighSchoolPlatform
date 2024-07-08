@@ -1,8 +1,9 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
-import com.demo.admissionportal.dto.request.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
 import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
@@ -88,4 +89,4 @@ public interface ConsultantService {
     ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request) throws ResourceNotFoundException, StoreDataFailedException;
 
     ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws ResourceNotFoundException, BadRequestException, StoreDataFailedException;
-}
+    ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request) throws ResourceNotFoundException, StoreDataFailedException;}

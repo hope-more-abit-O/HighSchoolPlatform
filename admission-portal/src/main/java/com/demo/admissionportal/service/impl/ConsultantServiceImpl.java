@@ -5,10 +5,7 @@ import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
-import com.demo.admissionportal.dto.request.CreateConsultantRequest;
-import com.demo.admissionportal.dto.request.consultant.ConsultantInfoRequest;
-import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
-import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
+import com.demo.admissionportal.dto.request.consultant.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.entity.*;
@@ -17,32 +14,30 @@ import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.ConsultantService;
-import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
+import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.AddressUtils;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.NameUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.sql.Date;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ConsultantServiceImpl implements ConsultantService {
     private final ConsultantInfoRepository consultantInfoRepository;
-    private final ValidationServiceImpl validationServiceImpl;
-    private final DistrictRepository districtRepository;
-    private final WardRepository wardRepository;
-    private final ProvinceRepository provinceRepository;
+    private final ValidationService validationService;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -50,7 +45,8 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final UserService userService;
     private final ProvinceServiceImpl provinceServiceImpl;
     private final DistrictServiceImpl districtServiceImpl;
-    private UniversityInfoService universityInfoService;
+    private final EmailUtil emailUtil;
+    private final WardServiceImpl wardServiceImpl;
 
     /**
      * Retrieves complete details for a consultant using their ID.
@@ -134,30 +130,21 @@ public class ConsultantServiceImpl implements ConsultantService {
         log.info("Trimming request data");
         request.trim();
 
+        String password = RandomStringUtils.randomAlphanumeric(9);
+
         log.info("Check if username, email, phone are available or not.");
-        validationServiceImpl.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
+        validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
 
         Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get current university account id: {}", universityId);
 
         log.info("Storing consultant's account.");
-        User consultant = userRepository.save(new User(request.getUsername(), request.getEmail(), passwordEncoder.encode(request.getPassword()), Role.CONSULTANT, universityId));
+        User consultant = userRepository.save(new User(request.getUsername(), request.getEmail(), passwordEncoder.encode(password), Role.CONSULTANT, universityId));
         if (consultant == null){
             log.error("Store consultant's account failed!");
             throw new StoreDataFailedException("Lưu tài khoản tư vấn viên thất bại.");
         }
         log.info("Store consultant's account succeed.");
-
-        log.info("Get province, district, ward data.");
-        Optional<Province> province = provinceRepository.findById(request.getProvinceId());
-        Optional<District> district = districtRepository.findById(request.getDistrictId());
-        Optional<Ward> ward = wardRepository.findById(request.getWardId());
-
-        if (Stream.of(province, district, ward).anyMatch(Optional::isEmpty)){
-            log.error("Province, district, ward was not found");
-            throw new ResourceNotFoundException("Dữ liệu địa chỉ không tìm thấy");
-        }
-        log.info("Get province, district, ward data succeed.");
 
         log.info("Storing consultant's information.");
         ConsultantInfo consultantInfo = consultantInfoRepository.save(new ConsultantInfo(
@@ -167,18 +154,17 @@ public class ConsultantServiceImpl implements ConsultantService {
                 request.getMiddleName(),
                 request.getLastName(),
                 request.getPhone(),
-                request.getSpecificAddress(),
-                Gender.valueOf(request.getGender()),
-                province.get(),
-                district.get(),
-                ward.get()));
+                Gender.MALE
+        ));
         if (consultantInfo == null) {
             log.error("Storing consultant's information failed.");
             throw new StoreDataFailedException("Lưu thông tin tư vấn viên thất bại.");
         }
         log.info("Storing consultant's information succeed.");
 
-        return ResponseData.created("Tạo tư vấn viên thành công.", consultant.getId());
+
+        emailUtil.sendAccountPasswordRegister(consultant, password);
+        return ResponseData.created("Tạo tư vấn viên thành công.", password);
     }
 
     /**
@@ -252,8 +238,21 @@ public class ConsultantServiceImpl implements ConsultantService {
     public ResponseData selfUpdateConsultantInfo(SelfUpdateConsultantInfoRequest request)
             throws ResourceNotFoundException, StoreDataFailedException {
         Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        userService.updateUser(consultantId, request.getUsername(), request.getEmail(), consultantId, "tư vấn viên");
+
         ConsultantInfo consultantInfo = findById(consultantId);
         updateConsultantInfo(consultantInfo, request);
+
+        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
+    }
+
+    public ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException {
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        ConsultantInfo consultantInfo = findById(consultantId);
+        updateConsultantAddress(consultantInfo, request);
 
         ConsultantResponseDTO response = mappingResponse(consultantInfo);
         return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
@@ -270,14 +269,22 @@ public class ConsultantServiceImpl implements ConsultantService {
 
     private void updateConsultantInfo(ConsultantInfo consultantInfo, ConsultantInfoRequest request)
             throws StoreDataFailedException {
+        validationService.validatePhoneNumber(request.getPhone());
         consultantInfo.setFirstname(request.getFirstName());
         consultantInfo.setMiddleName(request.getMiddleName());
         consultantInfo.setLastName(request.getLastName());
         consultantInfo.setPhone(request.getPhone());
+        consultantInfo.setBirthday(Date.valueOf(request.getBirthDate()));
+
+        save(consultantInfo);
+    }
+
+    private void updateConsultantAddress(ConsultantInfo consultantInfo, UpdateConsultantAddressRequest request)
+            throws StoreDataFailedException, ResourceNotFoundException {
         consultantInfo.setSpecificAddress(request.getSpecificAddress());
         consultantInfo.setProvince(provinceServiceImpl.findById(request.getProvinceId()));
+        consultantInfo.setWard(wardServiceImpl.findById(request.getWardId()));
         consultantInfo.setDistrict(districtServiceImpl.findById(request.getDistrictId()));
-        consultantInfo.setWard(wardRepository.findWardById(request.getWardId()));
 
         save(consultantInfo);
     }

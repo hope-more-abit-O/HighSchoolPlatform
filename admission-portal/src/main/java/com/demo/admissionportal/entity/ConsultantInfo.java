@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Represents detailed information about a consultant.
@@ -83,6 +84,10 @@ public class ConsultantInfo {
     @Column(name = "specific_address", nullable = false)
     private String specificAddress;
 
+    @Column(name = "birthday")
+    @Temporal(TemporalType.DATE)
+    private Date birthday;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
@@ -121,6 +126,16 @@ public class ConsultantInfo {
         this.province = province;
         this.district = district;
         this.ward = ward;
+    }
+
+    public ConsultantInfo(Integer id, Integer universityId, String firstname, String middleName, String lastName, String phone, Gender gender) {
+        this.id = id;
+        this.universityId = universityId;
+        this.firstname = firstname;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.gender = gender;
     }
 
 

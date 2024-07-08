@@ -1,6 +1,7 @@
 package com.demo.admissionportal.util.impl;
 
 import com.demo.admissionportal.entity.StaffInfo;
+import com.demo.admissionportal.entity.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -111,5 +112,19 @@ public class EmailUtil {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendAccountPasswordRegister(User account, String password) {
+        String emailContent = "<html><body>"
+                + "<h2>Chào mừng bạn đến với High School VN!</h2>"
+                + "<p>Xin chào " + account.getUsername() + ",</p>"
+                + "<p>Tài khoản của bạn đã được tạo thành công. Dưới đây là thông tin đăng nhập của bạn:</p>"
+                + "<p><strong>Username:</strong> " + account.getUsername() + "</p>"
+                + "<p><strong>Password:</strong> " + password + "</p>"
+                + "<p>Vui lòng đổi mật khẩu sau khi đăng nhập lần đầu tiên.</p>"
+                + "<p>Trân trọng,<br/>High School VN</p>"
+                + "</body></html>";
+
+        sendHtmlEmail(account.getEmail(), "Thông tin tài khoản của bạn", emailContent);
     }
 }
