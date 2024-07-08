@@ -15,6 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDTO implements Serializable {
+    private Integer id;
     private String username;
     private String email;
     private String name;
