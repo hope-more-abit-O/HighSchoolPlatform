@@ -8,11 +8,9 @@ import com.demo.admissionportal.dto.request.authen.EmailRequestDTO;
 import com.demo.admissionportal.dto.request.authen.RegisterUserRequestDTO;
 import com.demo.admissionportal.dto.request.redis.RegenerateOTPRequestDTO;
 import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
-import com.demo.admissionportal.dto.response.authen.*;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserInfo;
-import com.demo.admissionportal.entity.UserToken;
+import com.demo.admissionportal.dto.response.authen.*;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.AuthenticationUserService;
@@ -58,6 +56,9 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final AdminInfoRepository adminInfoRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
+    private final WardRepository wardRepository;
+    private final ProvinceRepository provinceRepository;
+    private final DistrictRepository districtRepository;
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -157,6 +158,9 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 // Map OTP in Redis Cache
                 otpService.saveOTP(request.getEmail(), otp, LocalDateTime.now());
 
+                Ward ward = wardRepository.findWardById(request.getWard_id());
+                District district = districtRepository.findDistrictById(request.getDistrict_id());
+                Province province = provinceRepository.findProvinceById(request.getProvince_id());
 
                 // Map user table
                 User user = modelMapper.map(request, User.class);
@@ -168,15 +172,20 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
                 // Map user_info table
                 UserInfo userInfo = modelMapper.map(request, UserInfo.class);
+                userInfo.setWard(ward);
+                userInfo.setDistrict(district);
+                userInfo.setProvince(province);
 
                 // Save student in Redis Cache
                 otpService.saveUser(request.getEmail(), user, userInfo);
-                CodeVerifyAccountRequestDTO verifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
+                CodeVerifyAccountRequestDTO codeVerifyAccountRequestDTO = new CodeVerifyAccountRequestDTO();
 
                 // Generate sUID
-                verifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+                codeVerifyAccountRequestDTO.setSUID(randomCodeGeneratorUtil.generateRandomString());
+                // Save sUID in Redis
+                otpService.savesUID(request.getEmail(), codeVerifyAccountRequestDTO);
 
-                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", verifyAccountRequestDTO);
+                return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", codeVerifyAccountRequestDTO);
             } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
                 User user = modelMapper.map(request, User.class);
                 user.setRole(Role.USER);
@@ -186,8 +195,15 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 user.setStatus(AccountStatus.ACTIVE);
                 var createUser = userRepository.save(user);
 
+                Ward ward = wardRepository.findWardById(request.getWard_id());
+                District district = districtRepository.findDistrictById(request.getDistrict_id());
+                Province province = provinceRepository.findProvinceById(request.getProvince_id());
+
                 UserInfo userInfo = modelMapper.map(request, UserInfo.class);
                 userInfo.setId(createUser.getId());
+                userInfo.setWard(ward);
+                userInfo.setDistrict(district);
+                userInfo.setProvince(province);
                 userInfo.setUser(createUser);
                 userInfoRepository.save(userInfo);
 

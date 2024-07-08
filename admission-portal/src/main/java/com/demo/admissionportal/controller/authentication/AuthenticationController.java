@@ -15,6 +15,9 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
+import com.demo.admissionportal.service.OTPService;
+import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +36,10 @@ import java.security.Principal;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
-
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
     private final ResetPasswordService resetPasswordService;
+    private final OTPService otpService;
 
     /**
      * Login response entity.
