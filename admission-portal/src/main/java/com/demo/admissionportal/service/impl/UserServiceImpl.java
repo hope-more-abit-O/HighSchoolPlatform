@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ProvinceRepository provinceRepository;
@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService{
     private final WardRepository wardRepository;
     private final ModelMapper modelMapper;
     private final ValidationService validationService;
-
 
 
     @Override
@@ -149,9 +148,9 @@ public class UserServiceImpl implements UserService{
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             // Update profile
-            userInfo.setFirstName(requestDTO.getFirstname());
-            userInfo.setMiddleName(requestDTO.getMiddle_name());
-            userInfo.setLastName(requestDTO.getLastname());
+            userInfo.setFirstName(requestDTO.getFirstName());
+            userInfo.setMiddleName(requestDTO.getMiddleName());
+            userInfo.setLastName(requestDTO.getLastName());
             userInfo.setGender(requestDTO.getGender());
             // TODO: Handle phone existed
             userInfo.setPhone(requestDTO.getPhone());
@@ -263,6 +262,7 @@ public class UserServiceImpl implements UserService{
         }
         return account;
     }
+
     public User changeConsultantStatus(Integer id, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException {
         Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
@@ -285,7 +285,7 @@ public class UserServiceImpl implements UserService{
         return account;
     }
 
-    public User updateUser(Integer id, String username, String email, Integer updateById, String name) throws StoreDataFailedException{
+    public User updateUser(Integer id, String username, String email, Integer updateById, String name) throws StoreDataFailedException {
         User user = findById(id);
         validationService.validateRegister(username, email);
 
