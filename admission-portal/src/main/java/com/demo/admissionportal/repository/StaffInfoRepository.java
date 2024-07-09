@@ -33,14 +33,14 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
     /**
      * Find all page.
      *
-     * @param username   the username
-     * @param firstName  the first name
-     * @param middleName the middle name
-     * @param lastName   the last name
-     * @param email      the email
-     * @param phone      the phone
-     * @param status     the status
-     * @param pageable   the pageable
+     * @param username     the username
+     * @param firstName    the first name
+     * @param middleName   the middle name
+     * @param lastName     the last name
+     * @param email        the email
+     * @param phone        the phone
+     * @param statusString the status
+     * @param pageable     the pageable
      * @return the page
      */
     @Query(value = "SELECT * FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
@@ -50,9 +50,9 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
             "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
             "(:email IS NULL OR u.email LIKE %:email%) AND " +
             "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
-            "(:status IS NULL OR u.status LIKE %:status%)" +
+            "(:statusString IS NULL OR u.status = :statusString)" +
             "ORDER BY u.create_time DESC", nativeQuery = true)
-    Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String status, Pageable pageable);
+    Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
 
     /**
      * Find by status optional.

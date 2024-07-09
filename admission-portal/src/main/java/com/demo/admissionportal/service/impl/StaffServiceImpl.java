@@ -85,10 +85,11 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String status, Pageable pageable) {
+    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
         log.info("Get all staff with filters: Username: {}, firstName: {}, middleName: {}, lastName: {}, Email: {}, Phone: {}, Status: {}", username, firstName, middleName, lastName, email, phone, status);
         List<StaffResponseDTO> staffResponse = new ArrayList<>();
-        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
+        String statusString = status != null ? status.name() : null;
+        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, middleName, lastName, email, phone, statusString, pageable);
         staffPage.getContent().forEach(s -> staffResponse.add(modelMapper.map(s, StaffResponseDTO.class)));
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
         log.info("Successfully retrieved list of staffs:{}", staffPage);

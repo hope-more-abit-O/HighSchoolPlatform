@@ -4,20 +4,28 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
+import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.SubjectRepository;
+import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.SubjectService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The type Subject service.
@@ -29,6 +37,38 @@ public class SubjectServiceImpl implements SubjectService {
     private final SubjectRepository subjectRepository;
     private final SubjectGroupRepository subjectGroupRepository;
     private final ModelMapper modelMapper;
+    private final SubjectGroupSubjectRepository subjectGroupSubjectRepository;
+
+    @Override
+    public ResponseData<Page<SubjectResponseDTO>> findAll(String name, SubjectStatus status, Pageable pageable) {
+        try {
+            String statusString = status != null ? status.name() : null;
+            Page<Subject> subjects = subjectRepository.findAll(name, statusString, pageable);
+            Page<SubjectResponseDTO> subjectResponseDTOs = subjects.map(subject -> new SubjectResponseDTO(
+                    subject.getId(),
+                    subject.getName(),
+                    subject.getStatus().name()
+            ));
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách môn học đã được hiển thị !", subjectResponseDTOs);
+        } catch (Exception ex) {
+            log.error("Error occurred while fetching subjects: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Có lỗi trong quá trình lấy ra danh sách môn học !");
+        }
+    }
+    @Override
+    public ResponseData<Subject> getSubjectById(Integer id) {
+        try {
+            Optional<Subject> subject = subjectRepository.findById(id);
+            if (subject.isPresent()) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học được tìm thấy", subject.get());
+            } else {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy", null);
+            }
+        } catch (Exception ex) {
+            log.error("Error occurred while fetching subject by ID: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình lấy môn học", null);
+        }
+    }
 
     @Override
     public ResponseData<Subject> createSubject(RequestSubjectDTO requestSubjectDTO) {
@@ -61,5 +101,49 @@ public class SubjectServiceImpl implements SubjectService {
             log.error("Error occurred while creating subject: {}", ex.getMessage());
         }
         return new ResponseData<>(ResponseCode.C201.getCode(), "Xuất hiện lỗi khi tạo môn học", null);
+    }
+    @Override
+    public ResponseData<?> deleteSubject(Integer id) {
+        try {
+            Subject subject = subjectRepository.findById(id).orElse(null);
+            if (subject == null || subject.getStatus().equals(SubjectStatus.INACTIVE)) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
+            }
+            subject.setStatus(SubjectStatus.INACTIVE);
+            subjectRepository.save(subject);
+            log.info("Subject with ID {} has been deleted", id);
+            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectId(id);
+            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
+                SubjectGroup subjectGroup = subjectGroupRepository.findById(sgs.getSubjectGroupId()).orElse(null);
+                if (subjectGroup != null) {
+                    subjectGroup.setStatus(SubjectStatus.INACTIVE.name());
+                    subjectGroupRepository.save(subjectGroup);
+                    log.info("SubjectGroup with ID {} containing subject ID {} has been set to inactive", subjectGroup.getId(), id);
+                }
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học và các tổ hợp môn học liên quan đã xóa thành công !");
+        } catch (Exception ex) {
+            log.error("Failed to deleting subject: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa môn học !");
+        }
+    }
+    @Override
+    public ResponseData<?> activateSubject(Integer id) {
+        try {
+            Subject subject = subjectRepository.findById(id).orElse(null);
+            if (subject == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
+            }
+            if (subject.getStatus().equals(SubjectStatus.ACTIVE)){
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học đang hoạt động !");
+            }
+            subject.setStatus(SubjectStatus.ACTIVE);
+            subjectRepository.save(subject);
+            log.info("Subject with ID {} has been activated", id);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được kích hoạt thành công !");
+        } catch (Exception ex) {
+            log.error("Error occurred while activating subject: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt môn học !");
+        }
     }
 }

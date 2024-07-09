@@ -17,6 +17,7 @@ public interface SubjectGroupService {
     ResponseData<?> createSubjectGroup(CreateSubjectGroupRequestDTO request);
     ResponseData<?> updateSubjectGroup(Integer id, UpdateSubjectGroupRequestDTO request);
     ResponseData<?> getSubjectGroupById(Integer id);
-    ResponseData<Page<SubjectGroupResponseDTO>> findAll(Pageable pageable);
+    ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, String status, Pageable pageable);
     ResponseData<?> deleteSubjectGroup(Integer id);
+    ResponseData<?> activateSubjectGroup(Integer id);
 }
