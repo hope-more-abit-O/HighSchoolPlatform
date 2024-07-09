@@ -1,6 +1,5 @@
 package com.demo.admissionportal.dto.entity.university;
 
-import com.demo.admissionportal.dto.entity.create_university_request.InfoCreateUniversityRequestResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UniversityResponseDTO {
+public class FullUniversityResponseDTO {
     private Integer id;
     private String name;
     private String code;

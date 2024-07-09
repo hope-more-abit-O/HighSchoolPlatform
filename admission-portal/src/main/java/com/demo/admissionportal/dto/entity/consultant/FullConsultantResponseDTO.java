@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.entity.consultant;
 
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import lombok.*;
 
 /**
@@ -9,7 +9,7 @@ import lombok.*;
  *
  * <p>This class contains two main properties:
  * <ul>
- *   <li>{@link UserResponseDTOV2} account - Information about the user's account</li>
+ *   <li>{@link FullUserResponseDTO} account - Information about the user's account</li>
  *   <li>{@link ConsultantResponseDTO} info - Detailed information about the consultant</li>
  * </ul>
  * </p>
@@ -26,7 +26,7 @@ import lombok.*;
  * </pre>
  * </p>
  *
- * @see UserResponseDTOV2
+ * @see FullUserResponseDTO
  * @see ConsultantResponseDTO
  */
 @Data
@@ -34,6 +34,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FullConsultantResponseDTO {
-    private UserResponseDTOV2 account;
+    private FullUserResponseDTO account;
     private ConsultantResponseDTO info;
 }
