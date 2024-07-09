@@ -20,6 +20,7 @@ import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -138,9 +139,10 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
         log.info("Saving to database.");
         User uni = null;
+        String password = "";
         try{
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
-
+                password = RandomStringUtils.randomAlphanumeric(9);
                 log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
                 validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
                 log.info("Check username, email available succeed.");
@@ -149,7 +151,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 uni = userRepository.save(
                         new User(createUniversityRequest.getUniversityUsername(),
                                 createUniversityRequest.getUniversityEmail(),
-                                passwordEncoder.encode("passgivay"),
+                                passwordEncoder.encode(password),
                                 Role.UNIVERSITY,
                                 adminId
                         )
@@ -174,7 +176,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             log.info("Updating and storing Create university request succeed");
 
             if (uni != null){
-                emailUtil.sendAccountPasswordRegister(uni, "passlagivay");
+                emailUtil.sendAccountPasswordRegister(uni, password);
                 return ResponseData.ok("Tạo tài khoản trường học thành công.", modelMapper.map(uni, User.class));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");

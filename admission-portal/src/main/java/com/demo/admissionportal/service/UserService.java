@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -14,9 +15,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 
 /**
@@ -53,8 +55,11 @@ public interface UserService extends UserDetailsService {
      */
     ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 
-
     ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
+
+    List<InfoUserResponseDTO> getInfoUserResponseDTOList(List<Integer> ids) throws ResourceNotFoundException;
+
+    List<FullUserResponseDTO> getFullUserResponseDTOList(List<Integer> ids) throws ResourceNotFoundException;
 
     /**
      * Find by id user.
@@ -65,7 +70,7 @@ public interface UserService extends UserDetailsService {
      */
     //TODO: javadoc
     User findById(Integer id) throws ResourceNotFoundException;
-    UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException;
+    FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException;
     User save(User user, String name) throws StoreDataFailedException;
     User updateUser(Integer id, String username, String email, Integer updateById, String name) throws ResourceNotFoundException, StoreDataFailedException;
     User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;

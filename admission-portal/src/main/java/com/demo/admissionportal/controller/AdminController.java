@@ -126,12 +126,14 @@ public class AdminController {
     }
 
     @PutMapping("/create-university/accept/{id}")
-    public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
+    public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.note()));
     }
 
     @PutMapping("/create-university/reject/{id}")
-    public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
+    public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.note()));
     }
 

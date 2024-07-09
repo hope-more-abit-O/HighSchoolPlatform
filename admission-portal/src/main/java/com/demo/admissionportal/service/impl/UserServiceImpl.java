@@ -3,7 +3,8 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -22,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +32,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type User service.
@@ -219,8 +217,8 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserResponseDTOV2 mappingResponse(User user) throws ResourceNotFoundException {
-        UserResponseDTOV2 responseDTO = modelMapper.map(user, UserResponseDTOV2.class);
+    public FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException {
+        FullUserResponseDTO responseDTO = modelMapper.map(user, FullUserResponseDTO.class);
         ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
         responseDTO.setCreateBy(actionerDTO);
 
@@ -299,5 +297,62 @@ public class UserServiceImpl implements UserService{
         return save(user, name);
     }
 
+    public InfoUserResponseDTO getInfoUserResponseDTOById(Integer id) throws ResourceNotFoundException {
+        return modelMapper.map(findById(id), InfoUserResponseDTO.class);
+    }
 
+    public FullUserResponseDTO getFullUserResponseDTOById(Integer id) throws ResourceNotFoundException {
+        return modelMapper.map(findById(id), FullUserResponseDTO.class);
+    }
+
+    public List<FullUserResponseDTO> getFullUserResponseDTOList(List<Integer> ids) throws ResourceNotFoundException {
+        List<User> users = userRepository.findAllById(ids);
+
+        Map<Integer, ActionerDTO> actioners = fetchAndMapActionerUsers(extractActionerIds(users));
+
+        return users.stream()
+                .map(user -> mapToFullUserResponseDTO(user, actioners))
+                .collect(Collectors.toList());
+    }
+
+    public Map<Integer, FullUserResponseDTO> getFullUserResponseDTOMap(List<Integer> ids) throws ResourceNotFoundException {
+        List<User> users = userRepository.findAllById(ids);
+
+        Map<Integer, ActionerDTO> actioners = fetchAndMapActionerUsers(extractActionerIds(users));
+
+        return users.stream()
+                .map(user -> mapToFullUserResponseDTO(user, actioners))
+                .collect(Collectors.toMap(FullUserResponseDTO::getId, dto -> dto));
+    }
+
+    public List<InfoUserResponseDTO> getInfoUserResponseDTOList(List<Integer> ids) throws ResourceNotFoundException {
+        List<User> users = userRepository.findAllById(ids);
+
+        return users.stream()
+                .map(user -> modelMapper.map(user, InfoUserResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    private Set<Integer> extractActionerIds(List<User> users) {
+        return users.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private Map<Integer, ActionerDTO> fetchAndMapActionerUsers(Set<Integer> actionerIds) {
+        List<User> actionerUsers = userRepository.findAllById(new ArrayList<>(actionerIds));
+        return actionerUsers.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> new ActionerDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name())
+                ));
+    }
+
+    private FullUserResponseDTO mapToFullUserResponseDTO(User user, Map<Integer, ActionerDTO> actionerMap) {
+        FullUserResponseDTO fullUserResponseDTO = modelMapper.map(user, FullUserResponseDTO.class);
+        fullUserResponseDTO.setCreateBy(actionerMap.get(user.getCreateBy()));
+        fullUserResponseDTO.setUpdateBy(actionerMap.get(user.getUpdateBy()));
+        return fullUserResponseDTO;
+    }
 }

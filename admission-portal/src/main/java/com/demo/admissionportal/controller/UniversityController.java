@@ -4,6 +4,7 @@ import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.NotAllowedException;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
@@ -42,7 +43,7 @@ public class UniversityController {
      */
     @PostMapping
     public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
-            throws DataExistedException {
+            throws DataExistedException,StoreDataFailedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.createConsultant(request));
     }
 
