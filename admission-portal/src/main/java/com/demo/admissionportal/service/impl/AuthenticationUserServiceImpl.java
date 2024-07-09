@@ -69,6 +69,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                     .orElseThrow(null);
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
+            }else if(user.getStatus().equals(AccountStatus.INACTIVE)){
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Tài khoản đã bị khoá trong hệ thống");
             }
 
             var userInfo = userInfoRepository.findUserInfoById(user.getId());
@@ -268,6 +270,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 userInfoFromRedis.setUser(createUser);
                 userInfoRepository.save(userInfoFromRedis);
                 log.info("User has been verified: {}", createUser);
+                otpService.deleteOTP(createUser.getEmail());
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
             } else {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");

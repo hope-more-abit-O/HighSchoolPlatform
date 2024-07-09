@@ -38,7 +38,11 @@ public enum ResponseCode {
     /**
      * C 208 response code.
      */
-    C208(8, "UNSUPPORTED OPERATION");
+    C208(8, "UNSUPPORTED OPERATION"),
+    /**
+     * C 209 response code.
+     */
+    C209(9, "UNAUTHORIZED");
     private int code;
     private String message;
 

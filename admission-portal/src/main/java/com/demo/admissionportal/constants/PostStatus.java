@@ -5,9 +5,17 @@ package com.demo.admissionportal.constants;
  */
 public enum PostStatus {
     /**
+     * Pending post status.
+     */
+    PENDING,
+    /**
      * Active post status.
      */
     ACTIVE,
+    /**
+     * Private post status.
+     */
+    PRIVATE,
     /**
      * Inactive post status.
      */

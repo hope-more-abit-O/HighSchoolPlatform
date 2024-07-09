@@ -15,9 +15,6 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
-import com.demo.admissionportal.service.OTPService;
-import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +36,6 @@ import java.security.Principal;
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
     private final ResetPasswordService resetPasswordService;
-    private final OTPService otpService;
 
     /**
      * Login response entity.
@@ -58,6 +54,8 @@ public class AuthenticationController {
         } else if (loginAccount.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginAccount);
         } else if (loginAccount.getStatus() == ResponseCode.C201.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginAccount);
+        } else if (loginAccount.getStatus() == ResponseCode.C209.getCode()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginAccount);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(loginAccount);
@@ -90,7 +88,8 @@ public class AuthenticationController {
      * @return the response entity
      */
     @PostMapping("/verify-account/{sUID}")
-    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
+    public ResponseEntity<ResponseData<?>> verifyAccount(@PathVariable("sUID") String
+                                                                 sUID, @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
         if (verifyAccountRequestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }
@@ -135,7 +134,8 @@ public class AuthenticationController {
     @PutMapping("/change-password")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAnyAuthority('STAFF','USER','ADMIN','CONSULTANT','UNIVERSITY')")
-    public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO, Principal principal) {
+    public ResponseEntity<ResponseData<?>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO
+                                                                  changePasswordRequestDTO, Principal principal) {
         if (changePasswordRequestDTO == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
         }

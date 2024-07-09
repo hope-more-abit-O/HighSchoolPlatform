@@ -31,7 +31,9 @@ public class LoginResponseDTO implements Serializable {
      */
     @Data
     public static class UserLoginResponseDTO implements Serializable {
+        private Integer id;
         private String email;
         private String username;
+        private String avatar;
     }
 }

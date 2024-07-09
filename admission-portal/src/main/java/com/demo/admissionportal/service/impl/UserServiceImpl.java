@@ -61,6 +61,7 @@ public class UserServiceImpl implements UserService{
             // Map UserInfo to UserResponseDTO
             userPage.forEach(userInfo -> {
                 UserResponseDTO responseDTO = new UserResponseDTO();
+                responseDTO.setId(userInfo.getId());
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                 String dateString = formatter.format(new Date());
                 responseDTO.setUsername(userInfo.getUser().getUsername());
@@ -96,6 +97,7 @@ public class UserServiceImpl implements UserService{
             Province province = provinceRepository.findProvinceById(userInfo.getProvince().getId());
 
             UserProfileResponseDTO userProfileResponseDTO = new UserProfileResponseDTO();
+            userProfileResponseDTO.setId(user.getId());
             userProfileResponseDTO.setEmail(user.getEmail());
             userProfileResponseDTO.setUsername(user.getUsername());
             userProfileResponseDTO.setFirstname(userInfo.getFirstName());
@@ -151,6 +153,7 @@ public class UserServiceImpl implements UserService{
             userInfo.setMiddleName(requestDTO.getMiddle_name());
             userInfo.setLastName(requestDTO.getLastname());
             userInfo.setGender(requestDTO.getGender());
+            // TODO: Handle phone existed
             userInfo.setPhone(requestDTO.getPhone());
 
             userInfo.setBirthday(requestDTO.getBirthday());
