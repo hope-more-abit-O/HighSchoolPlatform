@@ -1,13 +1,11 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
-import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
-import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
@@ -56,8 +54,8 @@ public interface UniversityService {
      * @throws ResourceNotFoundException If no university is found matching the given ID.
      *
      * @see UniversityFullResponseDTO
-     * @see UserResponseDTOV2
-     * @see UniversityResponseDTO
+     * @see FullUserResponseDTO
+     * @see FullUniversityResponseDTO
      */
     UniversityFullResponseDTO getUniversityFullResponseById(Integer id);
     /**

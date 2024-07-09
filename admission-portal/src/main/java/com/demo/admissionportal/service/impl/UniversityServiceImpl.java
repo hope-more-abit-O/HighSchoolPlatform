@@ -6,9 +6,9 @@ import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
-import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -29,7 +29,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Provides methods for managing and retrieving university-related information.
@@ -76,16 +78,14 @@ public class UniversityServiceImpl implements UniversityService {
      * @throws ResourceNotFoundException If no university is found matching the given ID.
      *
      * @see UniversityFullResponseDTO
-     * @see UserResponseDTOV2
-     * @see UniversityResponseDTO
+     * @see FullUserResponseDTO
+     * @see FullUniversityResponseDTO
      */
     @Override
     public UniversityFullResponseDTO getUniversityFullResponseById(Integer id) throws ResourceNotFoundException {
-        User account = userService.findById(id);
-        UniversityInfo info = universityInfoRepository.findById(id).get();
-
-        UniversityResponseDTO fullInfo = modelMapper.map(info, UniversityResponseDTO.class);
-        return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
+        return new UniversityFullResponseDTO(
+                modelMapper.map(userService.findById(id), FullUserResponseDTO.class),
+                modelMapper.map(this.findById(id), FullUniversityResponseDTO.class));
     }
 
     /**
@@ -130,8 +130,16 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException{
         return new UniversityInfoResponseDTO(
                 modelMapper.map(userService.findById(id), InfoUserResponseDTO.class),
-                modelMapper.map(universityInfoService.findById(id), InfoUniversityResponseDTO.class)
+                modelMapper.map(this.findById(id), InfoUniversityResponseDTO.class)
         );
+    }
+
+    public List<UniversityFullResponseDTO> getUniversityFullResponseList(List<Integer> ids) throws ResourceNotFoundException {
+        List<UniversityInfo> universityInfoList = universityInfoRepository.findAllById(ids);
+
+        List<FullUserResponseDTO> fullUserResponseDTOS = userService.getFullUserResponseDTOList(ids);
+
+        return null;
     }
 
     /**
@@ -212,7 +220,7 @@ public class UniversityServiceImpl implements UniversityService {
         User account = userService.findById(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
         UniversityInfo info = findById(account.getId());
 
-        UniversityResponseDTO fullInfo = modelMapper.map(info, UniversityResponseDTO.class);
+        FullUniversityResponseDTO fullInfo = modelMapper.map(info, FullUniversityResponseDTO.class);
         return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
     }
     @Transactional
@@ -242,5 +250,4 @@ public class UniversityServiceImpl implements UniversityService {
 
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
-
 }

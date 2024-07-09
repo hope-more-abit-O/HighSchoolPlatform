@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponseDTOV2 {
+public class FullUserResponseDTO {
     private Integer id;
     private String email;
     private String username;

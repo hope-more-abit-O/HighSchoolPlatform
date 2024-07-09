@@ -36,7 +36,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InfoConsultantInfoResponseDTO {
+public class InfoConsultantResponseDTO {
     private InfoUserResponseDTO account;
     private ConsultantInfoResponseDTO info;
 }
