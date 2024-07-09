@@ -4,11 +4,9 @@ import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.sub_entity.id.PostViewId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 
 import java.util.Date;
 
@@ -29,7 +27,7 @@ public class PostView {
     private Post post;
 
     @Column(name = "create_time", insertable = false, updatable = false)
-    private Integer createTime;
+    private Date createTime;
 
     @ColumnDefault("0")
     @Column(name = "view_count")
@@ -48,8 +46,6 @@ public class PostView {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotNull
-    @Nationalized
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PostPropertiesStatus status;

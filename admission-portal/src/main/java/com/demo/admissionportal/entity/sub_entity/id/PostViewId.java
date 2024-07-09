@@ -9,6 +9,7 @@ import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -20,12 +21,12 @@ import java.util.Objects;
 public class PostViewId implements Serializable {
     private static final long serialVersionUID = -4722529784721865529L;
     @NotNull
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "post_id")
     private Integer postId;
 
     @NotNull
-    @Column(name = "create_time", nullable = false)
-    private Instant createTime;
+    @Column(name = "create_time")
+    private Date createTime;
 
     @Override
     public boolean equals(Object o) {

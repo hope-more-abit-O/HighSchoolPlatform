@@ -2,6 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,6 +42,7 @@ public class Tag {
     private PostPropertiesStatus status;
 
     @OneToOne(mappedBy = "tag")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private PostTag postTags;
 
 }

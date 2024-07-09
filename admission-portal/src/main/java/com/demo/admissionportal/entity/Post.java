@@ -68,5 +68,4 @@ public class Post {
 
     @OneToOne(mappedBy = "post")
     private PostView postViews;
-
 }

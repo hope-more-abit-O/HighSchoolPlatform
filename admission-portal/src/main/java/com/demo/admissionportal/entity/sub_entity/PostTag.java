@@ -41,7 +41,7 @@ public class PostTag {
     private Date updateTime;
 
     @Column(name = "update_by")
-    private Date updateBy;
+    private Integer updateBy;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
