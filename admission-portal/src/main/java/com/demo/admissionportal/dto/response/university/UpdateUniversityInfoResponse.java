@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.response.university;
 
-import com.demo.admissionportal.dto.entity.university.UniversityResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateUniversityInfoResponse {
-    private UserResponseDTOV2 account;
-    private UniversityResponseDTO info;
+    private FullUserResponseDTO account;
+    private FullUniversityResponseDTO info;
 }

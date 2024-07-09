@@ -4,7 +4,8 @@ import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantResponseDTO;
-import com.demo.admissionportal.dto.entity.user.UserResponseDTOV2;
+import com.demo.admissionportal.dto.entity.consultant.InfoConsultantResponseDTO;
+import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
@@ -76,14 +77,14 @@ public class ConsultantServiceImpl implements ConsultantService {
      *                                    the provided ID.
      *
      * @see FullConsultantResponseDTO
-     * @see UserResponseDTOV2
+     * @see FullUserResponseDTO
      * @see ConsultantResponseDTO
      */
     @Override
     public FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException {
         return new FullConsultantResponseDTO(
-                userService.mappingResponse(userService.findById(id)),
-                mappingResponse(findById(id))
+                modelMapper.map(userService.findById(id), FullUserResponseDTO.class),
+                mappingResponse(findInfoById(id))
         );
     }
 
@@ -165,7 +166,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
 
         emailUtil.sendAccountPasswordRegister(consultant, password);
-        return ResponseData.created("Tạo tư vấn viên thành công.", password);
+        return ResponseData.created("Tạo tư vấn viên thành công.");
     }
 
     /**
@@ -232,7 +233,7 @@ public class ConsultantServiceImpl implements ConsultantService {
      * @see ConsultantInfo
      * @see ResourceNotFoundException
      */
-    public ConsultantInfo findById(Integer id) throws ResourceNotFoundException{
+    public ConsultantInfo findInfoById(Integer id) throws ResourceNotFoundException{
         return consultantInfoRepository.findById(id).orElseThrow(() -> {
             log.error("Consultant's information with id: {} not found.", id);
             return new ResourceNotFoundException("Tư vấn viên với Id: " + id + " không tìm tấy");
@@ -245,7 +246,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
         userService.updateUser(consultantId, request.getUsername(), request.getEmail(), consultantId, "tư vấn viên");
 
-        ConsultantInfo consultantInfo = findById(consultantId);
+        ConsultantInfo consultantInfo = findInfoById(consultantId);
         updateConsultantInfo(consultantInfo, request);
 
         ConsultantResponseDTO response = mappingResponse(consultantInfo);
@@ -255,7 +256,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     public ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request)
             throws ResourceNotFoundException, StoreDataFailedException {
         Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        ConsultantInfo consultantInfo = findById(consultantId);
+        ConsultantInfo consultantInfo = findInfoById(consultantId);
         updateConsultantAddress(consultantInfo, request);
 
         ConsultantResponseDTO response = mappingResponse(consultantInfo);
@@ -264,7 +265,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
     public ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request)
             throws ResourceNotFoundException, StoreDataFailedException {
-        ConsultantInfo consultantInfo = findById(request.getId());
+        ConsultantInfo consultantInfo = findInfoById(request.getId());
         updateConsultantInfo(consultantInfo, request);
 
         ConsultantResponseDTO response = mappingResponse(consultantInfo);
@@ -306,5 +307,15 @@ public class ConsultantServiceImpl implements ConsultantService {
     public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
         userService.changeConsultantStatus(id, request.getNote());
         return ResponseData.ok("Cập nhập tư vấn viên thành công");
+    }
+
+    public InfoConsultantResponseDTO findById(Integer id) throws ResourceNotFoundException {
+        User account = userService.findById(id);
+
+        ConsultantInfo consultantInfo = findInfoById(id);
+
+        InfoConsultantResponseDTO response = new InfoConsultantResponseDTO();
+
+        return null;
     }
 }

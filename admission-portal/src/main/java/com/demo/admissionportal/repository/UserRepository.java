@@ -2,7 +2,11 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.entity.User;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -68,4 +72,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return the user
      */
     User findUserByEmail(String email);
+
+    @Query("SELECT u FROM User u WHERE u.username LIKE %:username%")
+    Page<User> findUser(Pageable pageable, @Param("username") String username);
 }

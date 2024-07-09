@@ -270,6 +270,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 userInfoFromRedis.setUser(createUser);
                 userInfoRepository.save(userInfoFromRedis);
                 log.info("User has been verified: {}", createUser);
+                otpService.deleteOTP(createUser.getEmail());
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã được xác thực thành công");
             } else {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "OTP đã hết hạn");

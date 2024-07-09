@@ -28,5 +28,6 @@ public enum Role {
     /**
      * University role.
      */
-    UNIVERSITY
+    UNIVERSITY,
+    SYSTEM
 }
