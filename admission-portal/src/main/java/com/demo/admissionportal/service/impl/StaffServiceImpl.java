@@ -13,9 +13,11 @@ import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.entity.StaffInfo;
 
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.StaffService;
+import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,45 +45,51 @@ public class StaffServiceImpl implements StaffService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailUtil emailUtil;
+    private final ValidationService validationService;
 
     @Override
     public ResponseData<RegisterStaffResponse> registerStaff(RegisterStaffRequestDTO request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã tồn tại !");
+        try {
+            validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
+            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã tồn tại !");
+            }
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
+            }
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Object principal = authentication.getPrincipal();
+
+            log.debug("Principal type: {}", principal.getClass().getName());
+            log.info("Principal type: {}", principal.getClass().getName());
+            if (!(principal instanceof User)) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
+            }
+            User admin = (User) principal;
+            Integer adminId = admin.getId();
+            log.info("ADMIN ID: {} ", adminId);
+            String generatedPassword = RandomStringUtils.randomAlphanumeric(10);
+            StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
+            staffInfo.setPassword(passwordEncoder.encode(generatedPassword));
+            staffInfo.setRole(Role.STAFF);
+            staffInfo.setStatus(AccountStatus.ACTIVE);
+            staffInfo.setAvatar("image.png");
+            staffInfo.setCreateTime(new Date());
+            staffInfo.setCreateBy(adminId);
+            staffInfo.setNote(null);
+            staffInfo.setAdminId(adminId);
+            staffInfo.setAdmin(admin);
+            log.debug("StaffInfo createBy before save: {}", staffInfo.getCreateBy());
+            staffInfoRepository.save(staffInfo);
+            emailUtil.sendStaffPasswordRegister(staffInfo, generatedPassword);
+            RegisterStaffResponse response = new RegisterStaffResponse(staffInfo.getUsername(), staffInfo.getEmail(), staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName(), staffInfo.getPhone());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", response);
+        } catch (DataExistedException de){
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
+        } catch (Exception ex) {
+            log.error("Error occurred while register: {}", ex.getMessage());
         }
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = authentication.getPrincipal();
-
-        log.debug("Principal type: {}", principal.getClass().getName());
-        log.info("Principal type: {}", principal.getClass().getName());
-        if (!(principal instanceof User)) {
-            return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
-        }
-        User admin = (User) principal;
-        Integer adminId = admin.getId();
-        log.info("ADMIN ID: {} ", adminId);
-
-        String generatedPassword = RandomStringUtils.randomAlphanumeric(10);
-        StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
-        staffInfo.setPassword(passwordEncoder.encode(generatedPassword));
-        staffInfo.setRole(Role.STAFF);
-        staffInfo.setStatus(AccountStatus.ACTIVE);
-        staffInfo.setAvatar("image.png");
-        staffInfo.setCreateTime(new Date());
-        staffInfo.setCreateBy(adminId);
-        staffInfo.setNote(null);
-        staffInfo.setAdminId(adminId);
-        staffInfo.setAdmin(admin);
-
-        log.debug("StaffInfo createBy before save: {}", staffInfo.getCreateBy());
-        staffInfoRepository.save(staffInfo);
-
-        emailUtil.sendStaffPasswordRegister(staffInfo, generatedPassword);
-        RegisterStaffResponse response = new RegisterStaffResponse(staffInfo.getUsername(), staffInfo.getEmail(), staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName(), staffInfo.getPhone());
-        return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", response);
+        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản");
     }
 
     @Override

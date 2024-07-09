@@ -27,6 +27,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * The type Admin controller.
+ */
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
@@ -39,6 +42,12 @@ public class AdminController {
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
 
+    /**
+     * Register admin response entity.
+     *
+     * @param request the request
+     * @return the response entity
+     */
     @PostMapping("/register")
     public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
         ResponseData<AdminInfo> response = adminService.registerAdmin(request);
@@ -50,6 +59,12 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Register staff response entity.
+     *
+     * @param request the request
+     * @return the response entity
+     */
     @PostMapping("/register-staff")
     public ResponseEntity<ResponseData<RegisterStaffResponse>> registerStaff(@RequestBody @Valid RegisterStaffRequestDTO request) {
         ResponseData<RegisterStaffResponse> response = staffService.registerStaff(request);
@@ -61,6 +76,19 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Find all staff response entity.
+     *
+     * @param username   the username
+     * @param firstName  the first name
+     * @param middleName the middle name
+     * @param lastName   the last name
+     * @param email      the email
+     * @param phone      the phone
+     * @param status     the status
+     * @param pageable   the pageable
+     * @return the response entity
+     */
     @GetMapping("/list-all-staffs")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ResponseData<Page<StaffResponseDTO>>> findAllStaff(
@@ -79,6 +107,12 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets staff by id.
+     *
+     * @param id the id
+     * @return the staff by id
+     */
     @GetMapping("/get-staff/{id}")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);
@@ -93,6 +127,13 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Delete staff by id response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     */
     @DeleteMapping("/delete-staff/{id}")
     public ResponseEntity<?> deleteStaffById(@Valid @PathVariable int id, @Valid @RequestBody DeleteStaffRequest request) {
         log.info("Received request to delete staff with ID: {} and note: {}", id, request.note());
@@ -107,6 +148,14 @@ public class AdminController {
         log.error("Failed to delete staff with ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    /**
+     * Activate staff by id response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     */
     @PutMapping("/activate-staff/{id}")
     public ResponseEntity<?> activateStaffById(@PathVariable int id, @RequestBody ActiveStaffRequest request) {
         log.info("Received request to activate staff with ID: {} and note: {}", id, request.note());
@@ -125,16 +174,39 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Accept create university request response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     */
     @PutMapping("/create-university/accept/{id}")
     public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.note()));
     }
 
+    /**
+     * Reject create university request response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     */
     @PutMapping("/create-university/reject/{id}")
     public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request){
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.note()));
     }
 
+    /**
+     * Active university by id response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     * @throws ResourceNotFoundException the resource not found exception
+     * @throws StoreDataFailedException  the store data failed exception
+     */
     @PatchMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
