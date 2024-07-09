@@ -1,7 +1,6 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Tag;
 
 /**
@@ -14,7 +13,5 @@ public interface TagService {
      * @param requestDTO the request dto
      * @return the respones data
      */
-    ResponseData<Tag> createTag(TagRequestDTO requestDTO);
-
-//    ResponseData<List<Tag>> getAllTag(String name);
+    Tag createTag(TagRequestDTO requestDTO);
 }
