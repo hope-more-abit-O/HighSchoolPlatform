@@ -40,6 +40,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT = "/api/v1/chat/**";
     private static final String POST_API = "/api/v1/post/**";
+    private static final String ADDRESS_API = "/api/v1/address/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,6 +57,7 @@ public class SecurityConfiguration {
 //                                .requestMatchers(SUBJECT_API, SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API, CHATBOT,
+                                        ADDRESS_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
