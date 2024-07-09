@@ -36,8 +36,6 @@ public class SecurityConfiguration {
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
-    private static final String SUBJECT_API = "/api/v1/subject/**";
-    private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT = "/api/v1/chat/**";
     private static final String POST_API = "/api/v1/post/**";
     private static final String ADDRESS_API = "/api/v1/address/**";
