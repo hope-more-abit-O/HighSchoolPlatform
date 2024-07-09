@@ -2,6 +2,7 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.UserInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -69,6 +70,9 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      * @return the staff info
      */
     StaffInfo findStaffInfoById(Integer id);
+
+    Optional<StaffInfo> findFirstByPhone(String phone);
+
 
 
 }

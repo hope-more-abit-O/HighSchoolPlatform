@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class StaffResponseDTO {
+    private Integer id;
     private String username;
     private String email;
     private String firstName;
