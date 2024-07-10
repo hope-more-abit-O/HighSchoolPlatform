@@ -58,8 +58,8 @@ public class Post {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @OneToOne(mappedBy = "post")
-    private PostTag postTags;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PostTag> postTags;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PostType> postTypes;
@@ -69,4 +69,7 @@ public class Post {
 
     @Column(name = "create_by")
     private Integer createBy;
+
+    @Column(name = "quota")
+    private Integer quota;
 }

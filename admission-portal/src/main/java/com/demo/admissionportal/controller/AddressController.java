@@ -5,7 +5,7 @@ import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
-import com.demo.admissionportal.service.ProvinceService;
+import com.demo.admissionportal.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/api/v1/address/")
 @RequiredArgsConstructor
 public class AddressController {
-    private final ProvinceService provinceService;
+    private final AddressService addressService;
 
     /**
      * Gets province.
@@ -29,7 +29,7 @@ public class AddressController {
      */
     @GetMapping("/province")
     public ResponseEntity<ResponseData<List<Province>>> getProvince() {
-        ResponseData<List<Province>> result = provinceService.findProvince();
+        ResponseData<List<Province>> result = addressService.findProvince();
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
@@ -44,7 +44,7 @@ public class AddressController {
      */
     @PostMapping("/district/{provinceId}")
     public ResponseEntity<ResponseData<List<DistrictResponseDTO>>> getDistrict(@PathVariable(name = "provinceId") Integer provinceId) {
-        ResponseData<List<DistrictResponseDTO>> result = provinceService.findDistrict(provinceId);
+        ResponseData<List<DistrictResponseDTO>> result = addressService.findDistrict(provinceId);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
@@ -58,8 +58,8 @@ public class AddressController {
      * @return the ward
      */
     @PostMapping("/ward/{districtId}")
-    public ResponseEntity<ResponseData<WardResponseDTO>> getWard(@PathVariable(name = "districtId") Integer districtId) {
-        ResponseData<WardResponseDTO> result = provinceService.findWard(districtId);
+    public ResponseEntity<ResponseData<List<WardResponseDTO>>> getWard(@PathVariable(name = "districtId") Integer districtId) {
+        ResponseData<List<WardResponseDTO>> result = addressService.findWard(districtId);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }

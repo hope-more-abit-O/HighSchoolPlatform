@@ -10,4 +10,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PostViewRepository extends JpaRepository<PostView, PostViewId> {
+    /**
+     * Find post view by id post view.
+     *
+     * @param postViewId the post view id
+     * @return the post view
+     */
+    PostView findByPostId(Integer postViewId);
 }

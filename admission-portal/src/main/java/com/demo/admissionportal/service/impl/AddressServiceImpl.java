@@ -11,7 +11,7 @@ import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.ProvinceRepository;
 import com.demo.admissionportal.repository.sub_repository.DistrictWardRepository;
 import com.demo.admissionportal.repository.sub_repository.ProvinceDistrictRepository;
-import com.demo.admissionportal.service.ProvinceService;
+import com.demo.admissionportal.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProvinceServiceImpl implements ProvinceService {
+public class AddressServiceImpl implements AddressService {
     private final ProvinceRepository provinceRepository;
     private final ProvinceDistrictRepository provinceDistrictRepository;
     private final DistrictWardRepository districtWardRepository;
@@ -64,11 +64,15 @@ public class ProvinceServiceImpl implements ProvinceService {
     }
 
     @Override
-    public ResponseData<WardResponseDTO> findWard(Integer districtId) {
-        DistrictWard result = districtWardRepository.findFirstByDistrictId(districtId);
-        WardResponseDTO wardResponseDTO = new WardResponseDTO();
-        wardResponseDTO.setId(result.getDistrict().getId());
-        wardResponseDTO.setName(result.getDistrict().getName());
-        return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách ward", wardResponseDTO);
+    public ResponseData<List<WardResponseDTO>> findWard(Integer districtId) {
+        List<DistrictWard> result = districtWardRepository.findByDistrictId(districtId);
+        List<WardResponseDTO> wardResponseDTOS = new ArrayList<>();
+        for (DistrictWard districtWard : result) {
+            WardResponseDTO wardResponseDTO = new WardResponseDTO();
+            wardResponseDTO.setId(districtWard.getWard().getId());
+            wardResponseDTO.setName(districtWard.getWard().getName());
+            wardResponseDTOS.add(wardResponseDTO);
+        }
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách ward", wardResponseDTOS);
     }
 }

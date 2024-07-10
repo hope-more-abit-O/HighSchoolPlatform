@@ -3,18 +3,23 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.Tag;
 import com.demo.admissionportal.entity.Type;
+import com.demo.admissionportal.entity.sub_entity.PostTag;
 import com.demo.admissionportal.entity.sub_entity.PostType;
 import com.demo.admissionportal.entity.sub_entity.PostView;
+import com.demo.admissionportal.entity.sub_entity.id.PostTagId;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
 import com.demo.admissionportal.entity.sub_entity.id.PostViewId;
 import com.demo.admissionportal.repository.PostRepository;
+import com.demo.admissionportal.repository.TagRepository;
 import com.demo.admissionportal.repository.TypeRepository;
+import com.demo.admissionportal.repository.sub_repository.PostTagRepository;
 import com.demo.admissionportal.repository.sub_repository.PostTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.PostViewRepository;
 import com.demo.admissionportal.service.PostService;
@@ -39,6 +44,8 @@ public class PostServiceImpl implements PostService {
     private final TypeRepository typeRepository;
     private final PostViewRepository postViewRepository;
     private final TagService tagService;
+    private final TagRepository tagRepository;
+    private final PostTagRepository postTagRepository;
 
     @Override
     public ResponseData<List<PostType>> createPost(PostRequestDTO requestDTO) {
@@ -65,9 +72,19 @@ public class PostServiceImpl implements PostService {
             }
 
             // Insert Tags
-            boolean tagsSaved = tagSave(requestDTO.getListTag(), post);
-            if (!tagsSaved) {
+            // Store list Tags
+            List<Integer> tagIds = new ArrayList<>();
+            Tag tagsSaved = tagSave(requestDTO.getListTag(), post, tagIds);
+            if (tagsSaved == null) {
                 throw new Exception("Save tag thất bại!");
+            }
+
+            // Insert Tag Tag
+            for (Integer tagId : tagIds) {
+                PostTag postTagSaved = postTagSave(tagId, post);
+                if (postTagSaved == null) {
+                    throw new Exception("Save tag post thất bại!");
+                }
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo post thành công", postTypes);
         } catch (Exception ex) {
@@ -76,21 +93,45 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean tagSave(List<String> tags, Post post) {
+    private PostTag postTagSave(Integer tagId, Post post) {
+        try {
+
+            PostTagId postTagId = new PostTagId();
+            postTagId.setPostId(post.getId());
+            postTagId.setTagId(tagId);
+
+            PostTag postTag = new PostTag();
+            postTag.setId(postTagId);
+            postTag.setPost(post);
+            Tag findTag = tagRepository.findTagById(tagId);
+            postTag.setTag(findTag);
+            postTag.setCreateTime(new Date());
+            postTag.setCreateBy(post.getCreateBy());
+            postTag.setStatus(PostPropertiesStatus.ACTIVE);
+            return postTagRepository.save(postTag);
+        } catch (Exception ex) {
+            log.error("Error when save post tag: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    private Tag tagSave(List<String> tags, Post post, List<Integer> tagIds) {
+        Tag result = null;
         try {
             for (String tagName : tags) {
                 TagRequestDTO requestDTO = new TagRequestDTO();
                 requestDTO.setName(tagName.trim());
                 requestDTO.setCreate_by(post.getCreateBy());
-                Tag checkTag = tagService.createTag(requestDTO);
-                if (checkTag == null) {
-                    return false;
+                result = tagService.createTag(requestDTO);
+                if (result == null) {
+                    return null;
                 }
+                tagIds.add(result.getId());
             }
-            return true;
+            return result;
         } catch (Exception ex) {
-            log.error("Error when check post tag: {}", ex.getMessage());
-            return false;
+            log.error("Error when save tag: {}", ex.getMessage());
+            return null;
         }
     }
 
@@ -106,6 +147,7 @@ public class PostServiceImpl implements PostService {
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
+            post.setQuota(0);
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -124,6 +166,7 @@ public class PostServiceImpl implements PostService {
                 Type findType = typeRepository.findTypeById(typeId);
                 postType.setType(findType);
                 postType.setCreateTime(new Date());
+                postType.setCreateBy(post.getCreateBy());
                 postType.setStatus(PostPropertiesStatus.ACTIVE);
                 postTypes.add(postTypeRepository.save(postType));
             }
@@ -148,6 +191,132 @@ public class PostServiceImpl implements PostService {
             return postViewRepository.save(postView);
         } catch (Exception ex) {
             log.error("Error when save post view: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public ResponseData<String> deletePost(PostDeleteRequestDTO requestDTO) {
+        try {
+            if (requestDTO == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            // Remove post
+            Post resultChangeStatusPost = changeStatusPost(requestDTO);
+            if (resultChangeStatusPost == null) {
+                throw new Exception("Xoá post thất bại");
+            }
+            // Remove post tag
+            List<Integer> tagIds = new ArrayList<>();
+            List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds);
+            if (resultChangeStatusPostTag == null) {
+                throw new Exception("Xoá post tag thất bại");
+            }
+            // Remove tag
+            boolean resultChangeStatusTag = changeStatusTag(requestDTO, tagIds);
+            if (!resultChangeStatusTag) {
+                throw new Exception("Xoá tag thất bại");
+            }
+
+            // Remove Post Type
+            boolean resultChangeStatusPostType = changeStatusPostType(requestDTO);
+            if (!resultChangeStatusPostType) {
+                throw new Exception("Xoá post type thất bại");
+            }
+
+            // Remove Post View
+            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO);
+            if (!resultChangeStatusPostView) {
+                throw new Exception("Xoá post type thất bại");
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá thành công");
+        } catch (Exception ex) {
+            log.error("Error when delete post: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO) {
+        try {
+            PostView postView = postViewRepository.findByPostId(requestDTO.getPostId());
+            if (postView == null) {
+                return false;
+            }
+            postView.setStatus(PostPropertiesStatus.INACTIVE);
+            postView.setUpdateTime(new Date());
+            postView.setUpdateBy(requestDTO.getUserId());
+            postViewRepository.save(postView);
+            return true;
+        } catch (Exception ex) {
+            log.error("Error when remove post view : {}", ex.getMessage());
+            return false;
+        }
+    }
+
+    private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO) {
+        try {
+            List<PostType> posts = postTypeRepository.findPostTypeByPostId(requestDTO.getPostId());
+            for (PostType post : posts) {
+                post.setStatus(PostPropertiesStatus.INACTIVE);
+                post.setUpdateTime(new Date());
+                post.setUpdateBy(requestDTO.getUserId());
+                postTypeRepository.save(post);
+            }
+            return true;
+        } catch (Exception ex) {
+            log.error("Error when remove post type : {}", ex.getMessage());
+            return false;
+        }
+    }
+
+    private boolean changeStatusTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds) {
+        try {
+            for (Integer tagId : tagIds) {
+                Tag tag = tagRepository.findTagById(tagId);
+                tag.setStatus(PostPropertiesStatus.INACTIVE);
+                tag.setUpdateTime(new Date());
+                tag.setUpdateBy(requestDTO.getUserId());
+            }
+            return true;
+        } catch (Exception ex) {
+            log.error("Error when remove tag : {}", ex.getMessage());
+            return false;
+        }
+    }
+
+    private Post changeStatusPost(PostDeleteRequestDTO requestDTO) {
+        try {
+            Post post = postRepository.findFirstById(requestDTO.getPostId());
+            if (post == null) {
+                return null;
+            }
+            post.setStatus(PostStatus.INACTIVE);
+            post.setUpdateTime(new Date());
+            post.setUpdateBy(requestDTO.getUserId());
+            return postRepository.save(post);
+
+        } catch (Exception ex) {
+            log.error("Error when remove post : {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    private List<PostTag> changeStatusPostTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds) {
+        try {
+            List<PostTag> postTagList = postTagRepository.findPostTagByPostId(requestDTO.getPostId());
+            if (postTagList == null) {
+                return null;
+            }
+            for (PostTag postTag : postTagList) {
+                postTag.setStatus(PostPropertiesStatus.INACTIVE);
+                postTag.setUpdateTime(new Date());
+                postTag.setUpdateBy(requestDTO.getUserId());
+                tagIds.add(postTag.getId().getTagId());
+                postTagRepository.save(postTag);
+            }
+            return postTagList;
+        } catch (Exception ex) {
+            log.error("Error when remove post tag : {}", ex.getMessage());
             return null;
         }
     }

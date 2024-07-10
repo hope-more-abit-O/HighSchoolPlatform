@@ -5,6 +5,8 @@ import com.demo.admissionportal.entity.sub_entity.id.DistrictWardId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * The interface District ward repository.
  */
@@ -16,5 +18,6 @@ public interface DistrictWardRepository extends JpaRepository<DistrictWard, Dist
      * @param districtId the district id
      * @return the list
      */
-    DistrictWard findFirstByDistrictId(Integer districtId);
+    List<DistrictWard> findByDistrictId(Integer districtId);
+
 }

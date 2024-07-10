@@ -9,4 +9,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
+    /**
+     * Find post by id post.
+     *
+     * @param id the id
+     * @return the post
+     */
+    Post findFirstById(Integer id);
 }
