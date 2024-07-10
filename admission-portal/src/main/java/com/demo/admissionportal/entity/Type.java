@@ -4,7 +4,9 @@ import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.entity.sub_entity.PostType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -15,6 +17,8 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "type")
 public class Type {
     @Id
@@ -37,12 +41,11 @@ public class Type {
     @Column(name = "update_by")
     private Integer updateBy;
 
-
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PostPropertiesStatus status;
 
-    @OneToOne(mappedBy = "type")
+    @ManyToOne
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private PostType postTypes;
 }

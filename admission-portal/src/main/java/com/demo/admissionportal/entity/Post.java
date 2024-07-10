@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * The type Post.
@@ -37,15 +38,12 @@ public class Post {
     @Column(name = "quote")
     private String quote;
 
-    @ColumnDefault("0")
-    @Column(name = "view")
+    @Column(name = "[view]")
     private Integer view;
 
-    @ColumnDefault("0")
-    @Column(name = "like")
+    @Column(name = "[like]")
     private Integer like;
 
-    @ColumnDefault("ACTIVE")
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PostStatus status;
@@ -60,12 +58,18 @@ public class Post {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @OneToOne(mappedBy = "post")
-    private PostTag postTags;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PostTag> postTags;
 
-    @OneToOne(mappedBy = "post")
-    private PostType postTypes ;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PostType> postTypes;
 
     @OneToOne(mappedBy = "post")
     private PostView postViews;
+
+    @Column(name = "create_by")
+    private Integer createBy;
+
+    @Column(name = "quota")
+    private Integer quota;
 }

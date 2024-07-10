@@ -6,7 +6,6 @@ import com.demo.admissionportal.entity.sub_entity.id.PostViewId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.util.Date;
 
@@ -29,11 +28,9 @@ public class PostView {
     @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
-    @ColumnDefault("0")
     @Column(name = "view_count")
     private Integer viewCount;
 
-    @ColumnDefault("0")
     @Column(name = "like_count")
     private Integer likeCount;
 

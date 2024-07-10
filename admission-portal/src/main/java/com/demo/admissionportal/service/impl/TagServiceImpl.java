@@ -23,24 +23,25 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public ResponseData<Tag> createTag(TagRequestDTO requestDTO) {
+    public Tag createTag(TagRequestDTO requestDTO) {
+        Tag result = null;
         try {
             if (requestDTO == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+                return null;
             }
             Tag tag = new Tag();
             tag.setName(requestDTO.getName());
             tag.setCreateBy(requestDTO.getCreate_by());
             tag.setCreateTime(new Date());
             tag.setStatus(PostPropertiesStatus.ACTIVE);
-            Tag result = tagRepository.save(tag);
+            result = tagRepository.save(tag);
             if (result != null) {
                 log.info("Tạo tag thành công: {}", result);
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo tag thành công", result);
+                return result;
             }
         } catch (Exception ex) {
             log.error("Xảy ra lỗi khi tạo tag: {}", ex.getMessage());
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tạo tag");
+        return result;
     }
 }

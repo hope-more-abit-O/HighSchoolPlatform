@@ -4,14 +4,13 @@ import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
-import com.demo.admissionportal.entity.sub_entity.ProvinceDistrict;
 
 import java.util.List;
 
 /**
  * The interface Province service.
  */
-public interface ProvinceService {
+public interface AddressService {
 
     /**
      * Find province response data.
@@ -34,5 +33,5 @@ public interface ProvinceService {
      * @param districtId the district id
      * @return the response data
      */
-    ResponseData<WardResponseDTO> findWard(Integer districtId);
+    ResponseData<List<WardResponseDTO>> findWard(Integer districtId);
 }

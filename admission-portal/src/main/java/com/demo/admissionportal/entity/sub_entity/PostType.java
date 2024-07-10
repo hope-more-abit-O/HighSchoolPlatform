@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.Type;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
@@ -7,7 +8,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Nationalized;
 
 import java.util.Date;
 
@@ -23,16 +23,15 @@ public class PostType {
     private PostTypeId id;
 
     @MapsId("postId")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
     private Post post;
 
     @MapsId("typeId")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "type_id")
     private Type type;
 
-    @NotNull
     @Column(name = "create_time")
     private Date createTime;
 
@@ -46,8 +45,7 @@ public class PostType {
     private Integer updateBy;
 
     @NotNull
-    @Nationalized
     @Column(name = "status")
-    private String status;
-
+    @Enumerated(EnumType.STRING)
+    private PostPropertiesStatus status;
 }

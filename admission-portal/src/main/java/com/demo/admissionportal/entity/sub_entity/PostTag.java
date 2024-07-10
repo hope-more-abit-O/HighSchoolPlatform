@@ -22,7 +22,7 @@ public class PostTag {
     private PostTagId id;
 
     @MapsId("postId")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
