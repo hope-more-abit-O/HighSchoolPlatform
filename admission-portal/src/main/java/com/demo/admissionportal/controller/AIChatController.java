@@ -1,10 +1,12 @@
 package com.demo.admissionportal.controller;
 
-import com.demo.admissionportal.dto.entity.chatgpt.GPTQARequest;
-import com.demo.admissionportal.entity.GPTQATraining;
+import com.demo.admissionportal.entity.Message;
 import com.demo.admissionportal.service.AIChatService;
-import com.demo.admissionportal.service.GPTQATrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,16 +17,26 @@ public class AIChatController {
     @Autowired
     private AIChatService aiChatService;
 
-    @Autowired
-    private GPTQATrainingService gptqaTrainingService;
-
     @PostMapping
     public String chat(@RequestBody String prompt) {
         return aiChatService.getChatResponse(prompt);
     }
 
-    @PostMapping("/question-answer-gpt")
-    public GPTQATraining addGQA(@RequestBody GPTQARequest gptqaRequest) {
-        return gptqaTrainingService.addQA(gptqaRequest.getQuestion(), gptqaRequest.getAnswer());
+    @MessageMapping("/chat.sendMessage")
+    @SendTo("/topic/public")
+    public Message sendMessage(
+            @Payload Message chatMessage
+    ) {
+        return chatMessage;
+    }
+
+    @MessageMapping("/chat.addUser")
+    @SendTo("/topic/public")
+    public Message addUser(
+            @Payload Message chatMessage,
+            SimpMessageHeaderAccessor headerAccessor
+    ) {
+        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        return chatMessage;
     }
 }
