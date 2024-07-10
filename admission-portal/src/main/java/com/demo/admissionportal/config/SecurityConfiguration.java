@@ -54,6 +54,7 @@ public class SecurityConfiguration {
 //                                .requestMatchers(SUBJECT_API, SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API, CHATBOT,
+                                        "/api/v1/chat-user/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
