@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.response.authen;
 
+import com.demo.admissionportal.constants.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -35,5 +36,6 @@ public class LoginResponseDTO implements Serializable {
         private String email;
         private String username;
         private String avatar;
+        private Role role;
     }
 }
