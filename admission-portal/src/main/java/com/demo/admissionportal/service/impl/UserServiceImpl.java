@@ -211,7 +211,7 @@ public class UserServiceImpl implements UserService {
     public User findById(Integer id) {
         return userRepository.findById(id).orElseThrow(() -> {
             log.error("User's account with id: {} not found.", id);
-            return new ResourceNotFoundException("User's account with id: " + id + " not found");
+            return new ResourceNotFoundException("Tài khoản với id: " + id + " không tìm thấy");
         });
     }
 

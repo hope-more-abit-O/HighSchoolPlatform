@@ -3,7 +3,9 @@ package com.demo.admissionportal.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
@@ -12,6 +14,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "method")
 public class Method {
@@ -53,4 +57,10 @@ public class Method {
     @Column(name = "status", nullable = false)
     private String status;
 
+    public Method(String code, String name, Integer createBy) {
+        this.code = code;
+        this.name = name;
+        this.createBy = createBy;
+        this.createTime = new Date();
+    }
 }

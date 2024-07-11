@@ -3,7 +3,9 @@ package com.demo.admissionportal.entity.admission;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
@@ -13,6 +15,8 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "admission")
 public class Admission {
     @Id
@@ -20,18 +24,12 @@ public class Admission {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 50)
-    @NotNull
-    @Nationalized
-    @Column(name = "name", nullable = false, length = 50)
-    private String name;
-
     @Size(max = 4)
     @NotNull
     @Column(name = "\"year\"", nullable = false, length = 4)
-    private String year;
+    private Integer year;
 
-    @Size(max = 200)
+    @Size(max = 400)
     @Nationalized
     @Column(name = "source", length = 200)
     private String source;
@@ -54,10 +52,19 @@ public class Admission {
 
     @Column(name = "update_time")
     private Date updateTime;
+
     @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("'PENDING'")
     @Column(name = "status", nullable = false)
     private String status;
+
+    public Admission(Integer year, String source, Integer universityId, Integer createBy) {
+        this.year = year;
+        this.source = source;
+        this.universityId = universityId;
+        this.createBy = createBy;
+        this.createTime = new Date();
+    }
 }

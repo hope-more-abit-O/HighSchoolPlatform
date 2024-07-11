@@ -83,8 +83,9 @@ public interface ConsultantService {
      *
      * @see FullConsultantResponseDTO
      */
+    FullConsultantResponseDTO getFullConsultantByIdByUniversity(Integer id) throws ResourceNotFoundException, NotAllowedException;
     FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException;
-
+    FullConsultantResponseDTO getSelfInfo() throws ResourceNotFoundException;
     ResponseData selfUpdateConsultantInfo(SelfUpdateConsultantInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException;
 
     ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request) throws ResourceNotFoundException, StoreDataFailedException;

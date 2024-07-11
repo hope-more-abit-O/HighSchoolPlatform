@@ -1,11 +1,14 @@
 package com.demo.admissionportal.exception;
 
 import com.demo.admissionportal.dto.response.ResponseData;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StoreDataFailedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseData<Object> handleStoreDataFailedException(StoreDataFailedException ex) {
-        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Lưu thông tin thất bại.", ex.getMessage());
+        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Lưu thông tin thất bại.", ex.getErrors());
     }
 
     /**
@@ -79,5 +82,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
         return new ResponseData<>(HttpStatus.UNAUTHORIZED.value(), "Không có quyền thực hiện.", ex.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, HttpServletRequest request) {
+
+        // Handle the exception here, e.g., return a custom error response.
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
     }
 }
