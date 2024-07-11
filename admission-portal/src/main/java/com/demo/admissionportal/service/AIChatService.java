@@ -10,5 +10,14 @@ public interface AIChatService {
      * @param prompt the prompt
      * @return the chat response
      */
-    String getChatResponse(String prompt);
+    String createSession();
+
+    /**
+     * Send message string.
+     *
+     * @param sessionUid the session uid
+     * @param message    the message
+     * @return the string
+     */
+    String sendMessage(String widgetUid, String sessionUid, String message);
 }

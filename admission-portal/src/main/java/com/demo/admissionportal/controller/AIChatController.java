@@ -2,19 +2,25 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.service.AIChatService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/chat")
+@RequestMapping("/api/v1/chatbot")
 @CrossOrigin
 public class AIChatController {
 
     @Autowired
     private AIChatService aiChatService;
 
-    @PostMapping
-    public String chat(@RequestBody String prompt) {
-        return aiChatService.getChatResponse(prompt);
+    @PostMapping("/createSession")
+    public String createSession() {
+        return aiChatService.createSession();
+    }
+
+    @PostMapping(value = "/sendMessage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public String sendMessage(@RequestParam String widgetUid, @RequestParam String sessionUid, @RequestParam String message) {
+        return aiChatService.sendMessage(widgetUid,sessionUid, message);
     }
 
 }
