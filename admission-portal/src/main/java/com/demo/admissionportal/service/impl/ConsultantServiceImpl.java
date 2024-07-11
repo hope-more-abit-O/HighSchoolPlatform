@@ -28,11 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.Collection;
 
 @Service
 @Slf4j
@@ -81,6 +84,28 @@ public class ConsultantServiceImpl implements ConsultantService {
      * @see ConsultantResponseDTO
      */
     @Override
+    public FullConsultantResponseDTO getFullConsultantByIdByUniversity(Integer id) throws ResourceNotFoundException {
+        Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        User consultantAccount = userService.findById(id);
+
+        if (!consultantAccount.getCreateBy().equals(universityId))
+            throw new NotAllowedException("Bạn không có quyền để xem thông tin của tư vấn viên này");
+
+        return new FullConsultantResponseDTO(
+                modelMapper.map(consultantAccount, FullUserResponseDTO.class),
+                mappingResponse(findInfoById(id))
+        );
+    }
+    @Override
+    public FullConsultantResponseDTO getSelfInfo() throws ResourceNotFoundException {
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return new FullConsultantResponseDTO(
+                userService.mappingResponse(userService.findById(consultantId)),
+                mappingResponse(findInfoById(consultantId))
+        );
+    }
+
+    @Override
     public FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException {
         return new FullConsultantResponseDTO(
                 modelMapper.map(userService.findById(id), FullUserResponseDTO.class),
@@ -88,46 +113,6 @@ public class ConsultantServiceImpl implements ConsultantService {
         );
     }
 
-    /**
-     * Creates a new consultant account and associated information.
-     *
-     * <p> This method processes a {@link CreateConsultantRequest}, validates
-     * the request data, creates a user account for the consultant (with the
-     * `CONSULTANT` role), and stores their personal information. It retrieves
-     *  the university ID from the currently authenticated user's context.
-     *
-     * <p>Example usage:
-     * <pre>
-     * {@code
-     * CreateConsultantRequest request = new CreateConsultantRequest();
-     * // ... populate the request object with consultant details ...
-     *
-     * try {
-     *     ResponseData response = consultantService.createConsultant(request);
-     *     // ... handle success (e.g., return response to the client)
-     * } catch (DataExistedException | StoreDataFailedException | ResourceNotFoundException e) {
-     *     // ... handle exceptions (log the error or return an error response)
-     * }
-     * }
-     * </pre>
-     *
-     * @param request  The {@link CreateConsultantRequest} object containing
-     *                 the new consultant's details.
-     * @return A {@link ResponseData} indicating successful creation of
-     *         the consultant account.
-     * @throws DataExistedException      If the username, email, or phone
-     *                                    number already exists.
-     * @throws StoreDataFailedException If there is an error saving the
-     *                                    consultant's account or information.
-     * @throws ResourceNotFoundException If province, district, or ward data is not found.
-     *
-     * @see CreateConsultantRequest
-     * @see ResponseData
-     * @see User
-     * @see ConsultantInfo
-     */
-    @Override
-    @Transactional
     public ResponseData createConsultant(CreateConsultantRequest request) throws DataExistedException,StoreDataFailedException,ResourceNotFoundException {
         log.info("Trimming request data");
         request.trim();
@@ -169,32 +154,6 @@ public class ConsultantServiceImpl implements ConsultantService {
         return ResponseData.created("Tạo tư vấn viên thành công.");
     }
 
-    /**
-     * Generates a {@link ConsultantResponseDTO} from a {@link ConsultantInfo} object.
-     *
-     * <p> This method maps the base information from the {@link ConsultantInfo} object
-     * to a {@link ConsultantResponseDTO}. Additionally, it retrieves and sets
-     * university details using the {@link UniversityService} and converts the
-     * consultant's name using the {@link ConsultantResponseDTO#convertName} method.
-     *
-     * <p>Example usage:
-     * <pre>
-     * {@code
-     * ConsultantInfo consultantInfo = // ... retrieve a ConsultantInfo object
-     * ConsultantResponseDTO responseDTO = generateConsultantResponse(consultantInfo);
-     * // ... further processing using the populated responseDTO
-     * }
-     * </pre>
-     *
-     * @param info The {@link ConsultantInfo} object used as the source for data.
-     * @return A fully populated {@link ConsultantResponseDTO} containing
-     *         information from the provided {@link ConsultantInfo} object, university details,
-     *         and a converted name.
-     *
-     * @see ConsultantInfo
-     * @see ConsultantResponseDTO
-     * @see UniversityService
-     */
     protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
         infoResponse.setName(NameUtils.getFullName(info.getFirstname(), info.getMiddleName(), info.getLastName()));
@@ -207,32 +166,6 @@ public class ConsultantServiceImpl implements ConsultantService {
         return infoResponse;
     }
 
-    /**
-     * Retrieves a {@link ConsultantInfo} entity by its ID.
-     *
-     * <p>This method attempts to find a consultant information record with the specified `id`.
-     * If a matching record is found, it's returned. Otherwise, a {@link ResourceNotFoundException} is thrown.
-     *
-     * <p>Example usage:
-     * <pre>
-     * {@code
-     * Integer consultantId = 123;
-     * try {
-     *     ConsultantInfo consultantInfo = consultantInfoService.findById(consultantId);
-     *     // ... process the retrieved consultantInfo
-     * } catch (ResourceNotFoundException e) {
-     *     // ... handle the exception, such as logging or returning an error response
-     * }
-     * }
-     * </pre>
-     *
-     * @param id The ID of the consultant information to retrieve.
-     * @return The {@link ConsultantInfo} entity if found.
-     * @throws ResourceNotFoundException If no consultant information with the given ID is found.
-     *
-     * @see ConsultantInfo
-     * @see ResourceNotFoundException
-     */
     public ConsultantInfo findInfoById(Integer id) throws ResourceNotFoundException{
         return consultantInfoRepository.findById(id).orElseThrow(() -> {
             log.error("Consultant's information with id: {} not found.", id);

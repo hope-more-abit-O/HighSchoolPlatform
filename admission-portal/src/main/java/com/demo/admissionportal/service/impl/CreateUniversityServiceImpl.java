@@ -163,6 +163,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 UniversityInfo universityInfo = new UniversityInfo(uni.getId(), createUniversityRequest);
                 universityInfoRepository.save(universityInfo);
                 log.info("Creating and storing University Information succeed");
+                log.info("Password: {}", password);
             }
 
             log.info("Updating and storing Create university request");

@@ -174,7 +174,7 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityInfo findById(Integer id) throws ResourceNotFoundException{
         return universityInfoRepository.findById(id).orElseThrow( () -> {
             log.error("University's information with id: {} not found.", id);
-            return new ResourceNotFoundException("University's information with id: " + id + " not found");
+            return new ResourceNotFoundException("Thông tin trường học với id: " + id + " không tìm thấy");
         });
     }
 
