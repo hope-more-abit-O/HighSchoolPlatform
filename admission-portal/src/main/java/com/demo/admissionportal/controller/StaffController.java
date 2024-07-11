@@ -19,9 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,20 +45,19 @@ public class StaffController {
     /**
      * Handles the submission of a university creation request.
      *
-     * <p> This endpoint receives a request to create a new university
+     * <p>This endpoint receives a request to create a new university
      * and delegates the processing to the `CreateUniversityService`.
      *
      * @param request The creation request data provided in the request body (JSON).
-     * @return        A ResponseEntity containing the operation's result (success or failure details)
-     *                and an appropriate HTTP status code.
-     * @throws DataExistedException  If the request conflicts with existing data (e.g., duplicate names).
-     *
+     * @return A ResponseEntity containing the operation's result (success or failure details)
+     *         and an appropriate HTTP status code.
+     * @throws DataExistedException If the request conflicts with existing data (e.g., duplicate names).
      * @see CreateUniversityRequestRequest
      * @see ResponseData
      */
     @PostMapping("/create-university")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<?> sendCreateUniversityRequest(@RequestBody @Valid CreateUniversityRequestRequest request){
+    public ResponseEntity<?> sendCreateUniversityRequest(@RequestBody @Valid CreateUniversityRequestRequest request) {
         ResponseData<PostCreateUniversityRequestResponse> response = createUniversityService.createCreateUniversityRequest(request);
         if (response.getStatus() != ResponseCode.C200.getCode())
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
@@ -68,10 +65,14 @@ public class StaffController {
     }
 
     /**
-     * Gets staff by id.
+     * Retrieves a staff member's details by their ID.
      *
-     * @param id the id
-     * @return the staff by id
+     * <p>Fetches detailed information about a staff member using their unique identifier and returns
+     * the data as a response.
+     *
+     * @param id The unique identifier of the staff member to retrieve.
+     * @return A ResponseEntity containing staff details with a suitable HTTP status
+     *         (e.g., 200 OK for success, 404 Not Found if the staff member is not found).
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
@@ -89,11 +90,13 @@ public class StaffController {
     }
 
     /**
-     * Update staff response entity.
+     * Updates the details of a staff member.
      *
-     * @param request the request
-     * @param id      the id
-     * @return the response entity
+     * <p>Receives updated staff details and processes the update request.
+     *
+     * @param request The request containing the updated staff details.
+     * @param id      The unique identifier of the staff member to update.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
@@ -112,20 +115,21 @@ public class StaffController {
     }
 
     /**
-     * Gets user.
+     * Retrieves a list of users based on search criteria.
      *
-     * @param username the username
-     * @param email    the email
-     * @param pageable the pageable
-     * @return the user
+     * <p>Fetches a paginated list of users based on optional username and email parameters.
+     *
+     * @param username The username to search for (optional).
+     * @param email    The email to search for (optional).
+     * @param pageable The pagination information.
+     * @return A ResponseEntity containing the paginated list of users and a suitable HTTP status.
      */
     @GetMapping("/list/users")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, email, pageable);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
@@ -136,17 +140,19 @@ public class StaffController {
     }
 
     /**
-     * Change status response entity.
+     * Changes the status of a user.
      *
-     * @param id         the id
-     * @param requestDTO the request dto
-     * @return the response entity
+     * <p>Receives a request to change the status of a user and processes it.
+     *
+     * @param id         The unique identifier of the user to change the status of.
+     * @param requestDTO The request containing the new status details.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
     @PostMapping("/user/{id}/change-status")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
-            new ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Invalid request"));
         }
         ResponseData<ChangeStatusUserRequestDTO> user = userService.changeStatus(id, requestDTO);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
@@ -156,21 +162,44 @@ public class StaffController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
+
+    /**
+     * Retrieves a list of all subjects based on search criteria.
+     *
+     * <p>Fetches a paginated list of subjects based on optional name and status parameters.
+     *
+     * @param name     The name of the subject to search for (optional).
+     * @param status   The status of the subject to search for (optional).
+     * @param pageable The pagination information.
+     * @return A ResponseEntity containing the paginated list of subjects and a suitable HTTP status.
+     */
     @GetMapping("/list-all-subjects")
     public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) SubjectStatus status,
             Pageable pageable) {
-
         ResponseData<Page<SubjectResponseDTO>> result = subjectService.findAll(name, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    /**
+     * Retrieves a subject's details by its ID.
+     *
+     * <p>Fetches detailed information about a subject using its unique identifier and returns
+     * the data as a response.
+     *
+     * @param id The unique identifier of the subject to retrieve.
+     * @return A ResponseEntity containing subject details with a suitable HTTP status
+     *         (e.g., 200 OK for success, 404 Not Found if the subject is not found).
+     */
     @GetMapping("/get-subject/{id}")
     public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
-        ResponseData<Subject> response = subjectService.getSubjectById(id);
+        ResponseData<
+
+                Subject> response = subjectService.getSubjectById(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -180,10 +209,28 @@ public class StaffController {
         }
     }
 
+    /**
+     * Retrieves university details by its ID.
+     *
+     * <p>Fetches detailed information about a university using its unique identifier and returns
+     * the data as a response.
+     *
+     * @param id The unique identifier of the university to retrieve.
+     * @return A ResponseEntity containing university details with a suitable HTTP status.
+     */
     @GetMapping("/university/{id}")
     public ResponseEntity<UniversityFullResponseDTO> getUniversityInfoById(@PathVariable Integer id) {
         return ResponseEntity.ok(universityService.getUniversityFullResponseById(id));
     }
+
+    /**
+     * Creates a new subject.
+     *
+     * <p>Receives a request to create a new subject and processes it.
+     *
+     * @param requestSubjectDTO The request containing the subject details.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @PostMapping("/create-subject")
     public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
         ResponseData<Subject> createdSubject = subjectService.createSubject(requestSubjectDTO);
@@ -193,6 +240,15 @@ public class StaffController {
             return ResponseEntity.status(createdSubject.getStatus()).body(createdSubject);
         }
     }
+
+    /**
+     * Activates a subject by its ID.
+     *
+     * <p>Receives a request to activate a subject and processes it.
+     *
+     * @param id The unique identifier of the subject to activate.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @PutMapping("/activate-subject/{id}")
     public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
         ResponseData<?> response = subjectService.activateSubject(id);
@@ -204,8 +260,17 @@ public class StaffController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    /**
+     * Deletes a subject by its ID.
+     *
+     * <p>Receives a request to delete a subject and processes it.
+     *
+     * @param id The unique identifier of the subject to delete.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @DeleteMapping("/delete-subject/{id}")
-    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id){
+    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id) {
         ResponseData<?> response = subjectService.deleteSubject(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -215,21 +280,38 @@ public class StaffController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    /**
+     * Creates a new subject group.
+     *
+     * <p>Receives a request to create a new subject group and processes it.
+     *
+     * @param request The request containing the subject group details.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @PostMapping("/create-subject-group")
     public ResponseEntity<ResponseData<?>> createSubjectGroup(@Valid @RequestBody CreateSubjectGroupRequestDTO request) {
-        if (request == null ) {
+        if (request == null) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Request cannot be null or empty"));
         }
         ResponseData<?> response = subjectGroupService.createSubjectGroup(request);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
-        }
-        else if (response.getStatus() == ResponseCode.C204.getCode()) {
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Updates the details of a subject group.
+     *
+     * <p>Receives updated subject group details and processes the update request.
+     *
+     * @param id      The unique identifier of the subject group to update.
+     * @param request The request containing the updated subject group details.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @PutMapping("/update-subject-group/{id}")
     public ResponseEntity<ResponseData<?>> updateSubjectGroup(@PathVariable Integer id, @RequestBody UpdateSubjectGroupRequestDTO request) {
         ResponseData<?> response = subjectGroupService.updateSubjectGroup(id, request);
@@ -242,6 +324,15 @@ public class StaffController {
         }
     }
 
+    /**
+     * Retrieves a subject group's details by its ID.
+     *
+     * <p>Fetches detailed information about a subject group using its unique identifier and returns
+     * the data as a response.
+     *
+     * @param id The unique identifier of the subject group to retrieve.
+     * @return A ResponseEntity containing subject group details with a suitable HTTP status.
+     */
     @GetMapping("/get-subject-group/{id}")
     public ResponseEntity<ResponseData<?>> getSubjectGroupById(@PathVariable Integer id) {
         ResponseData<?> response = subjectGroupService.getSubjectGroupById(id);
@@ -253,6 +344,18 @@ public class StaffController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    /**
+     * Retrieves a list of all subject groups based on search criteria.
+     *
+     * <p>Fetches a paginated list of subject groups based on optional group name, subject name, and status parameters.
+     *
+     * @param groupName   The name of the group to search for (optional).
+     * @param subjectName The name of the subject to search for (optional).
+     * @param status      The status of the subject group to search for (optional).
+     * @param pageable    The pagination information.
+     * @return A ResponseEntity containing the paginated list of subject groups and a suitable HTTP status.
+     */
     @GetMapping("/list-all-subject-groups")
     public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(
             @RequestParam(required = false) String groupName,
@@ -265,6 +368,15 @@ public class StaffController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    /**
+     * Activates a subject group by its ID.
+     *
+     * <p>Receives a request to activate a subject group and processes it.
+     *
+     * @param id The unique identifier of the subject group to activate.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @PutMapping("/activate-subject-group/{id}")
     public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
         ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
@@ -273,8 +385,17 @@ public class StaffController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    /**
+     * Deletes a subject group by its ID.
+     *
+     * <p>Receives a request to delete a subject group and processes it.
+     *
+     * @param id The unique identifier of the subject group to delete.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     */
     @DeleteMapping("/delete-subject-group/{id}")
-    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id){
+    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
         ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

@@ -1,10 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.repository.ConsultantInfoRepository;
-import com.demo.admissionportal.repository.UniversityInfoRepository;
-import com.demo.admissionportal.repository.UserInfoRepository;
-import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +22,7 @@ public class ValidationServiceImpl implements ValidationService {
     private final ConsultantInfoRepository consultantInfoRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final UserInfoRepository userInfoRepository;
+    private final StaffInfoRepository staffInfoRepository;
 
     /**
      * Checks if a username is already taken.
@@ -138,7 +136,8 @@ public class ValidationServiceImpl implements ValidationService {
         log.info("Checking phone number availability.");
         boolean phoneAlreadyExists = Stream.of(
                 userInfoRepository.findFirstByPhone(phone),
-                consultantInfoRepository.findFirstByPhone(phone)
+                consultantInfoRepository.findFirstByPhone(phone),
+                staffInfoRepository.findFirstByPhone(phone)
         ).anyMatch(Optional::isPresent);
         if (phoneAlreadyExists) {
             log.error("Phone number: {} is already taken!", phone);

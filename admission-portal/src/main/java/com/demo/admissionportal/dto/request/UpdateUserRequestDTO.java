@@ -27,13 +27,13 @@ import java.util.Date;
 @Valid
 public class UpdateUserRequestDTO implements Serializable {
     @NotNull(message = "Họ tên không được để trống")
-    private String firstname;
+    private String firstName;
 
     @NotNull(message = "Tên đệm không được để trống")
-    private String middle_name;
+    private String middleName;
 
     @NotNull(message = "Tên không được để trống")
-    private String lastname;
+    private String lastName;
 
     @PastOrPresent(message = "Ngày sinh không được vượt ngày hiện tại")
     @Temporal(TemporalType.DATE)

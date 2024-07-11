@@ -82,7 +82,6 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "note")
     private String note;
 
-
     @Override
     public String getEmail() {
         return email;

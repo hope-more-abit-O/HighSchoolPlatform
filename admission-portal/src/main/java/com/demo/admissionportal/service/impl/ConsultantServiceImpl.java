@@ -48,7 +48,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
     private final UserService userService;
-    private final ProvinceServiceImpl provinceServiceImpl;
+    private final AddressServiceImpl addressServiceImpl;
     private final DistrictServiceImpl districtServiceImpl;
     private final EmailUtil emailUtil;
     private final WardServiceImpl wardServiceImpl;
@@ -220,7 +220,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     private void updateConsultantAddress(ConsultantInfo consultantInfo, UpdateConsultantAddressRequest request)
             throws StoreDataFailedException, ResourceNotFoundException {
         consultantInfo.setSpecificAddress(request.getSpecificAddress());
-        consultantInfo.setProvince(provinceServiceImpl.findById(request.getProvinceId()));
+        consultantInfo.setProvince(addressServiceImpl.findById(request.getProvinceId()));
         consultantInfo.setWard(wardServiceImpl.findById(request.getWardId()));
         consultantInfo.setDistrict(districtServiceImpl.findById(request.getDistrictId()));
 

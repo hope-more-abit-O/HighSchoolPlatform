@@ -1,9 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
-import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Tag;
 import com.demo.admissionportal.repository.TagRepository;
 import com.demo.admissionportal.service.TagService;
@@ -23,24 +21,43 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public ResponseData<Tag> createTag(TagRequestDTO requestDTO) {
+    public Tag createTag(TagRequestDTO requestDTO) {
+        Tag result = null;
         try {
             if (requestDTO == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+                return null;
             }
             Tag tag = new Tag();
             tag.setName(requestDTO.getName());
             tag.setCreateBy(requestDTO.getCreate_by());
             tag.setCreateTime(new Date());
             tag.setStatus(PostPropertiesStatus.ACTIVE);
-            Tag result = tagRepository.save(tag);
+            result = tagRepository.save(tag);
             if (result != null) {
                 log.info("Tạo tag thành công: {}", result);
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo tag thành công", result);
+                return result;
             }
         } catch (Exception ex) {
             log.error("Xảy ra lỗi khi tạo tag: {}", ex.getMessage());
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tạo tag");
+        return result;
+    }
+
+    @Override
+    public Tag checkTagExisted(String tagName) {
+        Tag checkTag = null;
+        try {
+            if (tagName == null) {
+                return null;
+            }
+            checkTag = tagRepository.findTagByname(tagName);
+            if (checkTag != null) {
+                log.info("Tìm tag thành công: {}", checkTag);
+                return checkTag;
+            }
+        } catch (Exception ex) {
+            log.error("Xảy ra lỗi khi tìm tag: {}", ex.getMessage());
+        }
+        return checkTag;
     }
 }
