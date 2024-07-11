@@ -1,8 +1,6 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
-import com.demo.admissionportal.entity.sub_entity.PostType;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,8 +42,4 @@ public class Type {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PostPropertiesStatus status;
-
-    @ManyToOne
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private PostType postTypes;
 }

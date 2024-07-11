@@ -10,8 +10,16 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
     /**
      * Find tag by id tag.
      *
-     * @param Id the id
+     * @param id the id
      * @return the tag
      */
     Tag findTagById(Integer id);
+
+    /**
+     * Find by name tag.
+     *
+     * @param name the name
+     * @return the tag
+     */
+    Tag findTagByname(String name);
 }

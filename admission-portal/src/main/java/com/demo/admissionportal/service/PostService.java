@@ -2,8 +2,9 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
+import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.sub_entity.PostType;
+import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 
 import java.util.List;
 
@@ -17,13 +18,36 @@ public interface PostService {
      * @param requestDTO the request dto
      * @return the post
      */
-    ResponseData<List<PostType>> createPost(PostRequestDTO requestDTO);
+    ResponseData<PostResponseDTO> createPost(PostRequestDTO requestDTO);
 
     /**
-     * Delete post response data.
+     * Change status response data.
      *
      * @param requestDTO the request dto
      * @return the response data
      */
-    ResponseData<String> deletePost(PostDeleteRequestDTO requestDTO);
+    ResponseData<String> changeStatus(PostDeleteRequestDTO requestDTO);
+
+    /**
+     * Update post response data.
+     *
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO);
+
+    /**
+     * Gets posts.
+     *
+     * @return the posts
+     */
+    ResponseData<List<PostResponseDTO>> getPosts();
+
+    /**
+     * Gets posts by id.
+     *
+     * @param id the id
+     * @return the posts by id
+     */
+    ResponseData<PostResponseDTO> getPostsById(Integer id);
 }
