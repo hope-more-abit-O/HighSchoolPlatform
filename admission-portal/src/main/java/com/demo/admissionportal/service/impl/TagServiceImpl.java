@@ -1,9 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
-import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Tag;
 import com.demo.admissionportal.repository.TagRepository;
 import com.demo.admissionportal.service.TagService;
@@ -43,5 +41,23 @@ public class TagServiceImpl implements TagService {
             log.error("Xảy ra lỗi khi tạo tag: {}", ex.getMessage());
         }
         return result;
+    }
+
+    @Override
+    public Tag checkTagExisted(String tagName) {
+        Tag checkTag = null;
+        try {
+            if (tagName == null) {
+                return null;
+            }
+            checkTag = tagRepository.findTagByname(tagName);
+            if (checkTag != null) {
+                log.info("Tìm tag thành công: {}", checkTag);
+                return checkTag;
+            }
+        } catch (Exception ex) {
+            log.error("Xảy ra lỗi khi tìm tag: {}", ex.getMessage());
+        }
+        return checkTag;
     }
 }

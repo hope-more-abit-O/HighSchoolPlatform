@@ -14,4 +14,12 @@ public interface TagService {
      * @return the respones data
      */
     Tag createTag(TagRequestDTO requestDTO);
+
+    /**
+     * Check tag existed tag.
+     *
+     * @param tagName the tag name
+     * @return the tag
+     */
+    Tag checkTagExisted(String tagName);
 }

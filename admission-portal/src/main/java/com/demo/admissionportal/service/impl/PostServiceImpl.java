@@ -6,7 +6,9 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
+import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.Tag;
 import com.demo.admissionportal.entity.Type;
@@ -15,7 +17,6 @@ import com.demo.admissionportal.entity.sub_entity.PostType;
 import com.demo.admissionportal.entity.sub_entity.PostView;
 import com.demo.admissionportal.entity.sub_entity.id.PostTagId;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
-import com.demo.admissionportal.entity.sub_entity.id.PostViewId;
 import com.demo.admissionportal.repository.PostRepository;
 import com.demo.admissionportal.repository.TagRepository;
 import com.demo.admissionportal.repository.TypeRepository;
@@ -24,13 +25,13 @@ import com.demo.admissionportal.repository.sub_repository.PostTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.PostViewRepository;
 import com.demo.admissionportal.service.PostService;
 import com.demo.admissionportal.service.TagService;
+import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The type Post service.
@@ -46,9 +47,10 @@ public class PostServiceImpl implements PostService {
     private final TagService tagService;
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
+    private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
 
     @Override
-    public ResponseData<List<PostType>> createPost(PostRequestDTO requestDTO) {
+    public ResponseData<PostResponseDTO> createPost(PostRequestDTO requestDTO) {
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
@@ -71,27 +73,68 @@ public class PostServiceImpl implements PostService {
                 throw new Exception("Save post view thất bại!");
             }
 
-            // Insert Tags
+            // Check Tag Name if user input duplicate
+            List<String> checkTagDuplicate = validateDuplicateTag(requestDTO.getListTag());
+            if (!checkTagDuplicate.isEmpty()) {
+                throw new Exception("Không được nhập tag trùng nhau");
+            }
             // Store list Tags
             List<Integer> tagIds = new ArrayList<>();
+
+            // Insert Tags
             Tag tagsSaved = tagSave(requestDTO.getListTag(), post, tagIds);
             if (tagsSaved == null) {
                 throw new Exception("Save tag thất bại!");
             }
 
-            // Insert Tag Tag
+            // Insert Tag post
             for (Integer tagId : tagIds) {
                 PostTag postTagSaved = postTagSave(tagId, post);
                 if (postTagSaved == null) {
                     throw new Exception("Save tag post thất bại!");
                 }
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo post thành công", postTypes);
+
+            List<Type> listType = new ArrayList<>();
+            for (Integer type : requestDTO.getListType()) {
+                Type listTypeById = typeRepository.findTypeById(type);
+                listType.add(listTypeById);
+            }
+            List<PostResponseDTO.TypeResponseDTO> typeResponseDTOList = mapToTypeResponseDTOList(listType);
+
+
+            List<Tag> listTag = new ArrayList<>();
+            for (Integer tag : tagIds) {
+                Tag listTagById = tagRepository.findTagById(tag);
+                listTag.add(listTagById);
+            }
+            List<PostResponseDTO.TagResponseDTO> tagResponseDTOList = mapToTagResponseDTOList(listTag);
+
+            PostResponseDTO responseDTO = PostResponseDTO.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .thumnail(post.getThumnail())
+                    .quote(post.getQuote())
+                    .view(post.getView())
+                    .like(post.getLike())
+                    .status(post.getStatus())
+                    .create_time(post.getCreateTime())
+                    .create_by(post.getCreateBy())
+                    .update_time(post.getUpdateTime())
+                    .url(post.getUrl())
+                    .create_by(post.getCreateBy())
+                    .listType(typeResponseDTOList)
+                    .listTag(tagResponseDTOList)
+                    .build();
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo post thành công", responseDTO);
         } catch (Exception ex) {
             log.error("Error when create post: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
         }
     }
+
 
     private PostTag postTagSave(Integer tagId, Post post) {
         try {
@@ -116,15 +159,20 @@ public class PostServiceImpl implements PostService {
     }
 
     private Tag tagSave(List<String> tags, Post post, List<Integer> tagIds) {
-        Tag result = null;
+        Tag result = new Tag();
         try {
             for (String tagName : tags) {
-                TagRequestDTO requestDTO = new TagRequestDTO();
-                requestDTO.setName(tagName.trim());
-                requestDTO.setCreate_by(post.getCreateBy());
-                result = tagService.createTag(requestDTO);
-                if (result == null) {
-                    return null;
+                Tag checkTagNameExisted = tagService.checkTagExisted(tagName);
+                // Case 1 : Check tag name is existed in database
+                if (checkTagNameExisted == null) {
+                    TagRequestDTO requestDTO = new TagRequestDTO();
+                    requestDTO.setName(tagName.trim());
+                    requestDTO.setCreate_by(post.getCreateBy());
+                    result = tagService.createTag(requestDTO);
+
+                    // Case 2 : If not then add in database
+                } else {
+                    result = checkTagNameExisted;
                 }
                 tagIds.add(result.getId());
             }
@@ -141,13 +189,12 @@ public class PostServiceImpl implements PostService {
             post.setTitle(requestDTO.getTitle());
             post.setContent(requestDTO.getContent());
             post.setThumnail(requestDTO.getThumnail());
-            post.setQuote(requestDTO.getQuote());
             post.setCreateBy(requestDTO.getCreate_by());
             post.setCreateTime(new Date());
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
-            post.setQuota(0);
+            post.setUrl("/" + requestDTO.getTitle() + "/" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -178,16 +225,13 @@ public class PostServiceImpl implements PostService {
 
     private PostView postViewSave(Integer createBy, Post post) {
         try {
-            PostViewId postViewId = new PostViewId();
-            postViewId.setPostId(post.getId());
-            postViewId.setCreateTime(new Date());
             PostView postView = new PostView();
-            postView.setId(postViewId);
+            postView.setId(post.getId());
+            postView.setCreateTime(post.getCreateTime());
             postView.setViewCount(0);
             postView.setLikeCount(0);
             postView.setCreateBy(createBy);
             postView.setStatus(PostPropertiesStatus.ACTIVE);
-            postView.setPost(post);
             return postViewRepository.save(postView);
         } catch (Exception ex) {
             log.error("Error when save post view: {}", ex.getMessage());
@@ -196,11 +240,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<String> deletePost(PostDeleteRequestDTO requestDTO) {
+    public ResponseData<String> changeStatus(PostDeleteRequestDTO requestDTO) {
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
             }
+
             // Remove post
             Post resultChangeStatusPost = changeStatusPost(requestDTO);
             if (resultChangeStatusPost == null) {
@@ -210,26 +255,20 @@ public class PostServiceImpl implements PostService {
             List<Integer> tagIds = new ArrayList<>();
             List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds);
             if (resultChangeStatusPostTag == null) {
-                throw new Exception("Xoá post tag thất bại");
+                throw new Exception("Thay đổi trạng thái  post tag thất bại");
             }
-            // Remove tag
-            boolean resultChangeStatusTag = changeStatusTag(requestDTO, tagIds);
-            if (!resultChangeStatusTag) {
-                throw new Exception("Xoá tag thất bại");
-            }
-
             // Remove Post Type
             boolean resultChangeStatusPostType = changeStatusPostType(requestDTO);
             if (!resultChangeStatusPostType) {
-                throw new Exception("Xoá post type thất bại");
+                throw new Exception("Thay đổi trạng thái  post type thất bại");
             }
 
             // Remove Post View
             boolean resultChangeStatusPostView = changeStatusPostView(requestDTO);
             if (!resultChangeStatusPostView) {
-                throw new Exception("Xoá post type thất bại");
+                throw new Exception("Thay đổi trạng thái post view thất bại");
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá thành công");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Thay đổi trạng thái thành công");
         } catch (Exception ex) {
             log.error("Error when delete post: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
@@ -238,11 +277,15 @@ public class PostServiceImpl implements PostService {
 
     private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO) {
         try {
-            PostView postView = postViewRepository.findByPostId(requestDTO.getPostId());
+            PostView postView = postViewRepository.findPostViewById(requestDTO.getPostId());
             if (postView == null) {
                 return false;
             }
-            postView.setStatus(PostPropertiesStatus.INACTIVE);
+            if (postView.getStatus().equals(PostPropertiesStatus.INACTIVE)) {
+                postView.setStatus(PostPropertiesStatus.ACTIVE);
+            } else {
+                postView.setStatus(PostPropertiesStatus.INACTIVE);
+            }
             postView.setUpdateTime(new Date());
             postView.setUpdateBy(requestDTO.getUserId());
             postViewRepository.save(postView);
@@ -257,7 +300,11 @@ public class PostServiceImpl implements PostService {
         try {
             List<PostType> posts = postTypeRepository.findPostTypeByPostId(requestDTO.getPostId());
             for (PostType post : posts) {
-                post.setStatus(PostPropertiesStatus.INACTIVE);
+                if (post.getStatus().equals(PostPropertiesStatus.INACTIVE)) {
+                    post.setStatus(PostPropertiesStatus.ACTIVE);
+                } else {
+                    post.setStatus(PostPropertiesStatus.INACTIVE);
+                }
                 post.setUpdateTime(new Date());
                 post.setUpdateBy(requestDTO.getUserId());
                 postTypeRepository.save(post);
@@ -269,20 +316,6 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds) {
-        try {
-            for (Integer tagId : tagIds) {
-                Tag tag = tagRepository.findTagById(tagId);
-                tag.setStatus(PostPropertiesStatus.INACTIVE);
-                tag.setUpdateTime(new Date());
-                tag.setUpdateBy(requestDTO.getUserId());
-            }
-            return true;
-        } catch (Exception ex) {
-            log.error("Error when remove tag : {}", ex.getMessage());
-            return false;
-        }
-    }
 
     private Post changeStatusPost(PostDeleteRequestDTO requestDTO) {
         try {
@@ -290,7 +323,11 @@ public class PostServiceImpl implements PostService {
             if (post == null) {
                 return null;
             }
-            post.setStatus(PostStatus.INACTIVE);
+            if (post.getStatus().equals(PostStatus.INACTIVE)) {
+                post.setStatus(PostStatus.ACTIVE);
+            } else {
+                post.setStatus(PostStatus.INACTIVE);
+            }
             post.setUpdateTime(new Date());
             post.setUpdateBy(requestDTO.getUserId());
             return postRepository.save(post);
@@ -308,7 +345,11 @@ public class PostServiceImpl implements PostService {
                 return null;
             }
             for (PostTag postTag : postTagList) {
-                postTag.setStatus(PostPropertiesStatus.INACTIVE);
+                if (postTag.getStatus().equals(PostPropertiesStatus.INACTIVE)) {
+                    postTag.setStatus(PostPropertiesStatus.ACTIVE);
+                } else {
+                    postTag.setStatus(PostPropertiesStatus.INACTIVE);
+                }
                 postTag.setUpdateTime(new Date());
                 postTag.setUpdateBy(requestDTO.getUserId());
                 tagIds.add(postTag.getId().getTagId());
@@ -319,5 +360,230 @@ public class PostServiceImpl implements PostService {
             log.error("Error when remove post tag : {}", ex.getMessage());
             return null;
         }
+    }
+
+
+    @Override
+    public ResponseData<List<PostResponseDTO>> getPosts() {
+        try {
+            List<Post> posts = postRepository.findAll();
+            List<PostResponseDTO> result = posts.stream()
+                    .map(this::mapToPostResponseDTO)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách post", result);
+        } catch (Exception ex) {
+            log.error("Error when get posts:{}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseData<PostResponseDTO> getPostsById(Integer id) {
+        try {
+            Post posts = postRepository.findFirstById(id);
+            PostResponseDTO result = mapToPostResponseDTO(posts);
+            if (result != null) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với Id: " + id, result);
+            }
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với Id:" + id);
+
+        } catch (Exception ex) {
+            log.error("Error when get posts with id {}:", id);
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO) {
+        try {
+            if (requestDTO == null || requestDTO.getPostId() == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+
+            // Update post
+            Post existingPost = postRepository.findFirstById(requestDTO.getPostId());
+            if (existingPost == null) {
+                throw new Exception("Không tìm thấy post");
+            }
+            existingPost.setTitle(requestDTO.getTitle());
+            existingPost.setContent(requestDTO.getContent());
+            existingPost.setUpdateTime(new Date());
+            existingPost.setThumnail(requestDTO.getThumnail());
+            existingPost.setQuote(requestDTO.getQuote());
+            existingPost.setUrl("/" + requestDTO.getTitle() + "/" + randomCodeGeneratorUtil.generateRandomString());
+            existingPost.setUpdateBy(requestDTO.getUpdate_by());
+            postRepository.save(existingPost);
+
+            // Update Post Types
+            updatePostType(existingPost, requestDTO.getListType(), requestDTO.getUpdate_by());
+
+            // Update Tag
+            updatePostTag(existingPost, requestDTO.getListTag(), requestDTO.getUpdate_by());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật post thành công");
+        } catch (Exception ex) {
+            log.error("Error when update post : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+
+    private void updatePostTag(Post existingPost, List<String> listTag, Integer updateBy) {
+        // Get List Post Tag
+        List<PostTag> existingPostTags = postTagRepository.findPostTagByPostId(existingPost.getId());
+        List<String> listTagName = new ArrayList<>(listTag);
+        // Check tag post is existed
+        for (PostTag postTag : existingPostTags) {
+            String existingTagName = postTag.getTag().getName();
+            // Case 1: Tag not existed in db and delete it
+            if (!listTag.contains(existingTagName)) {
+                postTagRepository.delete(postTag);
+            } else {
+                // Case 2 : Tag existed in db , just update
+                postTag.setUpdateTime(new Date());
+                postTag.setUpdateBy(updateBy);
+                postTagRepository.save(postTag);
+                // Remove index of list tag
+                listTagName.remove(existingTagName);
+            }
+        }
+        // Case 1.1: Find tag if not existed in tag table , then add it
+        for (String tagName : listTagName) {
+            Tag tag = tagRepository.findTagByname(tagName);
+            // Case 1.2:  Find tag not in db then insert tag
+            if (tag == null) {
+                tag = new Tag();
+                tag.setName(tagName);
+                tag.setCreateTime(new Date());
+                tag.setCreateBy(updateBy);
+                tag.setStatus(PostPropertiesStatus.ACTIVE);
+                tagRepository.save(tag);
+            }
+            // Case 1.3: If tag existed in then insert post tag
+            PostTag postTag = getPostTag(existingPost, updateBy, tag);
+            postTagRepository.save(postTag);
+        }
+    }
+
+    private static PostTag getPostTag(Post existingPost, Integer updateBy, Tag tag) {
+        PostTagId postTagId = new PostTagId();
+        postTagId.setPostId(existingPost.getId());
+        postTagId.setTagId(tag.getId());
+        PostTag postTag = new PostTag();
+        postTag.setId(postTagId);
+        postTag.setPost(existingPost);
+        postTag.setTag(tag);
+        postTag.setCreateTime(new Date());
+        postTag.setCreateBy(updateBy);
+        postTag.setStatus(PostPropertiesStatus.ACTIVE);
+        return postTag;
+    }
+
+    private void updatePostType(Post existingPost, List<Integer> listType, Integer updateBy) {
+        // Get List Post types
+        List<PostType> existingPostTypes = postTypeRepository.findPostTypeByPostId(existingPost.getId());
+
+        // Remove old post types not in existingPostTypes
+        for (PostType postType : existingPostTypes) {
+            if (!listType.contains(postType.getId().getTypeId())) {
+                postTypeRepository.delete(postType);
+            }
+        }
+        // Add or update new post types
+        for (Integer typeId : listType) {
+            Type type = typeRepository.findById(typeId)
+                    .orElseThrow(() -> new RuntimeException("Type not found"));
+
+            PostTypeId postTypeId = new PostTypeId(existingPost.getId(), typeId);
+            PostType postType = postTypeRepository.findById(postTypeId).orElse(null);
+
+            if (postType == null) {
+                postType = new PostType();
+                postType.setId(postTypeId);
+                postType.setType(type);
+                postType.setPost(existingPost);
+                postType.setCreateTime(new Date());
+                postType.setCreateBy(updateBy);
+            } else {
+                postType.setUpdateTime(new Date());
+                postType.setUpdateBy(updateBy);
+            }
+            postType.setStatus(PostPropertiesStatus.ACTIVE);
+            postTypeRepository.save(postType);
+        }
+    }
+
+
+    private PostResponseDTO.TypeResponseDTO mapToTypeResponseDTO(Type type) {
+        return PostResponseDTO.TypeResponseDTO.builder()
+                .id(type.getId())
+                .name(type.getName())
+                .build();
+    }
+
+    private List<PostResponseDTO.TypeResponseDTO> mapToTypeResponseDTOList(List<Type> types) {
+        return types.stream()
+                .map(this::mapToTypeResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private PostResponseDTO.TagResponseDTO mapToTagResponseDTO(Tag tag) {
+        return PostResponseDTO.TagResponseDTO.builder()
+                .id(tag.getId())
+                .name(tag.getName())
+                .build();
+    }
+
+
+    private List<PostResponseDTO.TagResponseDTO> mapToTagResponseDTOList(List<Tag> tags) {
+        return tags.stream()
+                .map(this::mapToTagResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private PostResponseDTO mapToPostResponseDTO(Post post) {
+        List<PostResponseDTO.TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> PostResponseDTO.TypeResponseDTO.builder()
+                        .id(postType.getType().getId())
+                        .name(postType.getType().getName())
+                        .build())
+                .collect(Collectors.toList());
+        List<PostResponseDTO.TagResponseDTO> tagResponseDTOList = post.getPostTags()
+                .stream()
+                .map(postTag -> PostResponseDTO.TagResponseDTO.builder()
+                        .id(postTag.getTag().getId())
+                        .name(postTag.getTag().getName())
+                        .build())
+                .collect(Collectors.toList());
+        return PostResponseDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .thumnail(post.getThumnail())
+                .quote(post.getQuote())
+                .view(post.getView())
+                .like(post.getLike())
+                .status(post.getStatus())
+                .create_time(post.getCreateTime())
+                .create_by(post.getCreateBy())
+                .update_time(post.getUpdateTime())
+                .url(post.getUrl())
+                .create_by(post.getCreateBy())
+                .listType(typeResponseDTOList)
+                .listTag(tagResponseDTOList)
+                .build();
+    }
+
+
+    private List<String> validateDuplicateTag(List<String> listTag) {
+        return listTag.stream()
+                .map(String::trim)
+                .collect(Collectors.groupingBy(tagName -> tagName, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 }

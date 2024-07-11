@@ -3,11 +3,9 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
 import com.demo.admissionportal.entity.sub_entity.PostType;
-import com.demo.admissionportal.entity.sub_entity.PostView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.util.Date;
 import java.util.List;
@@ -54,7 +52,6 @@ public class Post {
     @Column(name = "update_time")
     private Date updateTime;
 
-    @ColumnDefault("NULL")
     @Column(name = "update_by")
     private Integer updateBy;
 
@@ -64,12 +61,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PostType> postTypes;
 
-    @OneToOne(mappedBy = "post")
-    private PostView postViews;
-
     @Column(name = "create_by")
     private Integer createBy;
 
-    @Column(name = "quota")
-    private Integer quota;
+    @Column(name = "url")
+    private String url;
 }

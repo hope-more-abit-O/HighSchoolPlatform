@@ -1,8 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
-import com.demo.admissionportal.entity.Post;
-import com.demo.admissionportal.entity.sub_entity.id.PostViewId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,15 +15,11 @@ import java.util.Date;
 @Entity
 @Table(name = "post_view")
 public class PostView {
-    @EmbeddedId
-    private PostViewId id;
+    @Id
+    @Column(name = "post_id")
+    private Integer id;
 
-    @MapsId("postId")
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
-
-    @Column(name = "create_time", insertable = false, updatable = false)
+    @Column(name = "create_time")
     private Date createTime;
 
     @Column(name = "view_count")

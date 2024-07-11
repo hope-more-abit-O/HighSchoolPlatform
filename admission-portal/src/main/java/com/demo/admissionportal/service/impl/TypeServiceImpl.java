@@ -27,7 +27,7 @@ public class TypeServiceImpl implements TypeService {
             }
             Type type = new Type();
             type.setName(typePostRequestDTO.getName());
-            type.setCreateBy(type.getCreateBy());
+            type.setCreateBy(typePostRequestDTO.getCreate_by());
             type.setCreateTime(new Date());
             type.setStatus(PostPropertiesStatus.ACTIVE);
             Type result = typeRepository.save(type);
