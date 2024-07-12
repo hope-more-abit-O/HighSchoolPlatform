@@ -9,9 +9,9 @@ services:
     ports:
       - "9090:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.205.94:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_DEV
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP
       SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: Fpt1234567890
+      SPRING_DATASOURCE_PASSWORD: 12345
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
@@ -37,7 +37,7 @@ services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
-      SA_PASSWORD: "Fpt1234567890"
+      SA_PASSWORD: "12345"
       ACCEPT_EULA: "Y"
     networks:
       - my-network
