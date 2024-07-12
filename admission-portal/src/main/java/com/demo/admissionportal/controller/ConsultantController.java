@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/consultant")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "BearerAuth")
-@PreAuthorize("hasAuthority('ADMIN')")
+@PreAuthorize("hasAuthority('CONSULTANT')")
 public class ConsultantController {
     private final ConsultantService consultantService;
 
@@ -29,15 +29,14 @@ public class ConsultantController {
      * <p>Fetches detailed information about a consultant using
      * their unique identifier and returns the data as a response.
      *
-     * @param id  The unique identifier of the consultant to retrieve.
      * @return     A ResponseEntity containing consultant details with
      *             a suitable HTTP status (e.g., 200 OK for success, 404 Not Found
      *             if the consultant is not found).
      */
-    @GetMapping("/{id}")
+    @GetMapping("/info")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
+    public ResponseEntity<?> getselfInfo() {
+        return ResponseEntity.ok(consultantService.getSelfInfo());
     }
 
     //TODO: JAVADOC

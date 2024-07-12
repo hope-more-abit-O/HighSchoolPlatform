@@ -76,7 +76,7 @@ public class UniversityController {
      *             if the consultant is not found).
      */
     @GetMapping("/consultant/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
+    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
+        return ResponseEntity.ok(consultantService.getFullConsultantByIdByUniversity(id));
     }
 }

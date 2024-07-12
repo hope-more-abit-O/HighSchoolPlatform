@@ -8,15 +8,12 @@ import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniv
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.service.CreateUniversityService;
-import com.demo.admissionportal.service.StaffService;
-import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.exception.NotAllowedException;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.service.*;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
-import com.demo.admissionportal.service.SubjectGroupService;
-import com.demo.admissionportal.service.SubjectService;
-import com.demo.admissionportal.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +40,7 @@ public class StaffController {
     private final SubjectService subjectService;
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
+    private final ConsultantService consultantService;
 
     /**
      * Handles the submission of a university creation request.
@@ -406,5 +404,11 @@ public class StaffController {
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+
+
+    @GetMapping("/consultant/{id}")
+    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
+        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 }

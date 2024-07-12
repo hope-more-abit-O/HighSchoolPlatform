@@ -2,32 +2,44 @@ version: '3.8'
 
 services:
   admission-portal:
-    image: dyhieu/uap-test:2024
+    image: admission-portal-image
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "9090:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://172.22.130.44:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP
+      # SQL Server configuration
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.205.94:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_FE
       SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: Buihieuduy123@
+      SPRING_DATASOURCE_PASSWORD: Fpt1234567890
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      # Sender mail configuration
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587
       SPRING_MAIL_USERNAME: highschoolvn10@gmail.com
       SPRING_MAIL_PASSWORD: zrle latv mjdq neqr
+      # Redis configuration
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      # Token configuration
       SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
       EXPIRATION: 86400000
+      # SSL configuration
       SERVER_SSL_KEY_ALIAS: uap-https
       SERVER_SSL_KEY_STORE: classpath:uap.jsk
       SERVER_SSL_KEY_STORE_TYPE: JKS
       SERVER_SSL_KEY_PASSWORD: Fpt1234567890
+      # Multipart configuration
+      SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 215MB
+      # Pageable configuration
+      SPRING_DATA_WEB_PAGEABLE_DEFAULT_PAGE_SIZE: 10
+      SPRING_DATA_WEB_PAGEABLE_MAX_PAGE_SIZE: 50
     networks:
       - my-network
     depends_on:
@@ -37,7 +49,7 @@ services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
-      SA_PASSWORD: "Buihieuduy123@"
+      SA_PASSWORD: "Fpt1234567890"
       ACCEPT_EULA: "Y"
     networks:
       - my-network

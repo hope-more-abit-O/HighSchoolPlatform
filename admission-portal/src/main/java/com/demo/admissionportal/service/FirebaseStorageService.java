@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.response.ResponseData;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -13,23 +14,23 @@ public interface FirebaseStorageService {
 
     /**
      * Uploads multiple files to Firebase Storage.
-     *
+     * <p>
      * This method takes an array of `MultipartFile` objects representing the files to upload. The implementation should upload each file to a separate location in the Firebase Storage bucket. The specific behavior (e.g., filename generation, error handling) will depend on the implementation.
      *
      * @param images An array of MultipartFile objects representing the files to upload.
      * @return A String containing information about the uploaded files. The format of the returned String depends on the implementation (e.g., comma-separated filenames, a list of URLs).
      * @throws IOException If an I/O error occurs during the upload process.
      */
-    public String uploadMultipleFiles(MultipartFile[] images) throws IOException;
+    public ResponseData uploadMultipleFiles(MultipartFile[] images) throws IOException;
 
     /**
      * Uploads a single file to Firebase Storage.
-     *
+     * <p>
      * This method takes a single `MultipartFile` object representing the file to upload. The implementation should upload the file to a location in the Firebase Storage bucket. The specific behavior (e.g., filename generation, error handling) will depend on the implementation.
      *
      * @param file A MultipartFile object representing the file to upload.
      * @return A String containing the information about the uploaded file. The format of the returned String depends on the implementation (e.g., filename, URL).
      * @throws IOException If an I/O error occurs during the upload process.
      */
-    public String uploadFile(MultipartFile file) throws IOException;
+    public ResponseData uploadFile(MultipartFile file) throws IOException;
 }

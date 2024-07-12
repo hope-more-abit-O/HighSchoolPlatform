@@ -1,9 +1,13 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.MajorStatus;
+import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
@@ -12,6 +16,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "major")
 public class Major {
@@ -40,14 +46,36 @@ public class Major {
     @Column(name = "create_time", nullable = false)
     private Date createTime;
 
+    @ColumnDefault("0")
+    @Column(name = "create_by")
+    private Integer createBy;
+
     @Column(name = "update_time")
     private Date updateTime;
+
+    @ColumnDefault("NULL")
+    @Column(name = "update_by")
+    private Integer updateBy;
+
 
     @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private MajorStatus status;
 
+    public Major(CreateMajorDTO majorDTO) {
+        this.name = name;
+        this.code = majorDTO.getCode();
+        this.createTime = new Date();
+    }
+
+    public Major(String code, String name, Integer createBy) {
+        this.code = code;
+        this.name = name;
+        this.createBy = createBy;
+        this.createTime = new Date();
+    }
 }
