@@ -3,6 +3,8 @@ package com.demo.admissionportal.repository;
 import com.demo.admissionportal.entity.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /**
  * The interface Tag repository.
  */

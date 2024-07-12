@@ -194,7 +194,7 @@ public class PostServiceImpl implements PostService {
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
-            post.setUrl("/" + requestDTO.getTitle() + "/" + randomCodeGeneratorUtil.generateRandomString());
+            post.setUrl("/" + convertURL(requestDTO.getTitle()) + "/" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -410,7 +410,7 @@ public class PostServiceImpl implements PostService {
             existingPost.setUpdateTime(new Date());
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
-            existingPost.setUrl("/" + requestDTO.getTitle() + "/" + randomCodeGeneratorUtil.generateRandomString());
+            existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "/" + randomCodeGeneratorUtil.generateRandomString());
             existingPost.setUpdateBy(requestDTO.getUpdate_by());
             postRepository.save(existingPost);
 
@@ -585,5 +585,9 @@ public class PostServiceImpl implements PostService {
                 .filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
+    }
+
+    private String convertURL(String url) {
+        return url.replace(" ", "-");
     }
 }
