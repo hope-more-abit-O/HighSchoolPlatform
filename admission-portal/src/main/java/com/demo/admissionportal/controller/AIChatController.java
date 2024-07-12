@@ -19,8 +19,9 @@ public class AIChatController {
     }
 
     @PostMapping(value = "/sendMessage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public String sendMessage(@RequestParam String widgetUid, @RequestParam String sessionUid, @RequestParam String message) {
-        return aiChatService.sendMessage(widgetUid,sessionUid, message);
+    public String sendMessage(@RequestParam("widget_uid") String widgetUid,
+                              @RequestParam("session_uid") String sessionUid,
+                              @RequestParam("message") String message) {
+        return aiChatService.sendMessage(widgetUid, sessionUid, message);
     }
-
 }
