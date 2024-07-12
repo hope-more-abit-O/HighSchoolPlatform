@@ -5,19 +5,19 @@ package com.demo.admissionportal.service;
  */
 public interface AIChatService {
     /**
-     * Gets chat response.
+     * Create a new session.
      *
-     * @param prompt the prompt
-     * @return the chat response
+     * @return the session id
      */
     String createSession();
 
     /**
-     * Send message string.
+     * Send a message to the chat session.
      *
+     * @param widgetUid the widget uid
      * @param sessionUid the session uid
-     * @param message    the message
-     * @return the string
+     * @param message the message
+     * @return the response from the chatbot
      */
     String sendMessage(String widgetUid, String sessionUid, String message);
 }
