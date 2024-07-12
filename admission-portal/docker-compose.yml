@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   admission-portal:
-    image: admission-portal-image
+    image: dyhieu/uap-test:2024
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "9090:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://172.22.130.44:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP
       SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: 12345
+      SPRING_DATASOURCE_PASSWORD: Buihieuduy123@
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
@@ -37,7 +37,7 @@ services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
-      SA_PASSWORD: "12345"
+      SA_PASSWORD: "Buihieuduy123@"
       ACCEPT_EULA: "Y"
     networks:
       - my-network
