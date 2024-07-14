@@ -69,7 +69,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                     .orElseThrow(null);
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
-            }else if(user.getStatus().equals(AccountStatus.INACTIVE)){
+            } else if (user.getStatus().equals(AccountStatus.INACTIVE)) {
                 return new ResponseData<>(ResponseCode.C209.getCode(), "Tài khoản đã bị khoá trong hệ thống");
             }
 
