@@ -13,6 +13,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.AuthenticationUserService;
+import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,6 +37,7 @@ import java.security.Principal;
 public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
     private final ResetPasswordService resetPasswordService;
+    private final OTPService otpService;
 
     /**
      * Login response entity.
@@ -110,10 +112,16 @@ public class AuthenticationController {
      * @param requestDTO the request dto
      * @return the response entity
      */
-    @PostMapping("/regenerate-otp")
-    public ResponseEntity<ResponseData<?>> regenerateOtp(@RequestBody RegenerateOTPRequestDTO requestDTO) {
-        if (requestDTO == null) {
+    @PostMapping("/regenerate-otp/{sUID}")
+    public ResponseEntity<ResponseData<?>> regenerateOtp(@PathVariable("sUID") String
+                                                                 sUID, @RequestBody RegenerateOTPRequestDTO requestDTO) {
+        String sUIDRedis = otpService.getsUID(requestDTO.getEmail());
+
+        if (requestDTO == null || sUID == null) {
             new ResponseEntity<ResponseData<?>>(HttpStatus.BAD_REQUEST);
+
+        } else if (!sUID.equals(sUIDRedis)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "sUID không đúng"));
         }
         ResponseData<?> regenerateOtp = authenticationUserService.regenerateOtp(requestDTO);
         if (regenerateOtp.getStatus() == ResponseCode.C200.getCode()) {
@@ -167,6 +175,7 @@ public class AuthenticationController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(account);
     }
+
     @PostMapping("/reset-password")
     @Operation(summary = "Yêu cầu tạo lại mật khẩu ( nhận mã token qua email )")
     public ResponseEntity<?> requestResetPassword(@RequestBody ResetPasswordRequest request) {
@@ -186,7 +195,7 @@ public class AuthenticationController {
     /**
      * Confirms the reset password request using the reset token.
      *
-     * @param request the confirm reset password request
+     * @param request    the confirm reset password request
      * @param resetToken the reset token
      * @return the response entity
      */
