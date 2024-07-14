@@ -14,23 +14,6 @@ import java.util.Optional;
  * The interface Staff info repository.
  */
 public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
-
-    /**
-     * Find by username optional.
-     *
-     * @param username the username
-     * @return the optional
-     */
-    Optional<User> findByUsername(String username);
-
-    /**
-     * Find by email optional.
-     *
-     * @param username the username
-     * @return the optional
-     */
-    Optional<User> findByEmail(String username);
-
     /**
      * Find all page.
      *
@@ -54,15 +37,6 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
             "(:statusString IS NULL OR u.status = :statusString)" +
             "ORDER BY u.create_time DESC", nativeQuery = true)
     Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
-
-    /**
-     * Find by status optional.
-     *
-     * @param status the status
-     * @return the optional
-     */
-    Optional<User> findByStatus(String status);
-
     /**
      * Find staff info by id staff info.
      *

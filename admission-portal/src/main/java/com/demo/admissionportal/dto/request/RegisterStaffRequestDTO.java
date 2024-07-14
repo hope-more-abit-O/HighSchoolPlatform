@@ -29,4 +29,13 @@ public class RegisterStaffRequestDTO {
     @NotNull(message = "Số điện thoại không thể để trống !")
     @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
+
+    public void trim() {
+        username = username.trim();
+        firstName = firstName.trim();
+        middleName = middleName.trim();
+        lastName = lastName.trim();
+        email = email.trim();
+        phone = phone.trim();
+    }
 }
