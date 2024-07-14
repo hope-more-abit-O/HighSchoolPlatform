@@ -28,9 +28,13 @@ import com.demo.admissionportal.service.TagService;
 import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +52,7 @@ public class PostServiceImpl implements PostService {
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
+    private final ModelMapper modelMapper;
 
     @Override
     public ResponseData<PostResponseDTO> createPost(PostRequestDTO requestDTO) {
@@ -100,32 +105,16 @@ public class PostServiceImpl implements PostService {
                 Type listTypeById = typeRepository.findTypeById(type);
                 listType.add(listTypeById);
             }
-            List<PostResponseDTO.TypeResponseDTO> typeResponseDTOList = mapToTypeResponseDTOList(listType);
-
 
             List<Tag> listTag = new ArrayList<>();
             for (Integer tag : tagIds) {
                 Tag listTagById = tagRepository.findTagById(tag);
                 listTag.add(listTagById);
             }
-            List<PostResponseDTO.TagResponseDTO> tagResponseDTOList = mapToTagResponseDTOList(listTag);
-
             PostResponseDTO responseDTO = PostResponseDTO.builder()
-                    .id(post.getId())
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .thumnail(post.getThumnail())
-                    .quote(post.getQuote())
-                    .view(post.getView())
-                    .like(post.getLike())
-                    .status(post.getStatus())
-                    .create_time(post.getCreateTime())
-                    .create_by(post.getCreateBy())
-                    .update_time(post.getUpdateTime())
-                    .url(post.getUrl())
-                    .create_by(post.getCreateBy())
-                    .listType(typeResponseDTOList)
-                    .listTag(tagResponseDTOList)
+                    .postProperties(postPropertiesResponseDTOList(post))
+                    .listType(typeResponseDTOList(listType))
+                    .listTag(tagResponseDTOList(listTag))
                     .build();
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo post thành công", responseDTO);
@@ -135,6 +124,22 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    public PostResponseDTO.PostPropertiesResponseDTO postPropertiesResponseDTOList(Post post) {
+        return modelMapper.map(post, PostResponseDTO.PostPropertiesResponseDTO.class);
+    }
+
+
+    public List<PostResponseDTO.TypeResponseDTO> typeResponseDTOList(List<Type> lisType) {
+        return lisType.stream()
+                .map(tag -> modelMapper.map(tag, PostResponseDTO.TypeResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponseDTO.TagResponseDTO> tagResponseDTOList(List<Tag> listTag) {
+        return listTag.stream()
+                .map(type -> modelMapper.map(type, PostResponseDTO.TagResponseDTO.class))
+                .collect(Collectors.toList());
+    }
 
     private PostTag postTagSave(Integer tagId, Post post) {
         try {
@@ -513,63 +518,19 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-
-    private PostResponseDTO.TypeResponseDTO mapToTypeResponseDTO(Type type) {
-        return PostResponseDTO.TypeResponseDTO.builder()
-                .id(type.getId())
-                .name(type.getName())
-                .build();
-    }
-
-    private List<PostResponseDTO.TypeResponseDTO> mapToTypeResponseDTOList(List<Type> types) {
-        return types.stream()
-                .map(this::mapToTypeResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    private PostResponseDTO.TagResponseDTO mapToTagResponseDTO(Tag tag) {
-        return PostResponseDTO.TagResponseDTO.builder()
-                .id(tag.getId())
-                .name(tag.getName())
-                .build();
-    }
-
-
-    private List<PostResponseDTO.TagResponseDTO> mapToTagResponseDTOList(List<Tag> tags) {
-        return tags.stream()
-                .map(this::mapToTagResponseDTO)
-                .collect(Collectors.toList());
-    }
-
     private PostResponseDTO mapToPostResponseDTO(Post post) {
         List<PostResponseDTO.TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
-                .map(postType -> PostResponseDTO.TypeResponseDTO.builder()
-                        .id(postType.getType().getId())
-                        .name(postType.getType().getName())
-                        .build())
+                .map(postType -> modelMapper.map(postType, PostResponseDTO.TypeResponseDTO.class))
                 .collect(Collectors.toList());
+
         List<PostResponseDTO.TagResponseDTO> tagResponseDTOList = post.getPostTags()
                 .stream()
-                .map(postTag -> PostResponseDTO.TagResponseDTO.builder()
-                        .id(postTag.getTag().getId())
-                        .name(postTag.getTag().getName())
-                        .build())
+                .map(postTag -> modelMapper.map(postTag, PostResponseDTO.TagResponseDTO.class))
                 .collect(Collectors.toList());
+        PostResponseDTO.PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostResponseDTO.PostPropertiesResponseDTO.class);
         return PostResponseDTO.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .thumnail(post.getThumnail())
-                .quote(post.getQuote())
-                .view(post.getView())
-                .like(post.getLike())
-                .status(post.getStatus())
-                .create_time(post.getCreateTime())
-                .create_by(post.getCreateBy())
-                .update_time(post.getUpdateTime())
-                .url(post.getUrl())
-                .create_by(post.getCreateBy())
+                .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .build();
