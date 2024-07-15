@@ -55,12 +55,13 @@ public class SecurityConfiguration {
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
-                                .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
+//                                .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API, CHATBOT,
                                         TEST_API,
                                         ADDRESS_API,
                                         POST_API,
-                                        FILE_API,CHATUSER,
+                                        FILE_API,
+                                        CHATUSER,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
