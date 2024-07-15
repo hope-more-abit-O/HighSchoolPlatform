@@ -48,21 +48,53 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     @Transactional
     public ResponseData<?> createSubjectGroup(CreateSubjectGroupRequestDTO request) {
         SubjectGroup existSubjectGroup = subjectGroupRepository.findByName(request.getName());
-        // Check if subject group already exists
+        // check subject_group already exists
         if (existSubjectGroup != null) {
             log.warn("Subject group with name {} already exists", request.getName());
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học đã tồn tại !");
         }
-        // Check for active subjects
-        List<Subject> activeSubjects = subjectRepository.findByStatus(SubjectStatus.ACTIVE);
-        if (activeSubjects.isEmpty()) {
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không có môn học hoạt động nào tồn tại !");
+        // Check exist and active/inactive subjects
+        List<Integer> subjectIds = request.getSubjectIds();
+        if (subjectIds.size() < 3) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Phải có ít nhất 3 môn học để tạo thành tổ hợp !");
+        }
+        List<Subject> subjects = subjectRepository.findAllById(subjectIds);
+        if (subjects.size() != subjectIds.size()) {
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học có chứa môn học không được tìm thấy !");
+        }
+        for (Subject subject : subjects) {
+            if (!subject.getStatus().equals(SubjectStatus.ACTIVE)) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học có chứa môn học không được tìm thấy !");
+            }
+        }
+        //check exist three subjects that have been create a subject_group before
+        List<SubjectGroup> allSubjectGroups = subjectGroupRepository.findAll();
+        List<SubjectGroupResponseDTO> matchingSubjectGroups = new ArrayList<>();
+        for (SubjectGroup group : allSubjectGroups) {
+            List<Integer> groupSubjectIds = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
+                    .stream().map(SubjectGroupSubject::getSubjectId).toList();
+            if (new HashSet<>(groupSubjectIds).containsAll(subjectIds) && new HashSet<>(subjectIds).containsAll(groupSubjectIds)) {
+                List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
+                        .stream().map(sgs -> {
+                            Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
+                            if (subject != null) {
+                                return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
+                            } else {
+                                return null;
+                            }
+                        }).filter(Objects::nonNull).collect(Collectors.toList());
+                // add to matching list
+                matchingSubjectGroups.add(new SubjectGroupResponseDTO(group.getId(), group.getName(), group.getStatus(), subjectDetails));
+            }
+        }
+        // check if matching list not null then throw message and show the subject_group contain three subjects that has a subject_group before
+        if (!matchingSubjectGroups.isEmpty()) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Đã tồn tại tổ hợp môn học với các môn học này !", matchingSubjectGroups);
         }
         try {
-            //create principle
+            // Create principal
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
-
             log.debug("Principal type: {}", principal.getClass().getName());
             log.info("Principal type: {}", principal.getClass().getName());
             if (!(principal instanceof User)) {
@@ -70,28 +102,18 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             }
             User staff = (User) principal;
             Integer staffId = staff.getId();
-
-            // Create lists to hold data
+            // create a null aray list to store the data processing before
             List<SubjectGroupSubject> subjectGroupSubjects = new ArrayList<>();
             List<CreateSubjectResponseDTO> subjectResponses = new ArrayList<>();
-            // Check for existing subjects
-            for (Integer subjectId : request.getSubjectIds()) {
-                Subject subject = subjectRepository.findById(subjectId).orElse(null);
-                log.info("Check valid subjects {}", subjectId);
-                // If subject exists, add its data to the response DTO
-                if (subject != null) {
-                    subjectResponses.add(new CreateSubjectResponseDTO(subject.getId(), subject.getName(), subject.getCreateTime(), subject.getCreateBy(), subject.getUpdateBy(), subject.getStatus().name()));
-                    // Add to SubjectGroupSubject
-                    SubjectGroupSubject subjectGroupSubject = new SubjectGroupSubject(subjectId, null);
-                    subjectGroupSubject.setStatus(SubjectStatus.ACTIVE.name());
-                    subjectGroupSubjects.add(subjectGroupSubject);
-                    log.info("Subjects are valid and accepted {}", subjectId);
-                } else {
-                    log.error("Subjects not found {}", subjectId);
-                    return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không tìm thấy !");
-                }
+            for (Subject subject : subjects) {
+                subjectResponses.add(new CreateSubjectResponseDTO(subject.getId(), subject.getName(), subject.getCreateTime(), subject.getCreateBy(), subject.getUpdateBy(), subject.getStatus().name()));
+                // save to subject_group_subject
+                SubjectGroupSubject subjectGroupSubject = new SubjectGroupSubject(subject.getId(), null);
+                subjectGroupSubject.setStatus(SubjectStatus.ACTIVE.name());
+                subjectGroupSubjects.add(subjectGroupSubject);
+                log.info("Subjects are valid and accepted {}", subject.getId());
             }
-            // Create and save new SubjectGroup
+            // create new object subject_group and save new subject_group
             SubjectGroup subjectGroup = new SubjectGroup();
             subjectGroup.setName(request.getName());
             subjectGroup.setCreateTime(new Date());
@@ -99,8 +121,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             subjectGroup.setStatus(SubjectStatus.ACTIVE.name());
             subjectGroup = subjectGroupRepository.save(subjectGroup);
             log.info("New subject group created with ID {}", subjectGroup.getId());
-
-
+            // add to table subject_group_subject
             for (SubjectGroupSubject subjectGroupSubject : subjectGroupSubjects) {
                 subjectGroupSubject.setSubjectGroupId(subjectGroup.getId());
                 subjectGroupSubject.setCreateTime(new Date());
@@ -116,7 +137,6 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             return new ResponseData<>(ResponseCode.C201.getCode(), ResponseCode.C201.getMessage());
         }
     }
-
     @Override
     public ResponseData<?> updateSubjectGroup(Integer id, UpdateSubjectGroupRequestDTO request) {
         SubjectGroup existSubjectGroup = subjectGroupRepository.findById(id).orElse(null);

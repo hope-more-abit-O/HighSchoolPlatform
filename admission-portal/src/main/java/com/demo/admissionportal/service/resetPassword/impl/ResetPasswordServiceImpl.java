@@ -37,6 +37,9 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    private static final int MAX_RESET_REQUESTS = 4; //limit user request reset password
+    private static final long RESET_WINDOW_MINUTES = 30; //user can request after 30 minutes
+
     /**
      * Handles the reset password request.
      *
@@ -45,6 +48,12 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
      */
     @Override
     public ResponseData<?> resetPasswordRequest(ResetPasswordRequest request) {
+        String email = request.email();
+        if (isRateLimitExceeded(email)) {
+            log.warn("Reset password request rate limit exceeded for email: {}", email);
+            return new ResponseData<>(ResponseCode.C210.getCode(), "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.");
+        }
+        incrementResetRequestCount(email);
         ResponseData<ResetPassword> responseData = findByEmail(request.email());
         if (responseData.getStatus() != ResponseCode.C200.getCode()) {
             log.warn("User with email: {} not found", request.email());
@@ -52,15 +61,16 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
         }
         ResetPassword existingAccount = responseData.getData();
 
+        UUID resetToken = null;
         if (existingAccount instanceof User) {
             User user = (User) existingAccount;
-            if (user.getStatus().equals(AccountStatus.INACTIVE.name())){
+            if (user.getStatus().equals(AccountStatus.INACTIVE.name())) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không tồn tại !");
             }
             if (user.getRole() == Role.ADMIN) {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Email không hợp lệ");
             }
-            UUID resetToken = UUID.randomUUID();
+            resetToken = UUID.randomUUID();
             saveObject(existingAccount.getRole(), existingAccount.getId(), resetToken);
 
             String resetPassLink = "https://localhost:3000/reset-password/" + resetToken;
@@ -69,7 +79,7 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
 
             emailUtil.sendHtmlEmail(request.email(), subject, message);
         }
-        return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi đường dẫn tạo lại mật khẩu vào Email. Xin vui lòng kiểm tra");
+        return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi đường dẫn tạo lại mật khẩu vào Email. Xin vui lòng kiểm tra", resetToken);
     }
     /**
      * Confirms the reset password request using the reset token.
@@ -103,11 +113,13 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
                     return new ResponseData<>(ResponseCode.C201.getCode(), "Mật khẩu không được để trống !");
                 } else if (request.getConfirmNewPassword().trim().isBlank()) {
                     return new ResponseData<>(ResponseCode.C201.getCode(), "Mật khẩu không được để trống !");
+                }  else if (passwordEncoder.matches(request.getNewPassword().trim(), user.getPassword())) {
+                    return new ResponseData<>(ResponseCode.C201.getCode(), "Bạn không thể sử dụng mật khẩu này vì đã trùng với mật khẩu trước đó. Vui lòng chọn mật khẩu khác !");
                 }
                 log.info("Password reset for account: {}", user.getId());
             }
 
-            foundUser.setPassword(passwordEncoder.encode(request.getNewPassword().trim()));
+            user.setPassword(passwordEncoder.encode(request.getNewPassword().trim()));
 
             switch (user.getRole()) {
                 case STAFF:
@@ -130,8 +142,24 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
                     log.warn("Unknown role for user: {}", user.getRole());
                     break;
             }
+            redisTemplate.delete("resetpw_" + resetToken);
         }
         return new ResponseData<>(ResponseCode.C200.getCode(), "Resest mật khẩu thành công !");
+    }
+
+    private boolean isRateLimitExceeded(String email) {
+        String key = "resetpw_req_count_" + email;
+        Integer count = (Integer) redisTemplate.opsForValue().get(key);
+        return count != null && count >= MAX_RESET_REQUESTS;
+    }
+
+    private void incrementResetRequestCount(String email) {
+        String key = "resetpw_req_count_" + email;
+        Integer count = (Integer) redisTemplate.opsForValue().get(key);
+        if (count == null) {
+            count = 0;
+        }
+        redisTemplate.opsForValue().set(key, count + 1, RESET_WINDOW_MINUTES, TimeUnit.MINUTES);
     }
 
     /**
@@ -143,8 +171,8 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
      */
     @Override
     public void saveObject(Role role, Integer id, UUID resetToken) {
-        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = new ResetPasswordAccountRedisCacheDTO(role, id, 10);
-        redisTemplate.opsForValue().set("resetpw_" + resetToken, resetPasswordAccountRedisCacheDTO, 3, TimeUnit.MINUTES);
+        ResetPasswordAccountRedisCacheDTO resetPasswordAccountRedisCacheDTO = new ResetPasswordAccountRedisCacheDTO(role, id, 1);
+        redisTemplate.opsForValue().set("resetpw_" + resetToken, resetPasswordAccountRedisCacheDTO, 5, TimeUnit.MINUTES);
     }
 
     /**

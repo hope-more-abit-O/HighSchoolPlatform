@@ -36,7 +36,8 @@ public class SecurityConfiguration {
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
-    private static final String CHATBOT = "/api/v1/chat/**";
+    private static final String CHATBOT = "/api/v1/chatbot/**";
+    private static final String CHATUSER = "/api/v1/chat-user/**";
     private static final String POST_API = "/api/v1/post/**";
     private static final String ADDRESS_API = "/api/v1/address/**";
     private static final String TEST_API = "/test/**";
@@ -54,13 +55,12 @@ public class SecurityConfiguration {
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
-//                                .requestMatchers(SUBJECT_API, SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
-//                                .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
+                                .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API, CHATBOT,
                                         TEST_API,
                                         ADDRESS_API,
                                         POST_API,
-                                        FILE_API,
+                                        FILE_API,CHATUSER,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -71,7 +71,8 @@ public class SecurityConfiguration {
                                         "/swagger-ui/**",
                                         "/webjars/**",
                                         "/swagger-ui.html",
-                                        "/api/v1/file/**"
+                                        "/api/v1/file/**",
+                                        "/ws/**"
                                 )
                                 .permitAll()
                                 .anyRequest()
@@ -91,9 +92,10 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
