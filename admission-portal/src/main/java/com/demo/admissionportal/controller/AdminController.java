@@ -9,7 +9,6 @@ import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
-import com.demo.admissionportal.entity.AdminInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.AdminService;
@@ -48,16 +47,16 @@ public class AdminController {
      * @param request the request
      * @return the response entity
      */
-    @PostMapping("/register")
-    public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
-        ResponseData<AdminInfo> response = adminService.registerAdmin(request);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
+//    @PostMapping("/register")
+//    public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
+//        ResponseData<AdminInfo> response = adminService.registerAdmin(request);
+//        if (response.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+//        }
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//    }
 
     /**
      * Register staff response entity.

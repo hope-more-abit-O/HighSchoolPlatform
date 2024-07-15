@@ -108,96 +108,103 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<?> getStaffById(int id) {
-        Optional<StaffInfo> staff = staffInfoRepository.findById(id);
-        if (staff.isEmpty()) {
+        Optional<StaffInfo> staffOpt = staffInfoRepository.findById(id);
+        if (staffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên này !");
         }
-        StaffInfo getStaff = staff.get();
-        StaffResponseDTO result = modelMapper.map(getStaff, StaffResponseDTO.class);
-        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
+        StaffInfo existStaff = staffOpt.get();
+        User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() ->
+                new IllegalStateException("Không tìm thấy nhân viên !"));
+        StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+        staffResponseDTO.setUsername(userStaff.getUsername());
+        staffResponseDTO.setEmail(userStaff.getEmail());
+        staffResponseDTO.setAvatar(userStaff.getAvatar());
+        staffResponseDTO.setStatus(userStaff.getStatus().name());
+
+        log.info("Staff details retrieved successfully for ID: {}", id);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponseDTO);
     }
+
 
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
-//        Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
-//
-//        if (existStaffOpt.isEmpty()) {
-//            log.warn("Staff with id: {} not found", id);
-//            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
-//        }
-//
-//        StaffInfo existStaff = existStaffOpt.get();
-//        if (!existStaff.getEmail().equals(request.getEmail())) {
-//            Optional<User> existUser = userRepository.findByEmail(request.getEmail());
-//            if (existUser.isPresent() && !existUser.get().getId().equals(existStaff.getId())) {
-//                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
-//            }
-//        }
-//        try {
-//            log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-//
-//            existStaff.setFirstName(request.getFirstName());
-//            existStaff.setMiddleName(request.getMiddleName());
-//            existStaff.setLastName(request.getLastName());
-//            existStaff.setPhone(request.getPhone());
-//
-//            staffInfoRepository.save(existStaff);
-//            StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
-//            log.info("Staff updated successfully with ID: {}", existStaff.getId());
-//            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
-//        } catch (Exception e) {
-//            log.error("Error updating staff with id: {}", id, e);
-//            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
-//        }
-        return null;
+        Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
+
+        if (existStaffOpt.isEmpty()) {
+            log.warn("Staff with id: {} not found", id);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
+        }
+        StaffInfo existStaff = existStaffOpt.get();
+        try {
+            log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
+            existStaff.setFirstName(request.getFirstName());
+            existStaff.setMiddleName(request.getMiddleName());
+            existStaff.setLastName(request.getLastName());
+            existStaff.setPhone(request.getPhone());
+
+            User staff = userRepository.findById(existStaff.getId()).orElseThrow(() ->
+                    new IllegalStateException("Không tìm thấy nhân viên !"));
+            staff.setAvatar(request.getAvatar());
+            userRepository.save(staff);
+            staffInfoRepository.save(existStaff);
+            StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+            staffResponseDTO.setUsername(staff.getUsername());
+            staffResponseDTO.setEmail(staff.getEmail());
+            staffResponseDTO.setAvatar(staff.getAvatar());
+            staffResponseDTO.setStatus(staff.getStatus().name());
+
+
+            log.info("Staff updated successfully with ID: {}", existStaff.getId());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
+        } catch (Exception e) {
+            log.error("Error updating staff with id: {}", id, e);
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
+        }
     }
+
 
     @Override
     public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {
-//        try {
-//            log.info("Starting delete process for staff ID: {}", id);
-//            User existingStaff = userRepository.findById(id).orElse(null);
-//            if (existingStaff == null || existingStaff.getStatus().equals(AccountStatus.INACTIVE)) {
-//                log.warn("Staff with ID: {} not found", id);
-//                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
-//            }
-//            existingStaff.setStatus(AccountStatus.INACTIVE);
-//            existingStaff.setNote(request.note());
-//            staffInfoRepository.save(existingStaff);
-//            log.info("Staff with ID: {} is INACTIVE", id);
-//            return new ResponseData<>(ResponseCode.C200.getCode(), "Xóa nhân viên thành công !");
-//        } catch (Exception e) {
-//            log.error("Delete staff with ID failed: {}", e.getMessage());
-//            return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
-//        }
-        return null;
+        try {
+            log.info("Starting delete process for staff ID: {}", id);
+            User existingStaff = userRepository.findById(id).orElse(null);
+            if (existingStaff == null || existingStaff.getStatus().equals(AccountStatus.INACTIVE)) {
+                log.warn("Staff with ID: {} not found", id);
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
+            }
+            existingStaff.setStatus(AccountStatus.INACTIVE);
+            existingStaff.setNote(request.note());
+            userRepository.save(existingStaff);
+            log.info("Staff with ID: {} is INACTIVE", id);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Xóa nhân viên thành công !");
+        } catch (Exception e) {
+            log.error("Delete staff with ID failed: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
+        }
     }
 
     @Override
     public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {
-//        try {
-//            StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
-//            if (existingStaff == null) {
-//                log.warn("Staff with ID: {} not found", id);
-//                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
-//            }
-//            if (existingStaff.getStatus() == AccountStatus.ACTIVE.name()){
-//                return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
-//            }
-//             AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
-//                log.info("Activating INACTIVE staff with ID: {}", id);
-//                existingStaff.setStatus(AccountStatus.ACTIVE.name());
-//                existingStaff.setNote(request.note());
-//                staffInfoRepository.save(existingStaff);
-//                return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
-//
-//        } catch (Exception e) {
-//            log.error("Activation of staff with ID: {} failed: {}", id, e.getMessage());
-//            return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
-//        }
-//    }
+        try {
+            User existingStaff = userRepository.findById(id).orElse(null);
+            if (existingStaff == null) {
+                log.warn("Staff with ID: {} not found", id);
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
+            }
+            if (existingStaff.getStatus().equals(AccountStatus.ACTIVE.name())){
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
+            }
+             AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
+                log.info("Activating INACTIVE staff with ID: {}", id);
+                existingStaff.setStatus(AccountStatus.ACTIVE);
+                existingStaff.setNote(request.note());
+                userRepository.save(existingStaff);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
 
-        return null;
+        } catch (Exception e) {
+            log.error("Activation of staff with ID: {} failed: {}", id, e.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
+        }
     }
-}
+ }
