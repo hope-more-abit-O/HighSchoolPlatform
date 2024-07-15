@@ -51,11 +51,11 @@ public interface PostService {
      */
     ResponseData<PostResponseDTO> getPostsById(Integer id);
 
+
     /**
-     * Gets post by tag name.
+     * Gets posts newest.
      *
-     * @param tagName the tag name
-     * @return the post by tag name
+     * @return the posts newest
      */
-    ResponseData<List<PostResponseDTO>> getPostByTagName(String tagName);
+    ResponseData<List<PostResponseDTO>> getPostsNewest();
 }

@@ -33,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -207,7 +209,7 @@ public class PostServiceImpl implements PostService {
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
-            post.setUrl("/" + convertURL(requestDTO.getTitle()) + "/" + randomCodeGeneratorUtil.generateRandomString());
+            post.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -423,7 +425,7 @@ public class PostServiceImpl implements PostService {
             existingPost.setUpdateTime(new Date());
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
-            existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "/" + randomCodeGeneratorUtil.generateRandomString());
+            existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             existingPost.setUpdateBy(requestDTO.getUpdate_by());
             postRepository.save(existingPost);
 
@@ -540,6 +542,14 @@ public class PostServiceImpl implements PostService {
         UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
 
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        if (postPropertiesResponseDTO.getCreate_time() != null) {
+            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+        }
+        if (postPropertiesResponseDTO.getUpdate_time() != null) {
+            postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
+        }
+
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
@@ -568,25 +578,23 @@ public class PostServiceImpl implements PostService {
         UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
         userInfoPostResponseDTO.setId(userInfo.getId());
         userInfoPostResponseDTO.setFullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
+        userInfoPostResponseDTO.setAvatar(userInfo.getUser().getAvatar());
         return userInfoPostResponseDTO;
     }
 
     @Override
-    public ResponseData<List<PostResponseDTO>> getPostByTagName(String tagName) {
+    public ResponseData<List<PostResponseDTO>> getPostsNewest() {
         try {
-            if (tagName == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "TagName không thể null");
-            }
-            log.info("Start retrieve post by tag name {}", tagName);
-            List<Post> post = postRepository.findPostsByTagName(tagName);
+            log.info("Start retrieve post by descend create time");
+            List<Post> post = postRepository.findPostByDescCreateTime();
             List<PostResponseDTO> postResponseDTOList = post.stream()
                     .map(this::mapToPostResponseDTO)
                     .collect(Collectors.toList());
-            log.info("End retrieve post by tag name {}", tagName);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post bởi tagName", postResponseDTOList);
+            log.info("End retrieve post by descend create time");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post", postResponseDTOList);
         } catch (Exception ex) {
-            log.info("Error when get post by tag name: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post bởi tagName");
+            log.info("Error when get post by descend create time: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post");
         }
     }
 }

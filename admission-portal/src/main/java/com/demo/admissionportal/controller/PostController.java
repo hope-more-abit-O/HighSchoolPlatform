@@ -113,4 +113,13 @@ public class PostController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @GetMapping("/newest")
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest() {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
