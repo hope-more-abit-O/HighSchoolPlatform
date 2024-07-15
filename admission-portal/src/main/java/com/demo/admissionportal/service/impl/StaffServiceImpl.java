@@ -130,6 +130,11 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
         Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
+        Optional<StaffInfo> existStaffByPhone = staffInfoRepository.findFirstByPhone(request.getPhone());
+        if (existStaffByPhone.isPresent() && !existStaffByPhone.get().getId().equals(id)) {
+            log.info("Phone of staff {}: ", request.getPhone());
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã tồn tại: " + request.getPhone());
+        }
 
         if (existStaffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
@@ -153,8 +158,6 @@ public class StaffServiceImpl implements StaffService {
             staffResponseDTO.setEmail(staff.getEmail());
             staffResponseDTO.setAvatar(staff.getAvatar());
             staffResponseDTO.setStatus(staff.getStatus().name());
-
-
             log.info("Staff updated successfully with ID: {}", existStaff.getId());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
         } catch (Exception e) {
