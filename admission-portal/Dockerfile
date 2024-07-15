@@ -5,7 +5,7 @@ FROM openjdk:17
 # The application's jar file
 ARG JAR_FILE=target/*.jar
 
-# Add the application's jar to the container
+# Add the application's jar to the containers
 ADD ${JAR_FILE} app.jar
 
 # Run the jar file

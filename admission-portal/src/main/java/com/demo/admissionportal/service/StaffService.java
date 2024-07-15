@@ -22,7 +22,7 @@ public interface StaffService {
      * @param request the request
      * @return the response data
      */
-    ResponseData<RegisterStaffResponse> registerStaff(RegisterStaffRequestDTO request);
+    ResponseData registerStaff(RegisterStaffRequestDTO request);
 
     /**
      * Find all response data.
