@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.MethodStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,17 +51,17 @@ public class Method {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @Size(max = 255)
     @NotNull
     @Nationalized
-    @ColumnDefault("'ACTIVE'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private MethodStatus status;
 
     public Method(String code, String name, Integer createBy) {
         this.code = code;
         this.name = name;
         this.createBy = createBy;
         this.createTime = new Date();
+        this.status = MethodStatus.ACTIVE;
     }
 }

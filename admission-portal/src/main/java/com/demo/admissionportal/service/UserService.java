@@ -70,6 +70,7 @@ public interface UserService extends UserDetailsService {
      */
     //TODO: javadoc
     User findById(Integer id) throws ResourceNotFoundException;
+    List<User> findByIds(List<Integer> ids);
     FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException;
     User save(User user, String name) throws StoreDataFailedException;
     User updateUser(Integer id, String username, String email, Integer updateById, String name) throws ResourceNotFoundException, StoreDataFailedException;

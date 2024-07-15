@@ -208,11 +208,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(Integer id) {
+    public User findById(Integer id) throws ResourceNotFoundException{
         return userRepository.findById(id).orElseThrow(() -> {
             log.error("User's account with id: {} not found.", id);
             return new ResourceNotFoundException("Tài khoản với id: " + id + " không tìm thấy");
         });
+    }
+
+
+    @Override
+    public List<User> findByIds(List<Integer> ids) {
+        return userRepository.findByIdIn(ids);
     }
 
     @Override

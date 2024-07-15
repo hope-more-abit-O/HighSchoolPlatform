@@ -12,7 +12,7 @@ public class CreateAdmissionRequest {
     private Integer year;
     private String documents;
     private List<Integer> methodIds;
-    private List<CreateMethodDTO> newMethods;
+    private List<CreateMethodDTO> newMethodsNames;
     private List<Integer> majorIds;
-    private List<CreateMajorDTO> newMajors;
+    private List<CreateMajorDTO> newMajorsNames;
 }

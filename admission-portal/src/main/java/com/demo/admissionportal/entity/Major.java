@@ -57,8 +57,6 @@ public class Major {
     @Column(name = "update_by")
     private Integer updateBy;
 
-
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
@@ -77,5 +75,6 @@ public class Major {
         this.name = name;
         this.createBy = createBy;
         this.createTime = new Date();
+        this.status = MajorStatus.ACTIVE;
     }
 }

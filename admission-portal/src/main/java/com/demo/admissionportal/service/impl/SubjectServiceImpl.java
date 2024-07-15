@@ -9,6 +9,7 @@ import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.SubjectRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
@@ -145,5 +146,13 @@ public class SubjectServiceImpl implements SubjectService {
             log.error("Error occurred while activating subject: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt môn học !");
         }
+    }
+
+    public Subject findById(Integer id) throws ResourceNotFoundException{
+        log.info("Find subject by ID {}", id);
+        return subjectRepository.findById(id).orElseThrow(() ->{
+            log.error("Subject with ID {} not found", id);
+            return new ResourceNotFoundException("Môn học với Id: " + id + " không tìm thấy");
+        });
     }
 }

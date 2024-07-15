@@ -176,7 +176,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                     .stream()
                     .map(subjectGroupSubject -> {
                         Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
-                        if (subject.isPresent()){
+                        if (subject.isPresent()) {
                             return new SubjectResponseDTO(subject.get().getId(), subject.get().getName(), subject.get().getStatus().name());
                         }
                         return null;
@@ -196,7 +196,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     @Override
     public ResponseData<?> getSubjectGroupById(Integer id) {
         Optional<SubjectGroup> subjectGroup = subjectGroupRepository.findById(id);
-        if(subjectGroup.isEmpty()){
+        if (subjectGroup.isEmpty()) {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Nhóm môn học không được tìm thấy !");
         } else {
             //set subject data to add in subject response
@@ -205,7 +205,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                     .stream()
                     .map(subjectGroupSubject -> {
                         Subject subject = subjectRepository.findById(subjectGroupSubject.getSubjectId()).orElse(null);
-                        if (subject != null){
+                        if (subject != null) {
                             return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
                         }
                         return null;
@@ -241,6 +241,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
 
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), subjectGroupResponsePage);
     }
+
     @Override
     public ResponseData<?> deleteSubjectGroup(Integer id) {
         try {
@@ -251,10 +252,11 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             subjectGroup.setStatus(SubjectStatus.INACTIVE.name());
             subjectGroupRepository.save(subjectGroup);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học được xóa thành công !");
-        } catch (Exception e){
+        } catch (Exception e) {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa tổ hợp môn học !");
         }
     }
+
     @Override
     public ResponseData<?> activateSubjectGroup(Integer id) {
         try {
@@ -281,5 +283,15 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             log.error("Error occurred while activating SubjectGroup: {}", e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt tổ hợp môn học !");
         }
+    }
+
+    public List<SubjectGroup> findAllByIds(List<Integer> subjectGroupIds) {
+        List<SubjectGroup> result = null;
+        try {
+            result = subjectGroupRepository.findAllById(subjectGroupIds);
+        } catch (Exception e){
+            //TODO: throw exception
+        }
+        return result;
     }
 }

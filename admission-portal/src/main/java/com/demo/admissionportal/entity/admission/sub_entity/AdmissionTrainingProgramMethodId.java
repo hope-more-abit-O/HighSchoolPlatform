@@ -3,7 +3,9 @@ package com.demo.admissionportal.entity.admission.sub_entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
@@ -12,9 +14,11 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Embeddable
 public class AdmissionTrainingProgramMethodId implements Serializable {
-    private static final long serialVersionUID = 7182383566972044135L;
+
     @NotNull
     @Column(name = "admission_training_program_id", nullable = false)
     private Integer admissionTrainingProgramId;
@@ -36,5 +40,4 @@ public class AdmissionTrainingProgramMethodId implements Serializable {
     public int hashCode() {
         return Objects.hash(admissionTrainingProgramId, admissionMethodId);
     }
-
 }

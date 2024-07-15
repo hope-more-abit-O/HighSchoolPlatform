@@ -1,14 +1,19 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
+import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
+import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
+import com.demo.admissionportal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +26,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class MethodServiceImpl {
     private final MethodRepository methodRepository;
+    private final ModelMapper modelMapper;
 
     private Method findById(Integer id) throws ResourceNotFoundException{
         return methodRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức xét tuyển."));
     }
 
-    public List<Method> findByIds(List<Integer> ids) throws ResourceNotFoundException{
+    public List<Method> findByIds(List<Integer> ids)
+            throws ResourceNotFoundException{
         List<Method> methods = methodRepository.findByIdIn(ids);
 
         // Check for IDs that were not found
@@ -53,7 +60,8 @@ public class MethodServiceImpl {
         return methodRepository.findFirstByNameOrCode(methodName, methodCode).isPresent();
     }
 
-    private Method save(Method method) throws StoreDataFailedException {
+    private Method save(Method method)
+            throws StoreDataFailedException {
         try {
             return methodRepository.save(method);
         } catch (Exception e){
@@ -61,7 +69,8 @@ public class MethodServiceImpl {
         }
     }
 
-    private void checkForExistingMethodNamesAndCodes(List<CreateMethodDTO> createMethodDTOs) throws DataExistedException{
+    private void checkForExistingMethodNamesAndCodes(List<CreateMethodDTO> createMethodDTOs)
+            throws DataExistedException{
         Set<String> methodNames = createMethodDTOs.stream()
                 .map(CreateMethodDTO::getName)
                 .collect(Collectors.toSet());
@@ -91,7 +100,8 @@ public class MethodServiceImpl {
         }
     }
 
-    private List<Method> createAndSaveMethods(List<CreateMethodDTO> methodDTOs, Integer createById) throws StoreDataFailedException {
+    private List<Method> createAndSaveMethods(List<CreateMethodDTO> methodDTOs, Integer createById)
+            throws StoreDataFailedException {
         List<Method> savedMethods = new ArrayList<>();
         Map<String, String> errors = new HashMap<>();
 
@@ -113,7 +123,8 @@ public class MethodServiceImpl {
         return savedMethods;
     }
 
-    private List<Method> checkAndInsert(List<CreateMethodDTO> methods) throws DataExistedException, StoreDataFailedException {
+    private List<Method> checkAndInsert(List<CreateMethodDTO> methods)
+            throws DataExistedException, StoreDataFailedException {
         Integer createById = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         checkForExistingMethodNamesAndCodes(methods);
@@ -121,7 +132,14 @@ public class MethodServiceImpl {
         return createAndSaveMethods(methods, createById);
     }
 
-    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateMethodDTO> createMethodDTOS, List<Integer> methodIds) throws StoreDataFailedException {
+    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateMethodDTO> createMethodDTOS, List<Integer> methodIds)
+            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException  {
         return Stream.concat(checkAndInsert(createMethodDTOS).stream(), findByIds(methodIds).stream()).toList();
+    }
+
+    public List<InfoMethodDTO> toListInfoMethodDTO(List<Method> methods){
+        return methods.stream()
+                .map(major -> modelMapper.map(major, InfoMethodDTO.class))
+                .toList();
     }
 }
