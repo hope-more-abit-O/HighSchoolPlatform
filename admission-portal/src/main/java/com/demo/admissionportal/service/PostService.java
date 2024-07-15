@@ -4,6 +4,7 @@ import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public interface PostService {
      * @param requestDTO the request dto
      * @return the post
      */
-    ResponseData<PostResponseDTO> createPost(PostRequestDTO requestDTO);
+    ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO);
 
     /**
      * Change status response data.
@@ -49,7 +50,7 @@ public interface PostService {
      * @param id the id
      * @return the posts by id
      */
-    ResponseData<PostResponseDTO> getPostsById(Integer id);
+    ResponseData<PostDetailResponseDTO> getPostsById(Integer id);
 
 
     /**
