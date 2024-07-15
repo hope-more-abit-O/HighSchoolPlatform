@@ -100,6 +100,12 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets posts by id.
+     *
+     * @param id the id
+     * @return the posts by id
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData<PostResponseDTO>> getPostsById(@PathVariable("id") Integer id) {
         if (id == null) {
@@ -114,9 +120,28 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets posts newest.
+     *
+     * @return the posts newest
+     */
     @GetMapping("/newest")
     public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest() {
         ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    /**
+     * Gets posts general.
+     *
+     * @return the posts general
+     */
+    @GetMapping("/general")
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsGeneral() {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsGeneral();
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }

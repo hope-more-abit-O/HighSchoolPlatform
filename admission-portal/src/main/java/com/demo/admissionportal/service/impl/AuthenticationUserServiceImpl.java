@@ -53,7 +53,6 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final ValidationService validationService;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
     private final StaffInfoRepository staffInfoRepository;
-    private final AdminInfoRepository adminInfoRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
     private final WardRepository wardRepository;
@@ -72,51 +71,52 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             } else if (user.getStatus().equals(AccountStatus.INACTIVE)) {
                 return new ResponseData<>(ResponseCode.C209.getCode(), "Tài khoản đã bị khoá trong hệ thống");
             }
-
-            var userInfo = userInfoRepository.findUserInfoById(user.getId());
-            var staffInfo = staffInfoRepository.findStaffInfoById(user.getId());
-            var adminInfo = adminInfoRepository.findAdminInfoById(user.getId());
-            var universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
-            var consultantInfo = consultantInfoRepository.findConsultantInfoById(user.getId());
-
-            // Initialize response DTOs
-            UserInfoResponseDTO userInfoResponseDTO = null;
-            StaffInfoResponseDTO staffInfoResponseDTO = null;
-            AdminInfoResponseDTO adminInfoResponseDTO = null;
-            UniversityInfoResponseDTO universityInfoResponseDTO = null;
-            ConsultantInfoResponseDTO consultantInfoResponseDTO = null;
-
-            // Map userInfo with custom info
-            if (userInfo != null) {
-                userInfoResponseDTO = modelMapper.map(userInfo, UserInfoResponseDTO.class);
-            } else if (staffInfo != null) {
-                staffInfoResponseDTO = modelMapper.map(staffInfo, StaffInfoResponseDTO.class);
-                staffInfoResponseDTO.setAdminId(staffInfo.getAdminId());
-            }
-
-            if (adminInfo != null) {
-                adminInfoResponseDTO = modelMapper.map(adminInfo, AdminInfoResponseDTO.class);
-            }
-            if (universityInfo != null) {
-                universityInfoResponseDTO = modelMapper.map(universityInfo, UniversityInfoResponseDTO.class);
-            }
-            if (consultantInfo != null) {
-                consultantInfoResponseDTO = modelMapper.map(consultantInfo, ConsultantInfoResponseDTO.class);
-            }
-
             var jwtToken = jwtService.generateToken(user);
             revokeAllUserTokens(user);
             saveUserToken(user, jwtToken);
+            if (user.getRole() == Role.ADMIN && (request.getUsername().equals(user.getUsername()) || request.getUsername().equals(user.getEmail()))
+                    && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
+                        .accessToken(jwtToken)
+                        .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
+                        .build());
+            } else {
+                var userInfo = userInfoRepository.findUserInfoById(user.getId());
+                var staffInfo = staffInfoRepository.findStaffInfoById(user.getId());
+                var universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+                var consultantInfo = consultantInfoRepository.findConsultantInfoById(user.getId());
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
-                    .accessToken(jwtToken)
-                    .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
-                    .userInfo(userInfoResponseDTO)
-                    .staffInfo(staffInfoResponseDTO)
-                    .universityInfo(universityInfoResponseDTO)
-                    .consultantInfo(consultantInfoResponseDTO)
-                    .adminInfo(adminInfoResponseDTO)
-                    .build());
+                // Initialize response DTOs
+                UserInfoResponseDTO userInfoResponseDTO = null;
+                StaffInfoResponseDTO staffInfoResponseDTO = null;
+                UniversityInfoResponseDTO universityInfoResponseDTO = null;
+                ConsultantInfoResponseDTO consultantInfoResponseDTO = null;
+
+                // Map userInfo with custom info
+                if (userInfo != null) {
+                    userInfoResponseDTO = modelMapper.map(userInfo, UserInfoResponseDTO.class);
+                }
+                if (staffInfo != null) {
+                    staffInfoResponseDTO = modelMapper.map(staffInfo, StaffInfoResponseDTO.class);
+                    staffInfoResponseDTO.setAdminId(staffInfo.getAdminId());
+                }
+
+                if (universityInfo != null) {
+                    universityInfoResponseDTO = modelMapper.map(universityInfo, UniversityInfoResponseDTO.class);
+                }
+                if (consultantInfo != null) {
+                    consultantInfoResponseDTO = modelMapper.map(consultantInfo, ConsultantInfoResponseDTO.class);
+                }
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
+                        .accessToken(jwtToken)
+                        .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
+                        .userInfo(userInfoResponseDTO)
+                        .staffInfo(staffInfoResponseDTO)
+                        .universityInfo(universityInfoResponseDTO)
+                        .consultantInfo(consultantInfoResponseDTO)
+                        .build());
+            }
+
         } catch (Exception ex) {
             // Case 1: Bad Credential: Authentication Failure: 401
             // Case 2: Access Denied : Authorization Error: 403

@@ -35,10 +35,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -594,6 +591,23 @@ public class PostServiceImpl implements PostService {
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post", postResponseDTOList);
         } catch (Exception ex) {
             log.info("Error when get post by descend create time: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post");
+        }
+    }
+
+    @Override
+    public ResponseData<List<PostResponseDTO>> getPostsGeneral() {
+        try {
+            log.info("Start retrieve post by general");
+            List<Post> post = postRepository.findPostByDescCreateTime();
+            List<PostResponseDTO> postResponseDTOList = post.stream()
+                    .map(this::mapToPostResponseDTO)
+                    .collect(Collectors.toList());
+            Collections.shuffle(postResponseDTOList, new Random());
+            log.info("End retrieve post by general");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post", postResponseDTOList);
+        } catch (Exception ex) {
+            log.info("Error when get post by descend general: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post");
         }
     }

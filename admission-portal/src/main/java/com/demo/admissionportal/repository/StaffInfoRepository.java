@@ -37,6 +37,7 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
             "(:statusString IS NULL OR u.status = :statusString)" +
             "ORDER BY u.create_time DESC", nativeQuery = true)
     Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
+
     /**
      * Find staff info by id staff info.
      *
@@ -45,8 +46,12 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      */
     StaffInfo findStaffInfoById(Integer id);
 
+    /**
+     * Find first by phone optional.
+     *
+     * @param phone the phone
+     * @return the optional
+     */
     Optional<StaffInfo> findFirstByPhone(String phone);
-
-
 
 }

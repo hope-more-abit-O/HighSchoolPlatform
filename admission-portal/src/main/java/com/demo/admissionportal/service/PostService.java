@@ -58,4 +58,11 @@ public interface PostService {
      * @return the posts newest
      */
     ResponseData<List<PostResponseDTO>> getPostsNewest();
+
+    /**
+     * Gets posts general.
+     *
+     * @return the posts general
+     */
+    ResponseData<List<PostResponseDTO>> getPostsGeneral();
 }
