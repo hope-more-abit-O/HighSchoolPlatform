@@ -82,7 +82,7 @@ public class StaffServiceImpl implements StaffService {
             }
             log.info("Storing staff's information succeed.");
 
-            emailUtil.sendStaffPasswordRegister(staffInfo, password);
+            emailUtil.sendAccountPasswordRegister(staff, password);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !");
         } catch (DataExistedException de) {
