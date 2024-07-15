@@ -57,7 +57,7 @@ public class PostServiceImpl implements PostService {
     private final UserInfoRepository userInfoRepository;
 
     @Override
-    public ResponseData<PostResponseDTO> createPost(PostRequestDTO requestDTO) {
+    public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
@@ -116,7 +116,7 @@ public class PostServiceImpl implements PostService {
             UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
 
 
-            PostResponseDTO responseDTO = PostResponseDTO.builder()
+            PostDetailResponseDTO responseDTO = PostDetailResponseDTO.builder()
                     .postProperties(mapperPostPropertiesResponseDTO(post))
                     .listType(mapperTypeResponseDTO(listType))
                     .listTag(mapperTagResponseDTO(listTag))
@@ -390,10 +390,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<PostResponseDTO> getPostsById(Integer id) {
+    public ResponseData<PostDetailResponseDTO> getPostsById(Integer id) {
         try {
             Post posts = postRepository.findFirstById(id);
-            PostResponseDTO result = mapToPostResponseDTO(posts);
+            PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
             if (result != null) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với Id: " + id, result);
             }
@@ -403,6 +403,36 @@ public class PostServiceImpl implements PostService {
             log.error("Error when get posts with id {}:", id);
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
         }
+    }
+
+    private PostDetailResponseDTO mapToPostDetailResponseDTO(Post post) {
+        List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
+                .collect(Collectors.toList());
+
+        List<TagResponseDTO> tagResponseDTOList = post.getPostTags()
+                .stream()
+                .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
+                .collect(Collectors.toList());
+
+        UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
+
+        PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        if (postPropertiesResponseDTO.getCreate_time() != null) {
+            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+        }
+        if (postPropertiesResponseDTO.getUpdate_time() != null) {
+            postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
+        }
+
+        return PostDetailResponseDTO.builder()
+                .postProperties(postPropertiesResponseDTO)
+                .listType(typeResponseDTOList)
+                .listTag(tagResponseDTOList)
+                .create_by(mapperUserInfoResponseDTO(userInfo))
+                .build();
     }
 
     @Override
@@ -531,11 +561,6 @@ public class PostServiceImpl implements PostService {
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
 
-        List<TagResponseDTO> tagResponseDTOList = post.getPostTags()
-                .stream()
-                .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
-                .collect(Collectors.toList());
-
         UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
 
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
@@ -550,7 +575,6 @@ public class PostServiceImpl implements PostService {
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
-                .listTag(tagResponseDTOList)
                 .create_by(mapperUserInfoResponseDTO(userInfo))
                 .build();
     }

@@ -15,6 +15,5 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TypeResponseDTO implements Serializable {
-    private Integer id;
     private String name;
 }
