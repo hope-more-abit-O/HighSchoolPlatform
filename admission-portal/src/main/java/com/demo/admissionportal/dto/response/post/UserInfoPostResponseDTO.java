@@ -17,4 +17,5 @@ import java.io.Serializable;
 public class UserInfoPostResponseDTO implements Serializable {
     private Integer id;
     private String fullName;
+    private String avatar;
 }
