@@ -53,7 +53,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final ValidationService validationService;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
     private final StaffInfoRepository staffInfoRepository;
-    private final AdminInfoRepository adminInfoRepository;
+//    private final AdminInfoRepository adminInfoRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
     private final WardRepository wardRepository;
@@ -75,7 +75,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
             var userInfo = userInfoRepository.findUserInfoById(user.getId());
             var staffInfo = staffInfoRepository.findStaffInfoById(user.getId());
-            var adminInfo = adminInfoRepository.findAdminInfoById(user.getId());
+//            var adminInfo = adminInfoRepository.findAdminInfoById(user.getId());
             var universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
             var consultantInfo = consultantInfoRepository.findConsultantInfoById(user.getId());
 
@@ -94,9 +94,9 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 staffInfoResponseDTO.setAdminId(staffInfo.getAdminId());
             }
 
-            if (adminInfo != null) {
-                adminInfoResponseDTO = modelMapper.map(adminInfo, AdminInfoResponseDTO.class);
-            }
+//            if (adminInfo != null) {
+//                adminInfoResponseDTO = modelMapper.map(adminInfo, AdminInfoResponseDTO.class);
+//            }
             if (universityInfo != null) {
                 universityInfoResponseDTO = modelMapper.map(universityInfo, UniversityInfoResponseDTO.class);
             }
