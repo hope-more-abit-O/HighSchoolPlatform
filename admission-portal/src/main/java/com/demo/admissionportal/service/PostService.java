@@ -50,4 +50,12 @@ public interface PostService {
      * @return the posts by id
      */
     ResponseData<PostResponseDTO> getPostsById(Integer id);
+
+    /**
+     * Gets post by tag name.
+     *
+     * @param tagName the tag name
+     * @return the post by tag name
+     */
+    ResponseData<List<PostResponseDTO>> getPostByTagName(String tagName);
 }
