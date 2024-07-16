@@ -23,4 +23,8 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
     List<Method> findByNameInOrCodeIn(Set<String> methodNames, Set<String> methodCodes);
 
     List<Method> findByIdIn(List<Integer> ids);
+
+    List<Method> findByCodeIn(Set<String> methodCodes);
+
+    List<Method> findByNameIn(Set<String> methodNames);
 }

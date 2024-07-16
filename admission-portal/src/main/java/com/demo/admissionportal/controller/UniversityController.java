@@ -41,7 +41,7 @@ public class UniversityController {
      * @throws DataExistedException  If the provided data conflicts
      *                                 with existing records.
      */
-    @PostMapping
+    @PostMapping("/consultant")
     public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
             throws DataExistedException,StoreDataFailedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.createConsultant(request));

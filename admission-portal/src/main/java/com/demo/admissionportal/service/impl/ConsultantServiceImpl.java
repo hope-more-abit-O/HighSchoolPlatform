@@ -132,6 +132,8 @@ public class ConsultantServiceImpl implements ConsultantService {
             throw new StoreDataFailedException("Lưu tài khoản tư vấn viên thất bại.");
         }
         log.info("Store consultant's account succeed.");
+        log.info("Password: {}", password);
+
 
         log.info("Storing consultant's information.");
         ConsultantInfo consultantInfo = consultantInfoRepository.save(new ConsultantInfo(
@@ -150,8 +152,10 @@ public class ConsultantServiceImpl implements ConsultantService {
         log.info("Storing consultant's information succeed.");
 
 
+
         emailUtil.sendAccountPasswordRegister(consultant, password);
-        return ResponseData.created("Tạo tư vấn viên thành công.");
+        //TODO: DELETE PASSWORD
+        return ResponseData.created("Tạo tư vấn viên thành công.", password);
     }
 
     protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){

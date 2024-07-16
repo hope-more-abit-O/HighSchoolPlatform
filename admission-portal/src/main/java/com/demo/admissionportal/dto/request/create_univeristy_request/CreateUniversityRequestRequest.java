@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.request.create_univeristy_request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import lombok.Setter;
 public class CreateUniversityRequestRequest {
     @NotNull(message = "Tên trường đại học không được để trống!")
     private String universityName;
+    @Email(message = "Email phải đúng định dạng")
     @NotNull(message = "Email trường đại học không được để trống!")
     private String universityEmail;
     @NotNull(message = "Tên tài khoản trường đại học không được để trống!")

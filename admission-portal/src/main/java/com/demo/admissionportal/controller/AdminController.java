@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
@@ -171,6 +172,11 @@ public class AdminController {
         }
         log.error("Failed to activate staff with ID: {}", id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @GetMapping("/create-university/{id}")
+    public ResponseEntity<ResponseData<CreateUniversityRequestDTO>> createUniversity(@PathVariable int id) {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tạo trường đại học thành công", createUniversityService.getById(id)));
     }
 
     /**

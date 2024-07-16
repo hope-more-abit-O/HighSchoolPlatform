@@ -16,4 +16,8 @@ public interface MajorRepository extends JpaRepository<Major, Integer> {
     List<Major> findByNameInOrCodeIn(Set<String> majorNames, Set<String> majorCodes);
 
     List<Major> findByIdIn(Collection<Integer> ids);
+
+    List<Major> findByNameIn(Set<String> majorsNames);
+
+    List<Major> findByCodeIn(Set<String> majorCodes);
 }

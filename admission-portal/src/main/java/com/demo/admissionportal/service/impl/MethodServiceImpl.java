@@ -1,14 +1,17 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
+import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
+import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.Method;
-import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +24,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class MethodServiceImpl {
     private final MethodRepository methodRepository;
+    private final ModelMapper modelMapper;
 
     private Method findById(Integer id) throws ResourceNotFoundException{
         return methodRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức xét tuyển."));
     }
 
-    public List<Method> findByIds(List<Integer> ids) throws ResourceNotFoundException{
+    public List<Method> findByIds(List<Integer> ids)
+            throws ResourceNotFoundException{
         List<Method> methods = methodRepository.findByIdIn(ids);
 
         // Check for IDs that were not found
@@ -45,6 +50,48 @@ public class MethodServiceImpl {
         return methods;
     }
 
+    public List<Method> saveAll(List<Method> methods)
+            throws StoreDataFailedException {
+        try {
+            return methodRepository.saveAll(methods);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Lưu thông tin ngành học thất bại.");
+        }
+    }
+
+    public void checkExistedNameAndCode(List<Method> Methods)
+            throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+        Set<String> MethodNames = Methods.stream()
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> MethodCodes = Methods.stream()
+                .map(Method::getCode)
+                .collect(Collectors.toSet());
+
+        List<Method> existedMethodsByName = methodRepository.findByNameIn(MethodNames);
+        List<Method> existedMethodsByCode = methodRepository.findByCodeIn(MethodCodes);
+
+        if (!existedMethodsByName.isEmpty()){
+            String allNames = existedMethodsByName.stream()
+                    .map(Method::getName)
+                    .collect(Collectors.joining(", "));
+            errors.put("nameExisted", allNames);
+        }
+
+        if (!existedMethodsByCode.isEmpty()){
+            String allCodes = existedMethodsByCode.stream()
+                    .map(Method::getCode)
+                    .collect(Collectors.joining(", "));
+            errors.put("codeExisted", allCodes);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new DataExistedException("Có phương thức tuyển sinh đã tồn tại", errors);
+        }
+    }
+
     private boolean checkMethodName(String methodName) {
         return methodRepository.findFirstByName(methodName).isPresent();
     }
@@ -53,7 +100,8 @@ public class MethodServiceImpl {
         return methodRepository.findFirstByNameOrCode(methodName, methodCode).isPresent();
     }
 
-    private Method save(Method method) throws StoreDataFailedException {
+    private Method save(Method method)
+            throws StoreDataFailedException {
         try {
             return methodRepository.save(method);
         } catch (Exception e){
@@ -61,7 +109,8 @@ public class MethodServiceImpl {
         }
     }
 
-    private void checkForExistingMethodNamesAndCodes(List<CreateMethodDTO> createMethodDTOs) throws DataExistedException{
+    private void checkForExistingMethodNamesAndCodes(List<CreateMethodDTO> createMethodDTOs)
+            throws DataExistedException{
         Set<String> methodNames = createMethodDTOs.stream()
                 .map(CreateMethodDTO::getName)
                 .collect(Collectors.toSet());
@@ -91,7 +140,8 @@ public class MethodServiceImpl {
         }
     }
 
-    private List<Method> createAndSaveMethods(List<CreateMethodDTO> methodDTOs, Integer createById) throws StoreDataFailedException {
+    private List<Method> createAndSaveMethods(List<CreateMethodDTO> methodDTOs, Integer createById)
+            throws StoreDataFailedException {
         List<Method> savedMethods = new ArrayList<>();
         Map<String, String> errors = new HashMap<>();
 
@@ -113,7 +163,8 @@ public class MethodServiceImpl {
         return savedMethods;
     }
 
-    private List<Method> checkAndInsert(List<CreateMethodDTO> methods) throws DataExistedException, StoreDataFailedException {
+    private List<Method> checkAndInsert(List<CreateMethodDTO> methods)
+            throws DataExistedException, StoreDataFailedException {
         Integer createById = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         checkForExistingMethodNamesAndCodes(methods);
@@ -121,7 +172,40 @@ public class MethodServiceImpl {
         return createAndSaveMethods(methods, createById);
     }
 
-    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateMethodDTO> createMethodDTOS, List<Integer> methodIds) throws StoreDataFailedException {
+    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateMethodDTO> createMethodDTOS, List<Integer> methodIds)
+            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException  {
         return Stream.concat(checkAndInsert(createMethodDTOS).stream(), findByIds(methodIds).stream()).toList();
+    }
+
+    public List<InfoMethodDTO> toListInfoMethodDTO(List<Method> methods){
+        return methods.stream()
+                .map(Method -> modelMapper.map(Method, InfoMethodDTO.class))
+                .toList();
+    }
+
+    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateAdmissionQuotaRequest> quotas){
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        //CREATE A LIST OF NEW METHODS
+        List<Method> newMethods = quotas.stream()
+                .filter(quota -> quota.getMethodId() == null )
+                .map(quota -> new Method(quota.getMethodCode(), quota.getMethodName(), consultantId))
+                .toList();
+
+        //VALIDATE METHOD'S NAME AND CODE
+        checkExistedNameAndCode(newMethods);
+
+        //SAVE ALL NEW MethodS INTO DATABASE
+        List<Method> result = saveAll(newMethods);
+
+        //GET ALL MethodS EXISTED BY IDS
+        result.addAll(findByIds(quotas
+                .stream()
+                .map(CreateAdmissionQuotaRequest::getMethodId)
+                .filter(Objects::nonNull)
+                .toList()
+        ));
+
+        return result;
     }
 }

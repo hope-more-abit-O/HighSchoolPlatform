@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   admission-portal:
-    image: admission-portal-image
+    env_file:
+      - key.env
+    image: dyhieu/uap-test-2
     build:
       context: .
       dockerfile: Dockerfile
@@ -30,8 +32,8 @@ services:
       EXPIRATION: 86400000
       # SSL configuration
 #      SERVER_SSL_KEY_ALIAS: uap-https
-#      SERVER_SSL_KEY_STORE: classpath:uap.jsk
-#      SERVER_SSL_KEY_STORE_TYPE: JKS
+#      SERVER_SSL_KEY_STORE: classpath:keystore.p12
+#      SERVER_SSL_KEY_STORE_TYPE: PKCS12
 #      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
       # Multipart configuration
       SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
@@ -43,16 +45,7 @@ services:
     networks:
       - my-network
     depends_on:
-      - sqlserver
       - redis
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      SA_PASSWORD: "Fpt1234567890"
-      ACCEPT_EULA: "Y"
-    networks:
-      - my-network
 
   redis:
     image: redis:latest
