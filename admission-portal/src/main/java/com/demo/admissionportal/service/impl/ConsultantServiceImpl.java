@@ -154,6 +154,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
 
         emailUtil.sendAccountPasswordRegister(consultant, password);
+        //TODO: DELETE PASSWORD
         return ResponseData.created("Tạo tư vấn viên thành công.", password);
     }
 

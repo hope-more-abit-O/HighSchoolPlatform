@@ -108,7 +108,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .build();
         try{
             CreateUniversityRequest result = createUniversityRequestRepository.save(createUniversityRequest);
-            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", modelMapper.map(result, CreateUniversityRequestDTO.class));
+            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", mapping(result));
         } catch (Exception e){
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
         }
@@ -241,6 +241,11 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
     public CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException{
         CreateUniversityRequest createUniversityRequest = findById(id);
+
+        return mapping(createUniversityRequest);
+    }
+
+    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest){
         CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
         if (createUniversityRequest.getUpdateBy() == null)
             result.setUpdateBy(null);
@@ -269,6 +274,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         }
 
         result.setDocuments(Arrays.stream(createUniversityRequest.getDocuments().split(",")).toList());
+
         return result;
     }
 }
