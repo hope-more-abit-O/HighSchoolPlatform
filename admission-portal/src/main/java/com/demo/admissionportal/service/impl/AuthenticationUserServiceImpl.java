@@ -241,8 +241,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
         } catch (Exception ex) {
             log.error("Error occurred while register: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", ex.getMessage());
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", null);
     }
 
     @Override
@@ -279,8 +279,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             return new ResponseData<>(ResponseCode.C204.getCode(), "Tài khoản đã tồn tại trong hệ thống!");
         } catch (Exception ex) {
             log.error("Error occurred while verify: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", ex.getMessage());
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản", null);
     }
 
     @Override
