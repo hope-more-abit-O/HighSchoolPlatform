@@ -42,7 +42,9 @@ public enum ResponseCode {
     /**
      * C 209 response code.
      */
-    C209(9, "UNAUTHORIZED");
+    C209(9, "UNAUTHORIZED"),
+
+    C210(429, "TOO MANY REQUEST");
     private int code;
     private String message;
 

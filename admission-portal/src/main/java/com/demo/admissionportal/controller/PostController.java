@@ -5,6 +5,7 @@ import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 import com.demo.admissionportal.service.PostService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,11 +36,11 @@ public class PostController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<PostResponseDTO>> createPost(@RequestBody @Valid PostRequestDTO requestDTO) {
+    public ResponseEntity<ResponseData<PostDetailResponseDTO>> createPost(@RequestBody @Valid PostRequestDTO requestDTO) {
         if (requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Sai request"));
         }
-        ResponseData<PostResponseDTO> responseData = postService.createPost(requestDTO);
+        ResponseData<PostDetailResponseDTO> responseData = postService.createPost(requestDTO);
         if (responseData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseData);
         }
@@ -100,16 +101,50 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets posts by id.
+     *
+     * @param id the id
+     * @return the posts by id
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseData<PostResponseDTO>> getPostsById(@PathVariable("id") Integer id) {
+    public ResponseEntity<ResponseData<PostDetailResponseDTO>> getPostsById(@PathVariable("id") Integer id) {
         if (id == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có id"));
         }
-        ResponseData<PostResponseDTO> response = postService.getPostsById(id);
+        ResponseData<PostDetailResponseDTO> response = postService.getPostsById(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    /**
+     * Gets posts newest.
+     *
+     * @return the posts newest
+     */
+    @GetMapping("/newest")
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest() {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    /**
+     * Gets posts general.
+     *
+     * @return the posts general
+     */
+    @GetMapping("/general")
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsGeneral() {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsGeneral();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

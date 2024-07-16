@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class EmailUtil {
+public class
+
+EmailUtil {
     private final JavaMailSender mailSender;
 
 
@@ -85,20 +87,6 @@ public class EmailUtil {
             log.error("Error occurred while sending email: {}", ex.getMessage());
         }
         return isSuccess;
-    }
-
-    public void sendStaffPasswordRegister(StaffInfo staffInfo, String password) {
-        String emailContent = "<html><body>"
-                + "<h2>Chào mừng bạn đến với High School VN!</h2>"
-                + "<p>Xin chào " + staffInfo.getUsername() + ",</p>"
-                + "<p>Tài khoản của bạn đã được tạo thành công. Dưới đây là thông tin đăng nhập của bạn:</p>"
-                + "<p><strong>Username:</strong> " + staffInfo.getUsername() + "</p>"
-                + "<p><strong>Password:</strong> " + password + "</p>"
-                + "<p>Vui lòng đổi mật khẩu sau khi đăng nhập lần đầu tiên.</p>"
-                + "<p>Trân trọng,<br/>High School VN</p>"
-                + "</body></html>";
-
-        sendHtmlEmail(staffInfo.getEmail(), "Thông tin tài khoản của bạn", emailContent);
     }
 
     public void sendHtmlEmail(String to, String subject, String htmlMessage) {

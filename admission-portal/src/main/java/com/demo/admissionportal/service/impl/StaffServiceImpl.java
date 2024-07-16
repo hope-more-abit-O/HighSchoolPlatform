@@ -14,6 +14,7 @@ import com.demo.admissionportal.entity.StaffInfo;
 
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.StaffService;
@@ -30,6 +31,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,52 +50,52 @@ public class StaffServiceImpl implements StaffService {
     private final ValidationService validationService;
 
     @Override
-    public ResponseData<RegisterStaffResponse> registerStaff(RegisterStaffRequestDTO request) {
+    @Transactional
+    public ResponseData registerStaff(RegisterStaffRequestDTO request) {
         try {
+            log.info("Trimming request data");
+            request.trim();
+            log.info("Check if username, email, phone are available or not.");
             validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
-            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Username đã tồn tại !");
+            String password = RandomStringUtils.randomAlphanumeric(9);
+            Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            log.info("Get current admin account id: {}", adminId);
+            log.info("Storing staff's account.");
+            User staff = userRepository.save(new User(request.getUsername(), request.getEmail(), passwordEncoder.encode(password), Role.STAFF, adminId));
+            if (staff == null) {
+                log.error("Store staff's account failed!");
+                throw new StoreDataFailedException("Lưu tài khoản nhân viên thất bại.");
             }
-            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
+            log.info("Storing staff's information.");
+            StaffInfo staffInfostaff =new StaffInfo(
+                    staff.getId(),
+                    adminId,
+                    request.getFirstName(),
+                    request.getMiddleName(),
+                    request.getLastName(),
+                    request.getPhone()
+            );
+            StaffInfo staffInfo = staffInfoRepository.save(staffInfostaff);
+            if (staffInfo == null) {
+                log.error("Storing staff's information failed.");
+                throw new StoreDataFailedException("Lưu thông tin nhân viên thất bại.");
             }
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Object principal = authentication.getPrincipal();
+            log.info("Storing staff's information succeed.");
 
-            log.debug("Principal type: {}", principal.getClass().getName());
-            log.info("Principal type: {}", principal.getClass().getName());
-            if (!(principal instanceof User)) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
-            }
-            User admin = (User) principal;
-            Integer adminId = admin.getId();
-            log.info("ADMIN ID: {} ", adminId);
-            String generatedPassword = RandomStringUtils.randomAlphanumeric(10);
-            StaffInfo staffInfo = modelMapper.map(request, StaffInfo.class);
-            staffInfo.setPassword(passwordEncoder.encode(generatedPassword));
-            staffInfo.setRole(Role.STAFF);
-            staffInfo.setStatus(AccountStatus.ACTIVE);
-            staffInfo.setAvatar("image.png");
-            staffInfo.setCreateTime(new Date());
-            staffInfo.setCreateBy(adminId);
-            staffInfo.setNote(null);
-            staffInfo.setAdminId(adminId);
-            staffInfo.setAdmin(admin);
-            log.debug("StaffInfo createBy before save: {}", staffInfo.getCreateBy());
-            staffInfoRepository.save(staffInfo);
-            emailUtil.sendStaffPasswordRegister(staffInfo, generatedPassword);
-            RegisterStaffResponse response = new RegisterStaffResponse(staffInfo.getUsername(), staffInfo.getEmail(), staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName(), staffInfo.getPhone());
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !", response);
-        } catch (DataExistedException de){
+            emailUtil.sendAccountPasswordRegister(staff, password);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !");
+        } catch (DataExistedException de) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Username hoặc email, số điện thoại đã tồn tại");
         } catch (Exception ex) {
-            log.error("Error occurred while register: {}", ex.getMessage());
+            log.error("Error occurred while registering: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản");
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản");
     }
 
+
     @Override
-    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
+    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
         log.info("Get all staff with filters: Username: {}, firstName: {}, middleName: {}, lastName: {}, Email: {}, Phone: {}, Status: {}", username, firstName, middleName, lastName, email, phone, status);
         List<StaffResponseDTO> staffResponse = new ArrayList<>();
         String statusString = status != null ? status.name() : null;
@@ -106,43 +108,56 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<?> getStaffById(int id) {
-        Optional<StaffInfo> staff = staffInfoRepository.findById(id);
-        if (staff.isEmpty()) {
+        Optional<StaffInfo> staffOpt = staffInfoRepository.findById(id);
+        if (staffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên này !");
         }
-        StaffInfo getStaff = staff.get();
-        StaffResponseDTO result = modelMapper.map(getStaff, StaffResponseDTO.class);
-        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
+        StaffInfo existStaff = staffOpt.get();
+        User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() ->
+                new IllegalStateException("Không tìm thấy nhân viên !"));
+        StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+        staffResponseDTO.setUsername(userStaff.getUsername());
+        staffResponseDTO.setEmail(userStaff.getEmail());
+        staffResponseDTO.setAvatar(userStaff.getAvatar());
+        staffResponseDTO.setStatus(userStaff.getStatus().name());
+
+        log.info("Staff details retrieved successfully for ID: {}", id);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponseDTO);
     }
+
 
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id) {
         Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
+        Optional<StaffInfo> existStaffByPhone = staffInfoRepository.findFirstByPhone(request.getPhone());
+        if (existStaffByPhone.isPresent() && !existStaffByPhone.get().getId().equals(id)) {
+            log.info("Phone of staff {}: ", request.getPhone());
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã tồn tại: " + request.getPhone());
+        }
 
         if (existStaffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
         }
-
         StaffInfo existStaff = existStaffOpt.get();
-        if (!existStaff.getEmail().equals(request.getEmail())) {
-            Optional<User> existUser = userRepository.findByEmail(request.getEmail());
-            if (existUser.isPresent() && !existUser.get().getId().equals(existStaff.getId())) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Email đã tồn tại !");
-            }
-        }
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-
             existStaff.setFirstName(request.getFirstName());
             existStaff.setMiddleName(request.getMiddleName());
             existStaff.setLastName(request.getLastName());
-            existStaff.setEmail(request.getEmail());
             existStaff.setPhone(request.getPhone());
 
+            User staff = userRepository.findById(existStaff.getId()).orElseThrow(() ->
+                    new IllegalStateException("Không tìm thấy nhân viên !"));
+            staff.setAvatar(request.getAvatar());
+            userRepository.save(staff);
             staffInfoRepository.save(existStaff);
             StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+            staffResponseDTO.setUsername(staff.getUsername());
+            staffResponseDTO.setEmail(staff.getEmail());
+            staffResponseDTO.setAvatar(staff.getAvatar());
+            staffResponseDTO.setStatus(staff.getStatus().name());
             log.info("Staff updated successfully with ID: {}", existStaff.getId());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
         } catch (Exception e) {
@@ -151,18 +166,19 @@ public class StaffServiceImpl implements StaffService {
         }
     }
 
+
     @Override
     public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {
         try {
             log.info("Starting delete process for staff ID: {}", id);
-            StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
-            if (existingStaff == null || existingStaff.getStatus() == AccountStatus.INACTIVE) {
+            User existingStaff = userRepository.findById(id).orElse(null);
+            if (existingStaff == null || existingStaff.getStatus().equals(AccountStatus.INACTIVE)) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại !");
             }
             existingStaff.setStatus(AccountStatus.INACTIVE);
             existingStaff.setNote(request.note());
-            staffInfoRepository.save(existingStaff);
+            userRepository.save(existingStaff);
             log.info("Staff with ID: {} is INACTIVE", id);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Xóa nhân viên thành công !");
         } catch (Exception e) {
@@ -174,19 +190,19 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {
         try {
-            StaffInfo existingStaff = staffInfoRepository.findById(id).orElse(null);
+            User existingStaff = userRepository.findById(id).orElse(null);
             if (existingStaff == null) {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-            if (existingStaff.getStatus() == AccountStatus.ACTIVE){
+            if (existingStaff.getStatus().equals(AccountStatus.ACTIVE.name())){
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
             }
              AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);
                 existingStaff.setNote(request.note());
-                staffInfoRepository.save(existingStaff);
+                userRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
 
         } catch (Exception e) {
@@ -194,5 +210,4 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
         }
     }
-
-}
+ }

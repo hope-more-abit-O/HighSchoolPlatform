@@ -23,10 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The type Subject service.
@@ -110,21 +107,25 @@ public class SubjectServiceImpl implements SubjectService {
             if (subject == null || subject.getStatus().equals(SubjectStatus.INACTIVE)) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
             }
+            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectId(id);
+            List<SubjectGroup> activeSubjectGroups = new ArrayList<>();
+
+            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
+                SubjectGroup subjectGroup = subjectGroupRepository.findById(sgs.getSubjectGroupId()).orElse(null);
+                if (subjectGroup != null && subjectGroup.getStatus().equals(SubjectStatus.ACTIVE.name())) {
+                    activeSubjectGroups.add(subjectGroup);
+                }
+            }
+            if (!activeSubjectGroups.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học tồn tại trong tổ hợp môn học đang hoạt động và không thể xóa !", activeSubjectGroups);
+            }
             subject.setStatus(SubjectStatus.INACTIVE);
             subjectRepository.save(subject);
             log.info("Subject with ID {} has been deleted", id);
-            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectId(id);
-            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
-                SubjectGroup subjectGroup = subjectGroupRepository.findById(sgs.getSubjectGroupId()).orElse(null);
-                if (subjectGroup != null) {
-                    subjectGroup.setStatus(SubjectStatus.INACTIVE.name());
-                    subjectGroupRepository.save(subjectGroup);
-                    log.info("SubjectGroup with ID {} containing subject ID {} has been set to inactive", subjectGroup.getId(), id);
-                }
-            }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học và các tổ hợp môn học liên quan đã xóa thành công !");
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được xóa thành công !");
         } catch (Exception ex) {
-            log.error("Failed to deleting subject: {}", ex.getMessage());
+            log.error("Failed to delete subject: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa môn học !");
         }
     }

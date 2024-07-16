@@ -1,8 +1,6 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.StaffInfo;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,23 +12,6 @@ import java.util.Optional;
  * The interface Staff info repository.
  */
 public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
-
-    /**
-     * Find by username optional.
-     *
-     * @param username the username
-     * @return the optional
-     */
-    Optional<User> findByUsername(String username);
-
-    /**
-     * Find by email optional.
-     *
-     * @param username the username
-     * @return the optional
-     */
-    Optional<User> findByEmail(String username);
-
     /**
      * Find all page.
      *
@@ -56,14 +37,6 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
     Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
 
     /**
-     * Find by status optional.
-     *
-     * @param status the status
-     * @return the optional
-     */
-    Optional<User> findByStatus(String status);
-
-    /**
      * Find staff info by id staff info.
      *
      * @param id the id
@@ -71,8 +44,12 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      */
     StaffInfo findStaffInfoById(Integer id);
 
+    /**
+     * Find first by phone optional.
+     *
+     * @param phone the phone
+     * @return the optional
+     */
     Optional<StaffInfo> findFirstByPhone(String phone);
-
-
 
 }

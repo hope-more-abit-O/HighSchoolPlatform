@@ -10,9 +10,6 @@ public class UpdateStaffRequestDTO {
     private String middleName;
     @NotNull
     private String lastName;
-    @NotNull
-    private String email;
-    @NotNull
     private String avatar;
     @NotNull
     private String phone;
