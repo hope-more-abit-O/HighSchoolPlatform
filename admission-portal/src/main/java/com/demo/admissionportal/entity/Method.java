@@ -58,6 +58,7 @@ public class Method {
     private MethodStatus status;
 
     public Method(String code, String name, Integer createBy) {
+        this.id = null;
         this.code = code;
         this.name = name;
         this.createBy = createBy;

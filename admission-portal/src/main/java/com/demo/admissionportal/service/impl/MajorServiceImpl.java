@@ -2,6 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
+import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
@@ -53,7 +54,7 @@ public class MajorServiceImpl {
         return majorRepository.findByName(majorName).isPresent();
     }
 
-    public Major save(Major major)
+    public Major saveAll(Major major)
             throws StoreDataFailedException {
         try {
             return majorRepository.save(major);
@@ -62,7 +63,7 @@ public class MajorServiceImpl {
         }
     }
 
-    public List<Major> save(List<Major> majors)
+    public List<Major> saveAll(List<Major> majors)
             throws StoreDataFailedException {
         try {
             return majorRepository.saveAll(majors);
@@ -127,7 +128,7 @@ public class MajorServiceImpl {
         return savedMajors;
     }
 
-    public List<Major> checkAndInsert(List<CreateMajorDTO> majors)
+    public List<Major> checkAndInsertCreateMajorDTO(List<CreateMajorDTO> majors)
             throws DataExistedException, StoreDataFailedException {
         Integer createById = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
@@ -138,12 +139,72 @@ public class MajorServiceImpl {
 
     public List<Major> insertNewMajorsAndGetExistedMajors(List<CreateMajorDTO> createMajorDTOs, List<Integer> majorIds)
             throws ResourceNotFoundException, DataExistedException, StoreDataFailedException {
-        return Stream.concat(checkAndInsert(createMajorDTOs).stream(), findByIds(majorIds).stream()).toList();
+        return Stream.concat(checkAndInsertCreateMajorDTO(createMajorDTOs).stream(), findByIds(majorIds).stream()).toList();
     }
 
     public List<InfoMajorDTO> toListInfoMajorDTO(List<Major> majors){
         return majors.stream()
                 .map(major -> modelMapper.map(major, InfoMajorDTO.class))
                 .toList();
+    }
+
+    public void checkExistedNameAndCode(List<Major> majors)
+            throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+        Set<String> majorNames = majors.stream()
+                .map(Major::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> majorCodes = majors.stream()
+                .map(Major::getCode)
+                .collect(Collectors.toSet());
+
+        List<Major> existedMajorsByName = majorRepository.findByNameIn(majorNames);
+        List<Major> existedMajorsByCode = majorRepository.findByCodeIn(majorCodes);
+
+        if (!existedMajorsByName.isEmpty()){
+            String allNames = existedMajorsByName.stream()
+                    .map(Major::getName)
+                    .collect(Collectors.joining(", "));
+            errors.put("nameExisted", allNames);
+        }
+
+        if (!existedMajorsByCode.isEmpty()){
+            String allCodes = existedMajorsByCode.stream()
+                    .map(Major::getCode)
+                    .collect(Collectors.joining(", "));
+            errors.put("codeExisted", allCodes);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new DataExistedException("Có ngành học đã tồn tại", errors);
+        }
+    }
+
+    public List<Major> insertNewMajorsAndGetExistedMajors(List<CreateAdmissionQuotaRequest> quotas)
+            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException{
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        //CREATE A LIST OF NEW MAJORS
+        List<Major> newMajors = quotas.stream()
+                .filter(quota -> quota.getMajorId() == null )
+                .map(quota -> new Major(quota.getMajorCode(), quota.getMajorName(), consultantId))
+                .toList();
+
+        //VALIDATE MAJOR'S NAME AND CODE
+        checkExistedNameAndCode(newMajors);
+
+        //SAVE ALL NEW MAJORS INTO DATABASE
+        List<Major> result = saveAll(newMajors);
+
+        //GET ALL MAJORS EXISTED BY IDS
+        result.addAll(findByIds(quotas
+                .stream()
+                .map(CreateAdmissionQuotaRequest::getMajorId)
+                .filter(Objects::nonNull)
+                .toList()
+        ));
+
+        return result;
     }
 }

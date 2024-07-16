@@ -1,16 +1,14 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
-import com.demo.admissionportal.entity.Major;
+import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.Method;
-import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
-import com.demo.admissionportal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,6 +48,48 @@ public class MethodServiceImpl {
         }
 
         return methods;
+    }
+
+    public List<Method> saveAll(List<Method> methods)
+            throws StoreDataFailedException {
+        try {
+            return methodRepository.saveAll(methods);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Lưu thông tin ngành học thất bại.");
+        }
+    }
+
+    public void checkExistedNameAndCode(List<Method> Methods)
+            throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+        Set<String> MethodNames = Methods.stream()
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> MethodCodes = Methods.stream()
+                .map(Method::getCode)
+                .collect(Collectors.toSet());
+
+        List<Method> existedMethodsByName = methodRepository.findByNameIn(MethodNames);
+        List<Method> existedMethodsByCode = methodRepository.findByCodeIn(MethodCodes);
+
+        if (!existedMethodsByName.isEmpty()){
+            String allNames = existedMethodsByName.stream()
+                    .map(Method::getName)
+                    .collect(Collectors.joining(", "));
+            errors.put("nameExisted", allNames);
+        }
+
+        if (!existedMethodsByCode.isEmpty()){
+            String allCodes = existedMethodsByCode.stream()
+                    .map(Method::getCode)
+                    .collect(Collectors.joining(", "));
+            errors.put("codeExisted", allCodes);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new DataExistedException("Có phương thức tuyển sinh đã tồn tại", errors);
+        }
     }
 
     private boolean checkMethodName(String methodName) {
@@ -139,7 +179,33 @@ public class MethodServiceImpl {
 
     public List<InfoMethodDTO> toListInfoMethodDTO(List<Method> methods){
         return methods.stream()
-                .map(major -> modelMapper.map(major, InfoMethodDTO.class))
+                .map(Method -> modelMapper.map(Method, InfoMethodDTO.class))
                 .toList();
+    }
+
+    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateAdmissionQuotaRequest> quotas){
+        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        //CREATE A LIST OF NEW METHODS
+        List<Method> newMethods = quotas.stream()
+                .filter(quota -> quota.getMethodId() == null )
+                .map(quota -> new Method(quota.getMethodCode(), quota.getMethodName(), consultantId))
+                .toList();
+
+        //VALIDATE METHOD'S NAME AND CODE
+        checkExistedNameAndCode(newMethods);
+
+        //SAVE ALL NEW MethodS INTO DATABASE
+        List<Method> result = saveAll(newMethods);
+
+        //GET ALL MethodS EXISTED BY IDS
+        result.addAll(findByIds(quotas
+                .stream()
+                .map(CreateAdmissionQuotaRequest::getMethodId)
+                .filter(Objects::nonNull)
+                .toList()
+        ));
+
+        return result;
     }
 }

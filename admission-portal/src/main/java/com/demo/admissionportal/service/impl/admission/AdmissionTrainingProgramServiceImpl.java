@@ -1,18 +1,18 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.service.SubjectService;
+import com.demo.admissionportal.service.impl.MajorServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -20,10 +20,11 @@ import java.util.Map;
 public class AdmissionTrainingProgramServiceImpl {
     private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
     private final SubjectService subjectService;
+    private final MajorServiceImpl majorService;
 
 
     public AdmissionTrainingProgram save(AdmissionTrainingProgram admissionTrainingProgram){
-        log.info("Saving admission training program");
+        log.info("Saving admission training program: {}", admissionTrainingProgram.toString());
         try {
             AdmissionTrainingProgram savedProgram = admissionTrainingProgramRepository.save(admissionTrainingProgram);
             log.info("Admission training program saved successfully: {}", savedProgram.getId());
@@ -37,7 +38,7 @@ public class AdmissionTrainingProgramServiceImpl {
         }
     }
 
-    public List<AdmissionTrainingProgram> saveAllAdmissionTrainingProgram(List<AdmissionTrainingProgram> admissionTrainingPrograms) {
+    public List<AdmissionTrainingProgram> saveAllAdmissionTrainingProgram(List<AdmissionTrainingProgram> admissionTrainingPrograms) throws StoreDataFailedException{
         log.info("Saving admission training program");
         List<AdmissionTrainingProgram> savedPrograms = new ArrayList<>();
         List<String> errorMessages = new ArrayList<>();
@@ -93,4 +94,27 @@ public class AdmissionTrainingProgramServiceImpl {
         return savedPrograms;
     }
 
+    public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas) throws StoreDataFailedException{
+        List<AdmissionTrainingProgram> result;
+
+        List<Major> majors = majorService.insertNewMajorsAndGetExistedMajors(quotas);
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = quotas.stream()
+                .map(quota -> {
+                    if (quota.getMajorId() == null){
+                        Optional<Major> matchingMajor = majors.stream()
+                                .filter(major -> major.getName().equals(quota.getMajorName()))
+                                .findFirst();
+
+                        matchingMajor.ifPresent(major -> quota.setMajorId(major.getId()));
+                    }
+
+                    return new AdmissionTrainingProgram(admissionId, quota);
+                })
+                .toList();
+
+        result = this.saveAllAdmissionTrainingProgram(admissionTrainingPrograms);
+
+        return result;
+    }
 }

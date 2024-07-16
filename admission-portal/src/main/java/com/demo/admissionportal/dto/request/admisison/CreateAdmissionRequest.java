@@ -1,18 +1,22 @@
 package com.demo.admissionportal.dto.request.admisison;
 
-import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
-import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateAdmissionRequest {
+    @NotNull
     private Integer year;
+
+    @NotNull
     private String documents;
-    private List<Integer> methodIds;
-    private List<CreateMethodDTO> newMethodsNames;
-    private List<Integer> majorIds;
-    private List<CreateMajorDTO> newMajorsNames;
+
+    @NotNull
+    private List<CreateAdmissionQuotaRequest> quotas;
 }

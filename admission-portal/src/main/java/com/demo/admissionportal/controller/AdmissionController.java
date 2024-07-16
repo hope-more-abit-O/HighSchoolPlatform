@@ -21,9 +21,9 @@ public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
 
     @PostMapping
-    public ResponseEntity<ResponseData<CreateAdmissionResponse>> createAdmission(@RequestBody CreateAdmissionRequest createAdmissionRequest)
+    public ResponseEntity<ResponseData<CreateAdmissionResponse>> createAdmission(@RequestBody CreateAdmissionAndMethodsAndMajorsRequest request)
             throws ResourceNotFoundException, DataExistedException, StoreDataFailedException {
-        return ResponseEntity.ok(admissionService.createAdmission(createAdmissionRequest));
+        return ResponseEntity.ok(admissionService.createAdmission(request));
     }
 
     @PostMapping("/training-program")

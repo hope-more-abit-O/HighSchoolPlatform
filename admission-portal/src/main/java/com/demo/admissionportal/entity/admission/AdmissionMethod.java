@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.admission;
 
+import com.demo.admissionportal.entity.Method;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -35,4 +36,8 @@ public class AdmissionMethod {
         this.admissionId = admissionId;
     }
 
+    public AdmissionMethod(Integer admissionId, Method method) {
+        this.admissionId = admissionId;
+        this.methodId = method.getId();
+    }
 }

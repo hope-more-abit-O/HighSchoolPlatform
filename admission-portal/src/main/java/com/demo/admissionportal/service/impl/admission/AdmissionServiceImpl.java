@@ -2,7 +2,6 @@ package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramMethodQuotaDTO;
-import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramSubjectGroupIdDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
@@ -17,8 +16,6 @@ import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.admission.*;
-import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
-import com.demo.admissionportal.exception.CreateEntityFailedException;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
@@ -47,7 +44,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
     private final AdmissionTrainingProgramServiceImpl admissionTrainingProgramService;
     private final AdmissionTrainingProgramSubjectGroupServiceImpl admissionTrainingProgramSubjectGroupService;
-    private final AdmissionMethodRepository admissionMethodRepository;
+    private final AdmissionMethodServiceImpl admissionMethodService;
     private final UserService userService;
     private final MajorServiceImpl majorService;
     private final MethodServiceImpl methodService;
@@ -73,7 +70,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     @Transactional
-    public ResponseData<CreateAdmissionResponse> createAdmission(CreateAdmissionRequest request)
+    public ResponseData<CreateAdmissionResponse> createAdmission(CreateAdmissionAndMethodsAndMajorsRequest request)
             throws ResourceNotFoundException, DataExistedException, StoreDataFailedException {
         Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         User consultant = userService.findById(consultantId);
@@ -118,44 +115,6 @@ public class AdmissionServiceImpl implements AdmissionService {
         return this.save(admission);
     }
 
-    public List<AdmissionMethod> saveAllAdmissionMethod(Integer admissionId, List<Integer> methodIds) {
-        log.info("Saving admission methods for admission ID: {}", admissionId);
-        List<AdmissionMethod> admissionMethods = new ArrayList<>();
-        List<String> errorMessages = new ArrayList<>();
-        Map<String, String> error = new HashMap<>();
-
-        for (Integer methodId : methodIds) {
-            try {
-                AdmissionMethod admissionMethod = new AdmissionMethod(admissionId, methodId);
-                admissionMethods.add(admissionMethod);
-                log.info("Created admission method: {}", admissionMethod);
-            } catch (Exception e) {
-                log.info("Creating admission method failed for method ID: {}", methodId);
-                log.error(e.getMessage(), e);
-                errorMessages.add("Method ID: " + methodId + " - Error: " + e.getMessage());
-            }
-        }
-
-        if (!errorMessages.isEmpty()) {
-            String combinedErrorMessage = String.join("; ", errorMessages);
-            throw new CreateEntityFailedException("Tạo model cho Phương thức tuyển sinh thất bại", Map.of("errors", combinedErrorMessage));
-        }
-
-        try {
-            List<AdmissionMethod> savedAdmissionMethods = admissionMethodRepository.saveAll(admissionMethods);
-            log.info("Admission methods saved successfully for admission ID: {}", admissionId);
-            return savedAdmissionMethods;
-        } catch (Exception e) {
-            log.info("Saving admission methods failed for admission ID: {}", admissionId);
-            log.error(e.getMessage(), e);
-            errorMessages.add("Saving methods failed for admission ID: " + admissionId + " - Error: " + e.getMessage());
-        }
-        String combinedErrorMessage = String.join("; ", errorMessages);
-        throw new CreateEntityFailedException("Lưu Đề án - Phương thức tuyển sinh thất bại", Map.of("errors", combinedErrorMessage));
-
-    }
-
-
     //TODO: check if training program with all fields existed in admission
     public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request){
         Admission admission =  this.findById(request.getAdmissionId());
@@ -173,7 +132,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     public CreateAdmissionMethodResponse createAdmissionMethod(CreateAdmissionMethodRequest request){
         Admission admission = this.findById(request.getAdmissionId());
 
-        List<AdmissionMethod> admissionMethods = saveAllAdmissionMethod(request.getAdmissionId(), request.getMethodIds());
+        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethod(request.getAdmissionId(), request.getMethodIds());
 
         List<Method> methods = methodService.findByIds(request.getMethodIds());
         return new CreateAdmissionMethodResponse(this.mapFullResponse(admission),
@@ -212,4 +171,17 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         return response;
     }
+
+    public void createAdmission(CreateAdmissionRequest request){
+        User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+        Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
+
+        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAdmissionMethod( admission.getId(), request.getQuotas());
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAdmissionTrainingProgram(admission.getId(), request.getQuotas());
+
+        
+    }
+
 }

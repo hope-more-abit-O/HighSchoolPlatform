@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity.admission;
 
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,5 +51,26 @@ public class AdmissionTrainingProgram {
         this.mainSubjectId = createTrainingProgramRequest.getMainSubjectId();
         this.language = createTrainingProgramRequest.getLanguage();
         this.trainingSpecific = createTrainingProgramRequest.getTrainingSpecific();
+    }
+
+    public AdmissionTrainingProgram(Integer admissionId, CreateAdmissionQuotaRequest request) {
+        this.admissionId = admissionId;
+        this.majorId = request.getMajorId();
+        this.mainSubjectId = request.getMainSubjectId();
+        this.language = request.getLanguage();
+        this.trainingSpecific = request.getTrainingSpecific();
+    }
+
+    @Override
+    public String toString() {
+        return "AdmissionTrainingProgram{" +
+                "id=" + id +
+                ", majorId=" + majorId +
+                ", admissionId=" + admissionId +
+                ", mainSubjectId=" + mainSubjectId +
+                ", language='" + language + '\'' +
+                ", trainingSpecific='" + trainingSpecific + '\'' +
+                ", quota=" + quota +
+                '}';
     }
 }

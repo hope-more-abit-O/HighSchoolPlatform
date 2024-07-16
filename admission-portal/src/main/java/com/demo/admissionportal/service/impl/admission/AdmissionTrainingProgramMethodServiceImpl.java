@@ -31,4 +31,5 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
         return saveAll(admissionTrainingProgramMethods);
     }
+
 }
