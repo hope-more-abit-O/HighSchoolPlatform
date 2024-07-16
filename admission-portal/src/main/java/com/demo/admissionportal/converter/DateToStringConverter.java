@@ -19,7 +19,7 @@ import java.util.Date;
 @Component
 public class DateToStringConverter extends AbstractConverter<Date, String> {
 
-    private static final String DATE_FORMAT = "dd-MM-yyyy";
+    private static final String DATE_FORMAT = "dd-MM-yyyy hh:mm:ss";
     private final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
     /**

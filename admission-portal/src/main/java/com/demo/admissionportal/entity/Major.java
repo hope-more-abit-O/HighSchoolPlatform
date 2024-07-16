@@ -5,10 +5,7 @@ import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
@@ -19,6 +16,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "major")
 public class Major {
     @Id
@@ -57,8 +55,6 @@ public class Major {
     @Column(name = "update_by")
     private Integer updateBy;
 
-
-    @Size(max = 255)
     @NotNull
     @Nationalized
     @ColumnDefault("'ACTIVE'")
@@ -73,9 +69,19 @@ public class Major {
     }
 
     public Major(String code, String name, Integer createBy) {
+        this.id = null;
         this.code = code;
         this.name = name;
         this.createBy = createBy;
         this.createTime = new Date();
+        this.status = MajorStatus.ACTIVE;
+    }
+
+    public Major(Integer id, String code, String name, Integer createBy) {
+        this.code = code;
+        this.name = name;
+        this.createBy = createBy;
+        this.createTime = new Date();
+        this.status = MajorStatus.ACTIVE;
     }
 }
