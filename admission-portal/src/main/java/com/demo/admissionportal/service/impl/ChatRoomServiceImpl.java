@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
@@ -15,24 +16,24 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private ChatRoomRepository chatRoomRepository;
 
     @Override
-    public Optional<String> getChatId(Integer senderId, Integer recipientId, boolean createIfNotExist) {
+    public Optional<UUID> getChatId(Integer senderId, Integer recipientId, boolean createIfNotExist) {
         return chatRoomRepository
                 .findBySenderIdAndRecipientId(senderId, recipientId)
-                .map(ChatRoom::getChatId)
+                .map(chatRoom -> UUID.fromString(chatRoom.getChatId()))
                 .or(() -> {
                     if (!createIfNotExist) {
                         return Optional.empty();
                     }
-                    var chatId = String.format("%d_%d", senderId, recipientId);
+                    UUID chatId = UUID.randomUUID();
 
                     ChatRoom senderRecipient = ChatRoom.builder()
-                            .chatId(chatId)
+                            .chatId(chatId.toString())
                             .senderId(senderId)
                             .recipientId(recipientId)
                             .build();
 
                     ChatRoom recipientSender = ChatRoom.builder()
-                            .chatId(chatId)
+                            .chatId(chatId.toString())
                             .senderId(recipientId)
                             .recipientId(senderId)
                             .build();
