@@ -607,9 +607,12 @@ public class PostServiceImpl implements PostService {
     public ResponseData<List<PostResponseDTO>> getPostsNewest() {
         try {
             log.info("Start retrieve post by descend create time");
+            Set<String> filter = new HashSet<>();
             List<Post> post = postRepository.findPostByDescCreateTime();
             List<PostResponseDTO> postResponseDTOList = post.stream()
+                    .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
                     .map(this::mapToPostResponseDTO)
+                    .limit(3)
                     .collect(Collectors.toList());
             log.info("End retrieve post by descend create time");
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post", postResponseDTOList);
@@ -626,6 +629,7 @@ public class PostServiceImpl implements PostService {
             List<Post> post = postRepository.findPostByDescCreateTime();
             List<PostResponseDTO> postResponseDTOList = post.stream()
                     .map(this::mapToPostResponseDTO)
+                    .limit(6)
                     .collect(Collectors.toList());
             Collections.shuffle(postResponseDTOList, new Random());
             log.info("End retrieve post by general");
