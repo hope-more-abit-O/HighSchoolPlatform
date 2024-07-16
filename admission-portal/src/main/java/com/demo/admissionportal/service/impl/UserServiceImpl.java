@@ -31,6 +31,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -235,6 +237,50 @@ public class UserServiceImpl implements UserService {
             responseDTO.setUpdateBy(modelMapper.map(findById(user.getUpdateBy()), ActionerDTO.class));
 
         return responseDTO;
+    }
+
+    public List<ActionerDTO> mapActioners(Object obj) throws ResourceNotFoundException {
+        List<ActionerDTO> actionerDTOList = new ArrayList<>();
+
+        // Use reflection to get the values of createBy and updateBy
+        try {
+            // Get the createBy and updateBy methods
+            java.lang.reflect.Method getCreateByMethod = obj.getClass().getMethod("getCreateBy");
+            Method getUpdateByMethod = obj.getClass().getMethod("getUpdateBy");
+
+            // Invoke the methods to get the values
+            Object createByValue = getCreateByMethod.invoke(obj);
+            Object updateByValue = getUpdateByMethod.invoke(obj);
+
+            // Map CreateBy field
+            ActionerDTO createByDTO = modelMapper.map(findById((Integer) createByValue), ActionerDTO.class);
+            actionerDTOList.add(createByDTO);
+
+            // Map UpdateBy field
+            if (updateByValue == null) { // Case 1: updateBy == null
+                actionerDTOList.add(null);
+            } else if (Objects.equals(createByValue, updateByValue)) { // Case 2: updateBy == createBy
+                actionerDTOList.add(createByDTO);
+            } else { // Case 3: updateBy != createBy
+                ActionerDTO updateByDTO = modelMapper.map(findById((Integer) updateByValue), ActionerDTO.class);
+                actionerDTOList.add(updateByDTO);
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new ResourceNotFoundException("Error mapping actioners", Map.of("error", e.getMessage()));
+        }
+
+        return actionerDTOList;
+    }
+
+    public ActionerDTO getActionerDTOById(Integer id) throws ResourceNotFoundException {
+        User user = findById(id);
+        return modelMapper.map(user, ActionerDTO.class);
+    }
+    public List<ActionerDTO> getActionerDTOsByIds(List<Integer> id) throws ResourceNotFoundException {
+        List<User> users = findByIds(id);
+        return users.stream()
+                .map(user -> modelMapper.map(user, ActionerDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Override

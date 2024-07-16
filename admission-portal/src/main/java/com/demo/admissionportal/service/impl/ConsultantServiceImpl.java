@@ -154,7 +154,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
 
         emailUtil.sendAccountPasswordRegister(consultant, password);
-        return ResponseData.created("Tạo tư vấn viên thành công.");
+        return ResponseData.created("Tạo tư vấn viên thành công.", password);
     }
 
     protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){

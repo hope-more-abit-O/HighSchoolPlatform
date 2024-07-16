@@ -3,12 +3,15 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.controller.CreateUniversityController;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.CreateUniversityRequestRepository;
@@ -27,7 +30,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +46,8 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
     private final UniversityInfoRepository universityInfoRepository;
     private final ValidationService validationService;
     private final EmailUtil emailUtil;
+    private final UserServiceImpl userServiceImpl;
+    private final CreateUniversityController createUniversityController;
 
     /**
      * Handles the creation of a university creation request.
@@ -77,10 +85,13 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      * @since 1.0
      */
     @Transactional
-    public ResponseData createCreateUniversityRequest(CreateUniversityRequestRequest request) throws StoreDataFailedException{
+    public ResponseData createCreateUniversityRequest(CreateUniversityRequestRequest request)
+            throws DataExistedException, StoreDataFailedException{
         //Get staff's principal
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Staff ID: {}", staffId);
+
+        validationService.validateRegister(request.getUniversityUsername(), request.getUniversityEmail());
 
         //Create model
         CreateUniversityRequest createUniversityRequest = CreateUniversityRequest.builder()
@@ -178,7 +189,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
             if (uni != null){
                 emailUtil.sendAccountPasswordRegister(uni, password);
-                return ResponseData.ok("Tạo tài khoản trường học thành công.", modelMapper.map(uni, User.class));
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (Exception e){
@@ -226,5 +237,38 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             log.error("Create university request with id: {} not found.", id);
             return new ResourceNotFoundException("Không tìm thấy yêu cầu tạo tài khoản trường học với mã: " + id);
         });
+    }
+
+    public CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException{
+        CreateUniversityRequest createUniversityRequest = findById(id);
+        CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
+        if (createUniversityRequest.getUpdateBy() == null)
+            result.setUpdateBy(null);
+        if (createUniversityRequest.getConfirmBy() == null)
+            result.setConfirmBy(null);
+
+        List<Integer> actionerIds = new ArrayList<>();
+        actionerIds.add(createUniversityRequest.getCreateBy());
+        if (createUniversityRequest.getUpdateBy() != null)
+            actionerIds.add(createUniversityRequest.getUpdateBy());
+        if (createUniversityRequest.getConfirmBy() != null)
+            actionerIds.add(createUniversityRequest.getConfirmBy());
+
+        List<ActionerDTO> actioners = userServiceImpl.getActionerDTOsByIds(actionerIds);
+
+        for (ActionerDTO actioner : actioners) {
+            if (actioner.getId().equals(createUniversityRequest.getCreateBy())) {
+                result.setCreateBy(actioner);
+            }
+            if (createUniversityRequest.getUpdateBy() != null && actioner.getId().equals(createUniversityRequest.getUpdateBy())) {
+                result.setUpdateBy(actioner);
+            }
+            if (createUniversityRequest.getConfirmBy() != null && actioner.getId().equals(createUniversityRequest.getConfirmBy())) {
+                result.setConfirmBy(actioner);
+            }
+        }
+
+        result.setDocuments(Arrays.stream(createUniversityRequest.getDocuments().split(",")).toList());
+        return result;
     }
 }
