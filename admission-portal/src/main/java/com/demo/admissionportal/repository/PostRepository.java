@@ -30,8 +30,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     List<Post> findPostsByTagName(@Param("tagName") String tagName);
 
     @Query(value = "SELECT p.* FROM post p " +
-            "INNER JOIN post_tag pt ON p.id = pt.post_id " +
-            "INNER JOIN tag t ON pt.tag_id = t.id " +
+            "INNER JOIN post_type pt ON p.id = pt.post_id " +
+            "INNER JOIN type t ON pt.type_id = t.id " +
             "INNER JOIN [user] u ON p.create_by = u.id " +
             "ORDER BY p.create_time DESC", nativeQuery = true)
     List<Post> findPostByDescCreateTime();
