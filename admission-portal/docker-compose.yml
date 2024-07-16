@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   admission-portal:
+    env_file:
+      - key.env
     image: admission-portal-image
     build:
       context: .
