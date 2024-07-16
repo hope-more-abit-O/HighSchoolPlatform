@@ -46,6 +46,14 @@ services:
       - sqlserver
       - redis
 
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "Fpt1234567890"
+      ACCEPT_EULA: "Y"
+    networks:
+      - my-network
+
   redis:
     image: redis:latest
     ports:
