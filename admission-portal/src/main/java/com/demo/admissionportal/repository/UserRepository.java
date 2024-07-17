@@ -75,8 +75,29 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     User findUserByEmail(String email);
 
+    /**
+     * Find user page.
+     *
+     * @param pageable the pageable
+     * @param username the username
+     * @return the page
+     */
     @Query("SELECT u FROM User u WHERE u.username LIKE %:username%")
     Page<User> findUser(Pageable pageable, @Param("username") String username);
 
+    /**
+     * Find by id in list.
+     *
+     * @param ids the ids
+     * @return the list
+     */
     List<User> findByIdIn(Collection<Integer> ids);
+
+    /**
+     * Find last staff + number username string.
+     *
+     * @return the string
+     */
+    @Query("SELECT u.username FROM User u WHERE u.username LIKE 'staff%' ORDER BY u.username DESC LIMIT 1")
+    String findLastStaffUsername();
 }

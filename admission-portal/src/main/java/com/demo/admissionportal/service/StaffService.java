@@ -54,7 +54,7 @@ public interface StaffService {
      * @param id      the id
      * @return the response data
      */
-    ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id);
+    ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id, String token);
 
     /**
      * Delete staff by id response data.
