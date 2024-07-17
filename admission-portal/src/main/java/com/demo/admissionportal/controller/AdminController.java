@@ -4,9 +4,7 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
-import com.demo.admissionportal.dto.request.ActiveStaffRequest;
-import com.demo.admissionportal.dto.request.DeleteStaffRequest;
-import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
@@ -76,7 +74,14 @@ public class AdminController {
      */
     @GetMapping("/list-all-staffs")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ResponseData<Page<StaffResponseDTO>>> findAllStaff(@RequestParam(required = false) String username, @RequestParam(required = false) String firstName, @RequestParam(required = false) String middleName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String email, @RequestParam(required = false) String phone, @RequestParam(required = false) AccountStatus status, Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<StaffResponseDTO>>> findAllStaff(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String middleName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) AccountStatus status, Pageable pageable) {
         ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -172,8 +177,9 @@ public class AdminController {
      * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/accept/{id}")
-    public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request) throws ResourceNotFoundException, StoreDataFailedException {
-        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.note()));
+    public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
+        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.adminNote()));
     }
 
     /**
@@ -186,8 +192,9 @@ public class AdminController {
      * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/reject/{id}")
-    public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request) throws ResourceNotFoundException, StoreDataFailedException {
-        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.note()));
+    public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
+            throws ResourceNotFoundException, StoreDataFailedException{
+        return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.adminNote()));
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.demo.admissionportal.dto.entity.consultant;
 
 import com.demo.admissionportal.constants.Gender;
+import com.demo.admissionportal.dto.entity.address.InfoDistrictDTO;
+import com.demo.admissionportal.dto.entity.address.InfoProvinceDTO;
+import com.demo.admissionportal.dto.entity.address.InfoWardDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.entity.ConsultantInfo;
@@ -45,6 +48,9 @@ public class ConsultantResponseDTO {
     private UniversityInfoResponseDTO university;
     private String name;
     private String phone;
+    private InfoProvinceDTO province;
+    private InfoDistrictDTO district;
+    private InfoWardDTO ward;
     private String address;
     private String note;
     private String gender;
