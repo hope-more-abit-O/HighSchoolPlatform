@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WardService {
+public class WardServiceImpl {
     private final WardRepository wardRepository;
 
     public Ward findById(Integer id) throws ResourceNotFoundException {

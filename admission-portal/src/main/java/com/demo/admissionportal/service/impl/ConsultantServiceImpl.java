@@ -42,9 +42,9 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final UniversityService universityService;
     private final UserService userService;
     private final AddressService addressService;
-    private final DistrictService districtService;
+    private final DistrictServiceImpl districtService;
     private final EmailUtil emailUtil;
-    private final WardService wardService;
+    private final WardServiceImpl wardService;
 
     /**
      * Retrieves complete details for a consultant using their ID.

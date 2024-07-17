@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DistrictService {
+public class DistrictServiceImpl {
     private final DistrictRepository districtRepository;
 
     public District findById(Integer id) throws ResourceNotFoundException {
