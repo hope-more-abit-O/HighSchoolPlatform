@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.entity.chat.UserDTO;
 import com.demo.admissionportal.dto.request.ActiveStaffRequest;
 import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
@@ -33,10 +34,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -100,7 +99,17 @@ public class StaffServiceImpl implements StaffService {
         List<StaffResponseDTO> staffResponse = new ArrayList<>();
         String statusString = status != null ? status.name() : null;
         Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, middleName, lastName, email, phone, statusString, pageable);
-        staffPage.getContent().forEach(s -> staffResponse.add(modelMapper.map(s, StaffResponseDTO.class)));
+        staffPage.forEach(staffInfo -> {
+            StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
+            staffResponseDTO.setId(staffInfo.getId());
+            staffResponseDTO.setUsername(staffInfo.getUser().getUsername());
+            staffResponseDTO.setName(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
+            staffResponseDTO.setPhone(staffInfo.getPhone());
+            staffResponseDTO.setStatus(staffInfo.getUser().getStatus().name());
+            staffResponseDTO.setEmail(staffInfo.getUser().getEmail());
+            staffResponseDTO.setAvatar(staffInfo.getUser().getAvatar());
+            staffResponse.add(staffResponseDTO);
+        });
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
         log.info("Successfully retrieved list of staffs:{}", staffPage);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
@@ -195,16 +204,15 @@ public class StaffServiceImpl implements StaffService {
                 log.warn("Staff with ID: {} not found", id);
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên không tồn tại!");
             }
-            if (existingStaff.getStatus().equals(AccountStatus.ACTIVE.name())){
-                return new ResponseData<>(ResponseCode.C201.getCode(), "Nhân viên đang hoạt động !");
-            }
-             AccountStatus.INACTIVE.name().equals(existingStaff.getStatus());
+            if (AccountStatus.ACTIVE.equals(existingStaff.getStatus())){
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Nhân viên đang hoạt động!");
+            } else {
                 log.info("Activating INACTIVE staff with ID: {}", id);
                 existingStaff.setStatus(AccountStatus.ACTIVE);
                 existingStaff.setNote(request.note());
                 userRepository.save(existingStaff);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt nhân viên thành công!");
-
+            }
         } catch (Exception e) {
             log.error("Activation of staff with ID: {} failed: {}", id, e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
