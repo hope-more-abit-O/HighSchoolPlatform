@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -56,7 +58,7 @@ public class ValidationServiceImpl implements ValidationService {
      */
     public boolean validateUsername(String username) throws DataExistedException {
         log.info("Checking username availability.");
-        String errorMessage = "Tên tài khoản hoặc username đã được sử dụng";
+        String errorMessage = "Tên tài khoản hoặc username: " + username + " đã được sử dụng";
         if (userRepository.findFirstByUsername(username).isPresent()) {
             log.error("Username: {} available!", username);
             throw new DataExistedException(errorMessage);
@@ -95,7 +97,7 @@ public class ValidationServiceImpl implements ValidationService {
      */
     public boolean validateEmail(String email) throws DataExistedException {
         log.info("Checking email availability.");
-        String errorMessage = "Email đã được sử dụng";
+        String errorMessage = "Email: " + email + " đã được sử dụng";
         if (userRepository.findFirstByEmail(email).isPresent()) {
             log.error("Email: {} available!", email);
             throw new DataExistedException(errorMessage);
@@ -141,7 +143,7 @@ public class ValidationServiceImpl implements ValidationService {
         ).anyMatch(Optional::isPresent);
         if (phoneAlreadyExists) {
             log.error("Phone number: {} is already taken!", phone);
-            throw new DataExistedException("Số điện thoại đã được sử dụng");
+            throw new DataExistedException("Số điện thoại: " + phone + " đã được sử dụng");
         }
         return true;
     }
@@ -188,7 +190,16 @@ public class ValidationServiceImpl implements ValidationService {
      * @see #validatePhoneNumber(String)
      */
     public boolean validateRegister(String username, String email, String phone) throws DataExistedException {
-        return validateUsername(username) && validateEmail(email) && validatePhoneNumber(phone);
+        Map<String, String> errors = new HashMap<>();
+
+        validateAndPutError(errors, "username", () -> validateUsername(username));
+        validateAndPutError(errors, "email", () -> validateEmail(email));
+        validateAndPutError(errors, "phone", () -> validatePhoneNumber(phone));
+
+        if (!errors.isEmpty())
+            throw new DataExistedException("Dữ liệu đã tồn tại!", errors);
+
+        return true;
     }
 
     /**
@@ -230,6 +241,22 @@ public class ValidationServiceImpl implements ValidationService {
      * @see #validateEmail(String)
      */
     public boolean validateRegister(String username, String email) throws DataExistedException {
-        return validateUsername(username) && validateEmail(email);
+        Map<String, String> errors = new HashMap<>();
+
+        validateAndPutError(errors, "username", () -> validateUsername(username));
+        validateAndPutError(errors, "email", () -> validateEmail(email));
+
+        if (!errors.isEmpty())
+            throw new DataExistedException("Dữ liệu đã tồn tại!", errors);
+
+        return true;
+    }
+
+    private static void validateAndPutError(Map<String, String> errors, String field, Runnable validation) {
+        try {
+            validation.run();
+        } catch (DataExistedException e) {
+            errors.put(field, e.getMessage());
+        }
     }
 }

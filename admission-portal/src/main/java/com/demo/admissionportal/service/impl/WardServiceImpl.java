@@ -1,6 +1,5 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.entity.District;
 import com.demo.admissionportal.entity.Ward;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.WardRepository;
