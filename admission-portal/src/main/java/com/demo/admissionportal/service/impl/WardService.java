@@ -1,6 +1,5 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.entity.District;
 import com.demo.admissionportal.entity.Ward;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.repository.WardRepository;
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WardServiceImpl {
+public class WardService {
     private final WardRepository wardRepository;
 
     public Ward findById(Integer id) throws ResourceNotFoundException {

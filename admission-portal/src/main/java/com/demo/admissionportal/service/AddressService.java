@@ -4,6 +4,7 @@ import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -11,6 +12,9 @@ import java.util.List;
  * The interface Province service.
  */
 public interface AddressService {
+
+    //TODO: JAVADOC
+    Province findProvinceById(Integer id) throws ResourceNotFoundException;
 
     /**
      * Find province response data.

@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.entity.District;
 import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.entity.sub_entity.DistrictWard;
 import com.demo.admissionportal.entity.sub_entity.ProvinceDistrict;
@@ -37,7 +38,7 @@ public class AddressServiceImpl implements AddressService {
      * @return the province
      * @throws ResourceNotFoundException the resource not found exception
      */
-    public Province findById(Integer id) throws ResourceNotFoundException {
+    public Province findProvinceById(Integer id) throws ResourceNotFoundException {
         return provinceRepository.findById(id).orElseThrow(() -> {
             log.error("Province with id: {} not found.", id);
             return new ResourceNotFoundException("Địa chỉ cấp 1 với id: " + id + " không tìm thấy.");

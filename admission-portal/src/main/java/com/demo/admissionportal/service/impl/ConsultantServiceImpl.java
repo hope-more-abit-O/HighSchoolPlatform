@@ -15,27 +15,20 @@ import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
-import com.demo.admissionportal.service.ConsultantService;
-import com.demo.admissionportal.service.UniversityService;
-import com.demo.admissionportal.service.UserService;
-import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.service.*;
 import com.demo.admissionportal.util.impl.AddressUtils;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.NameUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
-import java.util.Collection;
 
 @Service
 @Slf4j
@@ -48,10 +41,10 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
     private final UserService userService;
-    private final AddressServiceImpl addressServiceImpl;
-    private final DistrictServiceImpl districtServiceImpl;
+    private final AddressService addressService;
+    private final DistrictService districtService;
     private final EmailUtil emailUtil;
-    private final WardServiceImpl wardServiceImpl;
+    private final WardService wardService;
 
     /**
      * Retrieves complete details for a consultant using their ID.
@@ -154,14 +147,16 @@ public class ConsultantServiceImpl implements ConsultantService {
 
 
         emailUtil.sendAccountPasswordRegister(consultant, password);
-        //TODO: DELETE PASSWORD
-        return ResponseData.created("Tạo tư vấn viên thành công.", password);
+
+        return ResponseData.created("Tạo tư vấn viên thành công.");
     }
 
     protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
+
         infoResponse.setName(NameUtils.getFullName(info.getFirstname(), info.getMiddleName(), info.getLastName()));
         infoResponse.setUniversity(universityService.getUniversityInfoResponseById(info.getUniversityId()));
+
         if (info.getSpecificAddress() == null || info.getProvince() == null || info.getWard() == null || info.getDistrict() == null){
             infoResponse.setAddress(null);
         } else
@@ -224,9 +219,9 @@ public class ConsultantServiceImpl implements ConsultantService {
     private void updateConsultantAddress(ConsultantInfo consultantInfo, UpdateConsultantAddressRequest request)
             throws StoreDataFailedException, ResourceNotFoundException {
         consultantInfo.setSpecificAddress(request.getSpecificAddress());
-        consultantInfo.setProvince(addressServiceImpl.findById(request.getProvinceId()));
-        consultantInfo.setWard(wardServiceImpl.findById(request.getWardId()));
-        consultantInfo.setDistrict(districtServiceImpl.findById(request.getDistrictId()));
+        consultantInfo.setProvince(addressService.findProvinceById(request.getProvinceId()));
+        consultantInfo.setWard(wardService.findById(request.getWardId()));
+        consultantInfo.setDistrict(districtService.findById(request.getDistrictId()));
 
         save(consultantInfo);
     }
