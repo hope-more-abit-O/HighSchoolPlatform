@@ -83,6 +83,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseData<UserProfileResponseDTO> getUserById(Integer id) {
         try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (!Objects.equals(id, userId)) {
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
+            }
             if (id == null || id < 0) {
                 new ResponseEntity<ResponseData<User>>(HttpStatus.BAD_REQUEST);
             }
