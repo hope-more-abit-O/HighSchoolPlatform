@@ -397,7 +397,8 @@ public class UserServiceImpl implements UserService {
         return actionerUsers.stream()
                 .collect(Collectors.toMap(
                         User::getId,
-                        user -> new ActionerDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name())
+//                        user -> new ActionerDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name(), user.getStatus())
+                        user -> modelMapper.map(user, ActionerDTO.class)
                 ));
     }
 

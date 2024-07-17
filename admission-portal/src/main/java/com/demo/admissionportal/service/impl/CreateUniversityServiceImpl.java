@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.controller.CreateUniversityController;
@@ -30,10 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -148,6 +146,15 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         CreateUniversityRequest createUniversityRequest = findById(id);
         log.info("Get CreateUniversityRequest by Id: {} succeed.", id);
 
+        log.info("Request status {}", createUniversityRequest.getStatus());
+        if (!createUniversityRequest.getStatus().equals(CreateUniversityRequestStatus.PENDING)) {
+            log.error("Request status {} not available to update!", createUniversityRequest.getStatus());
+            return new ResponseData(ResponseCode.C201.getCode()
+                    ,"Đơn tạo trường đã kết thúc!"
+                    , Map.of("createUniversityRequestStauts", createUniversityRequest.getStatus().name()));
+        }
+
+
         log.info("Saving to database.");
         User uni = null;
         String password = "";
@@ -167,7 +174,6 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                 adminId
                         )
                 );
-                uniId = uni.getId();
                 log.info("Creating and storing University Account succeed");
 
                 log.info("Creating and storing University Information");
@@ -182,7 +188,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             createUniversityRequest.setUpdateBy(adminId);
             createUniversityRequest.setUpdateTime(new Date());
             createUniversityRequest.setConfirmBy(adminId);
-            createUniversityRequest.setNote(note);
+            createUniversityRequest.setAdminNote(note);
 
             createUniversityRequestRepository.save(createUniversityRequest);
             log.info("Updating and storing Create university request succeed");
