@@ -13,8 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 
 
 /**
@@ -67,6 +67,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
+        } else if (user.getStatus() == ResponseCode.C209.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(user);
+        } else if (user.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(user);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
@@ -78,7 +82,7 @@ public class UserController {
      * @return the response entity
      */
     @GetMapping
-    public ResponseEntity<User> test(){
+    public ResponseEntity<User> test() {
         return ResponseEntity.ok(userService.findById(79));
     }
 }

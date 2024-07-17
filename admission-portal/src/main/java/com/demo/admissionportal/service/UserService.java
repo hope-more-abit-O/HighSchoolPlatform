@@ -4,10 +4,7 @@ import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
-import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
-import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.exception.NotAllowedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -55,7 +52,7 @@ public interface UserService extends UserDetailsService {
      */
     ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
 
-    ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
+    ResponseData<ChangeStatusUserResponseDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO);
 
     List<InfoUserResponseDTO> getInfoUserResponseDTOList(List<Integer> ids) throws ResourceNotFoundException;
 

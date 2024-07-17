@@ -320,6 +320,9 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             if (!changePasswordRequestDTO.getNewPassword().equals(changePasswordRequestDTO.getConfirmPassword())) {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Mật khẩu không giống nhau");
             }
+            if (changePasswordRequestDTO.getNewPassword().equals(changePasswordRequestDTO.getCurrentPassword())) {
+                return new ResponseData<>(ResponseCode.C201.getCode(), "Không được nhập mật khẩu cũ");
+            }
             user.setPassword(passwordEncoder.encode(changePasswordRequestDTO.getNewPassword()));
             userRepository.save(user);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đổi mật khẩu thành công");

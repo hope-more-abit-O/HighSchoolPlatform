@@ -7,11 +7,9 @@ import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
-import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
-import com.demo.admissionportal.dto.response.UserResponseDTO;
+import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
@@ -139,9 +137,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO) {
         try {
-
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             if (id == null || id < 0 || requestDTO == null) {
                 new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
+            }
+            if (!Objects.equals(id, userId)) {
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
             }
             UserInfo userInfo = userInfoRepository.findUserInfoById(id);
             User user = userRepository.findUserById(id);
@@ -154,7 +155,7 @@ public class UserServiceImpl implements UserService {
             userInfo.setMiddleName(requestDTO.getMiddleName());
             userInfo.setLastName(requestDTO.getLastName());
             userInfo.setGender(requestDTO.getGender());
-            // TODO: Handle phone existed
+            validationService.validatePhoneNumber(requestDTO.getPhone());
             userInfo.setPhone(requestDTO.getPhone());
 
             userInfo.setBirthday(requestDTO.getBirthday());
@@ -178,6 +179,9 @@ public class UserServiceImpl implements UserService {
             userInfoRepository.save(userInfo);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công");
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoai đã tồn tại");
+
         } catch (Exception ex) {
             log.error("Error while update user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
@@ -185,7 +189,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseData<ChangeStatusUserRequestDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO) {
+    public ResponseData<ChangeStatusUserResponseDTO> changeStatus(Integer id, ChangeStatusUserRequestDTO requestDTO) {
         try {
             if (id == null || id < 0 || requestDTO == null) {
                 new ResponseEntity<ResponseData<User>>(HttpStatus.BAD_REQUEST);
@@ -202,7 +206,9 @@ public class UserServiceImpl implements UserService {
                 user.setStatus(AccountStatus.ACTIVE);
             }
             userRepository.save(user);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công");
+            ChangeStatusUserResponseDTO response = new ChangeStatusUserResponseDTO();
+            response.setCurrentStatus(user.getStatus());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công", response);
         } catch (Exception ex) {
             log.error("Error while change status user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi thay đổi trạng thái user");
@@ -210,7 +216,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(Integer id) throws ResourceNotFoundException{
+    public User findById(Integer id) throws ResourceNotFoundException {
         return userRepository.findById(id).orElseThrow(() -> {
             log.error("User's account with id: {} not found.", id);
             return new ResourceNotFoundException("Tài khoản với id: " + id + " không tìm thấy");
@@ -276,6 +282,7 @@ public class UserServiceImpl implements UserService {
         User user = findById(id);
         return modelMapper.map(user, ActionerDTO.class);
     }
+
     public List<ActionerDTO> getActionerDTOsByIds(List<Integer> id) throws ResourceNotFoundException {
         List<User> users = findByIds(id);
         return users.stream()
