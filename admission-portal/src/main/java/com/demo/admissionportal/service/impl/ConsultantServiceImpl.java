@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -85,10 +86,11 @@ public class ConsultantServiceImpl implements ConsultantService {
             throw new NotAllowedException("Bạn không có quyền để xem thông tin của tư vấn viên này");
 
         return new FullConsultantResponseDTO(
-                modelMapper.map(consultantAccount, FullUserResponseDTO.class),
+                userService.mappingResponse(consultantAccount),
                 mappingResponse(findInfoById(id))
         );
     }
+
     @Override
     public FullConsultantResponseDTO getSelfInfo() throws ResourceNotFoundException {
         Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();

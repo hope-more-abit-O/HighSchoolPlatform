@@ -26,12 +26,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -89,7 +94,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Staff ID: {}", staffId);
 
-        validationService.validateRegister(request.getUniversityUsername(), request.getUniversityEmail());
+        validationService.validateCreateUniversityRequest(request.getUniversityUsername(), request.getUniversityEmail(), request.getUniversityCode());
 
         //Create model
         CreateUniversityRequest createUniversityRequest = CreateUniversityRequest.builder()
@@ -162,7 +167,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
                 password = RandomStringUtils.randomAlphanumeric(9);
                 log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-                validationService.validateRegister(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+                validationService.validateCreateUniversity(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail(), createUniversityRequest.getUniversityCode());
                 log.info("Check username, email available succeed.");
 
                 log.info("Creating and storing University Account");
@@ -171,7 +176,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                 createUniversityRequest.getUniversityEmail(),
                                 passwordEncoder.encode(password),
                                 Role.UNIVERSITY,
-                                adminId
+                                createUniversityRequest.getCreateBy()
                         )
                 );
                 log.info("Creating and storing University Account succeed");
@@ -282,5 +287,47 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         result.setDocuments(Arrays.stream(createUniversityRequest.getDocuments().split(",")).toList());
 
         return result;
+    }
+
+    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest, List<ActionerDTO> actioners){
+        CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
+        if (createUniversityRequest.getUpdateBy() == null)
+            result.setUpdateBy(null);
+        if (createUniversityRequest.getConfirmBy() == null)
+            result.setConfirmBy(null);
+
+        for (ActionerDTO actioner : actioners) {
+            if (actioner.getId().equals(createUniversityRequest.getCreateBy())) {
+                result.setCreateBy(actioner);
+            }
+            if (createUniversityRequest.getUpdateBy() != null && actioner.getId().equals(createUniversityRequest.getUpdateBy())) {
+                result.setUpdateBy(actioner);
+            }
+            if (createUniversityRequest.getConfirmBy() != null && actioner.getId().equals(createUniversityRequest.getConfirmBy())) {
+                result.setConfirmBy(actioner);
+            }
+        }
+
+        result.setDocuments(Arrays.stream(createUniversityRequest.getDocuments().split(",")).toList());
+
+        return result;
+    }
+
+    public ResponseData<Page<CreateUniversityRequestDTO>> getBy(Pageable pageable){
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAll(pageable);
+
+        List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
+
+        Page<CreateUniversityRequestDTO> mappedRequests = createUniversityRequests.map(request -> this.mapping(request, actionerDTOs));
+        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", mappedRequests);
+    }
+
+    public List<ActionerDTO> getActioners(List<CreateUniversityRequest> createUniversityRequests){
+        Set<Integer> actionerIds = createUniversityRequests.stream()
+                .flatMap((request) -> Stream.of(request.getCreateBy(), request.getUpdateBy(), request.getConfirmBy()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        List<ActionerDTO> actionerDTOs = userServiceImpl.getActionerDTOsByIds(actionerIds.stream().toList());
+        return actionerDTOs;
     }
 }

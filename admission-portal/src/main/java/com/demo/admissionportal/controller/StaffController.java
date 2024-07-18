@@ -40,7 +40,6 @@ public class StaffController {
     private final SubjectService subjectService;
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
-    private final ConsultantService consultantService;
 
     /**
      * Handles the submission of a university creation request.
@@ -406,9 +405,4 @@ public class StaffController {
         }
     }
 
-
-    @GetMapping("/consultant/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
-        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
-    }
 }

@@ -63,7 +63,7 @@ public class CreateUniversityRequest {
     @Column
     private Integer confirmBy;
 
-    @Column
+    @Column(name = "admin_note")
     private String adminNote;
 
 }
