@@ -20,6 +20,10 @@ import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.OTPUtil;
 import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.HttpHeaders;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -28,10 +32,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * The type Authentication user service.
@@ -72,12 +78,14 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 return new ResponseData<>(ResponseCode.C209.getCode(), "Tài khoản đã bị khoá trong hệ thống");
             }
             var jwtToken = jwtService.generateToken(user);
+            var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
             saveUserToken(user, jwtToken);
             if (user.getRole() == Role.ADMIN && (request.getUsername().equals(user.getUsername()) || request.getUsername().equals(user.getEmail()))
                     && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
                         .accessToken(jwtToken)
+                        .refreshToken(refreshToken)
                         .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
                         .build());
             } else {
@@ -109,6 +117,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 }
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
                         .accessToken(jwtToken)
+                        .refreshToken(refreshToken)
                         .user(modelMapper.map(user, LoginResponseDTO.UserLoginResponseDTO.class))
                         .userInfo(userInfoResponseDTO)
                         .staffInfo(staffInfoResponseDTO)
@@ -348,5 +357,45 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             log.error("checkEmailExisted error: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), ex.getMessage());
         }
+    }
+
+    @Override
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userName;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+        refreshToken = authHeader.substring(7);
+        userName = jwtService.extractUsername(refreshToken);
+        if (userName != null) {
+            var user = this.userRepository.findFirstByUsername(userName)
+                    .orElseThrow();
+            if (jwtService.isTokenValid(refreshToken, user)) {
+                var accessToken = jwtService.generateToken(user);
+//                revokeAllUserTokens(user);
+                // find old token and update it
+                UserToken token = userTokenRepository.findUserTokenByRefreshToken(refreshToken);
+                saveRefreshToken(user, token, accessToken);
+//                saveUserToken(user, accessToken);
+                var authResponse = LoginResponseDTO.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+            }
+        }
+    }
+
+    private void saveRefreshToken(User user, UserToken token, String accessToken) {
+        token.builder()
+                .user(user)
+                .token(accessToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+        userTokenRepository.save(token);
     }
 }

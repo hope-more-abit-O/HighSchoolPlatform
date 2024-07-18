@@ -34,4 +34,12 @@ public interface UserTokenRepository extends JpaRepository<UserToken, Integer> {
    * @return the optional
    */
   Optional<UserToken> findByToken(String token);
+
+  /**
+   * Find user token by refresh token user token.
+   *
+   * @param refreshToken the refresh token
+   * @return the user token
+   */
+  UserToken findUserTokenByRefreshToken(String refreshToken);
 }
