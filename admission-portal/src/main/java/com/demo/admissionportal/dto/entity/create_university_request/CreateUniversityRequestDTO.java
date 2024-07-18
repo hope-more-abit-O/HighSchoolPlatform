@@ -72,5 +72,6 @@ public class CreateUniversityRequestDTO {
     private String updateTime;
     private ActionerDTO updateBy;
     private ActionerDTO confirmBy;
+    private String adminNote;
     private String status;
 }

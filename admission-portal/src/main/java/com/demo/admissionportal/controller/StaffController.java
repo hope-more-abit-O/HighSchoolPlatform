@@ -65,6 +65,31 @@ public class StaffController {
     }
 
     /**
+     * Retrieves a staff member's details by their ID.
+     *
+     * <p>Fetches detailed information about a staff member using their unique identifier and returns
+     * the data as a response.
+     *
+     * @param id The unique identifier of the staff member to retrieve.
+     * @return A ResponseEntity containing staff details with a suitable HTTP status
+     *         (e.g., 200 OK for success, 404 Not Found if the staff member is not found).
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<?> getStaffById(@PathVariable int id) {
+        ResponseData<?> result = staffService.getStaffById(id);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            log.info("Staff Get by ID successfully: {}", id);
+            return ResponseEntity.ok(result);
+        } else if (result.getStatus() == ResponseCode.C203.getCode()) {
+            log.warn("Staff not found by ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        log.error("Failed to Get staff by ID: {}", id);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    /**
      * Updates the details of a staff member.
      *
      * <p>Receives updated staff details and processes the update request.
@@ -126,11 +151,11 @@ public class StaffController {
      */
     @PostMapping("/user/{id}/change-status")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
+    public ResponseEntity<ResponseData<ChangeStatusUserResponseDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Invalid request"));
         }
-        ResponseData<ChangeStatusUserRequestDTO> user = userService.changeStatus(id, requestDTO);
+        ResponseData<ChangeStatusUserResponseDTO> user = userService.changeStatus(id, requestDTO);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
@@ -150,7 +175,10 @@ public class StaffController {
      * @return A ResponseEntity containing the paginated list of subjects and a suitable HTTP status.
      */
     @GetMapping("/list-all-subjects")
-    public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(@RequestParam(required = false) String name, @RequestParam(required = false) SubjectStatus status, Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) SubjectStatus status,
+            Pageable pageable) {
         ResponseData<Page<SubjectResponseDTO>> result = subjectService.findAll(name, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);
@@ -221,17 +249,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to activate.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-//    @PutMapping("/activate-subject/{id}")
-//    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
-//        ResponseData<?> response = subjectService.activateSubject(id);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.OK).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
+    @PutMapping("/activate-subject/{id}")
+    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
+        ResponseData<?> response = subjectService.activateSubject(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
     /**
      * Deletes a subject by its ID.
@@ -329,7 +357,11 @@ public class StaffController {
      * @return A ResponseEntity containing the paginated list of subject groups and a suitable HTTP status.
      */
     @GetMapping("/list-all-subject-groups")
-    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(@RequestParam(required = false) String groupName, @RequestParam(required = false) String subjectName, @RequestParam(required = false) String status, Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(
+            @RequestParam(required = false) String groupName,
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
         ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(groupName, subjectName, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);

@@ -4,6 +4,7 @@ import com.demo.admissionportal.entity.ConsultantInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,4 +27,6 @@ public interface ConsultantInfoRepository extends JpaRepository<ConsultantInfo, 
      * @return the consultant info
      */
     ConsultantInfo findConsultantInfoById(Integer id);
+
+    List<ConsultantInfo> findAllConsultantInfosById(Integer id);
 }

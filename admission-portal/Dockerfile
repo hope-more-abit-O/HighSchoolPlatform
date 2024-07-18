@@ -16,8 +16,7 @@ COPY src/main/resources/keystore.p12 /app/keystore.p12
 
 # Set environment variables for the application
 ENV SECRET_KEY="94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e"
-ENV EXPIRATION="86400000000000000"
-
+ENV EXPIRATION="86400000"
 # Expose port
 EXPOSE 8080
 

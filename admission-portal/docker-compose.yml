@@ -4,7 +4,7 @@ services:
   admission-portal:
     env_file:
       - key.env
-    image: dyhieu/uap-test-2:2024
+    image: admission-portal-image
     build:
       context: .
       dockerfile: Dockerfile
@@ -29,12 +29,12 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       # Token configuration
       SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
-      EXPIRATION: 86400000000000000
+      EXPIRATION: 86400000
       # SSL configuration
-      SERVER_SSL_KEY_ALIAS: uap-https
-      SERVER_SSL_KEY_STORE: /app/keystore.p12
-      SERVER_SSL_KEY_STORE_TYPE: PKCS12
-      SERVER_SSL_KEY_STORE_PASSWORD: Fpt1234567890
+      #      SERVER_SSL_KEY_ALIAS: uap-https
+      #      SERVER_SSL_KEY_STORE: classpath:keystore.p12
+      #      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      #      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
       # Multipart configuration
       SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
       SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
@@ -45,21 +45,15 @@ services:
     networks:
       - my-network
     depends_on:
-      - sqlserver
       - redis
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      SA_PASSWORD: "Fpt1234567890"
-      ACCEPT_EULA: "Y"
-    networks:
-      - my-network
 
   redis:
     image: redis:latest
     ports:
-      - "6379:6379"  # Map local port 6379 to container port 6379
+      - "11813:11813"
+    environment:
+      REDIS_HOST: redis-11813.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com
+      REDIS_PASSWORD: kjyLndVSeOEwoSD7Eu5knzsRxfiRR8CA
     networks:
       - my-network
 

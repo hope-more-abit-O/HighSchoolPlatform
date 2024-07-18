@@ -156,12 +156,6 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
-    /**
-     * Create university response entity.
-     *
-     * @param id the id
-     * @return the response entity
-     */
     @GetMapping("/create-university/{id}")
     public ResponseEntity<ResponseData<CreateUniversityRequestDTO>> createUniversity(@PathVariable int id) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tạo trường đại học thành công", createUniversityService.getById(id)));
@@ -173,8 +167,6 @@ public class AdminController {
      * @param id      the id
      * @param request the request
      * @return the response entity
-     * @throws ResourceNotFoundException the resource not found exception
-     * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/accept/{id}")
     public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
@@ -188,8 +180,6 @@ public class AdminController {
      * @param id      the id
      * @param request the request
      * @return the response entity
-     * @throws ResourceNotFoundException the resource not found exception
-     * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/reject/{id}")
     public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
@@ -209,5 +199,11 @@ public class AdminController {
     @PatchMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
+    }
+
+
+    @GetMapping("/create-university-request")
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
+        return ResponseEntity.ok(createUniversityService.getBy(pageable));
     }
 }
