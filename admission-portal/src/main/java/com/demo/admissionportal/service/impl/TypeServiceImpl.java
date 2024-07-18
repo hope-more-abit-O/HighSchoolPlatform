@@ -7,10 +7,12 @@ import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Type;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.TypeRepository;
 import com.demo.admissionportal.service.TypeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -87,6 +89,7 @@ public class TypeServiceImpl implements TypeService {
 
     @Override
     public ResponseData<Type> changeStatus(Integer id, TypePostDeleteRequestDTO requestDTO) {
+        Integer update_by = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (id == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Không có typeId");
@@ -99,7 +102,7 @@ public class TypeServiceImpl implements TypeService {
                 } else {
                     type.setStatus(PostPropertiesStatus.ACTIVE);
                 }
-                type.setUpdateBy(requestDTO.getUpdate_by());
+                type.setUpdateBy(update_by);
                 type.setUpdateTime(new Date());
                 typeRepository.save(type);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Thay đổi trạng thái loại bài đăng thành công", type);

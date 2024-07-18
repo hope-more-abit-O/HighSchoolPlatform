@@ -34,7 +34,7 @@ public class PostController {
      * @return the response entity
      */
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT')")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<PostDetailResponseDTO>> createPost(@RequestBody @Valid PostRequestDTO requestDTO) {
         if (requestDTO == null) {
@@ -54,7 +54,7 @@ public class PostController {
      * @return the response entity
      */
     @PostMapping("/change-status")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT')")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<String>> deletePost(@RequestBody @Valid PostDeleteRequestDTO requestDTO) {
         if (requestDTO == null) {
@@ -74,7 +74,7 @@ public class PostController {
      * @return the response entity
      */
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT')")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<String>> updatePost(@RequestBody @Valid UpdatePostRequestDTO requestDTO) {
         if (requestDTO == null) {
@@ -150,7 +150,7 @@ public class PostController {
     }
 
     @GetMapping("/list/{userId}")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT','UNIVERSITY')")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
     public ResponseEntity<ResponseData<List<PostDetailResponseDTO>>> listPosts(@PathVariable("userId") Integer id) {
         if (id == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có id"));
