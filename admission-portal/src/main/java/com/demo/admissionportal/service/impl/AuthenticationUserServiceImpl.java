@@ -80,7 +80,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             var jwtToken = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
-            saveUserToken(user, jwtToken);
+            saveUserToken(user, jwtToken, refreshToken);
             if (user.getRole() == Role.ADMIN && (request.getUsername().equals(user.getUsername()) || request.getUsername().equals(user.getEmail()))
                     && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
@@ -144,13 +144,14 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
         userTokenRepository.saveAll(validUserTokens);
     }
 
-    private void saveUserToken(User user, String jwtToken) {
+    private void saveUserToken(User user, String jwtToken, String refreshToken) {
         var token = UserToken.builder()
                 .user(user)
                 .token(jwtToken)
                 .tokenType(TokenType.BEARER)
                 .expired(false)
                 .revoked(false)
+                .refreshToken(refreshToken)
                 .build();
         userTokenRepository.save(token);
     }
@@ -362,40 +363,38 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     @Override
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
+        final String oldRefreshToken;
         final String userName;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return;
         }
-        refreshToken = authHeader.substring(7);
-        userName = jwtService.extractUsername(refreshToken);
+        oldRefreshToken = authHeader.substring(7);
+        userName = jwtService.extractUsername(oldRefreshToken);
         if (userName != null) {
             var user = this.userRepository.findFirstByUsername(userName)
                     .orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
+            if (jwtService.isTokenValid(oldRefreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
-//                revokeAllUserTokens(user);
+                var newRefreshToken = jwtService.generateRefreshToken(user);
                 // find old token and update it
-                UserToken token = userTokenRepository.findUserTokenByRefreshToken(refreshToken);
-                saveRefreshToken(user, token, accessToken);
-//                saveUserToken(user, accessToken);
+                saveRefreshToken(user, oldRefreshToken, accessToken, newRefreshToken);
                 var authResponse = LoginResponseDTO.builder()
                         .accessToken(accessToken)
-                        .refreshToken(refreshToken)
+                        .refreshToken(newRefreshToken)
                         .build();
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
         }
     }
 
-    private void saveRefreshToken(User user, UserToken token, String accessToken) {
-        token.builder()
-                .user(user)
-                .token(accessToken)
-                .tokenType(TokenType.BEARER)
-                .expired(false)
-                .revoked(false)
-                .build();
+    private void saveRefreshToken(User user, String oldRefreshToken, String accessToken, String newRefreshToken) {
+        UserToken token = userTokenRepository.findUserTokenByRefreshToken(oldRefreshToken);
+        token.setUser(user);
+        token.setToken(accessToken);
+        token.setTokenType(TokenType.BEARER);
+        token.setExpired(false);
+        token.setRevoked(false);
+        token.setRefreshToken(newRefreshToken);
         userTokenRepository.save(token);
     }
 }

@@ -37,6 +37,10 @@ public class UserToken {
     @Column(name = "revoked")
     private boolean revoked;
 
+    @NotNull
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
     @ManyToOne
     @JoinColumn(name = "[user_id]")
     private User user;
