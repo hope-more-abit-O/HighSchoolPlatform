@@ -30,9 +30,6 @@ public class PostRequestDTO implements Serializable {
     @NotNull(message = "Quote không được trống")
     private String quote;
 
-    @NotNull(message = "Tên người tạo không được trống")
-    private Integer create_by;
-
     @NotNull(message = "Loại post không được trống")
     @Size(min = 1, message = "Tối thiểu từ 1 loại post")
     @Size(max = 3, message = "Tối đa 3 loại post")
