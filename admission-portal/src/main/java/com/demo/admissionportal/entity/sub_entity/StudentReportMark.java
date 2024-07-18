@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @IdClass(StudentReportMarkId.class)
 @Table(name = "student_report_mark")
-public class StudentReportMark implements Serializable {
+public class StudentReportMark {
     @Id
     @Column(name = "student_report_id")
     private Integer studentReportId;

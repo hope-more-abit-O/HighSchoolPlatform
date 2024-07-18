@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.GradeType;
 import com.demo.admissionportal.constants.SemesterType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,7 +23,7 @@ public class SubjectGradeSemester {
     @Column(name = "subject_id")
     private int subjectId;
     @Column(name = "grade")
-    private String grade;
+    private GradeType grade;
     @Enumerated(EnumType.STRING)
     @Column(name = "semester")
     private SemesterType semester;
