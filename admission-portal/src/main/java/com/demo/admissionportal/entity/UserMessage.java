@@ -6,6 +6,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * The type User message.
+ */
 @Entity
 @Getter
 @Setter

@@ -3,17 +3,16 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
-import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
-import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
+import com.demo.admissionportal.entity.Subject;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.service.*;
-import com.demo.admissionportal.dto.request.*;
-import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
-import com.demo.admissionportal.entity.Subject;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -40,6 +41,7 @@ public class StaffController {
     private final SubjectService subjectService;
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
+    private final ConsultantService consultantService;
 
     /**
      * Handles the submission of a university creation request.
@@ -48,8 +50,7 @@ public class StaffController {
      * and delegates the processing to the `CreateUniversityService`.
      *
      * @param request The creation request data provided in the request body (JSON).
-     * @return A ResponseEntity containing the operation's result (success or failure details)
-     *         and an appropriate HTTP status code.
+     * @return A ResponseEntity containing the operation's result (success or failure details) and an appropriate HTTP status code.
      * @throws DataExistedException If the request conflicts with existing data (e.g., duplicate names).
      * @see CreateUniversityRequestRequest
      * @see ResponseData
@@ -101,7 +102,10 @@ public class StaffController {
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<StaffResponseDTO>> updateStaff(@RequestBody @Valid UpdateStaffRequestDTO request, @PathVariable Integer id) {
         log.info("Received request to update staff: {}", request);
-        ResponseData<StaffResponseDTO> result = staffService.updateStaff(request, id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        String username = user.getUsername();
+        ResponseData<StaffResponseDTO> result = staffService.updateStaff(request, id, username);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             log.info("Staff updated successfully with ID: {}", id);
             return ResponseEntity.ok(result);
@@ -109,6 +113,7 @@ public class StaffController {
             log.warn("Staff not found with ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
+
         log.error("Failed to update staff: {}", request);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
@@ -125,10 +130,7 @@ public class StaffController {
      */
     @GetMapping("/list/users")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(@RequestParam(required = false) String username, @RequestParam(required = false) String email, Pageable pageable) {
         ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, email, pageable);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
@@ -191,8 +193,7 @@ public class StaffController {
      * the data as a response.
      *
      * @param id The unique identifier of the subject to retrieve.
-     * @return A ResponseEntity containing subject details with a suitable HTTP status
-     *         (e.g., 200 OK for success, 404 Not Found if the subject is not found).
+     * @return A ResponseEntity containing subject details with a suitable HTTP status (e.g., 200 OK for success, 404 Not Found if the subject is not found).
      */
     @GetMapping("/get-subject/{id}")
     public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
@@ -268,17 +269,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to delete.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-    @DeleteMapping("/delete-subject/{id}")
-    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id) {
-        ResponseData<?> response = subjectService.deleteSubject(id);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+//    @DeleteMapping("/delete-subject/{id}")
+//    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id) {
+//        ResponseData<?> response = subjectService.deleteSubject(id);
+//        if (response.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.OK).body(response);
+//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
 
     /**
      * Creates a new subject group.
@@ -369,6 +370,22 @@ public class StaffController {
     }
 
     /**
+     * Deletes a subject group by its ID.
+     *
+     * <p>Receives a request to delete a subject group and processes it.
+     *
+     * @param id The unique identifier of the subject group to delete.
+     * @param id The unique identifier of the subject group to activate.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     *                                   <p>
+     *                                   Activates a subject group by its ID.
+     *
+     *                                   <p>Receives a request to activate a subject group and processes it.
+     */
+/**
      * Activates a subject group by its ID.
      *
      * <p>Receives a request to activate a subject group and processes it.
@@ -376,33 +393,28 @@ public class StaffController {
      * @param id The unique identifier of the subject group to activate.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-    @PutMapping("/activate-subject-group/{id}")
-    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
-        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
-        if (result.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(result);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-    }
+//    @PutMapping("/activate-subject-group/{id}")
+//    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
+//        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
+//        if (result.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.ok(result);
+//        }
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+//    }
 
-    /**
-     * Deletes a subject group by its ID.
-     *
-     * <p>Receives a request to delete a subject group and processes it.
-     *
-     * @param id The unique identifier of the subject group to delete.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
-     */
-    @DeleteMapping("/delete-subject-group/{id}")
-    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
-        ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+    //    @DeleteMapping("/delete-subject-group/{id}")
+//    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
+//        ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
+//        if (response.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.OK).body(response);
+//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
+    @GetMapping("/consultant/{id}")
+    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
+        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
-
 }

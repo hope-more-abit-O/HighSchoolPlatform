@@ -15,7 +15,7 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @Table(name = "staff_info")
-public class    StaffInfo {
+public class StaffInfo {
     @Id
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "staff_id")
@@ -35,6 +35,10 @@ public class    StaffInfo {
 
     @Column(name = "phone")
     private String phone;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "staff_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private User user;
 
     public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone) {
         this.id = id;
