@@ -79,7 +79,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             }
             var jwtToken = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(user);
-            revokeAllUserTokens(user);
+            // TODO: Handle multiple device access account
+//            revokeAllUserTokens(user);
             saveUserToken(user, jwtToken, refreshToken);
             if (user.getRole() == Role.ADMIN && (request.getUsername().equals(user.getUsername()) || request.getUsername().equals(user.getEmail()))
                     && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
