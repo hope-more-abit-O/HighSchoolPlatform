@@ -15,10 +15,12 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
@@ -26,8 +28,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -84,7 +89,7 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     public UniversityFullResponseDTO getUniversityFullResponseById(Integer id) throws ResourceNotFoundException {
         return new UniversityFullResponseDTO(
-                modelMapper.map(userService.findById(id), FullUserResponseDTO.class),
+                userService.mappingResponse(userRepository.findUserById(id)),
                 modelMapper.map(this.findById(id), FullUniversityResponseDTO.class));
     }
 

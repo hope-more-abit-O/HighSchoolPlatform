@@ -219,4 +219,9 @@ public class AdminController {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 
+
+    @GetMapping("/create-university-request")
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
+        return ResponseEntity.ok(createUniversityService.getBy(pageable));
+    }
 }

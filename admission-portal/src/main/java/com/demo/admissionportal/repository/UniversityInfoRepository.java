@@ -18,4 +18,6 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
      * @return the university info
      */
     UniversityInfo findUniversityInfoById(Integer id);
+
+    Optional<UniversityInfo> findFirstByCode(String code);
 }
