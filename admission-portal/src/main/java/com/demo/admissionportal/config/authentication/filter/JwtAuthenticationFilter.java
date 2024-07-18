@@ -31,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    final String APPLICATION_JSON_WITH_UTF8_CHARSET = MediaType.APPLICATION_JSON + ";charset=" + java.nio.charset.StandardCharsets.UTF_8;
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final UserTokenRepository userTokenRepository;
@@ -58,8 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (JwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setContentType(APPLICATION_JSON_WITH_UTF8_CHARSET);
             response.getWriter().write("{\"message\": \"Token hết hạn\"}");
         }
 

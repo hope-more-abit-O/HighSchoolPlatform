@@ -165,4 +165,7 @@ public class PostController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+//    @GetMapping("/favorite")
+//    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsFavorite() {}
 }
