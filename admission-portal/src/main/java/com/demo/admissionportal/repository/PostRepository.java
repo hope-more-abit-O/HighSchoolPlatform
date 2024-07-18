@@ -32,4 +32,18 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "INNER JOIN type t ON pt.type_id = t.id " +
             "INNER JOIN [user] u ON p.create_by = u.id ", nativeQuery = true)
     List<Post> findPost();
+
+
+    /**
+     * Find post by user id list.
+     *
+     * @param userId the user id
+     * @return the list
+     */
+    @Query(value = "SELECT p.* FROM post p " +
+            "INNER JOIN post_type pt ON p.id = pt.post_id " +
+            "INNER JOIN type t ON pt.type_id = t.id " +
+            "INNER JOIN [user] u ON p.create_by = u.id " +
+            "WHERE p.create_by = :userId", nativeQuery = true)
+    List<Post> findPostByUserId(@Param("userId") Integer userId);
 }

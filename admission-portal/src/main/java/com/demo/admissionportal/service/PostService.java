@@ -66,4 +66,12 @@ public interface PostService {
      * @return the posts general
      */
     ResponseData<List<PostResponseDTO>> getPostsGeneral();
+
+    /**
+     * List post by consultant or staff or university response data.
+     *
+     * @param id the id
+     * @return the response data
+     */
+    ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUni(Integer id);
 }

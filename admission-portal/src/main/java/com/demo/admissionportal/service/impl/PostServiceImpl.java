@@ -9,19 +9,13 @@ import com.demo.admissionportal.dto.request.post.TagRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.*;
-import com.demo.admissionportal.entity.Post;
-import com.demo.admissionportal.entity.Tag;
-import com.demo.admissionportal.entity.Type;
-import com.demo.admissionportal.entity.UserInfo;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
 import com.demo.admissionportal.entity.sub_entity.PostType;
 import com.demo.admissionportal.entity.sub_entity.PostView;
 import com.demo.admissionportal.entity.sub_entity.id.PostTagId;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
-import com.demo.admissionportal.repository.PostRepository;
-import com.demo.admissionportal.repository.TagRepository;
-import com.demo.admissionportal.repository.TypeRepository;
-import com.demo.admissionportal.repository.UserInfoRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.PostTagRepository;
 import com.demo.admissionportal.repository.sub_repository.PostTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.PostViewRepository;
@@ -31,6 +25,7 @@ import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -55,6 +50,8 @@ public class PostServiceImpl implements PostService {
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
     private final ModelMapper modelMapper;
     private final UserInfoRepository userInfoRepository;
+    private final StaffInfoRepository staffInfoRepository;
+    private final ConsultantInfoRepository consultantInfoRepository;
 
     @Override
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
@@ -113,14 +110,12 @@ public class PostServiceImpl implements PostService {
                 Tag listTagById = tagRepository.findTagById(tag);
                 listTag.add(listTagById);
             }
-            UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
-
-
+            UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
             PostDetailResponseDTO responseDTO = PostDetailResponseDTO.builder()
                     .postProperties(mapperPostPropertiesResponseDTO(post))
                     .listType(mapperTypeResponseDTO(listType))
                     .listTag(mapperTagResponseDTO(listTag))
-                    .create_by(mapperUserInfoResponseDTO(userInfo))
+                    .create_by(info)
                     .build();
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo post thành công", responseDTO);
@@ -426,12 +421,12 @@ public class PostServiceImpl implements PostService {
         if (postPropertiesResponseDTO.getUpdate_time() != null) {
             postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
         }
-
+        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
-                .create_by(mapperUserInfoResponseDTO(userInfo))
+                .create_by(info)
                 .build();
     }
 
@@ -560,9 +555,7 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
-
-        UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
-
+        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
@@ -571,14 +564,12 @@ public class PostServiceImpl implements PostService {
         if (postPropertiesResponseDTO.getUpdate_time() != null) {
             postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
         }
-
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
-                .create_by(mapperUserInfoResponseDTO(userInfo))
+                .create_by(info)
                 .build();
     }
-
 
     private List<String> validateDuplicateTag(List<String> listTag) {
         return listTag.stream()
@@ -595,11 +586,17 @@ public class PostServiceImpl implements PostService {
         return url.replace(" ", "-");
     }
 
-    private UserInfoPostResponseDTO mapperUserInfoResponseDTO(UserInfo userInfo) {
+    private UserInfoPostResponseDTO mapperStaffInfoResponseDTO(StaffInfo staffInfo) {
         UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
-        userInfoPostResponseDTO.setId(userInfo.getId());
-        userInfoPostResponseDTO.setFullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-        userInfoPostResponseDTO.setAvatar(userInfo.getUser().getAvatar());
+        userInfoPostResponseDTO.setId(staffInfo.getId());
+        userInfoPostResponseDTO.setFullName(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
+        return userInfoPostResponseDTO;
+    }
+
+    private UserInfoPostResponseDTO mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
+        UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
+        userInfoPostResponseDTO.setId(consultantInfo.getId());
+        userInfoPostResponseDTO.setFullName(consultantInfo.getFirstname() + " " + consultantInfo.getMiddleName() + " " + consultantInfo.getLastName());
         return userInfoPostResponseDTO;
     }
 
@@ -642,5 +639,104 @@ public class PostServiceImpl implements PostService {
             log.info("Error when get post by descend general: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post");
         }
+    }
+
+    @Override
+    public ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUni(Integer id) {
+        try {
+            List<PostDetailResponseDTO> response = new ArrayList<>();
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (!Objects.equals(id, userId)) {
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
+            }
+            String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
+            switch (userRole) {
+                case "STAFF", "CONSULTANT":
+                    response = getPostsByStaffOrConsultantId(id);
+                    break;
+                case "UNIVERSITY":
+                    response = getPostByUniversityId(id);
+                    break;
+            }
+            if (response == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với user Id: " + id);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với user Id: " + id, response);
+        } catch (Exception ex) {
+            log.info("Error when list post by consult/staff/uni: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post với user Id: " + id);
+        }
+    }
+
+    private List<PostDetailResponseDTO> getPostByUniversityId(Integer id) {
+        List<PostDetailResponseDTO> response = null;
+        try {
+            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosById(id);
+            for (ConsultantInfo consultantInfo : consultantInfos) {
+                List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
+                Set<String> filter = new HashSet<>();
+                if (posts != null) {
+                    response = posts.stream()
+                            .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
+                            .map(this::mapToListPostDetail)
+                            .collect(Collectors.toList());
+                }
+            }
+            return response;
+        } catch (Exception ex) {
+            log.error("Error when get posts with university id {}:", ex.getMessage());
+        }
+        return response;
+    }
+
+    public List<PostDetailResponseDTO> getPostsByStaffOrConsultantId(Integer id) {
+        List<PostDetailResponseDTO> response = null;
+        try {
+            List<Post> posts = postRepository.findPostByUserId(id);
+            Set<String> filter = new HashSet<>();
+            if (posts != null) {
+                response = posts.stream()
+                        .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
+                        .map(this::mapToListPostDetail)
+                        .collect(Collectors.toList());
+            }
+            return response;
+        } catch (Exception ex) {
+            log.error("Error when get posts with user id {}:", ex.getMessage());
+        }
+        return response;
+    }
+
+    public PostDetailResponseDTO mapToListPostDetail(Post post) {
+        List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
+                .collect(Collectors.toList());
+
+        List<TagResponseDTO> tagResponseDTOList = post.getPostTags()
+                .stream()
+                .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
+                .collect(Collectors.toList());
+        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
+
+        PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        return PostDetailResponseDTO.builder()
+                .postProperties(postPropertiesResponseDTO)
+                .listType(typeResponseDTOList)
+                .listTag(tagResponseDTOList)
+                .create_by(info)
+                .build();
+    }
+
+    public UserInfoPostResponseDTO getUserInfoPostDTO(Integer create_by) {
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(create_by);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(create_by);
+        UserInfoPostResponseDTO userInfo = null;
+        if (staffInfo != null) {
+            userInfo = mapperStaffInfoResponseDTO(staffInfo);
+        } else if (consultantInfo != null) {
+            userInfo = mapperConsultantInfoResponseDTO(consultantInfo);
+        }
+        return userInfo;
     }
 }
