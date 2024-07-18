@@ -71,18 +71,16 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> allSubjectGroups = subjectGroupRepository.findAll();
         List<SubjectGroupResponseDTO> matchingSubjectGroups = new ArrayList<>();
         for (SubjectGroup group : allSubjectGroups) {
-            List<Integer> groupSubjectIds = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
-                    .stream().map(SubjectGroupSubject::getSubjectId).toList();
+            List<Integer> groupSubjectIds = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId()).stream().map(SubjectGroupSubject::getSubjectId).toList();
             if (new HashSet<>(groupSubjectIds).containsAll(subjectIds) && new HashSet<>(subjectIds).containsAll(groupSubjectIds)) {
-                List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
-                        .stream().map(sgs -> {
-                            Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
-                            if (subject != null) {
-                                return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
-                            } else {
-                                return null;
-                            }
-                        }).filter(Objects::nonNull).collect(Collectors.toList());
+                List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId()).stream().map(sgs -> {
+                    Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
+                    if (subject != null) {
+                        return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
+                    } else {
+                        return null;
+                    }
+                }).filter(Objects::nonNull).collect(Collectors.toList());
                 // add to matching list
                 matchingSubjectGroups.add(new SubjectGroupResponseDTO(group.getId(), group.getName(), group.getStatus(), subjectDetails));
             }
@@ -97,10 +95,9 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             Object principal = authentication.getPrincipal();
             log.debug("Principal type: {}", principal.getClass().getName());
             log.info("Principal type: {}", principal.getClass().getName());
-            if (!(principal instanceof User)) {
+            if (!(principal instanceof User staff)) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
             }
-            User staff = (User) principal;
             Integer staffId = staff.getId();
             // create a null aray list to store the data processing before
             List<SubjectGroupSubject> subjectGroupSubjects = new ArrayList<>();
@@ -137,6 +134,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             return new ResponseData<>(ResponseCode.C201.getCode(), ResponseCode.C201.getMessage());
         }
     }
+
     @Override
     public ResponseData<?> updateSubjectGroup(Integer id, UpdateSubjectGroupRequestDTO request) {
         SubjectGroup existSubjectGroup = subjectGroupRepository.findById(id).orElse(null);
@@ -155,11 +153,11 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 existSubjectGroup.setName(request.getName());
                 log.info("Updated SubjectGroup name to {}", request.getName());
             }
-            //check if update status
-            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-                existSubjectGroup.setStatus(request.getStatus());
-                log.info("Updated SubjectGroup status to {}", request.getStatus());
-            }
+//            //check if update status
+//            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+//                existSubjectGroup.setStatus(request.getStatus());
+//                log.info("Updated SubjectGroup status to {}", request.getStatus());
+//            }
             //save to database
             subjectGroupRepository.save(existSubjectGroup);
             //when update with new subject, delete current relationship of that subject group id
@@ -192,16 +190,13 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             }
             //map subject with subject group
             log.info("Subject Group update successfully with ID: {}", existSubjectGroup.getId());
-            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId())
-                    .stream()
-                    .map(subjectGroupSubject -> {
-                        Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
-                        if (subject.isPresent()) {
-                            return new SubjectResponseDTO(subject.get().getId(), subject.get().getName(), subject.get().getStatus().name());
-                        }
-                        return null;
-                    })
-                    .toList();
+            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId()).stream().map(subjectGroupSubject -> {
+                Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
+                if (subject.isPresent()) {
+                    return new SubjectResponseDTO(subject.get().getId(), subject.get().getName(), subject.get().getStatus().name());
+                }
+                return null;
+            }).toList();
             //add subject group
             SubjectGroupResponseDTO result = modelMapper.map(existSubjectGroup, SubjectGroupResponseDTO.class);
             //the subject_group will include subject in response
@@ -221,16 +216,13 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         } else {
             //set subject data to add in subject response
             SubjectGroup getSubjectGroup = subjectGroup.get();
-            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(getSubjectGroup.getId())
-                    .stream()
-                    .map(subjectGroupSubject -> {
-                        Subject subject = subjectRepository.findById(subjectGroupSubject.getSubjectId()).orElse(null);
-                        if (subject != null) {
-                            return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
-                        }
-                        return null;
-                    })
-                    .toList();
+            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(getSubjectGroup.getId()).stream().map(subjectGroupSubject -> {
+                Subject subject = subjectRepository.findById(subjectGroupSubject.getSubjectId()).orElse(null);
+                if (subject != null) {
+                    return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
+                }
+                return null;
+            }).toList();
             SubjectGroupResponseDTO result = modelMapper.map(getSubjectGroup, SubjectGroupResponseDTO.class);
             //the update subject group response will include subject data
             result.setSubjects(subjectResponse);
@@ -309,7 +301,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> result = null;
         try {
             result = subjectGroupRepository.findAllById(subjectGroupIds);
-        } catch (Exception e){
+        } catch (Exception e) {
             //TODO: throw exception
         }
         return result;

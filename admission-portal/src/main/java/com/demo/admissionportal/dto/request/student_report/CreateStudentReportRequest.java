@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 public class CreateStudentReportRequest {
-    @NotNull(message = "Tên học bạ không được để trống")
-    private String name;
+    private String studentReportName;
+    private List<SubjectReportDTO> report;
 }

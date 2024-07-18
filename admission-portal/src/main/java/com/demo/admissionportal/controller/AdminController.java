@@ -43,23 +43,6 @@ public class AdminController {
     private final UniversityService universityService;
 
     /**
-     * Register admin response entity.
-     *
-     * @param request the request
-     * @return the response entity
-     */
-//    @PostMapping("/register")
-//    public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
-//        ResponseData<AdminInfo> response = adminService.registerAdmin(request);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-//        }
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//    }
-
-    /**
      * Register staff response entity.
      *
      * @param request the request
@@ -98,9 +81,8 @@ public class AdminController {
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
-            @RequestParam(required = false) AccountStatus status,
-            Pageable pageable) {
-        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName,middleName, lastName, email, phone, status, pageable);
+            @RequestParam(required = false) AccountStatus status, Pageable pageable) {
+        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
