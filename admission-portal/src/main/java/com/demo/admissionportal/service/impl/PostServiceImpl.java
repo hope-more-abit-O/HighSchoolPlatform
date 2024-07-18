@@ -675,7 +675,7 @@ public class PostServiceImpl implements PostService {
     private List<PostDetailResponseDTO> getPostByUniversityId(Integer id) {
         List<PostDetailResponseDTO> response = null;
         try {
-            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosById(id);
+            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosByUniversityId(id);
             for (ConsultantInfo consultantInfo : consultantInfos) {
                 List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
                 Set<String> filter = new HashSet<>();
