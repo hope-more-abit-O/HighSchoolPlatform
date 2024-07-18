@@ -8,10 +8,13 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 //TODO: JAVADOC
 public interface CreateUniversityService {
     ResponseData<PostCreateUniversityRequestResponse> createCreateUniversityRequest(CreateUniversityRequestRequest request);
     ResponseData adminAction(Integer id, CreateUniversityRequestStatus status, String note) throws ResourceNotFoundException, StoreDataFailedException;
     CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException;
+    ResponseData<Page<CreateUniversityRequestDTO>> getBy(Pageable pageable);
 }

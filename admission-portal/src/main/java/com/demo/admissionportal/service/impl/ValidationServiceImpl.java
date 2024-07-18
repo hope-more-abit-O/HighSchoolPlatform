@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.ValidationService;
@@ -25,6 +26,7 @@ public class ValidationServiceImpl implements ValidationService {
     private final UniversityInfoRepository universityInfoRepository;
     private final UserInfoRepository userInfoRepository;
     private final StaffInfoRepository staffInfoRepository;
+    private final CreateUniversityRequestRepository createUniversityRequestRepository;
 
     /**
      * Checks if a username is already taken.
@@ -60,7 +62,17 @@ public class ValidationServiceImpl implements ValidationService {
         log.info("Checking username availability.");
         String errorMessage = "Tên tài khoản hoặc username: " + username + " đã được sử dụng";
         if (userRepository.findFirstByUsername(username).isPresent()) {
-            log.error("Username: {} available!", username);
+            log.error("Username: {} not available!", username);
+            throw new DataExistedException(errorMessage);
+        }
+        return true;
+    }
+
+    public boolean validateUsernameCreateUniversityRequest(String username) throws DataExistedException {
+        log.info("Checking username availability.");
+        String errorMessage = "Tên tài khoản hoặc username: " + username + " đã được sử dụng";
+        if (userRepository.findFirstByUsername(username).isPresent() || createUniversityRequestRepository.findFirstByUniversityUsernameAndStatusNot(username, CreateUniversityRequestStatus.REJECTED).isPresent()) {
+            log.error("Username: {} not available!", username);
             throw new DataExistedException(errorMessage);
         }
         return true;
@@ -99,7 +111,17 @@ public class ValidationServiceImpl implements ValidationService {
         log.info("Checking email availability.");
         String errorMessage = "Email: " + email + " đã được sử dụng";
         if (userRepository.findFirstByEmail(email).isPresent()) {
-            log.error("Email: {} available!", email);
+            log.error("Email: {} not available!", email);
+            throw new DataExistedException(errorMessage);
+        }
+        return true;
+    }
+
+    public boolean validateEmailCreateUniversityRequest(String email) throws DataExistedException {
+        log.info("Checking email availability.");
+        String errorMessage = "Email: " + email + " đã được sử dụng";
+        if (userRepository.findFirstByEmail(email).isPresent() || createUniversityRequestRepository.findFirstByUniversityEmailAndStatusNot(email, CreateUniversityRequestStatus.REJECTED).isPresent()) {
+            log.error("Email: {} not available!", email);
             throw new DataExistedException(errorMessage);
         }
         return true;
@@ -252,11 +274,57 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
-    private static void validateAndPutError(Map<String, String> errors, String field, Runnable validation) {
+    public boolean validateCreateUniversity(String username, String email, String code) throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+
+        validateAndPutError(errors, "username", () -> validateUsername(username));
+        validateAndPutError(errors, "email", () -> validateEmail(email));
+        validateAndPutError(errors, "code", () -> validateUniversityCode(code));
+
+        if (!errors.isEmpty())
+            throw new DataExistedException("Dữ liệu đã tồn tại!", errors);
+
+        return true;
+    }
+
+    public boolean validateCreateUniversityRequest(String username, String email, String code) throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+
+        validateAndPutError(errors, "username", () -> validateUsernameCreateUniversityRequest(username));
+        validateAndPutError(errors, "email", () -> validateEmailCreateUniversityRequest(email));
+        validateAndPutError(errors, "code", () -> validateUniversityCodeCreateUniversityRequest(code));
+
+        if (!errors.isEmpty())
+            throw new DataExistedException("Dữ liệu đã tồn tại!", errors);
+
+        return true;
+    }
+
+    public static void validateAndPutError(Map<String, String> errors, String field, Runnable validation) {
         try {
             validation.run();
         } catch (DataExistedException e) {
             errors.put(field, e.getMessage());
         }
+    }
+
+    public boolean validateUniversityCode(String universityCode) throws DataExistedException {
+        log.info("Checking university code availability.");
+        String errorMessage = "Mã trường: " + universityCode + " đã được sử dụng";
+        if (universityInfoRepository.findFirstByCode(universityCode).isPresent()) {
+            log.error("University code: {} not available!", universityCode);
+            throw new DataExistedException(errorMessage);
+        }
+        return true;
+    }
+
+    public boolean validateUniversityCodeCreateUniversityRequest(String universityCode) throws DataExistedException {
+        log.info("Checking university code availability.");
+        String errorMessage = "Mã trường: " + universityCode + " đã được sử dụng";
+        if (universityInfoRepository.findFirstByCode(universityCode).isPresent() || createUniversityRequestRepository.findFirstByUniversityCodeAndStatusNot(universityCode, CreateUniversityRequestStatus.REJECTED).isPresent()) {
+            log.error("University code: {} not available!", universityCode);
+            throw new DataExistedException(errorMessage);
+        }
+        return true;
     }
 }
