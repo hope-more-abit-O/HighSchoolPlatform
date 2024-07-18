@@ -17,6 +17,8 @@ import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.security.Principal;
 
 /**
@@ -214,5 +217,10 @@ public class AuthenticationController {
         }
         log.error("Failed to reset password");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        authenticationUserService.refreshToken(request, response);
     }
 }

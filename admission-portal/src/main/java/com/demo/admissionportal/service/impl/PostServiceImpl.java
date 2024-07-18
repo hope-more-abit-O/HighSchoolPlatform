@@ -195,6 +195,7 @@ public class PostServiceImpl implements PostService {
             Post post = new Post();
             post.setTitle(requestDTO.getTitle());
             post.setContent(requestDTO.getContent());
+            post.setQuote(requestDTO.getQuote());
             post.setThumnail(requestDTO.getThumnail());
             post.setCreateBy(requestDTO.getCreate_by());
             post.setCreateTime(new Date());

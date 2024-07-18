@@ -9,8 +9,11 @@ import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
+import java.io.IOException;
 import java.security.Principal;
 
 /**
@@ -65,4 +68,12 @@ public interface AuthenticationUserService {
      * @return the response data
      */
     ResponseData<User> checkEmailExisted(EmailRequestDTO requestDTO);
+
+    /**
+     * Refresh token.
+     *
+     * @param request  the request
+     * @param response the response
+     */
+    void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException;
 }
