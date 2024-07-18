@@ -7,10 +7,12 @@ import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Type;
 import com.demo.admissionportal.service.TypeService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/post/type")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class TypeController {
     private final TypeService typeService;
 
@@ -31,6 +34,7 @@ public class TypeController {
      * @return the response entity
      */
     @PostMapping
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> createTypePost(@RequestBody @Valid TypePostRequestDTO requestDTO) {
         if (requestDTO == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -45,6 +49,7 @@ public class TypeController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     public ResponseEntity<ResponseData<List<Type>>> getTypePosts() {
         ResponseData<List<Type>> result = typeService.getListTypePost();
         if (result.getStatus() == ResponseCode.C200.getCode()) {
@@ -54,6 +59,7 @@ public class TypeController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> getTypeById(@PathVariable(name = "id") Integer postId) {
         if (postId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có postId"));
@@ -68,6 +74,7 @@ public class TypeController {
     }
 
     @PostMapping("/change-status/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer postId, @RequestBody @Valid TypePostDeleteRequestDTO requestDTO) {
         if (postId == null || requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có postId"));
@@ -84,6 +91,7 @@ public class TypeController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> updateType(@PathVariable(name = "id") Integer postId, @RequestBody @Valid TypePostUpdateRequestDTO requestDTO) {
         if (postId == null || requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Thiếu request"));

@@ -148,4 +148,21 @@ public class PostController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @GetMapping("/list/{userId}")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSTULTANT','UNIVERSITY')")
+    public ResponseEntity<ResponseData<List<PostDetailResponseDTO>>> listPosts(@PathVariable("userId") Integer id) {
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có id"));
+        }
+        ResponseData<List<PostDetailResponseDTO>> response = postService.listPostByConsultOrStaffOrUni(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatus() == ResponseCode.C209.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }

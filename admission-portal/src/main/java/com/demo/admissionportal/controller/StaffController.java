@@ -149,11 +149,11 @@ public class StaffController {
      */
     @PostMapping("/user/{id}/change-status")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<ChangeStatusUserRequestDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
+    public ResponseEntity<ResponseData<ChangeStatusUserResponseDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Invalid request"));
         }
-        ResponseData<ChangeStatusUserRequestDTO> user = userService.changeStatus(id, requestDTO);
+        ResponseData<ChangeStatusUserResponseDTO> user = userService.changeStatus(id, requestDTO);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {

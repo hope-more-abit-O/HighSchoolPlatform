@@ -2,6 +2,7 @@ package com.demo.admissionportal.dto.request.authen;
 
 import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
+import com.demo.admissionportal.util.enum_validator.EnumName;
 import com.demo.admissionportal.util.enum_validator.EnumPassword;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
 import com.demo.admissionportal.util.enum_validator.EnumValue;
@@ -47,12 +48,15 @@ public class RegisterUserRequestDTO implements Serializable {
     private String avatar;
 
     @NotNull(message = "Họ tên không được để trống")
+    @EnumName(message = "Họ tên chỉ chứa chữ")
     private String firstName;
 
     @NotNull(message = "Tên đệm không được để trống")
+    @EnumName(message = "Tên đệm chỉ chứa chữ")
     private String middleName;
 
     @NotNull(message = "Tên không được để trống")
+    @EnumName(message = "Tên chỉ chứa chữ")
     private String lastName;
 
     @NotNull(message = "Số điện thoại không được để trống")
