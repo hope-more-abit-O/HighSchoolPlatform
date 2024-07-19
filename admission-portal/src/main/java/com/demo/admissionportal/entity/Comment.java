@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.CommentStatus;
+import com.demo.admissionportal.constants.CommentType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,10 +23,13 @@ public class Comment implements Serializable {
     private Integer id;
 
     @Column(name = "post_id")
-    private Integer post_id;
+    private Integer postId;
 
     @Column(name = "comment_parent_id")
     private Integer comment_parent_id;
+
+    @Column(name = "commenter_id")
+    private Integer commenter_id;
 
     @Column(name = "[content]")
     private String content;
@@ -37,7 +41,8 @@ public class Comment implements Serializable {
     private Date update_time;
 
     @Column(name = "comment_type")
-    private String comment_type;
+    @Enumerated(EnumType.STRING)
+    private CommentType comment_type;
 
     @Column(name = "comment_status")
     @Enumerated(EnumType.STRING)
