@@ -19,6 +19,7 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoginResponseDTO implements Serializable {
     private String accessToken;
+    private String refreshToken;
     private UserLoginResponseDTO user;
     private UserInfoResponseDTO userInfo;
     private ConsultantInfoResponseDTO consultantInfo;

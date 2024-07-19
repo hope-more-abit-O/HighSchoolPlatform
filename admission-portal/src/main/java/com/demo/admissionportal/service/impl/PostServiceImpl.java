@@ -55,12 +55,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
+        Integer create_by = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
             }
             // Insert Post
-            Post post = postSave(requestDTO);
+            Post post = postSave(requestDTO, create_by);
             if (post == null) {
                 throw new Exception("Save post thất bại!");
             }
@@ -72,7 +73,7 @@ public class PostServiceImpl implements PostService {
             }
 
             // Insert Post View
-            PostView postView = postViewSave(requestDTO.getCreate_by(), post);
+            PostView postView = postViewSave(create_by, post);
             if (postView == null) {
                 throw new Exception("Save post view thất bại!");
             }
@@ -190,13 +191,14 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private Post postSave(PostRequestDTO requestDTO) {
+    private Post postSave(PostRequestDTO requestDTO, Integer create_by) {
         try {
             Post post = new Post();
             post.setTitle(requestDTO.getTitle());
             post.setContent(requestDTO.getContent());
+            post.setQuote(requestDTO.getQuote());
             post.setThumnail(requestDTO.getThumnail());
-            post.setCreateBy(requestDTO.getCreate_by());
+            post.setCreateBy(create_by);
             post.setCreateTime(new Date());
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
@@ -248,30 +250,31 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResponseData<String> changeStatus(PostDeleteRequestDTO requestDTO) {
+        Integer create_by = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
             }
 
             // Remove post
-            Post resultChangeStatusPost = changeStatusPost(requestDTO);
+            Post resultChangeStatusPost = changeStatusPost(requestDTO, create_by);
             if (resultChangeStatusPost == null) {
                 throw new Exception("Xoá post thất bại");
             }
             // Remove post tag
             List<Integer> tagIds = new ArrayList<>();
-            List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds);
+            List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds, create_by);
             if (resultChangeStatusPostTag == null) {
                 throw new Exception("Thay đổi trạng thái  post tag thất bại");
             }
             // Remove Post Type
-            boolean resultChangeStatusPostType = changeStatusPostType(requestDTO);
+            boolean resultChangeStatusPostType = changeStatusPostType(requestDTO, create_by);
             if (!resultChangeStatusPostType) {
                 throw new Exception("Thay đổi trạng thái  post type thất bại");
             }
 
             // Remove Post View
-            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO);
+            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO, create_by);
             if (!resultChangeStatusPostView) {
                 throw new Exception("Thay đổi trạng thái post view thất bại");
             }
@@ -282,7 +285,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO) {
+    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO, Integer create_by) {
         try {
             PostView postView = postViewRepository.findPostViewById(requestDTO.getPostId());
             if (postView == null) {
@@ -294,7 +297,7 @@ public class PostServiceImpl implements PostService {
                 postView.setStatus(PostPropertiesStatus.INACTIVE);
             }
             postView.setUpdateTime(new Date());
-            postView.setUpdateBy(requestDTO.getUserId());
+            postView.setUpdateBy(create_by);
             postViewRepository.save(postView);
             return true;
         } catch (Exception ex) {
@@ -303,7 +306,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO) {
+    private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO, Integer create_by) {
         try {
             List<PostType> posts = postTypeRepository.findPostTypeByPostId(requestDTO.getPostId());
             for (PostType post : posts) {
@@ -313,7 +316,7 @@ public class PostServiceImpl implements PostService {
                     post.setStatus(PostPropertiesStatus.INACTIVE);
                 }
                 post.setUpdateTime(new Date());
-                post.setUpdateBy(requestDTO.getUserId());
+                post.setUpdateBy(create_by);
                 postTypeRepository.save(post);
             }
             return true;
@@ -324,7 +327,7 @@ public class PostServiceImpl implements PostService {
     }
 
 
-    private Post changeStatusPost(PostDeleteRequestDTO requestDTO) {
+    private Post changeStatusPost(PostDeleteRequestDTO requestDTO, Integer create_by) {
         try {
             Post post = postRepository.findFirstById(requestDTO.getPostId());
             if (post == null) {
@@ -336,7 +339,7 @@ public class PostServiceImpl implements PostService {
                 post.setStatus(PostStatus.INACTIVE);
             }
             post.setUpdateTime(new Date());
-            post.setUpdateBy(requestDTO.getUserId());
+            post.setUpdateBy(create_by);
             return postRepository.save(post);
 
         } catch (Exception ex) {
@@ -345,7 +348,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private List<PostTag> changeStatusPostTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds) {
+    private List<PostTag> changeStatusPostTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds, Integer create_by) {
         try {
             List<PostTag> postTagList = postTagRepository.findPostTagByPostId(requestDTO.getPostId());
             if (postTagList == null) {
@@ -358,7 +361,7 @@ public class PostServiceImpl implements PostService {
                     postTag.setStatus(PostPropertiesStatus.INACTIVE);
                 }
                 postTag.setUpdateTime(new Date());
-                postTag.setUpdateBy(requestDTO.getUserId());
+                postTag.setUpdateBy(create_by);
                 tagIds.add(postTag.getId().getTagId());
                 postTagRepository.save(postTag);
             }
@@ -432,6 +435,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO) {
+        Integer update_by = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null || requestDTO.getPostId() == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
@@ -448,14 +452,14 @@ public class PostServiceImpl implements PostService {
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
             existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
-            existingPost.setUpdateBy(requestDTO.getUpdate_by());
+            existingPost.setUpdateBy(update_by);
             postRepository.save(existingPost);
 
             // Update Post Types
-            updatePostType(existingPost, requestDTO.getListType(), requestDTO.getUpdate_by());
+            updatePostType(existingPost, requestDTO.getListType(), update_by);
 
             // Update Tag
-            updatePostTag(existingPost, requestDTO.getListTag(), requestDTO.getUpdate_by());
+            updatePostTag(existingPost, requestDTO.getListTag(), update_by);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật post thành công");
         } catch (Exception ex) {
@@ -671,7 +675,7 @@ public class PostServiceImpl implements PostService {
     private List<PostDetailResponseDTO> getPostByUniversityId(Integer id) {
         List<PostDetailResponseDTO> response = null;
         try {
-            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosById(id);
+            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosByUniversityId(id);
             for (ConsultantInfo consultantInfo : consultantInfos) {
                 List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
                 Set<String> filter = new HashSet<>();

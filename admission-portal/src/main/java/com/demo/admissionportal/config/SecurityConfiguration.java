@@ -37,13 +37,13 @@ public class SecurityConfiguration {
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
-    private static final String CHATBOT = "/api/v1/chatbot/**";
     private static final String CHATUSER = "/api/v1/chat-user/**";
     private static final String POST_API = "/api/v1/post/**";
     private static final String ADDRESS_API = "/api/v1/address/**";
     private static final String TEST_API = "/test/**";
     private static final String FILE_API = "/api/v1/file/**";
     private static final String STUDENT_REPORT = "/api/v1/student-report/**";
+    private static final String COMMENT_API = "api/v1/comment/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -59,7 +59,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API,
-                                        CHATBOT,
+                                        COMMENT_API,
                                         TEST_API,
                                         ADDRESS_API,
                                         POST_API,
@@ -96,8 +96,8 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://uaportal.online", "*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "*"));
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
