@@ -1,9 +1,11 @@
 package com.demo.admissionportal.exception;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -91,5 +93,10 @@ public class GlobalExceptionHandler {
         // Handle the exception here, e.g., return a custom error response.
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
                 .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy !");
     }
 }

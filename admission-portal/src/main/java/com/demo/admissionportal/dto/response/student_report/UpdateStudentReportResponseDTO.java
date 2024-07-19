@@ -9,15 +9,16 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * The type Update student report response dto.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentReportResponseDTO {
+public class UpdateStudentReportResponseDTO {
     private Integer id;
     private Integer studentId;
     private String name;
-    private Integer createBy;
-    private Date createTime;
     private Integer updateBy;
     private Date updateTime;
     private StudentReportStatus status;

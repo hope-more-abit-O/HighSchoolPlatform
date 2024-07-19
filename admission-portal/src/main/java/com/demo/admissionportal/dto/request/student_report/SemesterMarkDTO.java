@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * The type Semester mark dto.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

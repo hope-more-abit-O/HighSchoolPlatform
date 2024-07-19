@@ -6,10 +6,13 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * The type Update student report request.
+ */
 @Data
-public class CreateStudentReportRequest {
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdateStudentReportRequest {
     private String studentReportName;
-    private List<SubjectReportDTO> report;
+    private List<UpdateMarkDTO> marks;
 }

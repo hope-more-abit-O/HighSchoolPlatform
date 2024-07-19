@@ -1,10 +1,13 @@
-package com.demo.admissionportal.dto.response.student_report;
+package com.demo.admissionportal.dto.request.student_report;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * The type Subject mark dto.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

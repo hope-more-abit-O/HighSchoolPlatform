@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * The type Subject report dto.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
