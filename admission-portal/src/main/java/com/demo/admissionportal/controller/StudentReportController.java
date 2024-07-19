@@ -105,7 +105,7 @@ public class StudentReportController {
     @PutMapping("/update/{studentReportId}")
     @PreAuthorize("hasAuthority('USER')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<UpdateStudentReportResponseDTO>> updateStudentReport(@PathVariable Integer studentReportId, @RequestBody UpdateStudentReportRequest request, Authentication authentication) {
+    public ResponseEntity<ResponseData<UpdateStudentReportResponseDTO>> updateStudentReport(@PathVariable @Valid Integer studentReportId, @RequestBody @Valid UpdateStudentReportRequest request, Authentication authentication) {
         ResponseData<UpdateStudentReportResponseDTO> response = studentReportService.updateStudentReportById(studentReportId, request, authentication);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);

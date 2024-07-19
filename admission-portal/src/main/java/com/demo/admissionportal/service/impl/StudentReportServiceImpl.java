@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,6 +86,7 @@ public class StudentReportServiceImpl implements StudentReportService {
                             return newSubjectReportDTO;
                         });
 
+
                 GradeReportDTO gradeReportDTO = subjectReportDTO.getGrades().stream()
                         .filter(gr -> gr.getGrade().equals(sgs.getGrade()))
                         .findFirst()
@@ -141,10 +143,16 @@ public class StudentReportServiceImpl implements StudentReportService {
             studentReport.setUpdateBy(authenticatedUser.getId());
             studentReport.setUpdateTime(new Date());
             studentReportRepository.save(studentReport);
+
             //check valid grade, semester and subject exist in table subject_grade_semester
             for (UpdateMarkDTO markDTO : request.getMarks()) {
                 Optional<SubjectGradeSemester> subjectGradeSemester = subjectGradeSemesterRepository.findBySubjectIdAndGradeAndSemester(
                         markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
+                //validate mark > 0
+                if (markDTO.getMark() != null && markDTO.getMark() < 0) {
+                    log.error("Invalid mark {} for Subject {}, Grade {}, Semester {}", markDTO.getMark(), markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
+                    return new ResponseData<>(ResponseCode.C206.getCode(), "Điểm phải lớn hơn hoặc bằng 0 !");
+                }
 
                 if (subjectGradeSemester.isPresent()) {
                     StudentReportMarkId markId = new StudentReportMarkId(studentReport.getId(), subjectGradeSemester.get().getId());

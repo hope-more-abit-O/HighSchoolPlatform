@@ -95,8 +95,8 @@ public class GlobalExceptionHandler {
                 .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy !");
+        return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy !");
     }
 }
