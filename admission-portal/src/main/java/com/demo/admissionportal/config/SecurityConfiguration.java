@@ -37,7 +37,7 @@ public class SecurityConfiguration {
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
-    private static final String CHATUSER = "/api/v1/chat-user/**";
+    private static final String CHAT_API = "/api/v1/chat-user/**";
     private static final String POST_API = "/api/v1/post/**";
     private static final String ADDRESS_API = "/api/v1/address/**";
     private static final String TEST_API = "/test/**";
@@ -64,7 +64,7 @@ public class SecurityConfiguration {
                                         ADDRESS_API,
                                         POST_API,
                                         FILE_API,
-                                        CHATUSER,
+                                        CHAT_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
