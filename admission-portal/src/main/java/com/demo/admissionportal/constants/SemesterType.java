@@ -1,7 +1,19 @@
 package com.demo.admissionportal.constants;
 
+/**
+ * The enum Semester type.
+ */
 public enum SemesterType {
+    /**
+     * First semester type.
+     */
     FIRST,
+    /**
+     * Second semester type.
+     */
     SECOND,
-    WHOLE_TERM
+    /**
+     * Average semester type.
+     */
+    AVERAGE
 }

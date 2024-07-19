@@ -70,7 +70,20 @@ public class UserMessageServiceImpl implements UserMessageService {
             return ChatDetailDTO.builder().senderId(message.getSenderId()).content(message.getContent()).type(type).time(new Date()).build();
         }).collect(Collectors.toList());
         markMessagesAsRead(recipient.getId(), chatId);
-        return ChatResponseDTO.builder().chatId(chatId).senderId(UserDTO.builder().id(sender.getId()).name(getNameOfUser(sender)).avatar(sender.getAvatar()).build()).receiverId(UserDTO.builder().id(recipient.getId()).name(getNameOfUser(recipient)).avatar(recipient.getAvatar()).build()).chatDetail(chatDetails).build();
+        return ChatResponseDTO.builder()
+                .chatId(chatId)
+                .senderId(
+                        UserDTO.builder()
+                                .id(sender.getId())
+                                .name(getNameOfUser(sender))
+                                .avatar(sender.getAvatar())
+                                .build())
+                .receiverId(UserDTO.builder()
+                        .id(recipient.getId())
+                        .name(getNameOfUser(recipient))
+                        .avatar(recipient.getAvatar())
+                        .build())
+                .chatDetail(chatDetails).build();
     }
 
     @Override
