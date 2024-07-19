@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @SecurityRequirement(name = "BearerAuth")
-public class    StaffController {
+public class StaffController {
     private final StaffService staffService;
     private final UserService userService;
     private final SubjectGroupService subjectGroupService;
