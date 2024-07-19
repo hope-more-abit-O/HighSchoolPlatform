@@ -19,7 +19,7 @@ public class StudentReport {
     @Column(name = "id")
     private Integer id;
     @Column(name = "user_id")
-    private Integer studentId;
+    private Integer userId;
     @Column(name = "name")
     private String name;
     @Column(name = "create_by")

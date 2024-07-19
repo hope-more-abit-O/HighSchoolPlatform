@@ -7,7 +7,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * The interface Subject grade semester repository.
+ */
 @Repository
 public interface SubjectGradeSemesterRepository extends JpaRepository<SubjectGradeSemester, Integer> {
-    Optional<SubjectGradeSemester> findBySubjectIdAndGradeAndSemester(Integer subjectId, String name, SemesterType semester);
+    /**
+     * Find by subject id and grade and semester optional.
+     *
+     * @param subjectId the subject id
+     * @param grade     the grade
+     * @param semester  the semester
+     * @return the optional
+     */
+    Optional<SubjectGradeSemester> findBySubjectIdAndGradeAndSemester(Integer subjectId, Integer grade, SemesterType semester);
 }
