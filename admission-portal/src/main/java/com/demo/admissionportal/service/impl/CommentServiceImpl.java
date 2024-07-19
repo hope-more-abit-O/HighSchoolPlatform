@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -94,7 +95,7 @@ public class CommentServiceImpl implements CommentService {
         replyComment.setPostId(requestDTO.getPost_id());
         replyComment.setCommenter_id(accId);
         replyComment.setContent(requestDTO.getContent());
-        replyComment.setComment_parent_id(requestDTO.getComment_parent_id());
+        replyComment.setCommentParentId(requestDTO.getComment_parent_id());
         replyComment.setCreate_time(new Date());
         replyComment.setComment_type(CommentType.CHILD);
         replyComment.setComment_status(CommentStatus.ACTIVE);
@@ -102,20 +103,36 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public ResponseData<CommentResponseDTO> getComments(Integer postId) {
-        if (postId == null) {
-            return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+    public ResponseData<List<CommentResponseDTO>> getCommentsByPostId(Integer postId) {
+        try {
+            if (postId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            List<CommentResponseDTO> responseDTOS = getCommentFromPostId(postId);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy comment từ bài post thành công", responseDTOS);
+        } catch (Exception ex) {
+            log.error("Error when get comment in post: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Lấy comment từ bài post thất bại", null);
         }
+    }
+
+    @Override
+    public List<CommentResponseDTO> getCommentFromPostId(Integer postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);
-
-        // Get root comment
-        Comment rootComment = comments.get(0);
-
-        // Get child comment
-        List<Comment> commentChildren = comments.subList(1, comments.size());
-        CommentResponseDTO commentResponseDTOS = new CommentResponseDTO();
-        commentResponseDTOS.setComment(mapToCommentDetailResponse(rootComment, commentChildren));
-        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy comment thành công", commentResponseDTOS);
+        List<CommentResponseDTO> responseDTOS = new ArrayList<>();
+        List<Comment> commentsWithNoParentId = comments.stream()
+                .filter(comment -> comment.getCommentParentId() == null)
+                .toList();
+        // Get root comments
+        for (Comment comment : commentsWithNoParentId) {
+            CommentResponseDTO commentResponseDTO = new CommentResponseDTO();
+            // Get child comments
+            List<Comment> commentParentId = commentRepository.findByPostIdAndCommentParentId(postId, comment.getId());
+            List<Comment> commentChildren = new ArrayList<>(commentParentId);
+            commentResponseDTO.setComment(mapToCommentDetailResponse(comment, commentChildren));
+            responseDTOS.add(commentResponseDTO);
+        }
+        return responseDTOS;
     }
 
     private CommentDetailResponseDTO mapToCommentDetailResponse(Comment comment, List<Comment> commentChildren) {
