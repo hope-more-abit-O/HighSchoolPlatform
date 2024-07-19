@@ -19,4 +19,13 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
      * @return the list
      */
     List<Comment> findByPostId(Integer postId);
+
+    /**
+     * Find by post id and comment parent id list.
+     *
+     * @param postId          the post id
+     * @param commentParentId the comment parent id
+     * @return the list
+     */
+    List<Comment> findByPostIdAndCommentParentId(Integer postId, Integer commentParentId);
 }

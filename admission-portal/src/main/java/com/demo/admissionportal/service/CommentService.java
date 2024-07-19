@@ -5,6 +5,8 @@ import com.demo.admissionportal.dto.request.comment.ReplyCommentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.comment.CommentResponseDTO;
 
+import java.util.List;
+
 /**
  * The interface Comment service.
  */
@@ -31,5 +33,13 @@ public interface CommentService {
      * @param postId the post id
      * @return the comments
      */
-    ResponseData<CommentResponseDTO> getComments(Integer postId);
+    ResponseData<List<CommentResponseDTO>> getCommentsByPostId(Integer postId);
+
+    /**
+     * Gets comment from post id.
+     *
+     * @param postId the post id
+     * @return the comment from post id
+     */
+    List<CommentResponseDTO> getCommentFromPostId(Integer postId);
 }
