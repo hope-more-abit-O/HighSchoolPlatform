@@ -58,7 +58,7 @@ public class PostServiceImpl implements PostService {
     private final CommentService commentService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
         Integer createBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
@@ -650,7 +650,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUni(Integer id) {
+    public ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUniId(Integer id) {
         try {
             List<PostDetailResponseDTO> response = new ArrayList<>();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -746,5 +746,42 @@ public class PostServiceImpl implements PostService {
             userInfo = mapperConsultantInfoResponseDTO(consultantInfo);
         }
         return userInfo;
+    }
+
+
+    @Override
+    public ResponseData<List<PostDetailResponseDTO>> listAllPostConsulOrStaff() {
+        try {
+            List<PostDetailResponseDTO> response = new ArrayList<>();
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
+            switch (userRole) {
+                case "STAFF":
+                    response = getAllPostByStaff();
+                    break;
+                case "CONSULTANT":
+                    response = getAllPostByConsultantId(userId);
+                    break;
+            }
+            if (response == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post");
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", response);
+        } catch (Exception ex) {
+            log.info("Error when list all post by consult/staff/uni: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post", null);
+        }
+    }
+
+    private List<PostDetailResponseDTO> getAllPostByConsultantId(Integer id) {
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
+        return getPostByUniversityId(consultantInfo.getUniversityId());
+    }
+
+    private List<PostDetailResponseDTO> getAllPostByStaff() {
+        List<StaffInfo> staffInfo = staffInfoRepository.findAll();
+        return staffInfo.stream()
+                .flatMap(staff -> getPostsByStaffOrConsultantId(staff.getId()).stream())
+                .collect(Collectors.toList());
     }
 }
