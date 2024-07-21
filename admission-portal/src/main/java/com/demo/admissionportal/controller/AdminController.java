@@ -83,7 +83,7 @@ public class AdminController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) AccountStatus status,
-            @PageableDefault(size = 10) Pageable pageable) {
+            Pageable pageable) {
         ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

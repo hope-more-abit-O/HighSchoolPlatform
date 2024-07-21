@@ -25,7 +25,7 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      * @param pageable     the pageable
      * @return the page
      */
-    @Query(value = "SELECT * FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
+    @Query(value = "SELECT s.*, u.create_time FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
             "(:username IS NULL OR u.username LIKE %:username%) AND " +
             "(:firstName IS NULL OR s.first_name LIKE %:firstName%) AND " +
             "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
@@ -33,7 +33,16 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
             "(:email IS NULL OR u.email LIKE %:email%) AND " +
             "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
             "(:statusString IS NULL OR u.status = :statusString)" +
-            "ORDER BY u.create_time DESC", nativeQuery = true)
+            "ORDER BY u.create_time DESC",
+            countQuery = "SELECT COUNT(*) FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
+                    "(:username IS NULL OR u.username LIKE %:username%) AND " +
+                    "(:firstName IS NULL OR s.first_name LIKE %:firstName%) AND " +
+                    "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
+                    "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
+                    "(:email IS NULL OR u.email LIKE %:email%) AND " +
+                    "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
+                    "(:statusString IS NULL OR u.status = :statusString)",
+            nativeQuery = true)
     Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
 
     /**

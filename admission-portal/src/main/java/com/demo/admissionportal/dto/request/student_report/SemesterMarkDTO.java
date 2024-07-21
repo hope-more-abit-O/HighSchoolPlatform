@@ -16,6 +16,5 @@ import java.util.List;
 public class SemesterMarkDTO {
     @NotNull
     private SemesterType semester;
-    @NotNull
     private Float mark;
 }
