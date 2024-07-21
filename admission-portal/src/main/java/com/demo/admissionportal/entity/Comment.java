@@ -26,7 +26,7 @@ public class Comment implements Serializable {
     private Integer postId;
 
     @Column(name = "comment_parent_id")
-    private Integer comment_parent_id;
+    private Integer commentParentId;
 
     @Column(name = "commenter_id")
     private Integer commenter_id;
