@@ -102,7 +102,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .universityCode(request.getUniversityCode())
                 .universityEmail(request.getUniversityEmail())
                 .universityUsername(request.getUniversityUsername())
-                .universityType(UniversityType.valueOf(request.getUniversityType()))
+                .universityType(request.getUniversityType())
                 .note(request.getNote())
                 .documents(request.getDocuments())
                 .status(CreateUniversityRequestStatus.PENDING)
@@ -165,9 +165,10 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         String password = "";
         try{
             if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
+                validationService.validateCreateUniversity(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail(), createUniversityRequest.getUniversityCode());
+
                 password = RandomStringUtils.randomAlphanumeric(9);
                 log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
-                validationService.validateCreateUniversity(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail(), createUniversityRequest.getUniversityCode());
                 log.info("Check username, email available succeed.");
 
                 log.info("Creating and storing University Account");
@@ -203,6 +204,8 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
+        } catch (DataExistedException e){
+            throw new DataExistedException(e.getMessage(), e.getErrors());
         } catch (Exception e){
             log.error(e.getMessage());
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");
@@ -254,6 +257,17 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         CreateUniversityRequest createUniversityRequest = findById(id);
 
         return mapping(createUniversityRequest);
+    }
+
+    public ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable){
+        Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findByCreateBy(staffId , pageable);
+
+        List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
+
+        Page<CreateUniversityRequestDTO> mappedRequests = createUniversityRequests.map(request -> this.mapping(request, actionerDTOs));
+
+        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", mappedRequests);
     }
 
     public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest){

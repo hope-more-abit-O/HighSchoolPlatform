@@ -2,7 +2,9 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.IdAndName;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
@@ -16,6 +18,7 @@ import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.NameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -50,6 +53,9 @@ public class UserServiceImpl implements UserService {
     private final WardRepository wardRepository;
     private final ModelMapper modelMapper;
     private final ValidationService validationService;
+    private final UniversityInfoServiceImpl universityInfoServiceImpl;
+    private final ConsultantInfoServiceImpl consultantInfoService;
+    private final StaffInfoServiceImpl staffInfoService;
 
 
     @Override
@@ -249,6 +255,56 @@ public class UserServiceImpl implements UserService {
         return responseDTO;
     }
 
+    @Override
+    public FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOs) throws ResourceNotFoundException {
+
+        ActionerDTO createBy = actionerDTOs
+                .stream()
+                .filter(actioner -> actioner.getId().equals(user.getCreateBy()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy actioner trong list"));
+
+        FullUserResponseDTO result = modelMapper.map(user, FullUserResponseDTO.class);
+        result.setCreateBy(createBy);
+
+        if (user.getUpdateBy() != null){
+            ActionerDTO updateBy = actionerDTOs
+                    .stream()
+                    .filter(actioner -> actioner.getId().equals(user.getUpdateBy()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy actioner trong list"));
+            result.setUpdateBy(updateBy);
+        }
+        else result.setUpdateBy(null);
+
+        return result;
+    }
+
+    public List<FullUserResponseDTO> mappingResponse(List<User> users) throws ResourceNotFoundException {
+        List<FullUserResponseDTO> responseDTOs = new ArrayList<>();
+
+        List<ActionerDTO> actionerDTOS = this.getActioners(users.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .toList());
+
+        for (User user : users) {
+            FullUserResponseDTO responseDTO = modelMapper.map(user, FullUserResponseDTO.class);
+            ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
+            responseDTO.setCreateBy(actionerDTO);
+
+            responseDTOs.add(responseDTO);
+
+            if (user.getUpdateBy() == null) //Case 1: updateBy == null
+                responseDTO.setUpdateBy(null);
+            else if (Objects.equals(user.getCreateBy(), user.getUpdateBy())) //Case 2: updateBy == createBy
+                responseDTO.setUpdateBy(actionerDTO);
+            else //Case 3: updateBy != createBy
+                responseDTO.setUpdateBy(modelMapper.map(findById(user.getUpdateBy()), ActionerDTO.class));
+        }
+
+        return responseDTOs;
+    }
+
     public List<ActionerDTO> mapActioners(Object obj) throws ResourceNotFoundException {
         List<ActionerDTO> actionerDTOList = new ArrayList<>();
 
@@ -341,7 +397,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateTime(new Date());
         account.setUpdateBy(actionerId);
         try {
-            userRepository.save(account);
+            account = userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái tư vấn viên thất bại.");
         }
@@ -418,5 +474,64 @@ public class UserServiceImpl implements UserService {
         fullUserResponseDTO.setCreateBy(actionerMap.get(user.getCreateBy()));
         fullUserResponseDTO.setUpdateBy(actionerMap.get(user.getUpdateBy()));
         return fullUserResponseDTO;
+    }
+
+    @Override
+    public Page<User> findByCreateByAndRole(Integer id, Role role, Pageable pageable) throws ResourceNotFoundException{
+        return userRepository.findByCreateByAndRole(id, role, pageable);
+    }
+
+    @Override
+    public List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException{
+        List<User> users = userRepository.findAllById(ids.stream().distinct().toList());
+        if (users.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy actioner!", Map.of("ids", ids.toString()));
+        List<ActionerDTO> result =  users.stream().map((element) -> modelMapper.map(element, ActionerDTO.class)).toList();
+
+        List<IdAndName> idAndNames = new ArrayList<>();
+        for (User user : users) {
+            switch (user.getRole()){
+                case UNIVERSITY:
+                    UniversityInfo uniInfo = universityInfoServiceImpl.findById(user.getId());
+                    idAndNames.add(new IdAndName(uniInfo.getId(), uniInfo.getName()));
+                    break;
+                case CONSULTANT:
+                    ConsultantInfo consultantInfo = consultantInfoService.findById(user.getId());
+                    idAndNames.add(new IdAndName(consultantInfo.getId(), NameUtils.getFullName(consultantInfo.getFirstName(), consultantInfo.getMiddleName(), consultantInfo.getLastName())));
+                    break;
+                case STAFF:
+                    StaffInfo staffInfo = staffInfoService.findStaffInfoById(user.getId());
+                    idAndNames.add(new IdAndName(staffInfo.getId(), NameUtils.getFullName(staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName())));
+                    break;
+                case USER:
+                    UserInfo userInfo = this.findUserInfoById(user.getId());
+                    idAndNames.add(new IdAndName(userInfo.getId(), NameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName())));
+                    break;
+            }
+        }
+
+        result.forEach(
+                rs -> rs.setFullName(idAndNames
+                        .stream()
+                        .filter(i -> rs.getId().equals(i.getId()))
+                        .map(IdAndName::getName)
+                        .findFirst()
+                        .orElse("ADMIN"))
+        );
+
+        return result;
+    };
+
+    @Override
+    public List<User> findByRole(Role role){
+        return userRepository.findByRole(role);
+    }
+
+    public UserInfo findUserInfoById(Integer id){
+        return userInfoRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Thông tin người dùng không tìm thấy"));
+    }
+
+    public Page<User> findByRoleAndPageable(Role role, Pageable pageable){
+        return userRepository.findByRole(role, pageable);
     }
 }

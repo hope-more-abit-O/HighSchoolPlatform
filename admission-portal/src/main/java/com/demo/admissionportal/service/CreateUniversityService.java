@@ -17,4 +17,6 @@ public interface CreateUniversityService {
     ResponseData adminAction(Integer id, CreateUniversityRequestStatus status, String note) throws ResourceNotFoundException, StoreDataFailedException;
     CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException;
     ResponseData<Page<CreateUniversityRequestDTO>> getBy(Pageable pageable);
+
+    ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable);
 }

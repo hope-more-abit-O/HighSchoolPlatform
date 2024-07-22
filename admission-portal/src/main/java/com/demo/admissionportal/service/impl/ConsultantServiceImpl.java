@@ -2,6 +2,8 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.consultant.ConsultantInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.InfoConsultantResponseDTO;
@@ -22,14 +24,20 @@ import com.demo.admissionportal.util.impl.NameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.stream.Streams;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -156,7 +164,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
 
-        infoResponse.setName(NameUtils.getFullName(info.getFirstname(), info.getMiddleName(), info.getLastName()));
+        infoResponse.setName(NameUtils.getFullName(info.getFirstName(), info.getMiddleName(), info.getLastName()));
         infoResponse.setUniversity(universityService.getUniversityInfoResponseById(info.getUniversityId()));
 
         if (info.getSpecificAddress() == null || info.getProvince() == null || info.getWard() == null || info.getDistrict() == null){
@@ -209,7 +217,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     private void updateConsultantInfo(ConsultantInfo consultantInfo, ConsultantInfoRequest request)
             throws StoreDataFailedException {
         validationService.validatePhoneNumber(request.getPhone());
-        consultantInfo.setFirstname(request.getFirstName());
+        consultantInfo.setFirstName(request.getFirstName());
         consultantInfo.setMiddleName(request.getMiddleName());
         consultantInfo.setLastName(request.getLastName());
         consultantInfo.setPhone(request.getPhone());
@@ -239,11 +247,11 @@ public class ConsultantServiceImpl implements ConsultantService {
     }
 
     public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
-        userService.changeConsultantStatus(id, request.getNote());
-        return ResponseData.ok("Cập nhập tư vấn viên thành công");
+        User consultantAccount = userService.changeConsultantStatus(id, request.getNote());
+        return ResponseData.ok("Cập nhập tư vấn viên thành công", userService.mappingResponse(consultantAccount));
     }
 
-    public InfoConsultantResponseDTO findById(Integer id) throws ResourceNotFoundException {
+    public InfoConsultantResponseDTO getById(Integer id) throws ResourceNotFoundException {
         User account = userService.findById(id);
 
         ConsultantInfo consultantInfo = findInfoById(id);
@@ -251,5 +259,23 @@ public class ConsultantServiceImpl implements ConsultantService {
         InfoConsultantResponseDTO response = new InfoConsultantResponseDTO();
 
         return null;
+    }
+
+    public Page<FullConsultantResponseDTO> getConsultant(Integer createBy, Pageable pageable) throws ResourceNotFoundException {
+        List<User> consultantAccounts = userService.findByCreateByAndRole(createBy, Role.CONSULTANT, pageable).getContent();
+        List<Integer> actionerIds = Streams.nonNull(consultantAccounts.stream().flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))).toList();
+        List<ConsultantInfo> infos = consultantInfoRepository.findAllById(consultantAccounts.stream().map(User::getId).distinct().toList());
+        List<ActionerDTO> actionerDTOS = userService.getActioners(actionerIds);
+
+        List<FullConsultantResponseDTO> fullConsultantResponseDTOS = new ArrayList<>();
+
+        for (User consultantAccount : consultantAccounts) {
+            fullConsultantResponseDTOS.add(FullConsultantResponseDTO.builder()
+                    .account(userService.mappingResponse(consultantAccount, actionerDTOS))
+                    .info(mappingResponse(infos.stream().filter(info -> info.getId().equals(consultantAccount.getId())).findFirst().get()))
+                    .build());
+        }
+
+        return new PageImpl<>(fullConsultantResponseDTOS, pageable, infos.size());
     }
 }
