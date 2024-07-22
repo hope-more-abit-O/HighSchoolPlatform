@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
+import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 import com.demo.admissionportal.service.PostService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -43,6 +44,8 @@ public class PostController {
         ResponseData<PostDetailResponseDTO> responseData = postService.createPost(requestDTO);
         if (responseData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseData);
+        } else if (responseData.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
     }
@@ -193,6 +196,12 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-//    @GetMapping("/favorite")
-//    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsFavorite() {}
+    @GetMapping("/favorite")
+    public ResponseEntity<ResponseData<List<PostFavoriteResponseDTO>>> getPostsFavorite() {
+        ResponseData<List<PostFavoriteResponseDTO>> response = postService.listPostFavorite();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }

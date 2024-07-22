@@ -5,6 +5,7 @@ import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
+import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 
 import java.util.List;
@@ -81,4 +82,11 @@ public interface PostService {
      * @return the response data
      */
     ResponseData<List<PostDetailResponseDTO>> listAllPostConsulOrStaff();
+
+    /**
+     * List post favorite response data.
+     *
+     * @return the response data
+     */
+    ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite();
 }
