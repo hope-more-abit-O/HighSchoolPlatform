@@ -4,6 +4,7 @@ import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.type.TypeListResponseDTO;
 import com.demo.admissionportal.entity.Type;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public interface TypeService {
      *
      * @return the list type post
      */
-    ResponseData<List<Type>> getListTypePost();
+    ResponseData<List<TypeListResponseDTO>> getListTypePost();
 
     /**
      * Gets post by id.

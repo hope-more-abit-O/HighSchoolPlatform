@@ -18,5 +18,5 @@ import java.util.List;
 public class  PostResponseDTO implements Serializable {
     private PostPropertiesResponseDTO postProperties;
     private List<TypeResponseDTO> listType;
-    private UserInfoPostResponseDTO create_by;
+    private String create_by;
 }
