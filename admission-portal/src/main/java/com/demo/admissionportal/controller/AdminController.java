@@ -51,6 +51,7 @@ public class AdminController {
      * @return the response entity
      */
     @PostMapping("/register-staff")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ResponseData<RegisterStaffResponse>> registerStaff(@RequestBody @Valid RegisterStaffRequestDTO request) {
         ResponseData<RegisterStaffResponse> response = staffService.registerStaff(request);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -99,6 +100,7 @@ public class AdminController {
      * @return the staff by id
      */
     @GetMapping("/get-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
@@ -120,6 +122,7 @@ public class AdminController {
      * @return the response entity
      */
     @DeleteMapping("/delete-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> deleteStaffById(@Valid @PathVariable int id, @Valid @RequestBody DeleteStaffRequest request) {
         log.info("Received request to delete staff with ID: {} and note: {}", id, request.note());
         ResponseData<?> result = staffService.deleteStaffById(id, request);
@@ -142,6 +145,7 @@ public class AdminController {
      * @return the response entity
      */
     @PutMapping("/activate-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> activateStaffById(@PathVariable int id, @RequestBody ActiveStaffRequest request) {
         log.info("Received request to activate staff with ID: {} and note: {}", id, request.note());
         ResponseData<?> result = staffService.activateStaffById(id, request);

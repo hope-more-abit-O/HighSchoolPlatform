@@ -10,6 +10,7 @@ import com.demo.admissionportal.entity.UserMessage;
 import com.demo.admissionportal.service.ChatRoomService;
 import com.demo.admissionportal.service.UserMessageService;
 import com.demo.admissionportal.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/chat-user")
 @CrossOrigin
+@SecurityRequirement(name = "bearerAuth")
 public class ChatController {
 
     @Autowired
@@ -85,17 +88,18 @@ public class ChatController {
     }
 
     @GetMapping("/chat-id/{senderId}/{recipientId}")
+    @PreAuthorize("hasAnyAuthority('STAFF','USER','CONSULTANT')")
     public ResponseEntity<UUID> getChatId(@PathVariable Integer senderId, @PathVariable Integer recipientId) {
         Optional<UUID> chatId = chatRoomService.getChatId(senderId, recipientId, true);
         return chatId.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
-
 
     @MessageExceptionHandler
     public void handleException(Throwable exception) {
         log.error("WebSocket error: ", exception);
     }
     @GetMapping("/chat-messages/{chatId}")
+    @PreAuthorize("hasAnyAuthority('STAFF','USER','CONSULTANT')")
     public ResponseEntity<ChatResponseDTO> findChatMessages(@PathVariable UUID chatId) {
         ChatResponseDTO response = userMessageService.findChatMessages(chatId);
         userMessageService.updateStatuses(chatId, MessageStatus.RECEIVED);
@@ -103,6 +107,7 @@ public class ChatController {
     }
 
     @GetMapping("/message/{id}")
+    @PreAuthorize("hasAnyAuthority('STAFF','USER','CONSULTANT')")
     public ResponseEntity<ChatDetailDTO> findMessage(@PathVariable Integer id) {
         return ResponseEntity.ok(userMessageService.findById(id));
     }

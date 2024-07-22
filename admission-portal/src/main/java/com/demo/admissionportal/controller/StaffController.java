@@ -201,6 +201,7 @@ public class StaffController {
      * @return A ResponseEntity containing the paginated list of subjects and a suitable HTTP status.
      */
     @GetMapping("/list-all-subjects")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) SubjectStatus status,
@@ -222,6 +223,7 @@ public class StaffController {
      * @return A ResponseEntity containing subject details with a suitable HTTP status (e.g., 200 OK for success, 404 Not Found if the subject is not found).
      */
     @GetMapping("/get-subject/{id}")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
         ResponseData<
 
@@ -258,6 +260,7 @@ public class StaffController {
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
     @PostMapping("/create-subject")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Subject>> createSubject(@RequestBody @Valid RequestSubjectDTO requestSubjectDTO) {
         ResponseData<Subject> createdSubject = subjectService.createSubject(requestSubjectDTO);
         if (createdSubject != null) {
