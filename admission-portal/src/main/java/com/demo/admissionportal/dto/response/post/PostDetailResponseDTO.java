@@ -20,6 +20,6 @@ public class PostDetailResponseDTO implements Serializable {
     private PostPropertiesResponseDTO postProperties;
     private List<TypeResponseDTO> listType;
     private List<TagResponseDTO> listTag;
-    private UserInfoPostResponseDTO create_by;
+    private String create_by;
     private List<CommentResponseDTO> comments;
 }
