@@ -15,7 +15,7 @@ public class FullAdmissionDTO {
     private Integer year;
     private Integer universityId;
     private ActionerDTO createBy;
-    private String createTime;
+    private Date createTime;
     private ActionerDTO updateBy;
     private String updateTime;
     private String status;
