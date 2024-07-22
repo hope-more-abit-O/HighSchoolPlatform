@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
@@ -36,12 +37,13 @@ public class SecurityConfiguration {
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
-    private static final String CHATBOT = "/api/v1/chatbot/**";
-    private static final String CHATUSER = "/api/v1/chat-user/**";
+    private static final String CHAT_API = "/api/v1/chat-user/**";
     private static final String POST_API = "/api/v1/post/**";
     private static final String ADDRESS_API = "/api/v1/address/**";
     private static final String TEST_API = "/test/**";
     private static final String FILE_API = "/api/v1/file/**";
+    private static final String STUDENT_REPORT = "/api/v1/student-report/**";
+    private static final String COMMENT_API = "api/v1/comment/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,16 +54,17 @@ public class SecurityConfiguration {
                                 .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
+                                .requestMatchers(STUDENT_REPORT).hasAuthority("USER")
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
-//                                .requestMatchers(POST_API).hasAnyAuthority("STAFF", "CONSULTANT")
-                                .requestMatchers(AUTHENTICATION_API, CHATBOT,
+                                .requestMatchers(AUTHENTICATION_API,
+                                        COMMENT_API,
                                         TEST_API,
                                         ADDRESS_API,
                                         POST_API,
                                         FILE_API,
-                                        CHATUSER,
+                                        CHAT_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -89,7 +92,6 @@ public class SecurityConfiguration {
 
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -99,5 +101,10 @@ public class SecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 }

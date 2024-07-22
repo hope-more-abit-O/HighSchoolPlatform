@@ -28,5 +28,11 @@ public interface ConsultantInfoRepository extends JpaRepository<ConsultantInfo, 
      */
     ConsultantInfo findConsultantInfoById(Integer id);
 
-    List<ConsultantInfo> findAllConsultantInfosById(Integer id);
+    /**
+     * Find all consultant infos by university id list.
+     *
+     * @param id the id
+     * @return the list
+     */
+    List<ConsultantInfo> findAllConsultantInfosByUniversityId(Integer id);
 }

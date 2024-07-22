@@ -30,11 +30,12 @@ services:
       # Token configuration
       SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
       EXPIRATION: 86400000
+      REFRESH_TOKEN_EXPIRATION: 604800000
       # SSL configuration
-#      SERVER_SSL_KEY_ALIAS: uap-https
-#      SERVER_SSL_KEY_STORE: classpath:keystore.p12
-#      SERVER_SSL_KEY_STORE_TYPE: PKCS12
-#      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
+      #      SERVER_SSL_KEY_ALIAS: uap-https
+      #      SERVER_SSL_KEY_STORE: classpath:keystore.p12
+      #      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      #      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
       # Multipart configuration
       SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
       SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB

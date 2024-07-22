@@ -71,20 +71,18 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> allSubjectGroups = subjectGroupRepository.findAll();
         List<SubjectGroupResponseDTO> matchingSubjectGroups = new ArrayList<>();
         for (SubjectGroup group : allSubjectGroups) {
-            List<Integer> groupSubjectIds = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
-                    .stream().map(SubjectGroupSubject::getSubjectId).toList();
+            List<Integer> groupSubjectIds = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId()).stream().map(SubjectGroupSubject::getSubjectId).toList();
             if (new HashSet<>(groupSubjectIds).containsAll(subjectIds) && new HashSet<>(subjectIds).containsAll(groupSubjectIds)) {
-                List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId())
-                        .stream().map(sgs -> {
-                            Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
-                            if (subject != null) {
-                                return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
-                            } else {
-                                return null;
-                            }
-                        }).filter(Objects::nonNull).collect(Collectors.toList());
+                List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(group.getId()).stream().map(sgs -> {
+                    Subject subject = subjectRepository.findById(sgs.getSubjectId()).orElse(null);
+                    if (subject != null) {
+                        return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
+                    } else {
+                        return null;
+                    }
+                }).filter(Objects::nonNull).collect(Collectors.toList());
                 // add to matching list
-                matchingSubjectGroups.add(new SubjectGroupResponseDTO(group.getId(), group.getName(), group.getStatus(), subjectDetails));
+                matchingSubjectGroups.add(new SubjectGroupResponseDTO(group.getId(), group.getName(), group.getStatus().name(), subjectDetails));
             }
         }
         // check if matching list not null then throw message and show the subject_group contain three subjects that has a subject_group before
@@ -97,10 +95,9 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             Object principal = authentication.getPrincipal();
             log.debug("Principal type: {}", principal.getClass().getName());
             log.info("Principal type: {}", principal.getClass().getName());
-            if (!(principal instanceof User)) {
+            if (!(principal instanceof User staff)) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
             }
-            User staff = (User) principal;
             Integer staffId = staff.getId();
             // create a null aray list to store the data processing before
             List<SubjectGroupSubject> subjectGroupSubjects = new ArrayList<>();
@@ -118,7 +115,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             subjectGroup.setName(request.getName());
             subjectGroup.setCreateTime(new Date());
             subjectGroup.setCreateBy(staffId);
-            subjectGroup.setStatus(SubjectStatus.ACTIVE.name());
+            subjectGroup.setStatus(SubjectStatus.ACTIVE);
             subjectGroup = subjectGroupRepository.save(subjectGroup);
             log.info("New subject group created with ID {}", subjectGroup.getId());
             // add to table subject_group_subject
@@ -130,13 +127,14 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 subjectGroupSubjectRepository.save(subjectGroupSubject);
                 log.info("Saved mapping of subject {} with subject_group {} in subject_group_subject table", subjectGroupSubject.getSubjectId(), subjectGroup.getId());
             }
-            CreateSubjectGroupResponseDTO createSubjectGroupResponseDTO = new CreateSubjectGroupResponseDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus(), subjectGroup.getCreateTime(), subjectGroup.getCreateBy(), subjectGroup.getUpdateTime(), subjectGroup.getUpdateBy(), subjectResponses);
+            CreateSubjectGroupResponseDTO createSubjectGroupResponseDTO = new CreateSubjectGroupResponseDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus().name(), subjectGroup.getCreateTime(), subjectGroup.getCreateBy(), subjectGroup.getUpdateTime(), subjectGroup.getUpdateBy(), subjectResponses);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo tổ hợp môn học thành công!", createSubjectGroupResponseDTO);
         } catch (Exception ex) {
             log.error("Error when create subject group", ex);
             return new ResponseData<>(ResponseCode.C201.getCode(), ResponseCode.C201.getMessage());
         }
     }
+
     @Override
     public ResponseData<?> updateSubjectGroup(Integer id, UpdateSubjectGroupRequestDTO request) {
         SubjectGroup existSubjectGroup = subjectGroupRepository.findById(id).orElse(null);
@@ -155,11 +153,11 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 existSubjectGroup.setName(request.getName());
                 log.info("Updated SubjectGroup name to {}", request.getName());
             }
-            //check if update status
-            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-                existSubjectGroup.setStatus(request.getStatus());
-                log.info("Updated SubjectGroup status to {}", request.getStatus());
-            }
+//            //check if update status
+//            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+//                existSubjectGroup.setStatus(request.getStatus());
+//                log.info("Updated SubjectGroup status to {}", request.getStatus());
+//            }
             //save to database
             subjectGroupRepository.save(existSubjectGroup);
             //when update with new subject, delete current relationship of that subject group id
@@ -192,16 +190,13 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             }
             //map subject with subject group
             log.info("Subject Group update successfully with ID: {}", existSubjectGroup.getId());
-            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId())
-                    .stream()
-                    .map(subjectGroupSubject -> {
-                        Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
-                        if (subject.isPresent()) {
-                            return new SubjectResponseDTO(subject.get().getId(), subject.get().getName(), subject.get().getStatus().name());
-                        }
-                        return null;
-                    })
-                    .toList();
+            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(existSubjectGroup.getId()).stream().map(subjectGroupSubject -> {
+                Optional<Subject> subject = subjectRepository.findById(subjectGroupSubject.getSubjectId());
+                if (subject.isPresent()) {
+                    return new SubjectResponseDTO(subject.get().getId(), subject.get().getName(), subject.get().getStatus().name());
+                }
+                return null;
+            }).toList();
             //add subject group
             SubjectGroupResponseDTO result = modelMapper.map(existSubjectGroup, SubjectGroupResponseDTO.class);
             //the subject_group will include subject in response
@@ -221,16 +216,13 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         } else {
             //set subject data to add in subject response
             SubjectGroup getSubjectGroup = subjectGroup.get();
-            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(getSubjectGroup.getId())
-                    .stream()
-                    .map(subjectGroupSubject -> {
-                        Subject subject = subjectRepository.findById(subjectGroupSubject.getSubjectId()).orElse(null);
-                        if (subject != null) {
-                            return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
-                        }
-                        return null;
-                    })
-                    .toList();
+            List<SubjectResponseDTO> subjectResponse = subjectGroupSubjectRepository.findBySubjectGroupId(getSubjectGroup.getId()).stream().map(subjectGroupSubject -> {
+                Subject subject = subjectRepository.findById(subjectGroupSubject.getSubjectId()).orElse(null);
+                if (subject != null) {
+                    return new SubjectResponseDTO(subject.getId(), subject.getName(), subject.getStatus().name());
+                }
+                return null;
+            }).toList();
             SubjectGroupResponseDTO result = modelMapper.map(getSubjectGroup, SubjectGroupResponseDTO.class);
             //the update subject group response will include subject data
             result.setSubjects(subjectResponse);
@@ -239,10 +231,10 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     }
 
     @Override
-    public ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, String status, Pageable pageable) {
+    public ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, SubjectStatus status, Pageable pageable) {
         log.info("Get all subject groups");
-
-        Page<SubjectGroup> subjectGroupPage = subjectGroupRepository.findAll(groupName, subjectName, status, pageable);
+        String statusString = status != null ? status.name() : null;
+        Page<SubjectGroup> subjectGroupPage = subjectGroupRepository.findAll(groupName, subjectName, statusString, pageable);
 
         List<SubjectGroupResponseDTO> subjectGroupResponses = subjectGroupPage.getContent().stream().map(subjectGroup -> {
             List<SubjectResponseDTO> subjectDetails = subjectGroupSubjectRepository.findBySubjectGroupId(subjectGroup.getId()).stream().map(sgs -> {
@@ -254,7 +246,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 }
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            return new SubjectGroupResponseDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus(), subjectDetails);
+            return new SubjectGroupResponseDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus().name(), subjectDetails);
         }).collect(Collectors.toList());
 
         Page<SubjectGroupResponseDTO> subjectGroupResponsePage = new PageImpl<>(subjectGroupResponses, pageable, subjectGroupPage.getTotalElements());
@@ -266,10 +258,10 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     public ResponseData<?> deleteSubjectGroup(Integer id) {
         try {
             SubjectGroup subjectGroup = subjectGroupRepository.findById(id).orElse(null);
-            if (subjectGroup == null || subjectGroup.getStatus().equals(SubjectStatus.INACTIVE.name())) {
+            if (subjectGroup == null || subjectGroup.getStatus().equals(SubjectStatus.INACTIVE)) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học không được tìm thấy !");
             }
-            subjectGroup.setStatus(SubjectStatus.INACTIVE.name());
+            subjectGroup.setStatus(SubjectStatus.INACTIVE);
             subjectGroupRepository.save(subjectGroup);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học được xóa thành công !");
         } catch (Exception e) {
@@ -295,7 +287,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 }
             }
 
-            subjectGroup.setStatus(SubjectStatus.ACTIVE.name());
+            subjectGroup.setStatus(SubjectStatus.ACTIVE);
             subjectGroupRepository.save(subjectGroup);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Kích hoạt tổ hợp môn học thành công !");
@@ -309,7 +301,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> result = null;
         try {
             result = subjectGroupRepository.findAllById(subjectGroupIds);
-        } catch (Exception e){
+        } catch (Exception e) {
             //TODO: throw exception
         }
         return result;

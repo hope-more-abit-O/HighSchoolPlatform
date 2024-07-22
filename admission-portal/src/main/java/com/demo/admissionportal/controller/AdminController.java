@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,23 +42,6 @@ public class AdminController {
     private final StaffService staffService;
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
-
-    /**
-     * Register admin response entity.
-     *
-     * @param request the request
-     * @return the response entity
-     */
-//    @PostMapping("/register")
-//    public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
-//        ResponseData<AdminInfo> response = adminService.registerAdmin(request);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-//        }
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//    }
 
     /**
      * Register staff response entity.
@@ -100,7 +84,7 @@ public class AdminController {
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) AccountStatus status,
             Pageable pageable) {
-        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName,middleName, lastName, email, phone, status, pageable);
+        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
