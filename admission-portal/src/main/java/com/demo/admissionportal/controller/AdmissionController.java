@@ -45,4 +45,10 @@ public class AdmissionController {
     public ResponseEntity createAdmissionTrainingProgramSubjectGroup(@RequestBody CreateAdmissionTrainingProgramSubjectGroupRequest request){
         return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
     }
+
+    @PostMapping("/abc")
+    public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request){
+        admissionService.createAdmission(request);
+        return ResponseEntity.ok("Good");
+    }
 }

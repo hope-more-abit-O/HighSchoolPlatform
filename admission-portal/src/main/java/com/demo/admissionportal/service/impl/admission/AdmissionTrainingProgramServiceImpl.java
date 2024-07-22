@@ -4,6 +4,8 @@ import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramReques
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.service.SubjectService;
@@ -94,10 +96,8 @@ public class AdmissionTrainingProgramServiceImpl {
         return savedPrograms;
     }
 
-    public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas) throws StoreDataFailedException{
+    public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas, List<Major> majors) throws StoreDataFailedException{
         List<AdmissionTrainingProgram> result;
-
-        List<Major> majors = majorService.insertNewMajorsAndGetExistedMajors(quotas);
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = quotas.stream()
                 .map(quota -> {
@@ -116,5 +116,23 @@ public class AdmissionTrainingProgramServiceImpl {
         result = this.saveAllAdmissionTrainingProgram(admissionTrainingPrograms);
 
         return result;
+    }
+
+    public Integer getAdmissionTrainingProgramId(CreateAdmissionQuotaRequest request, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Major> majors) {
+        List<AdmissionTrainingProgram> admissionTrainingProgramList = admissionTrainingPrograms.stream()
+                .filter(ad -> request.getLanguage().equals(ad.getLanguage()) && request.getTrainingSpecific().equals(ad.getTrainingSpecific()))
+                .toList();
+
+        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingProgramList) {
+            if (admissionTrainingProgram.getMajorId() != null && admissionTrainingProgram.getMajorId().equals(request.getMajorId())){
+                return admissionTrainingProgram.getId();
+            } else {
+                Major major = majorService.getMajor(majors, admissionTrainingProgram.getMajorId());
+                if (major.getName().equals(request.getMajorName()) && major.getCode().equals(request.getMajorCode())){
+                    return admissionTrainingProgram.getId();
+                }
+            }
+        }
+        throw new ResourceNotFoundException("Không tìm thấy admission training program");
     }
 }

@@ -30,7 +30,7 @@ public class AdmissionTrainingProgram {
     @Column(name = "admission_id", nullable = false)
     private Integer admissionId;
 
-    @Column(name = "main_subject_id", nullable = false)
+    @Column(name = "main_subject_id")
     private Integer mainSubjectId;
 
     @Size(max = 255)

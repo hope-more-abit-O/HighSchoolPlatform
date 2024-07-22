@@ -29,6 +29,9 @@ public class MajorServiceImpl {
     public Major findById(int id){
         return majorRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
     }
+    public Major findByName(String name){
+        return majorRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
+    }
 
     public List<Major> findByIds(List<Integer> ids)
             throws ResourceNotFoundException{
@@ -206,5 +209,17 @@ public class MajorServiceImpl {
         ));
 
         return result;
+    }
+
+    public Major getMajor(List<Major> majors, Integer id) throws ResourceNotFoundException {
+        return majors.stream().filter(major -> major.getId().equals(id)).findFirst().orElse(null);
+    }
+    public String getMajorName(List<Major> majors, Integer id) throws ResourceNotFoundException {
+        return majors.stream().filter(major -> major.getId().equals(id)).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ngành")).getName();
+    }
+
+    public Major findByCode(String code)
+            throws ResourceNotFoundException{
+        return majorRepository.findByCode(code).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
     }
 }

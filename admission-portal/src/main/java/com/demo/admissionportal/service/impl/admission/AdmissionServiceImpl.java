@@ -16,6 +16,7 @@ import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.admission.*;
+import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
@@ -51,7 +52,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final ModelMapper modelMapper;
     private final SubjectGroupServiceImpl subjectGroupService;
 
-    public Admission save(Admission admission){
+    public Admission save(Admission admission) {
         try {
             return admissionRepository.save(admission);
         } catch (Exception e) {
@@ -61,7 +62,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    public Admission findById(Integer id){
+    public Admission findById(Integer id) {
         log.info("Finding admission by id: {}", id);
         return admissionRepository.findById(id).orElseThrow(() -> {
             log.error("Admission with id: {} not found.", id);
@@ -88,19 +89,19 @@ public class AdmissionServiceImpl implements AdmissionService {
         ));
     }
 
-    public FullAdmissionDTO mapFullResponse(Admission admission){
+    public FullAdmissionDTO mapFullResponse(Admission admission) {
         FullAdmissionDTO fullAdmissionDTO = modelMapper.map(admission, FullAdmissionDTO.class);
 
-        if (admission.getUpdateBy() == null){
+        if (admission.getUpdateBy() == null) {
             fullAdmissionDTO.setCreateBy(modelMapper.map(userService.findById(admission.getCreateBy()), ActionerDTO.class));
             fullAdmissionDTO.setUpdateBy(null);
-        } else if (Objects.equals(admission.getCreateBy(), admission.getUpdateBy())){
+        } else if (Objects.equals(admission.getCreateBy(), admission.getUpdateBy())) {
             ActionerDTO actionerDTO = modelMapper.map(userService.findById(admission.getCreateBy()), ActionerDTO.class);
             fullAdmissionDTO.setUpdateBy(actionerDTO);
             fullAdmissionDTO.setCreateBy(actionerDTO);
         } else {
             List<User> actioners = userService.findByIds(Arrays.asList(admission.getCreateBy(), admission.getUpdateBy()));
-            fullAdmissionDTO.setUpdateBy(modelMapper.map( actioners.stream()
+            fullAdmissionDTO.setUpdateBy(modelMapper.map(actioners.stream()
                     .filter(user -> user.getId().equals(admission.getUpdateBy()))
                     .findFirst(), ActionerDTO.class));
             fullAdmissionDTO.setCreateBy(modelMapper.map(actioners.stream()
@@ -116,8 +117,8 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     //TODO: check if training program with all fields existed in admission
-    public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request){
-        Admission admission =  this.findById(request.getAdmissionId());
+    public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request) {
+        Admission admission = this.findById(request.getAdmissionId());
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAllAdmissionTrainingProgram(request.getAdmissionId(), request.getTrainingPrograms());
 
@@ -129,7 +130,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     //TODO: throw Exception
     //TODO: check if method existed in admission
-    public CreateAdmissionMethodResponse createAdmissionMethod(CreateAdmissionMethodRequest request){
+    public CreateAdmissionMethodResponse createAdmissionMethod(CreateAdmissionMethodRequest request) {
         Admission admission = this.findById(request.getAdmissionId());
 
         List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethod(request.getAdmissionId(), request.getMethodIds());
@@ -141,7 +142,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                         .toList());
     }
 
-    public ResponseData<CreateAdmissionTrainingProgramMethodQuotaResponse> createAdmissionTrainingProgramMethodQuota(CreateAdmissionTrainingProgramMethodRequest request){
+    public ResponseData<CreateAdmissionTrainingProgramMethodQuotaResponse> createAdmissionTrainingProgramMethodQuota(CreateAdmissionTrainingProgramMethodRequest request) {
         CreateAdmissionTrainingProgramMethodQuotaResponse response = new CreateAdmissionTrainingProgramMethodQuotaResponse();
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.createAdmissionTrainingProgramMethod(request);
 
@@ -149,10 +150,25 @@ public class AdmissionServiceImpl implements AdmissionService {
                 .stream()
                 .map(admissionTrainingProgramMethod -> new AdmissionTrainingProgramMethodQuotaDTO(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId(), admissionTrainingProgramMethod.getId().getAdmissionMethodId(), admissionTrainingProgramMethod.getQuota()))
                 .toList());
-        return ResponseData.ok("Tạo chi tiết chỉ tiêu thành công",response);
+        return ResponseData.ok("Tạo chi tiết chỉ tiêu thành công", response);
     }
 
-    public CreateAdmissionTrainingProgramSubjectGroupResponse createAdmissionTrainingProgramSubjectGroup(CreateAdmissionTrainingProgramSubjectGroupRequest request){
+    public List<AdmissionTrainingProgramSubjectGroup> createAdmissionTrainingProgramSubjectGroup(List<CreateAdmissionQuotaRequest> request, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Major> majors) {
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
+
+        for (CreateAdmissionQuotaRequest quotaRequest : request) {
+            Integer admissionTrainingProgramId = getAdmissionTrainingProgramId(quotaRequest, admissionTrainingPrograms, majors);
+
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroupList = quotaRequest.getSubjectGroupIds().stream()
+                    .map(subjectGroupId -> new AdmissionTrainingProgramSubjectGroup(admissionTrainingProgramId, subjectGroupId)).toList();
+
+            admissionTrainingProgramSubjectGroups.addAll(admissionTrainingProgramSubjectGroupList);
+        }
+
+        return admissionTrainingProgramSubjectGroupService.saveAll(admissionTrainingProgramSubjectGroups);
+    }
+
+    public CreateAdmissionTrainingProgramSubjectGroupResponse createAdmissionTrainingProgramSubjectGroup(CreateAdmissionTrainingProgramSubjectGroupRequest request) {
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
         request.getSubjectGroupId().forEach(subjectGroupId -> admissionTrainingProgramSubjectGroups.add(new AdmissionTrainingProgramSubjectGroup(request.getAdmissionTrainingProgramId(), subjectGroupId)));
 
@@ -172,16 +188,133 @@ public class AdmissionServiceImpl implements AdmissionService {
         return response;
     }
 
-    public void createAdmission(CreateAdmissionRequest request){
+    public void createAdmission(CreateAdmissionRequest request) {
         User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 
         Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
 
-        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAdmissionMethod( admission.getId(), request.getQuotas());
+        List<Method> methods = methodService.insertNewMethodsAndGetExistedMethods(request.getQuotas());
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAdmissionTrainingProgram(admission.getId(), request.getQuotas());
+        List<Major> majors = majorService.insertNewMajorsAndGetExistedMajors(request.getQuotas());
 
-        
+        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethodWithListMethods(admission.getId(), methods);
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAdmissionTrainingProgram(admission.getId(), request.getQuotas(), majors);
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = setAdmissionTrainingProgramMethod(majors, methods, admissionTrainingPrograms, admissionMethods, request.getQuotas());
+
+        admissionTrainingProgramMethodService.saveAll(admissionTrainingProgramMethods);
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = createAdmissionTrainingProgramSubjectGroup(request.getQuotas(), admissionTrainingPrograms, majors) ;
+
     }
 
+    public List<CreateAdmissionQuotaRequest> processCreateAdmissionQuotaRequest(List<CreateAdmissionQuotaRequest> quotaRequests, List<Major> majors, List<Method> methods) {
+        for (CreateAdmissionQuotaRequest quotaRequest : quotaRequests) {
+            if (quotaRequest.getMajorId() == null) {
+                quotaRequest.setMajorId(majors.stream()
+                        .filter(major -> major.getName().equals(quotaRequest.getMajorName()) && major.getCode().equals(quotaRequest.getMethodCode()))
+                        .map(Major::getId)
+                        .findFirst()
+                        .orElse(null));
+            }
+
+            if (quotaRequest.getMethodId() == null) {
+                quotaRequest.setMethodId(methods.stream()
+                        .filter(method -> method.getName().equals(quotaRequest.getMajorName()) && method.getCode().equals(quotaRequest.getMethodCode()))
+                        .map(Method::getId)
+                        .findFirst()
+                        .orElse(null));
+            }
+        }
+
+        return null;
+    }
+
+    public List<AdmissionTrainingProgramMethod> setAdmissionTrainingProgramMethod(List<Major> majors,
+                                                                                  List<Method> methods,
+                                                                                  List<AdmissionTrainingProgram> admissionTrainingPrograms,
+                                                                                  List<AdmissionMethod> admissionMethods,
+                                                                                  List<CreateAdmissionQuotaRequest> quotaRequests) {
+
+        List<AdmissionTrainingProgramMethod> result = new ArrayList<>();
+
+        for (CreateAdmissionQuotaRequest quotaRequest : quotaRequests) {
+
+            AdmissionTrainingProgramMethod admissionTrainingProgramMethod = new AdmissionTrainingProgramMethod();
+
+            Integer admissionMethodId = getAdmissionMethodId(quotaRequest, admissionMethods, methods);
+
+            Integer admissionTrainingProgramId = getAdmissionTrainingProgramId(quotaRequest, admissionTrainingPrograms, majors);
+
+            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota()));
+        }
+
+
+        return admissionTrainingProgramMethodService.saveAll(result);
+    }
+
+    private Integer getAdmissionMethodId(CreateAdmissionQuotaRequest quotaRequest,
+                                         List<AdmissionMethod> admissionMethods,
+                                         List<Method> methods) {
+        if (quotaRequest.getMethodId() != null) {
+            log.info("Get admission method id by method id");
+            return findAdmissionMethodIdByMethodId(quotaRequest.getMethodId(), admissionMethods);
+        } else {
+            log.info("Get admission method id by method name and code");
+            return findAdmissionMethodIdByNameAndCode(quotaRequest.getMajorName(), quotaRequest.getMajorCode(), admissionMethods, methods);
+        }
+    }
+
+    private Integer findAdmissionMethodIdByMethodId(Integer methodId, List<AdmissionMethod> admissionMethods) {
+        return admissionMethods.stream()
+                .filter(ad -> ad.getMethodId().equals(methodId))
+                .map(AdmissionMethod::getId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission method id not found"));
+    }
+
+    private Integer findAdmissionMethodIdByNameAndCode(String majorName,
+                                                       String majorCode,
+                                                       List<AdmissionMethod> admissionMethods,
+                                                       List<Method> methods) {
+        return admissionMethods.stream()
+                .filter(ad -> methods.stream()
+                        .anyMatch(method -> method.getId().equals(ad.getMethodId()) && method.getCode().equals(majorCode) && method.getName().equals(majorName)))
+                .map(AdmissionMethod::getId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission method id not found"));
+    }
+
+    private Integer getAdmissionTrainingProgramId(CreateAdmissionQuotaRequest quotaRequest,
+                                                  List<AdmissionTrainingProgram> admissionTrainingPrograms,
+                                                  List<Major> majors) {
+        if (quotaRequest.getMethodId() != null) {
+            log.info("Get admission method id by method id");
+            return findAdmissionTrainingProgramIdByMajorId(quotaRequest.getMajorId(), admissionTrainingPrograms);
+        } else {
+            log.info("Get admission method id by method name and code");
+            return findAdmissionTrainingProgramIdByNameAndCode(quotaRequest.getMajorName() ,quotaRequest.getMajorCode(), admissionTrainingPrograms, majors);
+        }
+    }
+
+    private Integer findAdmissionTrainingProgramIdByMajorId(Integer majorId, List<AdmissionTrainingProgram> admissionTrainingPrograms) {
+        return admissionTrainingPrograms.stream()
+                .filter(ad -> ad.getMajorId().equals(majorId))
+                .map(AdmissionTrainingProgram::getId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission training program id not found"));
+    }
+
+    private Integer findAdmissionTrainingProgramIdByNameAndCode(String majorName,
+                                                                String majorCode,
+                                                                List<AdmissionTrainingProgram> admissionTrainingPrograms,
+                                                                List<Major> majors) {
+        return admissionTrainingPrograms.stream()
+                .filter(ad -> majors.stream()
+                        .anyMatch(major -> major.getId().equals(ad.getMajorId()) && major.getName().equals(majorName) && major.getCode().equals(majorCode)))
+                .map(AdmissionTrainingProgram::getId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission training program id not found"));
+    }
 }
