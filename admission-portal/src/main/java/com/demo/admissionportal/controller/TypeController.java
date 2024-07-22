@@ -1,7 +1,6 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -11,12 +10,13 @@ import com.demo.admissionportal.service.TypeService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * The type Type controller.
@@ -51,8 +51,8 @@ public class TypeController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
-    public ResponseEntity<ResponseData<List<TypeListResponseDTO>>> getTypePosts() {
-        ResponseData<List<TypeListResponseDTO>> result = typeService.getListTypePost();
+    public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<TypeListResponseDTO>> result = typeService.getListTypePost(pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
@@ -76,11 +76,11 @@ public class TypeController {
 
     @PostMapping("/change-status/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer typeId, @RequestBody @Valid TypePostDeleteRequestDTO requestDTO) {
-        if (typeId == null || requestDTO == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có postId"));
+    public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer typeId) {
+        if (typeId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có TypeId"));
         }
-        ResponseData<Type> result = typeService.changeStatus(typeId, requestDTO);
+        ResponseData<Type> result = typeService.changeStatus(typeId);
         if (result.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         } else if (result.getStatus() == ResponseCode.C200.getCode()) {

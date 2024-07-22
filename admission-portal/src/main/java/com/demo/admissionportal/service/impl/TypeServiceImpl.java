@@ -2,7 +2,6 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -15,6 +14,9 @@ import com.demo.admissionportal.repository.TypeRepository;
 import com.demo.admissionportal.service.TypeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The type Type service.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -60,20 +65,21 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
-    public ResponseData<List<TypeListResponseDTO>> getListTypePost() {
+    public ResponseData<Page<TypeListResponseDTO>> getListTypePost(Pageable pageable) {
         try {
-            List<Type> list = typeRepository.findAll();
+            Page<Type> list = typeRepository.findAllType(pageable);
             List<TypeListResponseDTO> typeResponseDTOList = list.stream()
                     .map(this::mapToTypeList)
                     .collect(Collectors.toList());
+            Page<TypeListResponseDTO> typeListResponseDTOPage = new PageImpl<>(typeResponseDTOList, pageable, list.getTotalElements());
             if (list != null) {
                 log.info("Lấy danh sách thành công: {}", list);
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách thành công", typeResponseDTOList);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách thành công", typeListResponseDTOPage);
             }
         } catch (Exception ex) {
             log.error("Xảy ra lỗi khi lấy danh sách type: {}", ex.getMessage());
         }
-        return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tạo type");
+        return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi lấy danh sách type");
     }
 
     @Override
@@ -97,8 +103,8 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
-    public ResponseData<Type> changeStatus(Integer id, TypePostDeleteRequestDTO requestDTO) {
-        Integer update_by = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+    public ResponseData<Type> changeStatus(Integer id) {
+        Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (id == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Không có typeId");
@@ -111,7 +117,7 @@ public class TypeServiceImpl implements TypeService {
                 } else {
                     type.setStatus(PostPropertiesStatus.ACTIVE);
                 }
-                type.setUpdateBy(update_by);
+                type.setUpdateBy(updateBy);
                 type.setUpdateTime(new Date());
                 typeRepository.save(type);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Thay đổi trạng thái loại bài đăng thành công", type);
