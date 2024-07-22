@@ -18,9 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Student report controller.
@@ -105,7 +109,18 @@ public class StudentReportController {
     @PutMapping("/update/{studentReportId}")
     @PreAuthorize("hasAuthority('USER')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<UpdateStudentReportResponseDTO>> updateStudentReport(@PathVariable @Valid Integer studentReportId, @RequestBody @Valid UpdateStudentReportRequest request, Authentication authentication) {
+    public ResponseEntity<ResponseData<UpdateStudentReportResponseDTO>> updateStudentReport(
+            @PathVariable @Valid Integer studentReportId,
+            @RequestBody @Valid UpdateStudentReportRequest request,
+            BindingResult bindingResult,
+            Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            return new ResponseEntity<>(new ResponseData<>(ResponseCode.C205.getCode(), "Yêu cầu không hợp lệ", errors), HttpStatus.BAD_REQUEST);
+        }
         ResponseData<UpdateStudentReportResponseDTO> response = studentReportService.updateStudentReportById(studentReportId, request, authentication);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);

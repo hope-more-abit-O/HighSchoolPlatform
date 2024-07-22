@@ -115,10 +115,11 @@ public class StaffServiceImpl implements StaffService {
             staffResponseDTO.setStatus(staffInfo.getUser().getStatus().name());
             staffResponseDTO.setEmail(staffInfo.getUser().getEmail());
             staffResponseDTO.setAvatar(staffInfo.getUser().getAvatar());
+            staffResponseDTO.setNote(staffInfo.getUser().getNote());
             staffResponse.add(staffResponseDTO);
         });
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
-        log.info("Successfully retrieved list of staffs:{}", staffPage);
+        log.info("Successfully get list of staffs: {}", staffPage);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
     }
 

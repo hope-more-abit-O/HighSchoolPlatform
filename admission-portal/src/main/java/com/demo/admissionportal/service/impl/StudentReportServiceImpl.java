@@ -149,9 +149,11 @@ public class StudentReportServiceImpl implements StudentReportService {
                 Optional<SubjectGradeSemester> subjectGradeSemester = subjectGradeSemesterRepository.findBySubjectIdAndGradeAndSemester(
                         markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
                 //validate mark > 0
-                if (markDTO.getMark() != null && markDTO.getMark() < 0) {
-                    log.error("Invalid mark {} for Subject {}, Grade {}, Semester {}", markDTO.getMark(), markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
-                    return new ResponseData<>(ResponseCode.C206.getCode(), "Điểm phải lớn hơn hoặc bằng 0 !");
+                if (markDTO.getMark() != null) {
+                    if (markDTO.getMark() < 0 || markDTO.getMark() > 10) {
+                        log.error("Invalid mark {} for Subject {}, Grade {}, Semester {}", markDTO.getMark(), markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
+                        return new ResponseData<>(ResponseCode.C206.getCode(), "Điểm phải lớn hơn hoặc bằng 0 và bé hơn hoặc bằng 10 !");
+                    }
                 }
 
                 if (subjectGradeSemester.isPresent()) {
