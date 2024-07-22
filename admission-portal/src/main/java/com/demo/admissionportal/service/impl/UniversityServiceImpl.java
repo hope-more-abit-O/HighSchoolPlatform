@@ -237,7 +237,6 @@ public class UniversityServiceImpl implements UniversityService {
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
 
-    @Override
     public UniversityFullResponseDTO getUniversityFullResponse() {
         User account = userService.findById(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
         UniversityInfo info = findById(account.getId());
@@ -245,6 +244,7 @@ public class UniversityServiceImpl implements UniversityService {
         FullUniversityResponseDTO fullInfo = modelMapper.map(info, FullUniversityResponseDTO.class);
         return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
     }
+
     @Transactional
     public ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException{
         UniversityInfo universityInfo = findById(request.getId());
@@ -276,7 +276,7 @@ public class UniversityServiceImpl implements UniversityService {
     public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
-        List<User> uniAccounts = userService.findByCreateByAndRole(staffId, Role.UNIVERSITY);
+        List<User> uniAccounts = userService.findByCreateByAndRole(staffId, Role.UNIVERSITY, pageable).getContent();
 
         List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
 
@@ -284,12 +284,13 @@ public class UniversityServiceImpl implements UniversityService {
                 .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
                 .toList());
 
-        Page<UniversityFullResponseDTO> result = new PageImpl<UniversityFullResponseDTO>(mapping(uniAccounts, actionerDTOS, uniInfos));
+        Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts, actionerDTOS, uniInfos));
 
         return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
     }
+
     public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable) {
-        List<User> uniAccounts = userService.findByRole(Role.UNIVERSITY);
+        List<User> uniAccounts = userService.findByRoleAndPageable(Role.UNIVERSITY, pageable).getContent();
 
         List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
 
@@ -297,18 +298,23 @@ public class UniversityServiceImpl implements UniversityService {
                 .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
                 .toList());
 
-        Page<UniversityFullResponseDTO> result = new PageImpl<UniversityFullResponseDTO>(mapping(uniAccounts, actionerDTOS, uniInfos));
+        List<UniversityFullResponseDTO> dtos = mapping(uniAccounts, actionerDTOS, uniInfos);
 
-        return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
+        Page<UniversityFullResponseDTO> result = new PageImpl<>(dtos, pageable, dtos.size());
+
+        return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.", result);
     }
 
     public List<UniversityFullResponseDTO> mapping(List<User> uniAccounts, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {
         List<UniversityFullResponseDTO> result = new ArrayList<>();
         uniAccounts.forEach( uniAccount -> {
+            UniversityInfo universityInfo = universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())).findFirst().get();
+            FullUniversityResponseDTO uniInfo = modelMapper.map(universityInfo, FullUniversityResponseDTO.class);
+            FullUserResponseDTO accountInfo = userService.mappingResponse(uniAccount, actionerDTOS);
                 result.add(
                         UniversityFullResponseDTO.builder()
-                                .account(userService.mappingResponse(uniAccount, actionerDTOS))
-                                .info(modelMapper.map(universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())), FullUniversityResponseDTO.class))
+                                .account(accountInfo)
+                                .info(uniInfo)
                                 .build()
                 );
                 }

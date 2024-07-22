@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
@@ -204,7 +205,18 @@ public class AdminController {
     }
 
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(@PathVariable Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
         return ResponseEntity.ok(createUniversityService.getBy(pageable));
+    }
+
+    @GetMapping("/university")
+    public ResponseEntity<?> getInfoUniversity(@PageableDefault(size = 10) Pageable page){
+        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(page));
+    }
+
+    @GetMapping("/university/{id}")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
     }
 }

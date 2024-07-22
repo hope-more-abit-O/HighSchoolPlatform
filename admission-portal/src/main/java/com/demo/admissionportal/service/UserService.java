@@ -69,7 +69,6 @@ public interface UserService extends UserDetailsService {
      */
     //TODO: javadoc
     User findById(Integer id) throws ResourceNotFoundException;
-    List<User> findByCreateByAndRole(Integer id, Role role) throws ResourceNotFoundException;
     List<User> findByIds(List<Integer> ids);
     FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException;
     FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOS) throws ResourceNotFoundException;
@@ -78,7 +77,11 @@ public interface UserService extends UserDetailsService {
     User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
     User changeConsultantStatus(Integer account, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException;
 
+    Page<User> findByCreateByAndRole(Integer id, Role role, Pageable pageable) throws ResourceNotFoundException;
+
     List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException;
 
     List<User> findByRole(Role role);
+
+    Page<User> findByRoleAndPageable(Role role, Pageable pageable);
 }

@@ -130,9 +130,6 @@ public interface UniversityService {
      */
     UniversityInfo findById(Integer id) throws ResourceNotFoundException;
 
-    //TODO: javadoc
-    UniversityFullResponseDTO getUniversityFullResponse();
-
     ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException;
 
     ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable);

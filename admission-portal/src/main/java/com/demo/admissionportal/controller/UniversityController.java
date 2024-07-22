@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
@@ -12,10 +13,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,17 +56,6 @@ public class UniversityController {
         return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
     }
 
-    @GetMapping("/info")
-    public ResponseEntity<UniversityFullResponseDTO> getUniversityInfo() {
-        return ResponseEntity.ok(universityService.getUniversityFullResponse());
-    }
-
-    @GetMapping("/profile/{id}")
-    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
-        var result = ResponseData.ok("hi",universityService.getUniversityFullResponseById(id));
-        return ResponseEntity.ok(result);
-    }
-
     /**
      * Retrieves details of a consultant by their ID.
      *
@@ -80,8 +72,20 @@ public class UniversityController {
         return ResponseEntity.ok(consultantService.getFullConsultantByIdByUniversity(id));
     }
 
-    @GetMapping("/self-profile")
+    @GetMapping("/consultant")
+    public ResponseEntity<?> getAllConsultant(Pageable pageable) throws NotAllowedException, ResourceNotFoundException{
+        Integer uniId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return ResponseEntity.ok(ResponseData.ok( "Tìm mọi tư vấn viên dưới quyền thành công.",consultantService.getConsultant(uniId, pageable)));
+    }
+
+    @GetMapping("/info")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> getSelfProfile() {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công.", universityService.getSelfProfile()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
     }
 }

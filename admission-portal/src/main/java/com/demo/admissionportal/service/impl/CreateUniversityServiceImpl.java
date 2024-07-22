@@ -102,7 +102,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .universityCode(request.getUniversityCode())
                 .universityEmail(request.getUniversityEmail())
                 .universityUsername(request.getUniversityUsername())
-                .universityType(UniversityType.valueOf(request.getUniversityType()))
+                .universityType(request.getUniversityType())
                 .note(request.getNote())
                 .documents(request.getDocuments())
                 .status(CreateUniversityRequestStatus.PENDING)

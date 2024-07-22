@@ -72,7 +72,7 @@ public class StaffController {
     }
 
     @GetMapping("/university/management")
-    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(@PathVariable Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(Pageable pageable) {
         return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable));
     }
 

@@ -1,5 +1,7 @@
 package com.demo.admissionportal.dto.request.create_univeristy_request;
 
+import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.util.enum_validator.EnumName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateUniversityRequestRequest {
     @NotNull(message = "Tên trường đại học không được để trống!")
+    @EnumName(message = "Tên trường đại học không được có số!")
     private String universityName;
     @Email(message = "Email phải đúng định dạng")
     @NotNull(message = "Email trường đại học không được để trống!")
@@ -22,7 +25,7 @@ public class CreateUniversityRequestRequest {
     @NotNull(message = "Mã trường đại học không được để trống")
     private String universityCode;
     @NotNull(message = "Loại đại học không được để trống")
-    private String universityType;
+    private UniversityType universityType;
     @NotNull(message = "Tên các file tài liệu không được trống")
     private String documents;
     private String note;

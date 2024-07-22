@@ -35,8 +35,6 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -613,7 +611,7 @@ public class PostServiceImpl implements PostService {
     private UserInfoPostResponseDTO mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
         UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
         userInfoPostResponseDTO.setId(consultantInfo.getId());
-        userInfoPostResponseDTO.setFullName(consultantInfo.getFirstname() + " " + consultantInfo.getMiddleName() + " " + consultantInfo.getLastName());
+        userInfoPostResponseDTO.setFullName(consultantInfo.getFirstName() + " " + consultantInfo.getMiddleName() + " " + consultantInfo.getLastName());
         return userInfoPostResponseDTO;
     }
 
