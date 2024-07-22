@@ -19,11 +19,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FullUniversityResponseDTO {
-    private Integer id;
     private String name;
     private String code;
     private String type;
-    private String createUniversityRequestId;
+    private Integer createUniversityRequestId;
     private String description;
     private String coverImage;
 }

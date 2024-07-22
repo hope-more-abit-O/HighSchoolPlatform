@@ -1,10 +1,7 @@
 package com.demo.admissionportal.dto.entity.consultant;
 
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * ConsultantInfoResponseDTO is a data transfer object that encapsulates the response data
@@ -36,6 +33,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class InfoConsultantResponseDTO {
     private InfoUserResponseDTO account;
     private ConsultantInfoResponseDTO info;

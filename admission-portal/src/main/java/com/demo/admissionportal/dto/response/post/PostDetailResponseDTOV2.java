@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class PostDetailResponseDTOV2 implements Serializable {
     private String title;
     private String type;
     private String createBy;
-    private String createTime;
+    private Date createTime;
     private PostStatus status;
     private String note;
     private String url;

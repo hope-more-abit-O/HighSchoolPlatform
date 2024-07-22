@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * The type Post properties response dto.
@@ -21,6 +22,6 @@ public class PostPropertiesResponseDTO implements Serializable {
     private String thumnail;
     private String quote;
     private PostStatus status;
-    private String create_time;
+    private Date create_time;
     private String url;
 }

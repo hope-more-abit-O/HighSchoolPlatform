@@ -13,6 +13,9 @@ import com.demo.admissionportal.service.PostService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -180,13 +183,14 @@ public class PostController {
     /**
      * Gets posts list.
      *
+     * @param pageable the pageable
      * @return the posts list
      */
     @GetMapping("/list")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
-    public ResponseEntity<ResponseData<List<PostDetailResponseDTOV2>>> getPostsList() {
-        ResponseData<List<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff();
+    public ResponseEntity<ResponseData<Page<PostDetailResponseDTOV2>>> getPostsList(@PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff(pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -197,6 +201,11 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets posts favorite.
+     *
+     * @return the posts favorite
+     */
     @GetMapping("/favorite")
     public ResponseEntity<ResponseData<List<PostFavoriteResponseDTO>>> getPostsFavorite() {
         ResponseData<List<PostFavoriteResponseDTO>> response = postService.listPostFavorite();

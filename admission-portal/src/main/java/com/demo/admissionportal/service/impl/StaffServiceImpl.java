@@ -12,6 +12,7 @@ import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
@@ -233,4 +234,5 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Kích hoạt nhân viên thất bại, vui lòng kiểm tra lại!");
         }
     }
+
 }

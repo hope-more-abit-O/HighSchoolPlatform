@@ -1,15 +1,21 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
+import com.demo.admissionportal.service.impl.UniversityServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UniversityService universityService;
 
     /**
      * Gets user by id.
@@ -74,14 +81,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
-
-    /**
-     * Test response entity.
-     *
-     * @return the response entity
-     */
-    @GetMapping
-    public ResponseEntity<User> test() {
-        return ResponseEntity.ok(userService.findById(79));
+    @GetMapping("/university/{id}")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
     }
 }
