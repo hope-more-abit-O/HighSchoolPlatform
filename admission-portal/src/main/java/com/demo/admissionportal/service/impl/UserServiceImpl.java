@@ -67,13 +67,11 @@ public class UserServiceImpl implements UserService {
             userPage.forEach(userInfo -> {
                 UserResponseDTO responseDTO = new UserResponseDTO();
                 responseDTO.setId(userInfo.getId());
-                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-                String dateString = formatter.format(new Date());
                 responseDTO.setUsername(userInfo.getUser().getUsername());
                 responseDTO.setEmail(userInfo.getUser().getEmail());
                 responseDTO.setName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
                 responseDTO.setStatus(userInfo.getUser().getStatus().name());
-                responseDTO.setCreate_time(dateString);
+                responseDTO.setCreate_time(userInfo.getUser().getCreateTime());
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
             });

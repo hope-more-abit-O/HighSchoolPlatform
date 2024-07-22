@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * The type User response dto.
@@ -19,7 +20,7 @@ public class UserResponseDTO implements Serializable {
     private String username;
     private String email;
     private String name;
-    private String create_time;
+    private Date create_time;
     private String status;
     private String note;
 }

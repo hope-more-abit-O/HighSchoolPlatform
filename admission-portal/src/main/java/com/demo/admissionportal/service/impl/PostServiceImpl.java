@@ -591,9 +591,8 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
         String info = getUserInfoPostDTO(post.getCreateBy());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
-        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
-//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+            postPropertiesResponseDTO.setCreate_time(post.getCreateTime());
         }
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
@@ -871,9 +870,7 @@ public class PostServiceImpl implements PostService {
             // Check publish days
             ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
 
-            String date = postPropertiesResponseDTO.getCreate_time();
-            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
-            Date datePost = formatter.parse(date);
+            Date datePost = postPropertiesResponseDTO.getCreate_time();
             Date dateNow = new Date();
 
 
@@ -948,12 +945,11 @@ public class PostServiceImpl implements PostService {
 
         PostDetailResponseDTOV2 postPropertiesResponseDTO = modelMapper.map(post, PostDetailResponseDTOV2.class);
 
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         return PostDetailResponseDTOV2.builder()
                 .id(postPropertiesResponseDTO.getId())
                 .title(postPropertiesResponseDTO.getTitle())
                 .createBy(info.trim())
-                .createTime(formatter.format(post.getCreateTime()))
+                .createTime(post.getCreateTime())
                 .status(postPropertiesResponseDTO.getStatus())
                 .type(listType)
                 .url(postPropertiesResponseDTO.getUrl())

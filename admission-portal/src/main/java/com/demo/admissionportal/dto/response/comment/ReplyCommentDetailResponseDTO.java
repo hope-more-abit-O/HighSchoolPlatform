@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * The type Reply comment detail response dto.
@@ -19,6 +20,6 @@ public class ReplyCommentDetailResponseDTO implements Serializable {
     private Integer replayComment_id;
     private UserDetailCommentResponseDTO user_id;
     private String content;
-    private String create_time;
+    private Date create_time;
     private CommentType comment_type;
 }

@@ -141,7 +141,7 @@ public class CommentServiceImpl implements CommentService {
                 .content(comment.getContent())
                 .postId(comment.getPostId())
                 .user_id(mapToUserDetailResponse(comment.getCommenter_id()))
-                .create_time(String.valueOf(comment.getCreate_time()))
+                .create_time(comment.getCreate_time())
                 .comment_type(comment.getComment_type())
                 .replyComment(mapToReplyCommentDetailResponseList(commentChildren))
                 .build();
@@ -174,7 +174,7 @@ public class CommentServiceImpl implements CommentService {
         return ReplyCommentDetailResponseDTO.builder()
                 .replayComment_id(comment.getId())
                 .content(comment.getContent())
-                .create_time(String.valueOf(comment.getCreate_time()))
+                .create_time(comment.getCreate_time())
                 .user_id(mapToUserDetailResponse(comment.getCommenter_id()))
                 .comment_type(comment.getComment_type())
                 .build();

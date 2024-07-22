@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,7 +22,7 @@ public class CommentDetailResponseDTO implements Serializable {
     private Integer id;
     private Integer postId;
     private String content;
-    private String create_time;
+    private Date create_time;
     private UserDetailCommentResponseDTO user_id;
     private CommentType comment_type;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
