@@ -29,6 +29,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -138,17 +141,35 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    /**
+     * Mapper post properties response dto post properties response dto.
+     *
+     * @param post the post
+     * @return the post properties response dto
+     */
     public PostPropertiesResponseDTO mapperPostPropertiesResponseDTO(Post post) {
         return modelMapper.map(post, PostPropertiesResponseDTO.class);
     }
 
 
+    /**
+     * Mapper type response dto list.
+     *
+     * @param lisType the lis type
+     * @return the list
+     */
     public List<TypeResponseDTO> mapperTypeResponseDTO(List<Type> lisType) {
         return lisType.stream()
                 .map(tag -> modelMapper.map(tag, TypeResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Mapper tag response dto list.
+     *
+     * @param listTag the list tag
+     * @return the list
+     */
     public List<TagResponseDTO> mapperTagResponseDTO(List<Tag> listTag) {
         return listTag.stream()
                 .map(type -> modelMapper.map(type, TagResponseDTO.class))
@@ -430,7 +451,7 @@ public class PostServiceImpl implements PostService {
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
-            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
         }
         String info = getUserInfoPostDTO(post.getCreateBy());
         return PostDetailResponseDTO.builder()
@@ -572,7 +593,7 @@ public class PostServiceImpl implements PostService {
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
-            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
         }
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
@@ -693,6 +714,12 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    /**
+     * Gets posts by staff or consultant id.
+     *
+     * @param id the id
+     * @return the posts by staff or consultant id
+     */
     public List<PostDetailResponseDTO> getPostsByStaffOrConsultantId(Integer id) {
         List<PostDetailResponseDTO> response = null;
         try {
@@ -711,6 +738,12 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    /**
+     * Map to list post detail post detail response dto.
+     *
+     * @param post the post
+     * @return the post detail response dto
+     */
     public PostDetailResponseDTO mapToListPostDetail(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
@@ -732,6 +765,12 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
+    /**
+     * Gets user info post dto.
+     *
+     * @param createBy the create by
+     * @return the user info post dto
+     */
     public String getUserInfoPostDTO(Integer createBy) {
         StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
@@ -746,7 +785,7 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public ResponseData<List<PostDetailResponseDTOV2>> listAllPostConsulOrStaff() {
+    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(Pageable pageable) {
         try {
             List<PostDetailResponseDTOV2> response = new ArrayList<>();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -765,7 +804,12 @@ public class PostServiceImpl implements PostService {
             if (response == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post");
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", response);
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), response.size());
+            List<PostDetailResponseDTOV2> pagedResponse = response.subList(start, end);
+
+            Page<PostDetailResponseDTOV2> postDetailResponseDTOV2Page = new PageImpl<>(pagedResponse, pageable, response.size());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", postDetailResponseDTOV2Page);
         } catch (Exception ex) {
             log.info("Error when list all post by consult/staff/uni: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post", null);
@@ -805,6 +849,12 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    /**
+     * Map to post favorite dto post favorite response dto.
+     *
+     * @param post the post
+     * @return the post favorite response dto
+     */
     public PostFavoriteResponseDTO mapToPostFavoriteDTO(Post post) {
         try {
             ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
@@ -833,7 +883,13 @@ public class PostServiceImpl implements PostService {
             long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
 
             long hoursAgo = ChronoUnit.HOURS.between(localDateTimePost, localDateTimeNow);
-            int hoursAgoInDay = (int) hoursAgo % 24;
+
+            int hoursAgoInDay;
+            if (hoursAgo < 12) {
+                hoursAgoInDay = (int) hoursAgo + 12;
+            } else {
+                hoursAgoInDay = (int) hoursAgo;
+            }
 
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
@@ -850,6 +906,12 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    /**
+     * Gets posts by staff or consultant id v 2.
+     *
+     * @param id the id
+     * @return the posts by staff or consultant id v 2
+     */
     public List<PostDetailResponseDTOV2> getPostsByStaffOrConsultantIdV2(Integer id) {
         List<PostDetailResponseDTOV2> response = null;
         try {
@@ -868,6 +930,12 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    /**
+     * Map to list post detail v 2 post detail response dtov 2.
+     *
+     * @param post the post
+     * @return the post detail response dtov 2
+     */
     public PostDetailResponseDTOV2 mapToListPostDetailV2(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
