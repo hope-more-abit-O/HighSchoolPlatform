@@ -8,19 +8,17 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-/**
- * The type Post properties response dto.
- */
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class PostPropertiesResponseDTO implements Serializable {
+@AllArgsConstructor
+@Builder
+public class PostDetailResponseDTOV2 implements Serializable {
     private Integer id;
     private String title;
-    private String thumnail;
-    private String quote;
+    private String type;
+    private String createBy;
+    private String createTime;
     private PostStatus status;
-    private String create_time;
+    private String note;
     private String url;
 }

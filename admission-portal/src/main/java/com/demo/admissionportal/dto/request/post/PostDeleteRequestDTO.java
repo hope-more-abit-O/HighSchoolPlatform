@@ -16,4 +16,5 @@ import java.io.Serializable;
 public class PostDeleteRequestDTO implements Serializable {
     @NotNull(message = "postId không được trống")
     private Integer postId;
+    private String note;
 }
