@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
+import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
@@ -63,6 +64,16 @@ public class StaffController {
         if (response.getStatus() != ResponseCode.C200.getCode())
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/create-university-request")
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
+        return ResponseEntity.ok(createUniversityService.getByStaff(pageable));
+    }
+
+    @GetMapping("/university/management")
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(Pageable pageable) {
+        return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable));
     }
 
     /**

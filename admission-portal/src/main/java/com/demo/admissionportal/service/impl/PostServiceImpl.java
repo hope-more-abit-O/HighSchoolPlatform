@@ -601,7 +601,7 @@ public class PostServiceImpl implements PostService {
     }
 
     private String mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
-        return (consultantInfo.getFirstname().trim() + " " + consultantInfo.getMiddleName().trim() + " " + consultantInfo.getLastName().trim());
+        return (consultantInfo.getFirstName().trim() + " " + consultantInfo.getMiddleName().trim() + " " + consultantInfo.getLastName().trim());
     }
 
     @Override

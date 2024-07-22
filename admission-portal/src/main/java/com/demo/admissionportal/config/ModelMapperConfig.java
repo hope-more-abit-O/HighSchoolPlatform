@@ -30,6 +30,7 @@ public class ModelMapperConfig {
         modelMapper.addConverter(new UniversityTypeToStringConverter());
         modelMapper.addConverter(new PostPropertiesConverter());
         modelMapper.addConverter(new PostStatusConverter());
+        modelMapper.addConverter(new CreateUniversityRequestStatusToStringConverter());
         return modelMapper;
     }
 

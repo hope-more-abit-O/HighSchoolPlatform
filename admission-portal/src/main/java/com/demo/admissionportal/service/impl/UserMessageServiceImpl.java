@@ -138,7 +138,7 @@ public class UserMessageServiceImpl implements UserMessageService {
         } else if (user.getRole() == Role.CONSULTANT) {
             ConsultantInfo consultantInfo = consultantInfoRepository.findById(user.getId()).orElse(null);
             if (consultantInfo != null) {
-                fullName = getFullName(consultantInfo.getFirstname(), consultantInfo.getMiddleName(), consultantInfo.getLastName());
+                fullName = getFullName(consultantInfo.getFirstName(), consultantInfo.getMiddleName(), consultantInfo.getLastName());
             }
         }
 

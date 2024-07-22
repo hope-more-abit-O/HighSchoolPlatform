@@ -60,7 +60,7 @@ public class ValidationServiceImpl implements ValidationService {
      */
     public boolean validateUsername(String username) throws DataExistedException {
         log.info("Checking username availability.");
-        String errorMessage = "Tên tài khoản hoặc username: " + username + " đã được sử dụng";
+        String errorMessage = "Tên tài khoản đã được sử dụng";
         if (userRepository.findFirstByUsername(username).isPresent()) {
             log.error("Username: {} not available!", username);
             throw new DataExistedException(errorMessage);
@@ -70,7 +70,7 @@ public class ValidationServiceImpl implements ValidationService {
 
     public boolean validateUsernameCreateUniversityRequest(String username) throws DataExistedException {
         log.info("Checking username availability.");
-        String errorMessage = "Tên tài khoản hoặc username: " + username + " đã được sử dụng";
+        String errorMessage = "Tên tài khoản đã được sử dụng";
         if (userRepository.findFirstByUsername(username).isPresent() || createUniversityRequestRepository.findFirstByUniversityUsernameAndStatusNot(username, CreateUniversityRequestStatus.REJECTED).isPresent()) {
             log.error("Username: {} not available!", username);
             throw new DataExistedException(errorMessage);
@@ -109,7 +109,7 @@ public class ValidationServiceImpl implements ValidationService {
      */
     public boolean validateEmail(String email) throws DataExistedException {
         log.info("Checking email availability.");
-        String errorMessage = "Email: " + email + " đã được sử dụng";
+        String errorMessage = "Email được sử dụng";
         if (userRepository.findFirstByEmail(email).isPresent()) {
             log.error("Email: {} not available!", email);
             throw new DataExistedException(errorMessage);
@@ -119,7 +119,7 @@ public class ValidationServiceImpl implements ValidationService {
 
     public boolean validateEmailCreateUniversityRequest(String email) throws DataExistedException {
         log.info("Checking email availability.");
-        String errorMessage = "Email: " + email + " đã được sử dụng";
+        String errorMessage = "Email được sử dụng";
         if (userRepository.findFirstByEmail(email).isPresent() || createUniversityRequestRepository.findFirstByUniversityEmailAndStatusNot(email, CreateUniversityRequestStatus.REJECTED).isPresent()) {
             log.error("Email: {} not available!", email);
             throw new DataExistedException(errorMessage);
@@ -165,7 +165,7 @@ public class ValidationServiceImpl implements ValidationService {
         ).anyMatch(Optional::isPresent);
         if (phoneAlreadyExists) {
             log.error("Phone number: {} is already taken!", phone);
-            throw new DataExistedException("Số điện thoại: " + phone + " đã được sử dụng");
+            throw new DataExistedException("Số điện thoại đã được sử dụng");
         }
         return true;
     }
@@ -310,7 +310,7 @@ public class ValidationServiceImpl implements ValidationService {
 
     public boolean validateUniversityCode(String universityCode) throws DataExistedException {
         log.info("Checking university code availability.");
-        String errorMessage = "Mã trường: " + universityCode + " đã được sử dụng";
+        String errorMessage = "Mã trường: đã được sử dụng";
         if (universityInfoRepository.findFirstByCode(universityCode).isPresent()) {
             log.error("University code: {} not available!", universityCode);
             throw new DataExistedException(errorMessage);

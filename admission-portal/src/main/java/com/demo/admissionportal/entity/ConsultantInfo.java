@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -64,7 +63,7 @@ public class ConsultantInfo {
     @NotNull
     @Nationalized
     @Column(name = "first_name", nullable = false, length = 30)
-    private String firstname;
+    private String firstName;
 
     @NotNull
     @Nationalized
@@ -113,10 +112,10 @@ public class ConsultantInfo {
 //    @Column(name = "ward_id")
 //    private Integer ward;
 
-    public ConsultantInfo(Integer id, Integer universityId, String firstname, String middleName, String lastName, String phone, String specificAddress, Gender gender, Province province, District district, Ward ward) {
+    public ConsultantInfo(Integer id, Integer universityId, String firstName, String middleName, String lastName, String phone, String specificAddress, Gender gender, Province province, District district, Ward ward) {
         this.id = id;
         this.universityId = universityId;
-        this.firstname = firstname;
+        this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.phone = phone;
@@ -127,10 +126,10 @@ public class ConsultantInfo {
         this.ward = ward;
     }
 
-    public ConsultantInfo(Integer id, Integer universityId, String firstname, String middleName, String lastName, String phone, Gender gender) {
+    public ConsultantInfo(Integer id, Integer universityId, String firstName, String middleName, String lastName, String phone, Gender gender) {
         this.id = id;
         this.universityId = universityId;
-        this.firstname = firstname;
+        this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.phone = phone;
