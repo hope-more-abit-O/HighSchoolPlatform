@@ -16,10 +16,8 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -108,7 +106,6 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/chat-messages/{chatId}")
-//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<ChatResponseDTO> findChatMessages(@PathVariable UUID chatId) {
         return ResponseEntity.ok(userMessageService.findChatMessages(chatId));
     }
@@ -120,7 +117,6 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/message/{id}")
-//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<ChatDetailDTO> findMessage(@PathVariable Integer id) {
         return ResponseEntity.ok(userMessageService.findById(id));
     }
@@ -133,41 +129,7 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/new-messages-count/{senderId}/{recipientId}")
-//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<Integer> countNewMessages(@PathVariable Integer senderId, @PathVariable Integer recipientId) {
-        return ResponseEntity.ok(userMessageService.countNewMessagesForBoth(senderId, recipientId));
-    }
-
-    /**
-     * Count new messages for receipient response entity.
-     *
-     * @param recipientId the recipient id
-     * @return the response entity
-     */
-    @GetMapping("/new-messages-count/{recipientId}")
-    public ResponseEntity<Integer> countNewMessagesForReceipient(@PathVariable Integer recipientId) {
-        return ResponseEntity.ok(userMessageService.countNewMessagesForReceipient(recipientId));
-    }
-
-    /**
-     * Count new messages send of sender response entity.
-     *
-     * @param senderId the sender id
-     * @return the response entity
-     */
-    @GetMapping("/new-messages-send-count/{senderId}")
-    public ResponseEntity<Integer> countNewMessagesSendOfSender(@PathVariable Integer senderId) {
-        return ResponseEntity.ok(userMessageService.countNewMessagesSendOfSender(senderId));
-    }
-
-    /**
-     * Find messages by content response entity.
-     *
-     * @param content the content
-     * @return the response entity
-     */
-    @GetMapping("/messages/search")
-    public ResponseEntity<List<UserMessage>> findMessagesByContent(@RequestParam String content) {
-        return ResponseEntity.ok(userMessageService.findMessagesByContent(content));
+        return ResponseEntity.ok(userMessageService.countNewMessages(senderId, recipientId));
     }
 }

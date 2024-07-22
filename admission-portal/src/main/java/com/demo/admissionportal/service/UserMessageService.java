@@ -30,11 +30,33 @@ public interface UserMessageService {
      */
     Integer countNewMessagesForBoth(Integer senderId, Integer recipientId);
 
+    /**
+     * Count new messages for receipient integer.
+     *
+     * @param recipientId the recipient id
+     * @return the integer
+     */
     @Transactional
     Integer countNewMessagesForReceipient(Integer recipientId);
 
+    /**
+     * Count new messages send of sender integer.
+     *
+     * @param senderId the sender id
+     * @return the integer
+     */
     @Transactional
     Integer countNewMessagesSendOfSender(Integer senderId);
+
+
+    /**
+     * Count new messages integer.
+     *
+     * @param senderId    the sender id
+     * @param recipientId the recipient id
+     * @return the integer
+     */
+    Integer countNewMessages(Integer senderId, Integer recipientId);
 
     /**
      * Find chat messages chat response dto.
@@ -69,6 +91,12 @@ public interface UserMessageService {
      */
     void markMessagesAsRead(Integer recipientId, UUID chatId);
 
+    /**
+     * Find messages by content list.
+     *
+     * @param content the content
+     * @return the list
+     */
     @Transactional
     List<UserMessage> findMessagesByContent(String content);
 }

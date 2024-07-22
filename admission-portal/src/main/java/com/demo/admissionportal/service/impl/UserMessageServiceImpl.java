@@ -67,6 +67,14 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.countBySenderAndStatus(recipient, MessageStatus.RECEIVED);
     }
 
+    @Override
+    @Transactional
+    public Integer countNewMessages(Integer senderId, Integer recipientId) {
+        User sender = userRepository.findById(senderId).orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
+        User recipient = userRepository.findById(recipientId).orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
+        return userMessageRepository.countBySenderAndRecipientAndStatus(sender, recipient, MessageStatus.RECEIVED);
+    }
+
 
     @Override
     @Transactional
