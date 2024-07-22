@@ -881,13 +881,6 @@ public class PostServiceImpl implements PostService {
 
             long hoursAgo = ChronoUnit.HOURS.between(localDateTimePost, localDateTimeNow);
 
-            int hoursAgoInDay;
-            if (hoursAgo < 12) {
-                hoursAgoInDay = (int) hoursAgo + 12;
-            } else {
-                hoursAgoInDay = (int) hoursAgo;
-            }
-
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
                     .universityInfo(UniversityPostResponseDTO.builder()
@@ -895,7 +888,7 @@ public class PostServiceImpl implements PostService {
                             .name(universityInfo.getName() + " " + universityCampus.getCampusName())
                             .location(universityCampus.getSpecificAddress())
                             .build())
-                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgoInDay + " Giờ trước")
+                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước"   : hoursAgo + " Giờ trước")
                     .build();
         } catch (Exception ex) {
             log.info("Error when map post favorite: {}", ex.getMessage());
