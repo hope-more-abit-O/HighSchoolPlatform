@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.MessageStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.chat.ChatDetailDTO;
 import com.demo.admissionportal.dto.entity.chat.ChatResponseDTO;
@@ -18,11 +19,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-/**
- * The type Chat controller.
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/chat-user")
@@ -41,11 +41,6 @@ public class ChatController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Process message.
-     *
-     * @param userMessage the user message
-     */
     @MessageMapping("/chat")
     public void processMessage(@Payload UserMessage userMessage) {
         try {
@@ -89,47 +84,26 @@ public class ChatController {
         return false;
     }
 
-    /**
-     * Handle exception.
-     *
-     * @param exception the exception
-     */
+    @GetMapping("/chat-id/{senderId}/{recipientId}")
+    public ResponseEntity<UUID> getChatId(@PathVariable Integer senderId, @PathVariable Integer recipientId) {
+        Optional<UUID> chatId = chatRoomService.getChatId(senderId, recipientId, true);
+        return chatId.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
     @MessageExceptionHandler
     public void handleException(Throwable exception) {
         log.error("WebSocket error: ", exception);
     }
-
-    /**
-     * Find chat messages response entity.
-     *
-     * @param chatId the chat id
-     * @return the response entity
-     */
     @GetMapping("/chat-messages/{chatId}")
     public ResponseEntity<ChatResponseDTO> findChatMessages(@PathVariable UUID chatId) {
-        return ResponseEntity.ok(userMessageService.findChatMessages(chatId));
+        ChatResponseDTO response = userMessageService.findChatMessages(chatId);
+        userMessageService.updateStatuses(chatId, MessageStatus.RECEIVED);
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * Find message response entity.
-     *
-     * @param id the id
-     * @return the response entity
-     */
     @GetMapping("/message/{id}")
     public ResponseEntity<ChatDetailDTO> findMessage(@PathVariable Integer id) {
         return ResponseEntity.ok(userMessageService.findById(id));
-    }
-
-    /**
-     * Count new messages response entity.
-     *
-     * @param senderId    the sender id
-     * @param recipientId the recipient id
-     * @return the response entity
-     */
-    @GetMapping("/new-messages-count/{senderId}/{recipientId}")
-    public ResponseEntity<Integer> countNewMessages(@PathVariable Integer senderId, @PathVariable Integer recipientId) {
-        return ResponseEntity.ok(userMessageService.countNewMessages(senderId, recipientId));
     }
 }
