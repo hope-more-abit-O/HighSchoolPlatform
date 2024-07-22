@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.post.UniversityPostResponseDTO;
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
@@ -32,7 +33,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,10 +59,12 @@ public class PostServiceImpl implements PostService {
     private final PostTagRepository postTagRepository;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
     private final ModelMapper modelMapper;
-    private final UserInfoRepository userInfoRepository;
+    private final UserRepository userRepository;
     private final StaffInfoRepository staffInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
     private final CommentService commentService;
+    private final UniversityInfoRepository universityInfoRepository;
+    private final UniversityCampusRepository universityCampusRepository;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -86,7 +95,7 @@ public class PostServiceImpl implements PostService {
             // Check Tag Name if user input duplicate
             List<String> checkTagDuplicate = validateDuplicateTag(requestDTO.getListTag());
             if (!checkTagDuplicate.isEmpty()) {
-                throw new Exception("Không được nhập tag trùng nhau");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Không được nhập tag trùng nhau");
             }
             // Store list Tags
             List<Integer> tagIds = new ArrayList<>();
@@ -783,5 +792,71 @@ public class PostServiceImpl implements PostService {
         return staffInfo.stream()
                 .flatMap(staff -> getPostsByStaffOrConsultantId(staff.getId()).stream())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite() {
+        try {
+            log.info("Start retrieve post favorite");
+            // Filter duplicate by Id, Title, Content
+            Set<String> filter = new HashSet<>();
+            List<Post> post = postRepository.findPost();
+            List<PostFavoriteResponseDTO> postResponseDTOList = post.stream()
+                    .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
+//                    .sorted(Comparator.comparing(Post::getCreateTime).reversed())
+                    .map(this::mapToPostFavoriteDTO)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            log.info("End retrieve post favorite");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", postResponseDTOList);
+        } catch (Exception ex) {
+            log.info("Error when get post favorite: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post favorite");
+        }
+    }
+
+    public PostFavoriteResponseDTO mapToPostFavoriteDTO(Post post) {
+        try {
+            ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
+            if (consultantInfo == null) {
+                return null;
+            }
+
+            User user = userRepository.findUserById(consultantInfo.getUniversityId());
+            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+            UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+
+            PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+
+            // Check publish days
+            ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+
+            String date = postPropertiesResponseDTO.getCreate_time();
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
+            Date datePost = formatter.parse(date);
+            Date dateNow = new Date();
+
+
+            LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
+            LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
+
+            long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
+
+            long hoursAgo = ChronoUnit.HOURS.between(localDateTimePost, localDateTimeNow);
+            int hoursAgoInDay = (int) hoursAgo % 24;
+
+            return PostFavoriteResponseDTO.builder()
+                    .postProperties(postPropertiesResponseDTO)
+                    .universityInfo(UniversityPostResponseDTO.builder()
+                            .id(universityInfo.getId())
+                            .name(universityInfo.getName() + " " + universityCampus.getCampusName())
+                            .location(universityCampus.getSpecificAddress())
+                            .build())
+                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgoInDay + " Giờ trước")
+                    .build();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
