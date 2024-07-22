@@ -4,7 +4,9 @@ import com.demo.admissionportal.constants.MessageStatus;
 import com.demo.admissionportal.dto.entity.chat.ChatDetailDTO;
 import com.demo.admissionportal.dto.entity.chat.ChatResponseDTO;
 import com.demo.admissionportal.entity.UserMessage;
+import jakarta.transaction.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,7 +28,13 @@ public interface UserMessageService {
      * @param recipientId the recipient id
      * @return the integer
      */
-    Integer countNewMessages(Integer senderId, Integer recipientId);
+    Integer countNewMessagesForBoth(Integer senderId, Integer recipientId);
+
+    @Transactional
+    Integer countNewMessagesForReceipient(Integer recipientId);
+
+    @Transactional
+    Integer countNewMessagesSendOfSender(Integer senderId);
 
     /**
      * Find chat messages chat response dto.
@@ -60,4 +68,7 @@ public interface UserMessageService {
      * @param chatId      the chat id
      */
     void markMessagesAsRead(Integer recipientId, UUID chatId);
+
+    @Transactional
+    List<UserMessage> findMessagesByContent(String content);
 }
