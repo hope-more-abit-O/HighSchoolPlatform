@@ -2,7 +2,9 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.chat.UserDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
@@ -249,6 +251,52 @@ public class UserServiceImpl implements UserService {
         return responseDTO;
     }
 
+    @Override
+    public FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOs) throws ResourceNotFoundException {
+        ActionerDTO createBy = actionerDTOs
+                .stream()
+                .filter(actioner -> actioner.getId().equals(user.getCreateBy()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy actioner trong list"));
+
+        FullUserResponseDTO result = modelMapper.map(user, FullUserResponseDTO.class);
+        result.setCreateBy(createBy);
+        if (user.getUpdateBy() != null){
+            ActionerDTO updateBy = actionerDTOs
+                    .stream()
+                    .filter(actioner -> actioner.getId().equals(user.getUpdateBy()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy actioner trong list"));
+            result.setUpdateBy(updateBy);
+        }
+        return null;
+    }
+
+    public List<FullUserResponseDTO> mappingResponse(List<User> users) throws ResourceNotFoundException {
+        List<FullUserResponseDTO> responseDTOs = new ArrayList<>();
+
+        List<ActionerDTO> actionerDTOS = this.getActioners(users.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .toList());
+
+        for (User user : users) {
+            FullUserResponseDTO responseDTO = modelMapper.map(user, FullUserResponseDTO.class);
+            ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
+            responseDTO.setCreateBy(actionerDTO);
+
+            responseDTOs.add(responseDTO);
+
+            if (user.getUpdateBy() == null) //Case 1: updateBy == null
+                responseDTO.setUpdateBy(null);
+            else if (Objects.equals(user.getCreateBy(), user.getUpdateBy())) //Case 2: updateBy == createBy
+                responseDTO.setUpdateBy(actionerDTO);
+            else //Case 3: updateBy != createBy
+                responseDTO.setUpdateBy(modelMapper.map(findById(user.getUpdateBy()), ActionerDTO.class));
+        }
+
+        return responseDTOs;
+    }
+
     public List<ActionerDTO> mapActioners(Object obj) throws ResourceNotFoundException {
         List<ActionerDTO> actionerDTOList = new ArrayList<>();
 
@@ -341,7 +389,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateTime(new Date());
         account.setUpdateBy(actionerId);
         try {
-            userRepository.save(account);
+            account = userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái tư vấn viên thất bại.");
         }
@@ -418,5 +466,23 @@ public class UserServiceImpl implements UserService {
         fullUserResponseDTO.setCreateBy(actionerMap.get(user.getCreateBy()));
         fullUserResponseDTO.setUpdateBy(actionerMap.get(user.getUpdateBy()));
         return fullUserResponseDTO;
+    }
+
+    @Override
+    public List<User> findByCreateByAndRole(Integer id, Role role) throws ResourceNotFoundException{
+        return userRepository.findByCreateByAndRole(id, role);
+    }
+
+    @Override
+    public List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException{
+        List<User> users = userRepository.findAllById(ids.stream().distinct().toList());
+        if (users.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy actioner!", Map.of("ids", ids.toString()));
+        return users.stream().map((element) -> modelMapper.map(element, ActionerDTO.class)).toList();
+    };
+
+    @Override
+    public List<User> findByRole(Role role){
+        return userRepository.findByRole(role);
     }
 }

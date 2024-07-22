@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityType;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
@@ -28,6 +29,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Provides methods for managing and retrieving university-related information.
@@ -91,6 +96,14 @@ public class UniversityServiceImpl implements UniversityService {
         return new UniversityFullResponseDTO(
                 userService.mappingResponse(userRepository.findUserById(id)),
                 modelMapper.map(this.findById(id), FullUniversityResponseDTO.class));
+    }
+
+    @Override
+    public UniversityFullResponseDTO getSelfProfile() throws ResourceNotFoundException {
+        Integer uniId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return new UniversityFullResponseDTO(
+                userService.mappingResponse(userRepository.findUserById(uniId)),
+                modelMapper.map(this.findById(uniId), FullUniversityResponseDTO.class));
     }
 
     /**
@@ -183,6 +196,10 @@ public class UniversityServiceImpl implements UniversityService {
         });
     }
 
+    public List<UniversityInfo> findByIds(List<Integer> ids) throws ResourceNotFoundException{
+        return universityInfoRepository.findAllById(ids);
+    }
+
 
     @Transactional
     public UniversityInfo saveUniversityInfo(UniversityInfo universityInfo) throws StoreDataFailedException{
@@ -255,4 +272,55 @@ public class UniversityServiceImpl implements UniversityService {
 
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
+
+    public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable) {
+        Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        List<User> uniAccounts = userService.findByCreateByAndRole(staffId, Role.UNIVERSITY);
+
+        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
+
+        List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .toList());
+
+        Page<UniversityFullResponseDTO> result = new PageImpl<UniversityFullResponseDTO>(mapping(uniAccounts, actionerDTOS, uniInfos));
+
+        return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
+    }
+    public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable) {
+        List<User> uniAccounts = userService.findByRole(Role.UNIVERSITY);
+
+        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
+
+        List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .toList());
+
+        Page<UniversityFullResponseDTO> result = new PageImpl<UniversityFullResponseDTO>(mapping(uniAccounts, actionerDTOS, uniInfos));
+
+        return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
+    }
+
+    public List<UniversityFullResponseDTO> mapping(List<User> uniAccounts, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {
+        List<UniversityFullResponseDTO> result = new ArrayList<>();
+        uniAccounts.forEach( uniAccount -> {
+                result.add(
+                        UniversityFullResponseDTO.builder()
+                                .account(userService.mappingResponse(uniAccount, actionerDTOS))
+                                .info(modelMapper.map(universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())), FullUniversityResponseDTO.class))
+                                .build()
+                );
+                }
+        );
+        return result;
+    }
+
+    public UniversityFullResponseDTO mapping(User uniAccount, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {
+        return UniversityFullResponseDTO.builder()
+                        .account(userService.mappingResponse(uniAccount, actionerDTOS))
+                        .info(modelMapper.map(universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())), FullUniversityResponseDTO.class))
+                        .build();
+    }
+
 }

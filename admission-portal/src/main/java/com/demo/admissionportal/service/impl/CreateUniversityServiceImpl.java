@@ -259,6 +259,17 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         return mapping(createUniversityRequest);
     }
 
+    public ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable){
+        Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findByCreateBy(staffId , pageable);
+
+        List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
+
+        Page<CreateUniversityRequestDTO> mappedRequests = createUniversityRequests.map(request -> this.mapping(request, actionerDTOs));
+
+        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", mappedRequests);
+    }
+
     public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest){
         CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
         if (createUniversityRequest.getUpdateBy() == null)

@@ -79,4 +79,9 @@ public class UniversityController {
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
         return ResponseEntity.ok(consultantService.getFullConsultantByIdByUniversity(id));
     }
+
+    @GetMapping("/self-profile")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> getSelfProfile() {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công.", universityService.getSelfProfile()));
+    }
 }

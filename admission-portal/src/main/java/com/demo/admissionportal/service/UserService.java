@@ -1,5 +1,7 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
@@ -67,11 +69,16 @@ public interface UserService extends UserDetailsService {
      */
     //TODO: javadoc
     User findById(Integer id) throws ResourceNotFoundException;
+    List<User> findByCreateByAndRole(Integer id, Role role) throws ResourceNotFoundException;
     List<User> findByIds(List<Integer> ids);
     FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException;
+    FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOS) throws ResourceNotFoundException;
     User save(User user, String name) throws StoreDataFailedException;
     User updateUser(Integer id, String username, String email, Integer updateById, String name) throws ResourceNotFoundException, StoreDataFailedException;
     User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
     User changeConsultantStatus(Integer account, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException;
 
+    List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException;
+
+    List<User> findByRole(Role role);
 }

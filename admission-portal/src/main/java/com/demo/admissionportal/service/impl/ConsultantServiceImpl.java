@@ -239,8 +239,8 @@ public class ConsultantServiceImpl implements ConsultantService {
     }
 
     public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
-        userService.changeConsultantStatus(id, request.getNote());
-        return ResponseData.ok("Cập nhập tư vấn viên thành công");
+        User consultantAccount = userService.changeConsultantStatus(id, request.getNote());
+        return ResponseData.ok("Cập nhập tư vấn viên thành công", userService.mappingResponse(consultantAccount));
     }
 
     public InfoConsultantResponseDTO findById(Integer id) throws ResourceNotFoundException {

@@ -11,6 +11,8 @@ import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.UniversityServiceImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Provides methods for managing and retrieving university-related information.
@@ -58,6 +60,7 @@ public interface UniversityService {
      * @see FullUniversityResponseDTO
      */
     UniversityFullResponseDTO getUniversityFullResponseById(Integer id);
+    UniversityFullResponseDTO getSelfProfile();
     /**
      * Retrieves a university's information, combining both user and
      * university-specific data.
@@ -131,4 +134,7 @@ public interface UniversityService {
     UniversityFullResponseDTO getUniversityFullResponse();
 
     ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException;
+
+    ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable);
+    ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable);
 }
