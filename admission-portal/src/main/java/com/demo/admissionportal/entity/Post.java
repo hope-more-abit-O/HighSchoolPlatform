@@ -66,4 +66,7 @@ public class Post {
 
     @Column(name = "url")
     private String url;
+
+    @Column(name = "note")
+    private String note;
 }

@@ -6,8 +6,11 @@ import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.type.TypeListResponseDTO;
+import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.Type;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.TypeRepository;
 import com.demo.admissionportal.service.TypeService;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +20,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class TypeServiceImpl implements TypeService {
     private final TypeRepository typeRepository;
+    private final StaffInfoRepository staffInfoRepository;
 
     @Override
     public ResponseData<Type> createTypePost(TypePostRequestDTO typePostRequestDTO) {
+        Integer createBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (typePostRequestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
@@ -33,12 +39,12 @@ public class TypeServiceImpl implements TypeService {
             // Validate type existed
             boolean isExisted = validateDuplicatePost(typePostRequestDTO.getName());
             if (isExisted == true) {
-                return new ResponseData<>(ResponseCode.C207.getCode(), "Loại bài đăng đã tồn tại. Vui lòng nhập tên khác!");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Loại bài đăng đã tồn tại. Vui lòng nhập tên khác!");
             }
             // Insert type
             Type type = new Type();
             type.setName(typePostRequestDTO.getName());
-            type.setCreateBy(typePostRequestDTO.getCreate_by());
+            type.setCreateBy(createBy);
             type.setCreateTime(new Date());
             type.setStatus(PostPropertiesStatus.ACTIVE);
             Type result = typeRepository.save(type);
@@ -54,12 +60,15 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
-    public ResponseData<List<Type>> getListTypePost() {
+    public ResponseData<List<TypeListResponseDTO>> getListTypePost() {
         try {
             List<Type> list = typeRepository.findAll();
+            List<TypeListResponseDTO> typeResponseDTOList = list.stream()
+                    .map(this::mapToTypeList)
+                    .collect(Collectors.toList());
             if (list != null) {
                 log.info("Lấy danh sách thành công: {}", list);
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách thành công", list);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách thành công", typeResponseDTOList);
             }
         } catch (Exception ex) {
             log.error("Xảy ra lỗi khi lấy danh sách type: {}", ex.getMessage());
@@ -151,5 +160,18 @@ public class TypeServiceImpl implements TypeService {
             isExisted = true;
         }
         return isExisted;
+    }
+
+    private TypeListResponseDTO mapToTypeList(Type type) {
+        StaffInfo createBy = staffInfoRepository.findStaffInfoById(type.getCreateBy());
+        StaffInfo updateBy = staffInfoRepository.findStaffInfoById(type.getUpdateBy());
+        return TypeListResponseDTO.builder()
+                .id(type.getId())
+                .name(type.getName())
+                .createBy(createBy.getFirstName().trim() + " " + createBy.getMiddleName().trim() + " " + createBy.getLastName().trim())
+                .createTime(type.getCreateTime())
+                .updateBy(updateBy != null ? updateBy.getFirstName().trim() + " " + updateBy.getMiddleName().trim() + " " + updateBy.getLastName().trim() : null)
+                .status(type.getStatus())
+                .build();
     }
 }

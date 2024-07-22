@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
+import com.demo.admissionportal.dto.response.post.PostDetailResponseDTOV2;
 import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 import com.demo.admissionportal.service.PostService;
@@ -183,9 +184,9 @@ public class PostController {
      */
     @GetMapping("/list")
     @SecurityRequirement(name = "BearerAuth")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
-    public ResponseEntity<ResponseData<List<PostDetailResponseDTO>>> getPostsList() {
-        ResponseData<List<PostDetailResponseDTO>> response = postService.listAllPostConsulOrStaff();
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
+    public ResponseEntity<ResponseData<List<PostDetailResponseDTOV2>>> getPostsList() {
+        ResponseData<List<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff();
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {

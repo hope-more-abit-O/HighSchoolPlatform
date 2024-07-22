@@ -5,6 +5,7 @@ import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.type.TypeListResponseDTO;
 import com.demo.admissionportal.entity.Type;
 import com.demo.admissionportal.service.TypeService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -50,8 +51,8 @@ public class TypeController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
-    public ResponseEntity<ResponseData<List<Type>>> getTypePosts() {
-        ResponseData<List<Type>> result = typeService.getListTypePost();
+    public ResponseEntity<ResponseData<List<TypeListResponseDTO>>> getTypePosts() {
+        ResponseData<List<TypeListResponseDTO>> result = typeService.getListTypePost();
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
@@ -75,11 +76,11 @@ public class TypeController {
 
     @PostMapping("/change-status/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer postId, @RequestBody @Valid TypePostDeleteRequestDTO requestDTO) {
-        if (postId == null || requestDTO == null) {
+    public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer typeId, @RequestBody @Valid TypePostDeleteRequestDTO requestDTO) {
+        if (typeId == null || requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có postId"));
         }
-        ResponseData<Type> result = typeService.changeStatus(postId, requestDTO);
+        ResponseData<Type> result = typeService.changeStatus(typeId, requestDTO);
         if (result.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         } else if (result.getStatus() == ResponseCode.C200.getCode()) {

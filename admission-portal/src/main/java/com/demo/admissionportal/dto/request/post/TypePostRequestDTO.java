@@ -17,8 +17,6 @@ import java.io.Serializable;
 public class TypePostRequestDTO implements Serializable {
     @NotNull(message = "Loại bài đăng không được để trống")
     private String name;
-    @NotNull(message = "Người đăng bài không được để trống")
-    private Integer create_by;
 
     /**
      * Sets name.
