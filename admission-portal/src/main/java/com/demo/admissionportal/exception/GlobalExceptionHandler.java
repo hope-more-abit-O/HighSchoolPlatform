@@ -2,14 +2,18 @@ package com.demo.admissionportal.exception;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
@@ -95,8 +99,40 @@ public class GlobalExceptionHandler {
                 .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy !");
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseData<Map<String, String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        Map<String, String> errors = new HashMap<>();
+        String targetField = "mark";
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException) {
+            InvalidFormatException ife = (InvalidFormatException) cause;
+            String fullFieldName = ife.getPath().stream()
+                    .map(ref -> ref.getFieldName())
+                    .reduce("", (prev, curr) -> prev.isEmpty() ? curr : prev + "." + curr);
+            // Extract the relevant part of the field name
+            String fieldName = fullFieldName.contains(".") ? fullFieldName.substring(fullFieldName.lastIndexOf('.') + 1) : fullFieldName;
+            if (targetField.equals(fieldName)) {
+                errors.put(targetField, "Điểm không đúng định dạng");
+            } else {
+                String errorMessage = ife.getOriginalMessage();
+                errors.put(fieldName, errorMessage);
+            }
+        } else if (cause instanceof JsonMappingException) {
+            JsonMappingException jme = (JsonMappingException) cause;
+            String fullFieldName = jme.getPath().stream()
+                    .map(ref -> ref.getFieldName())
+                    .reduce("", (prev, curr) -> prev.isEmpty() ? curr : prev + "." + curr);
+            String fieldName = fullFieldName.contains(".") ? fullFieldName.substring(fullFieldName.lastIndexOf('.') + 1) : fullFieldName;
+            if (targetField.equals(fieldName)) {
+                errors.put(targetField, "Điểm không đúng định dạng");
+            } else {
+                String errorMessage = jme.getOriginalMessage();
+                errors.put(fieldName, errorMessage);
+            }
+        } else {
+            errors.put("error", "Định dạng không hợp lệ.");
+        }
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Sai format", errors);
     }
+
 }

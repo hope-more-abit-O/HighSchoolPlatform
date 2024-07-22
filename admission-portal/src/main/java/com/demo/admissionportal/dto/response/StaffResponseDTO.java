@@ -19,4 +19,5 @@ public class StaffResponseDTO implements Serializable {
     private String avatar;
     private String phone;
     private String status;
+    private String note;
 }

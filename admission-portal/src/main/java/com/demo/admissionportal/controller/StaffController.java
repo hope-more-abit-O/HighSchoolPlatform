@@ -361,7 +361,7 @@ public class StaffController {
     public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(
             @RequestParam(required = false) String groupName,
             @RequestParam(required = false) String subjectName,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) SubjectStatus status,
             Pageable pageable) {
         ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(groupName, subjectName, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
