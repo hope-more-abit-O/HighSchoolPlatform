@@ -205,8 +205,21 @@ public class AdminController {
     }
 
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
-        return ResponseEntity.ok(createUniversityService.getBy(pageable));
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String universityName,
+            @RequestParam(required = false) String universityCode,
+            @RequestParam(required = false) String universityEmail,
+            @RequestParam(required = false) String universityUsername,
+            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer confirmBy
+    ) {
+        return ResponseEntity.ok(createUniversityService.getBy(
+                pageable, id, universityName, universityCode, universityEmail,
+                universityUsername, status, createBy, confirmBy
+        ));
     }
 
     @GetMapping("/university")

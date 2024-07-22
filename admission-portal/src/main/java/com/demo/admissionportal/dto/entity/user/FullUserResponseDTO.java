@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 /**
  * Data Transfer Object (DTO) used for transferring detailed user information responses.
  *
@@ -32,7 +34,7 @@ public class FullUserResponseDTO {
     private String avatar;
     private String note;
     private String role;
-    private String createTime;
+    private Date createTime;
     private ActionerDTO createBy;
     private String updateTime;
     private ActionerDTO updateBy;

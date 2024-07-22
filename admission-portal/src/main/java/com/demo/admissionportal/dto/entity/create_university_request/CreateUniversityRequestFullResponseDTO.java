@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -70,7 +71,7 @@ public class CreateUniversityRequestFullResponseDTO {
     private String note;
     private List<String> documents;
     private ActionerDTO createBy;
-    private String createTime;
+    private Date createTime;
     private ActionerDTO updateBy;
     private String updateTime;
     private String status;
