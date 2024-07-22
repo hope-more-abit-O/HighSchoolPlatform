@@ -100,39 +100,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseData<Map<String, String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        Map<String, String> errors = new HashMap<>();
-        String targetField = "mark";
-        Throwable cause = ex.getCause();
-        if (cause instanceof InvalidFormatException) {
-            InvalidFormatException ife = (InvalidFormatException) cause;
-            String fullFieldName = ife.getPath().stream()
-                    .map(ref -> ref.getFieldName())
-                    .reduce("", (prev, curr) -> prev.isEmpty() ? curr : prev + "." + curr);
-            // Extract the relevant part of the field name
-            String fieldName = fullFieldName.contains(".") ? fullFieldName.substring(fullFieldName.lastIndexOf('.') + 1) : fullFieldName;
-            if (targetField.equals(fieldName)) {
-                errors.put(targetField, "Điểm không đúng định dạng");
-            } else {
-                String errorMessage = ife.getOriginalMessage();
-                errors.put(fieldName, errorMessage);
-            }
-        } else if (cause instanceof JsonMappingException) {
-            JsonMappingException jme = (JsonMappingException) cause;
-            String fullFieldName = jme.getPath().stream()
-                    .map(ref -> ref.getFieldName())
-                    .reduce("", (prev, curr) -> prev.isEmpty() ? curr : prev + "." + curr);
-            String fieldName = fullFieldName.contains(".") ? fullFieldName.substring(fullFieldName.lastIndexOf('.') + 1) : fullFieldName;
-            if (targetField.equals(fieldName)) {
-                errors.put(targetField, "Điểm không đúng định dạng");
-            } else {
-                String errorMessage = jme.getOriginalMessage();
-                errors.put(fieldName, errorMessage);
-            }
-        } else {
-            errors.put("error", "Định dạng không hợp lệ.");
-        }
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Sai format", errors);
+    public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return new ResponseData<>(ResponseCode.C205.getCode(), ex.getMessage());
     }
-
 }
