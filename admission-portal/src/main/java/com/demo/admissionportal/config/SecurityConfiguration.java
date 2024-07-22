@@ -34,7 +34,6 @@ public class SecurityConfiguration {
     private static final String USER_API = "/api/v1/user/**";
     private static final String STAFF_API = "/api/v1/staff/**";
     private static final String ADMIN_API = "/api/v1/admin/**";
-    private final CustomCorsFilter customCorsFilter;
     private static final String CREATE_UNI_REQUEST_API = "/api/v1/create-university/**";
     private static final String UNIVERSITY_API = "/api/v1/university/**";
     private static final String CONSULTANT_API = "/api/v1/consultant/**";
@@ -85,12 +84,27 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(customCorsFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .logout(
                         log -> log.logoutUrl(AUTHENTICATION_API + "/logout")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()));
 
         return http.build();
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 }

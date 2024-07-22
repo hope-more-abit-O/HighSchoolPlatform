@@ -1,5 +1,8 @@
-# Use a base image that has JDK 17 installed
-FROM openjdk:17
+# Use an Alpine base image with OpenJDK 17
+FROM openjdk:17-alpine
+
+# Install redis-cli and other necessary tools
+RUN apk add --no-cache redis
 
 # Create a directory for the app
 RUN mkdir /app

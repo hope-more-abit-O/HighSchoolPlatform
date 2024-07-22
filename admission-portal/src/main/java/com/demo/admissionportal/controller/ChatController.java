@@ -108,7 +108,7 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/chat-messages/{chatId}")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
+//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<ChatResponseDTO> findChatMessages(@PathVariable UUID chatId) {
         return ResponseEntity.ok(userMessageService.findChatMessages(chatId));
     }
@@ -120,7 +120,7 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/message/{id}")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
+//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<ChatDetailDTO> findMessage(@PathVariable Integer id) {
         return ResponseEntity.ok(userMessageService.findById(id));
     }
@@ -133,7 +133,7 @@ public class ChatController {
      * @return the response entity
      */
     @GetMapping("/new-messages-count/{senderId}/{recipientId}")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
+//    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','USER')")
     public ResponseEntity<Integer> countNewMessages(@PathVariable Integer senderId, @PathVariable Integer recipientId) {
         return ResponseEntity.ok(userMessageService.countNewMessagesForBoth(senderId, recipientId));
     }
