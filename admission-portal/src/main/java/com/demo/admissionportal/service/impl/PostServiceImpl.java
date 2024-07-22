@@ -946,6 +946,7 @@ public class PostServiceImpl implements PostService {
                 .status(postPropertiesResponseDTO.getStatus())
                 .type(listType)
                 .url(postPropertiesResponseDTO.getUrl())
+                .note(postPropertiesResponseDTO.getNote())
                 .build();
     }
 
