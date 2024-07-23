@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.response.post;
 
 import com.demo.admissionportal.constants.PostStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,5 +25,7 @@ public class PostPropertiesResponseDTO implements Serializable {
     private PostStatus status;
     private Date create_time;
     private String url;
+    @JsonIgnore
+    private Integer like;
     private Integer view;
 }

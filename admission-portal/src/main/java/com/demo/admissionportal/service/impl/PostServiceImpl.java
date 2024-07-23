@@ -37,9 +37,9 @@ import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,6 +67,7 @@ public class PostServiceImpl implements PostService {
     private final UniversityInfoRepository universityInfoRepository;
     private final UniversityCampusRepository universityCampusRepository;
     private final ProvinceRepository provinceRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -826,6 +827,7 @@ public class PostServiceImpl implements PostService {
         List<StaffInfo> staffInfo = staffInfoRepository.findAll();
         return staffInfo.stream()
                 .flatMap(staff -> getPostsByStaffOrConsultantIdV2(staff.getId()).stream())
+                .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
                 .collect(Collectors.toList());
     }
 
@@ -833,21 +835,69 @@ public class PostServiceImpl implements PostService {
     public ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite() {
         try {
             log.info("Start retrieve post favorite");
-            // Filter duplicate by Id, Title, Content
-            Set<String> filter = new HashSet<>();
-            List<Post> post = postRepository.findPost();
+            // Filter duplicate by id, Title, Content
+            List<Post> post = postRepository.findAll();
             List<PostFavoriteResponseDTO> postResponseDTOList = post.stream()
-                    .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
                     .sorted(Comparator.comparing(Post::getCreateTime).reversed())
                     .map(this::mapToPostFavoriteDTO)
-                    .filter(Objects::nonNull)
+                    .peek(this::filterPost)
+                    .filter(this::filterRecentPosts)
                     .collect(Collectors.toList());
+
+            /* Group by day and get the highest interaction post for each day
+                Example: KEY: 2024-01-21    VALUES
+                              ----//----    2127
+                              ----//----    2128
+                              ----//----    2129
+                 We need to calculator interact post and get highest in each day by key
+            */
+            // Group by day and get the highest interaction post for each day
+            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay = postResponseDTOList.stream()
+                    .collect(Collectors.groupingBy(
+                            postFavoriteResponseDTO -> {
+                                LocalDate localDate = postFavoriteResponseDTO.getPostProperties().getCreate_time().toInstant()
+                                        .atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+                                return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                            },
+                            Collectors.collectingAndThen(
+                                    Collectors.maxBy(Comparator.comparing(PostFavoriteResponseDTO::getInteractPost)),
+                                    Optional::get
+                            )
+                    ));
+            // Collect results and display most recent create_date
+            List<PostFavoriteResponseDTO> resultOfFilter = new ArrayList<>(highestInteractionByDay.values())
+                    .stream()
+                    .sorted(Comparator.comparing(PostFavoriteResponseDTO::getPublishAgo).reversed())
+                    .toList();
+
             log.info("End retrieve post favorite");
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", postResponseDTOList);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", resultOfFilter);
         } catch (Exception ex) {
             log.info("Error when get post favorite: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post favorite");
         }
+    }
+
+    private boolean filterRecentPosts(PostFavoriteResponseDTO postFavoriteResponseDTO) {
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        Date datePost = postFavoriteResponseDTO.getPostProperties().getCreate_time();
+        Date dateNow = new Date();
+        LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
+        LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
+        long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
+        return dateAgo >= 0 && dateAgo <= 3;
+    }
+
+    private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
+        // Count comment in post
+        int countComment = commentRepository.countByPostId(postFavoriteResponseDTO.getPostProperties().getId());
+        // Get view in post
+        int view = postFavoriteResponseDTO.getPostProperties().getView();
+        // Get like in post
+        int like = postFavoriteResponseDTO.getPostProperties().getLike();
+        // Average contact with post
+        float interactPost = (float) (countComment + view + like) / 3;
+        postFavoriteResponseDTO.setInteractPost(interactPost);
     }
 
     /**
@@ -879,34 +929,7 @@ public class PostServiceImpl implements PostService {
                 location = universityCampus.getSpecificAddress();
             }
 
-
             PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
-
-            // Check publish days
-            ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
-
-            Date datePost = postPropertiesResponseDTO.getCreate_time();
-            Date dateNow = new Date();
-
-
-            LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
-            LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
-
-            long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-            long hoursAgo = ChronoUnit.HOURS.between(localDateTimePost, localDateTimeNow);
-
-            Date date = new Date();
-            if (dateAgo > 7) {
-                date = postPropertiesResponseDTO.getCreate_time();
-            }
-            // if publishAgo > 7 then display date
-            String publishAgo;
-            if (dateAgo > 7) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                publishAgo = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(formatter);
-            } else {
-                publishAgo = dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgo + " Giờ trước";
-            }
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
                     .info(InfoPostResponseDTO.builder()
@@ -914,7 +937,7 @@ public class PostServiceImpl implements PostService {
                             .name(fullName)
                             .location(location)
                             .build())
-                    .publishAgo(publishAgo)
+                    .publishAgo(postPropertiesResponseDTO.getCreate_time())
                     .build();
         } catch (Exception ex) {
             log.info("Error when map post favorite: {}", ex.getMessage());
@@ -987,6 +1010,7 @@ public class PostServiceImpl implements PostService {
                     response = posts.stream()
                             .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
                             .map(this::mapToListPostDetailV2)
+                            .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
                             .collect(Collectors.toList());
                 }
             }
