@@ -3,7 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.entity.post.UniversityPostResponseDTO;
+import com.demo.admissionportal.dto.entity.post.InfoPostResponseDTO;
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
@@ -65,6 +65,7 @@ public class PostServiceImpl implements PostService {
     private final CommentService commentService;
     private final UniversityInfoRepository universityInfoRepository;
     private final UniversityCampusRepository universityCampusRepository;
+    private final ProvinceRepository provinceRepository;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -857,13 +858,26 @@ public class PostServiceImpl implements PostService {
     public PostFavoriteResponseDTO mapToPostFavoriteDTO(Post post) {
         try {
             ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
-            if (consultantInfo == null) {
-                return null;
+            StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(post.getCreateBy());
+            String fullName = null;
+            String location = null;
+            Integer id = 0;
+            // Case 1 : find post by staff
+            if (staffInfo != null && consultantInfo == null) {
+                Province province = provinceRepository.findProvinceById(staffInfo.getProvinceId());
+                id = staffInfo.getId();
+                fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
+                location = province.getName();
+            } else if (consultantInfo != null && staffInfo == null) {
+                // Case 2 : if consultant is existed and find it
+                User user = userRepository.findUserById(consultantInfo.getUniversityId());
+                UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+                UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+                id = universityInfo.getId();
+                fullName = universityInfo.getName() + " " + universityCampus.getCampusName();
+                location = universityCampus.getSpecificAddress();
             }
 
-            User user = userRepository.findUserById(consultantInfo.getUniversityId());
-            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
-            UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
 
             PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
 
@@ -883,12 +897,12 @@ public class PostServiceImpl implements PostService {
 
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
-                    .universityInfo(UniversityPostResponseDTO.builder()
-                            .id(universityInfo.getId())
-                            .name(universityInfo.getName() + " " + universityCampus.getCampusName())
-                            .location(universityCampus.getSpecificAddress())
+                    .info(InfoPostResponseDTO.builder()
+                            .id(id)
+                            .name(fullName)
+                            .location(location)
                             .build())
-                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước"   : hoursAgo + " Giờ trước")
+                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgo + " Giờ trước")
                     .build();
         } catch (Exception ex) {
             log.info("Error when map post favorite: {}", ex.getMessage());
