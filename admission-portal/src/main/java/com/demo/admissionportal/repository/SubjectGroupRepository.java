@@ -37,8 +37,7 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
             "LEFT JOIN subject s ON sgs.subject_id = s.id " +
             "WHERE (:groupName IS NULL OR sg.name LIKE %:groupName%) AND " +
             "(:subjectName IS NULL OR s.name LIKE %:subjectName%) AND " +
-            "(:statusString IS NULL OR sg.status = :statusString) " +
-            "ORDER BY sg.create_time DESC",
+            "(:statusString IS NULL OR sg.status = :statusString) ",
             countQuery = "SELECT COUNT(DISTINCT sg.id) FROM subject_group sg " +
                     "LEFT JOIN subject_group_subject sgs ON sg.id = sgs.subject_group_id " +
                     "LEFT JOIN subject s ON sgs.subject_id = s.id " +

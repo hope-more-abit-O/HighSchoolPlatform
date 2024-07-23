@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -25,26 +26,22 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      * @param pageable     the pageable
      * @return the page
      */
-    @Query(value = "SELECT s.*, u.create_time FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
+    @Query("SELECT s FROM StaffInfo s JOIN s.user u WHERE " +
             "(:username IS NULL OR u.username LIKE %:username%) AND " +
-            "(:firstName IS NULL OR s.first_name LIKE %:firstName%) AND " +
-            "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
-            "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
+            "(:firstName IS NULL OR s.firstName LIKE %:firstName%) AND " +
+            "(:middleName IS NULL OR s.middleName LIKE %:middleName%) AND " +
+            "(:lastName IS NULL OR s.lastName LIKE %:lastName%) AND " +
             "(:email IS NULL OR u.email LIKE %:email%) AND " +
             "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
-            "(:statusString IS NULL OR u.status = :statusString)" +
-            "ORDER BY u.create_time DESC",
-            countQuery = "SELECT COUNT(*) FROM staff_info s JOIN [user] u ON s.staff_id = u.id WHERE " +
-                    "(:username IS NULL OR u.username LIKE %:username%) AND " +
-                    "(:firstName IS NULL OR s.first_name LIKE %:firstName%) AND " +
-                    "(:middleName IS NULL OR s.middle_name LIKE %:middleName%) AND " +
-                    "(:lastName IS NULL OR s.last_name LIKE %:lastName%) AND " +
-                    "(:email IS NULL OR u.email LIKE %:email%) AND " +
-                    "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
-                    "(:statusString IS NULL OR u.status = :statusString)",
-            nativeQuery = true)
-    Page<StaffInfo> findAll(String username, String firstName,String middleName, String lastName, String email, String phone, String statusString, Pageable pageable);
-
+            "(:statusString IS NULL OR u.status = :statusString)")
+    Page<StaffInfo> findAllWithUserFields(@Param("username") String username,
+                                          @Param("firstName") String firstName,
+                                          @Param("middleName") String middleName,
+                                          @Param("lastName") String lastName,
+                                          @Param("email") String email,
+                                          @Param("phone") String phone,
+                                          @Param("statusString") String statusString,
+                                          Pageable pageable);
     /**
      * Find staff info by id staff info.
      *
