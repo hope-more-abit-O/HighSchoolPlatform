@@ -39,6 +39,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -837,7 +838,7 @@ public class PostServiceImpl implements PostService {
             List<Post> post = postRepository.findPost();
             List<PostFavoriteResponseDTO> postResponseDTOList = post.stream()
                     .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
-//                    .sorted(Comparator.comparing(Post::getCreateTime).reversed())
+                    .sorted(Comparator.comparing(Post::getCreateTime).reversed())
                     .map(this::mapToPostFavoriteDTO)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
@@ -892,9 +893,20 @@ public class PostServiceImpl implements PostService {
             LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
 
             long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-
             long hoursAgo = ChronoUnit.HOURS.between(localDateTimePost, localDateTimeNow);
 
+            Date date = new Date();
+            if (dateAgo > 7) {
+                date = postPropertiesResponseDTO.getCreate_time();
+            }
+            // if publishAgo > 7 then display date
+            String publishAgo;
+            if (dateAgo > 7) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                publishAgo = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(formatter);
+            } else {
+                publishAgo = dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgo + " Giờ trước";
+            }
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
                     .info(InfoPostResponseDTO.builder()
@@ -902,7 +914,7 @@ public class PostServiceImpl implements PostService {
                             .name(fullName)
                             .location(location)
                             .build())
-                    .publishAgo(dateAgo > 0 ? dateAgo + " Ngày trước" : hoursAgo + " Giờ trước")
+                    .publishAgo(publishAgo)
                     .build();
         } catch (Exception ex) {
             log.info("Error when map post favorite: {}", ex.getMessage());

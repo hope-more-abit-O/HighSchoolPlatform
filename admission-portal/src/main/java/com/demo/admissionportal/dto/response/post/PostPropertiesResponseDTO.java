@@ -24,4 +24,5 @@ public class PostPropertiesResponseDTO implements Serializable {
     private PostStatus status;
     private Date create_time;
     private String url;
+    private Integer view;
 }
