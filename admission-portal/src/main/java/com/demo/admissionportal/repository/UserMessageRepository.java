@@ -13,9 +13,4 @@ public interface UserMessageRepository extends JpaRepository<UserMessage, Intege
     Integer countBySenderAndRecipientAndStatus(User sender, User recipient, MessageStatus status);
     List<UserMessage> findByChatId(String chatId);
     List<UserMessage> findBySenderAndRecipient(User sender, User recipient);
-    List<UserMessage> findByChatIdAndRecipientId(String chatId, Integer recipientId);
-    Integer countByRecipientAndStatus(User recipient, MessageStatus status);
-    Integer countBySenderAndStatus(User sender, MessageStatus status);
-    List<UserMessage> findByContentContaining(String content);
-
 }

@@ -13,4 +13,6 @@ public class UpdateStaffRequestDTO {
     private String avatar;
     @NotNull
     private String phone;
+    @NotNull
+    private Integer provinceId;
 }

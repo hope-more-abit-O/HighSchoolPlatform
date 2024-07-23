@@ -29,6 +29,8 @@ public class RegisterStaffRequestDTO {
     @NotNull(message = "Số điện thoại không thể để trống !")
     @EnumPhone(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
     private String phone;
+    @NotNull(message = "Vui lòng chọn địa chỉ hợp lệ ")
+    private Integer provinceId;
 
     public void trim() {
         firstName = firstName.trim();
