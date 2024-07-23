@@ -9,11 +9,13 @@ import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
+import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.DataExistedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.repository.ProvinceRepository;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.StaffService;
@@ -45,6 +47,7 @@ public class StaffServiceImpl implements StaffService {
     private final PasswordEncoder passwordEncoder;
     private final EmailUtil emailUtil;
     private final ValidationService validationService;
+    private final ProvinceRepository provinceRepository;
 
     @Override
     @Transactional
@@ -59,6 +62,9 @@ public class StaffServiceImpl implements StaffService {
             log.info("Check if email or phone are available or not.");
             validationService.validateRegister(null, request.getEmail(), request.getPhone());
 
+            log.info("Check if province valid.");
+            validationService.validateAddress(request.getProvinceId());
+
             String password = RandomStringUtils.randomAlphanumeric(9);
             Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             log.info("Get current admin account id: {}", adminId);
@@ -71,7 +77,7 @@ public class StaffServiceImpl implements StaffService {
             }
 
             log.info("Storing staff's information.");
-            StaffInfo staffInfo = new StaffInfo(staff.getId(), adminId, request.getFirstName(), request.getMiddleName(), request.getLastName(), request.getPhone());
+            StaffInfo staffInfo = new StaffInfo(staff.getId(), adminId, request.getFirstName(), request.getMiddleName(), request.getLastName(), request.getPhone(), request.getProvinceId());
             StaffInfo savedStaffInfo = staffInfoRepository.save(staffInfo);
             if (savedStaffInfo == null) {
                 log.error("Storing staff's information failed.");
@@ -84,6 +90,8 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C200.getCode(), "Nhân viên được tạo thành công !");
         } catch (DataExistedException de) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Email hoặc số điện thoại đã tồn tại");
+        } catch (ClassNotFoundException cn){
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Tỉnh/Thành Phố không được tìm thấy !");
         } catch (Exception ex) {
             log.error("Error occurred while registering: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tạo tài khoản");
@@ -116,6 +124,7 @@ public class StaffServiceImpl implements StaffService {
             staffResponseDTO.setStatus(staffInfo.getUser().getStatus().name());
             staffResponseDTO.setEmail(staffInfo.getUser().getEmail());
             staffResponseDTO.setAvatar(staffInfo.getUser().getAvatar());
+            staffResponseDTO.setProvinceId(staffInfo.getProvinceId());
             staffResponseDTO.setNote(staffInfo.getUser().getNote());
             staffResponseDTO.setCreateTime(staffInfo.getUser().getCreateTime());
             staffResponse.add(staffResponseDTO);
@@ -154,6 +163,10 @@ public class StaffServiceImpl implements StaffService {
             log.warn("Unauthorized staff with token: {}", token);
             return new ResponseData<>(ResponseCode.C209.getCode(), "Không thể xác thực nhân viên này !");
         }
+        Province existProvince = provinceRepository.findProvinceById(id);
+        if (existProvince == null){
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Tỉnh/Thành phố không được tìm thấy.");
+        }
 
         Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
         Optional<StaffInfo> existStaffByPhone = staffInfoRepository.findFirstByPhone(request.getPhone());
@@ -173,6 +186,7 @@ public class StaffServiceImpl implements StaffService {
             existStaff.setMiddleName(request.getMiddleName());
             existStaff.setLastName(request.getLastName());
             existStaff.setPhone(request.getPhone());
+            existStaff.setProvinceId(request.getProvinceId());
 
             User staff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
             staff.setAvatar(request.getAvatar());

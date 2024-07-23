@@ -14,7 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UniversityPostResponseDTO implements Serializable {
+public class InfoPostResponseDTO implements Serializable {
     private Integer id;
     private String name;
     private String location;
