@@ -8,6 +8,6 @@ public class InfoAdmissionDTO {
     private Integer admissionId;
     private Integer year;
     private ActionerDTO createBy;
-    private String createTime;
+    private Date createTime;
     private String status;
 }

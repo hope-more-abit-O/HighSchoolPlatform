@@ -1,11 +1,14 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.chat.ChatDetailDTO;
 import com.demo.admissionportal.dto.entity.chat.ChatResponseDTO;
 import com.demo.admissionportal.entity.ChatNotification;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserMessage;
 import com.demo.admissionportal.service.ChatRoomService;
 import com.demo.admissionportal.service.UserMessageService;
+import com.demo.admissionportal.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +38,9 @@ public class ChatController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * Process message.
      *
@@ -43,6 +49,10 @@ public class ChatController {
     @MessageMapping("/chat")
     public void processMessage(@Payload UserMessage userMessage) {
         try {
+            if (!isChatAllowed(userMessage.getSenderId(), userMessage.getRecipientId())) {
+                log.error("Chat not allowed between these roles.");
+                return;
+            }
             var chatId = chatRoomService.getChatId(userMessage.getSenderId(), userMessage.getRecipientId(), true);
             userMessage.setChatId(chatId.get().toString());
 
@@ -52,6 +62,31 @@ public class ChatController {
             log.error("Error processing message", e);
             throw e;
         }
+    }
+
+    /**
+     * Check if chat is allowed between users based on their roles.
+     *
+     * @param senderId the sender id
+     * @param recipientId the recipient id
+     * @return boolean indicating if chat is allowed
+     */
+    private boolean isChatAllowed(Integer senderId, Integer recipientId) {
+        User sender = userService.findById(senderId);
+        User recipient = userService.findById(recipientId);
+        if (sender == null || recipient == null) {
+            return false;
+        }
+        if (sender.getRole() == Role.USER && (recipient.getRole() == Role.STAFF || recipient.getRole() == Role.CONSULTANT)) {
+            return true;
+        }
+        if (sender.getRole() == Role.STAFF && recipient.getRole() == Role.USER) {
+            return true;
+        }
+        if (sender.getRole() == Role.CONSULTANT && recipient.getRole() == Role.USER) {
+            return true;
+        }
+        return false;
     }
 
     /**

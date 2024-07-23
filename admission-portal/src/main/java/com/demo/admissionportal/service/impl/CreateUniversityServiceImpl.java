@@ -28,12 +28,15 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -327,13 +330,20 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         return result;
     }
 
-    public ResponseData<Page<CreateUniversityRequestDTO>> getBy(Pageable pageable){
-        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAll(pageable);
+    public ResponseData<Page<CreateUniversityRequestDTO>> getBy(Pageable pageable,
+                                                                Integer id,
+                                                                String universityName,
+                                                                String universityCode,
+                                                                String universityEmail,
+                                                                String universityUsername,
+                                                                CreateUniversityRequestStatus status,
+                                                                Integer createBy,
+                                                                Integer confirmBy){
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, createBy, confirmBy);
 
         List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
 
-        Page<CreateUniversityRequestDTO> mappedRequests = createUniversityRequests.map(request -> this.mapping(request, actionerDTOs));
-        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", mappedRequests);
+        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", createUniversityRequests.map((element) -> this.mapping(element, actionerDTOs)));
     }
 
     public List<ActionerDTO> getActioners(List<CreateUniversityRequest> createUniversityRequests){

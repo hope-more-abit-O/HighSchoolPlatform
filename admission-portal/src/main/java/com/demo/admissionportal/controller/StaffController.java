@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
@@ -67,8 +68,21 @@ public class StaffController {
     }
 
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
-        return ResponseEntity.ok(createUniversityService.getByStaff(pageable));
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String universityName,
+            @RequestParam(required = false) String universityCode,
+            @RequestParam(required = false) String universityEmail,
+            @RequestParam(required = false) String universityUsername,
+            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) Integer confirmBy
+    ) {
+        Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return ResponseEntity.ok(createUniversityService.getBy(
+                pageable, id, universityName, universityCode, universityEmail,
+                universityUsername, status, staffId, confirmBy
+        ));
     }
 
     @GetMapping("/university/management")

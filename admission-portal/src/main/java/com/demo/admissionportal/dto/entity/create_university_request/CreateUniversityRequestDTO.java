@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -67,7 +68,7 @@ public class CreateUniversityRequestDTO {
     private String universityType;
     private String note;
     private List<String> documents;
-    private String createTime;
+    private Date createTime;
     private ActionerDTO createBy;
     private String updateTime;
     private ActionerDTO updateBy;

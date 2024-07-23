@@ -2,16 +2,10 @@ version: '3.8'
 
 services:
   admission-portal:
-    env_file:
-      - key.env
-    image: admission-portal-image
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: dyhieu/uap-test-2:2024
     ports:
-      - "9090:8080"
+      - "7654:8080"
     environment:
-      # SQL Server configuration
       SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.205.94:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_FE
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: Fpt1234567890
@@ -32,10 +26,10 @@ services:
       EXPIRATION: 86400000
       REFRESH_TOKEN_EXPIRATION: 604800000
       # SSL configuration
-      #      SERVER_SSL_KEY_ALIAS: uap-https
-      #      SERVER_SSL_KEY_STORE: classpath:keystore.p12
-      #      SERVER_SSL_KEY_STORE_TYPE: PKCS12
-      #      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
+      SERVER_SSL_KEY_ALIAS: uap-https
+      SERVER_SSL_KEY_STORE: /app/keystore.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
       # Multipart configuration
       SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
       SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
@@ -43,18 +37,15 @@ services:
       # Pageable configuration
       SPRING_DATA_WEB_PAGEABLE_DEFAULT_PAGE_SIZE: 10
       SPRING_DATA_WEB_PAGEABLE_MAX_PAGE_SIZE: 50
-    networks:
-      - my-network
     depends_on:
       - redis
+    networks:
+      - my-network
 
   redis:
     image: redis:latest
     ports:
-      - "11813:11813"
-    environment:
-      REDIS_HOST: redis-11813.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com
-      REDIS_PASSWORD: kjyLndVSeOEwoSD7Eu5knzsRxfiRR8CA
+      - "6379:6379"
     networks:
       - my-network
 

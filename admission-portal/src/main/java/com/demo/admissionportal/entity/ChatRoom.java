@@ -17,7 +17,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "chat_room")
 public class ChatRoom {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
