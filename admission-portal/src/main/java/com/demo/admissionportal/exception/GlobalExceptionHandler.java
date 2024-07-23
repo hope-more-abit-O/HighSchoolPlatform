@@ -112,6 +112,9 @@ public class GlobalExceptionHandler {
         } else if (message.contains("Cannot deserialize value of type `java.lang.Float`")) {
             message = "Định dạng không đúng.";
             errors.put("error", message);
+        } else if (message.contains("Unrecognized field")){
+            message = "Request chứa thông tin không hợp lệ";
+            errors.put("error", message);
         }
         return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
     }

@@ -43,12 +43,23 @@ public class StaffInfo {
     @JoinColumn(name = "staff_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 
-    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone) {
+    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone, Integer provinceId, User user) {
         this.id = id;
         this.adminId = adminId;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.phone = phone;
+        this.provinceId = provinceId;
+    }
+
+    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone, Integer provinceId) {
+        this.id = id;
+        this.adminId = adminId;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.provinceId = provinceId;
     }
 }

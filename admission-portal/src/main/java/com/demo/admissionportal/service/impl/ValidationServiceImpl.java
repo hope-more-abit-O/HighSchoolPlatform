@@ -27,7 +27,7 @@ public class ValidationServiceImpl implements ValidationService {
     private final UserInfoRepository userInfoRepository;
     private final StaffInfoRepository staffInfoRepository;
     private final CreateUniversityRequestRepository createUniversityRequestRepository;
-
+    private final ProvinceRepository provinceRepository;
     /**
      * Checks if a username is already taken.
      *
@@ -68,6 +68,13 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
+    /**
+     * Validate username create university request boolean.
+     *
+     * @param username the username
+     * @return the boolean
+     * @throws DataExistedException the data existed exception
+     */
     public boolean validateUsernameCreateUniversityRequest(String username) throws DataExistedException {
         log.info("Checking username availability.");
         String errorMessage = "Tên tài khoản đã được sử dụng";
@@ -117,6 +124,13 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
+    /**
+     * Validate email create university request boolean.
+     *
+     * @param email the email
+     * @return the boolean
+     * @throws DataExistedException the data existed exception
+     */
     public boolean validateEmailCreateUniversityRequest(String email) throws DataExistedException {
         log.info("Checking email availability.");
         String errorMessage = "Email được sử dụng";
@@ -224,6 +238,14 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
+    public boolean validateAddress(Integer provinceId) throws ClassNotFoundException {
+        if (provinceId == null || !provinceRepository.existsById(provinceId)) {
+            throw new ClassNotFoundException("Tỉnh/Thành Phố " + provinceId + " không được tìm thấy .");
+        }
+        return true;
+    }
+
+
     /**
      * Validates username, email, and phone number for registration.
      *
@@ -300,6 +322,13 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
+    /**
+     * Validate and put error.
+     *
+     * @param errors     the errors
+     * @param field      the field
+     * @param validation the validation
+     */
     public static void validateAndPutError(Map<String, String> errors, String field, Runnable validation) {
         try {
             validation.run();
@@ -308,6 +337,13 @@ public class ValidationServiceImpl implements ValidationService {
         }
     }
 
+    /**
+     * Validate university code boolean.
+     *
+     * @param universityCode the university code
+     * @return the boolean
+     * @throws DataExistedException the data existed exception
+     */
     public boolean validateUniversityCode(String universityCode) throws DataExistedException {
         log.info("Checking university code availability.");
         String errorMessage = "Mã trường: đã được sử dụng";
@@ -318,6 +354,13 @@ public class ValidationServiceImpl implements ValidationService {
         return true;
     }
 
+    /**
+     * Validate university code create university request boolean.
+     *
+     * @param universityCode the university code
+     * @return the boolean
+     * @throws DataExistedException the data existed exception
+     */
     public boolean validateUniversityCodeCreateUniversityRequest(String universityCode) throws DataExistedException {
         log.info("Checking university code availability.");
         String errorMessage = "Mã trường: " + universityCode + " đã được sử dụng";
