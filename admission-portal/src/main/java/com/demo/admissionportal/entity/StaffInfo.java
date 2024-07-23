@@ -36,6 +36,9 @@ public class StaffInfo {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "province_id")
+    private Integer provinceId;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "staff_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
