@@ -12,5 +12,6 @@ public class GlobalTimezoneBeanFactoryPostProcessor implements BeanFactoryPostPr
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+07:00"));
     }
 }
