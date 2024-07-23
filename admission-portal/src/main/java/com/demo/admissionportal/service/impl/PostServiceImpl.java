@@ -3,7 +3,6 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.entity.post.InfoPostResponseDTO;
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
@@ -897,7 +896,7 @@ public class PostServiceImpl implements PostService {
 
             return PostFavoriteResponseDTO.builder()
                     .postProperties(postPropertiesResponseDTO)
-                    .info(InfoPostResponseDTO.builder()
+                    .info(UserInfoPostResponseDTO.builder()
                             .id(id)
                             .name(fullName)
                             .location(location)
