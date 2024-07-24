@@ -1,7 +1,5 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.constants.ProviderType;
-import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +15,6 @@ import java.util.Date;
 @Table(name = "staff_info")
 public class StaffInfo {
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "staff_id")
     private Integer id;
 

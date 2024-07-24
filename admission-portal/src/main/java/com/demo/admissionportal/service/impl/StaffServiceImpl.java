@@ -114,7 +114,7 @@ public class StaffServiceImpl implements StaffService {
         log.info("Get all staff with filters: Username: {}, firstName: {}, middleName: {}, lastName: {}, Email: {}, Phone: {}, Status: {}", username, firstName, middleName, lastName, email, phone, status);
         List<StaffResponseDTO> staffResponse = new ArrayList<>();
         String statusString = status != null ? status.name() : null;
-        Page<StaffInfo> staffPage = staffInfoRepository.findAll(username, firstName, middleName, lastName, email, phone, statusString, pageable);
+        Page<StaffInfo> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, statusString, pageable);
         staffPage.forEach(staffInfo -> {
             StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
             staffResponseDTO.setId(staffInfo.getId());
@@ -126,6 +126,7 @@ public class StaffServiceImpl implements StaffService {
             staffResponseDTO.setAvatar(staffInfo.getUser().getAvatar());
             staffResponseDTO.setProvinceId(staffInfo.getProvinceId());
             staffResponseDTO.setNote(staffInfo.getUser().getNote());
+            staffResponseDTO.setCreateTime(staffInfo.getUser().getCreateTime());
             staffResponse.add(staffResponseDTO);
         });
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());

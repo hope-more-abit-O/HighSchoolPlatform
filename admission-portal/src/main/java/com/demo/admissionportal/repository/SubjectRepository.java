@@ -41,7 +41,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
      */
     @Query(value = "SELECT * FROM subject s WHERE " +
             "(:name IS NULL OR s.name LIKE %:#{#name}%) AND " +
-            "(:statusString IS NULL OR s.status = :statusString) " +
-            "ORDER BY s.create_time DESC", nativeQuery = true)
+            "(:statusString IS NULL OR s.status = :statusString) ", nativeQuery = true)
     Page<Subject> findAll(String name, String statusString, Pageable pageable);
 }
