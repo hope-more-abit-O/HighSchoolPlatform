@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.admission.AdmissionQuotaDTO;
 import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramMethodQuotaDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
@@ -188,7 +189,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         return response;
     }
 
-    public void createAdmission(CreateAdmissionRequest request) {
+    @Transactional
+    public void createAdmission(CreateAdmissionRequest request) throws DataExistedException {
+        List<AdmissionQuotaDTO> admissionQuotaDTOs = request.getQuotas().stream().map(AdmissionQuotaDTO::new).toList();
         User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 
         Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
@@ -262,7 +265,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             return findAdmissionMethodIdByMethodId(quotaRequest.getMethodId(), admissionMethods);
         } else {
             log.info("Get admission method id by method name and code");
-            return findAdmissionMethodIdByNameAndCode(quotaRequest.getMajorName(), quotaRequest.getMajorCode(), admissionMethods, methods);
+            return findAdmissionMethodIdByNameAndCode(quotaRequest.getMethodName(), quotaRequest.getMethodCode(), admissionMethods, methods);
         }
     }
 
@@ -278,9 +281,13 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                        String majorCode,
                                                        List<AdmissionMethod> admissionMethods,
                                                        List<Method> methods) {
+        Method method = methods.stream()
+                .filter(m -> m.getName().equals(majorName) && m.getCode().equals(majorCode))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission method id not found"));
+
         return admissionMethods.stream()
-                .filter(ad -> methods.stream()
-                        .anyMatch(method -> method.getId().equals(ad.getMethodId()) && method.getCode().equals(majorCode) && method.getName().equals(majorName)))
+                .filter(ad -> ad.getMethodId().equals(method.getId()))
                 .map(AdmissionMethod::getId)
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Admission method id not found"));
@@ -289,7 +296,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private Integer getAdmissionTrainingProgramId(CreateAdmissionQuotaRequest quotaRequest,
                                                   List<AdmissionTrainingProgram> admissionTrainingPrograms,
                                                   List<Major> majors) {
-        if (quotaRequest.getMethodId() != null) {
+        if (quotaRequest.getMajorId() != null) {
             log.info("Get admission method id by method id");
             return findAdmissionTrainingProgramIdByMajorId(quotaRequest.getMajorId(), admissionTrainingPrograms);
         } else {
@@ -298,7 +305,8 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    private Integer findAdmissionTrainingProgramIdByMajorId(Integer majorId, List<AdmissionTrainingProgram> admissionTrainingPrograms) {
+    private Integer findAdmissionTrainingProgramIdByMajorId(Integer majorId,
+                                                            List<AdmissionTrainingProgram> admissionTrainingPrograms) {
         return admissionTrainingPrograms.stream()
                 .filter(ad -> ad.getMajorId().equals(majorId))
                 .map(AdmissionTrainingProgram::getId)

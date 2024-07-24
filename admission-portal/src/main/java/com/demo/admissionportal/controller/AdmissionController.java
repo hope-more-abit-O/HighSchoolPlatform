@@ -47,7 +47,8 @@ public class AdmissionController {
     }
 
     @PostMapping("/abc")
-    public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request){
+    public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request)
+        throws DataExistedException{
         admissionService.createAdmission(request);
         return ResponseEntity.ok("Good");
     }

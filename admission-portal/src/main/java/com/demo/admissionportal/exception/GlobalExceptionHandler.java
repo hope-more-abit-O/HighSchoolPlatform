@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataExistedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleDataExistedExceptions(DataExistedException ex) {
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Dữ liệu đã tồn tại", ex.getErrors());
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), ex.getErrors());
     }
 
     /**

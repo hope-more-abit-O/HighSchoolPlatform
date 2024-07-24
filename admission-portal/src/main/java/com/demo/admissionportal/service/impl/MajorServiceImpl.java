@@ -169,14 +169,14 @@ public class MajorServiceImpl {
             String allNames = existedMajorsByName.stream()
                     .map(Major::getName)
                     .collect(Collectors.joining(", "));
-            errors.put("nameExisted", allNames);
+            errors.put("majorNamesExisted", allNames);
         }
 
         if (!existedMajorsByCode.isEmpty()){
             String allCodes = existedMajorsByCode.stream()
                     .map(Major::getCode)
                     .collect(Collectors.joining(", "));
-            errors.put("codeExisted", allCodes);
+            errors.put("majorCodesExisted", allCodes);
         }
 
         if (!errors.isEmpty()) {

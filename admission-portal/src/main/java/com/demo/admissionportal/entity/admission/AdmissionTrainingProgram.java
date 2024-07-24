@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity.admission;
 
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -51,6 +52,13 @@ public class AdmissionTrainingProgram {
         this.mainSubjectId = createTrainingProgramRequest.getMainSubjectId();
         this.language = createTrainingProgramRequest.getLanguage();
         this.trainingSpecific = createTrainingProgramRequest.getTrainingSpecific();
+    }
+    public AdmissionTrainingProgram(Integer admissionId, TrainingProgramDTO trainingProgramDTOs) {
+        this.admissionId = admissionId;
+        this.majorId = trainingProgramDTOs.getMajorId();
+        this.mainSubjectId = trainingProgramDTOs.getMainSubjectId();
+        this.language = trainingProgramDTOs.getLanguage();
+        this.trainingSpecific = trainingProgramDTOs.getTrainingSpecific();
     }
 
     public AdmissionTrainingProgram(Integer admissionId, CreateAdmissionQuotaRequest request) {

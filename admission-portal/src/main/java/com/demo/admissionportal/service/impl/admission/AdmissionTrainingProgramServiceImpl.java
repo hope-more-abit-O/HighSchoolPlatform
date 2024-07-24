@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
@@ -98,8 +99,9 @@ public class AdmissionTrainingProgramServiceImpl {
 
     public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas, List<Major> majors) throws StoreDataFailedException{
         List<AdmissionTrainingProgram> result;
+        List< TrainingProgramDTO> trainingProgramDTOs = quotas.stream().map(TrainingProgramDTO::new).distinct().toList();
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = quotas.stream()
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = trainingProgramDTOs.stream()
                 .map(quota -> {
                     if (quota.getMajorId() == null){
                         Optional<Major> matchingMajor = majors.stream()
