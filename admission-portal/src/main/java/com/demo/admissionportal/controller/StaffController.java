@@ -67,24 +67,31 @@ public class StaffController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Gets create university requests.
+     *
+     * @param pageable           the pageable
+     * @param id                 the id
+     * @param universityName     the university name
+     * @param universityCode     the university code
+     * @param universityEmail    the university email
+     * @param universityUsername the university username
+     * @param status             the status
+     * @param confirmBy          the confirm by
+     * @return the create university requests
+     */
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
-            Pageable pageable,
-            @RequestParam(required = false) Integer id,
-            @RequestParam(required = false) String universityName,
-            @RequestParam(required = false) String universityCode,
-            @RequestParam(required = false) String universityEmail,
-            @RequestParam(required = false) String universityUsername,
-            @RequestParam(required = false) CreateUniversityRequestStatus status,
-            @RequestParam(required = false) Integer confirmBy
-    ) {
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable, @RequestParam(required = false) Integer id, @RequestParam(required = false) String universityName, @RequestParam(required = false) String universityCode, @RequestParam(required = false) String universityEmail, @RequestParam(required = false) String universityUsername, @RequestParam(required = false) CreateUniversityRequestStatus status, @RequestParam(required = false) Integer confirmBy) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        return ResponseEntity.ok(createUniversityService.getBy(
-                pageable, id, universityName, universityCode, universityEmail,
-                universityUsername, status, staffId, confirmBy
-        ));
+        return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, confirmBy));
     }
 
+    /**
+     * Gets university management.
+     *
+     * @param pageable the pageable
+     * @return the university management
+     */
     @GetMapping("/university/management")
     public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(Pageable pageable) {
         return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable));
@@ -97,8 +104,7 @@ public class StaffController {
      * the data as a response.
      *
      * @param id The unique identifier of the staff member to retrieve.
-     * @return A ResponseEntity containing staff details with a suitable HTTP status
-     *         (e.g., 200 OK for success, 404 Not Found if the staff member is not found).
+     * @return A ResponseEntity containing staff details with a suitable HTTP status (e.g., 200 OK for success, 404 Not Found if the staff member is not found).
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
@@ -149,15 +155,32 @@ public class StaffController {
      *
      * <p>Fetches a paginated list of users based on optional username and email parameters.
      *
-     * @param username The username to search for (optional).
-     * @param email    The email to search for (optional).
-     * @param pageable The pagination information.
+     * @param id              the id
+     * @param username        The username to search for (optional).
+     * @param firstName       the first name
+     * @param middleName      the middle name
+     * @param lastName        the last name
+     * @param phone           the phone
+     * @param email           the gender
+     * @param specificAddress the specific address
+     * @param educationLevel  the education level
+     * @param birthday        the birthday
+     * @param pageable        The pagination information.
      * @return A ResponseEntity containing the paginated list of users and a suitable HTTP status.
      */
     @GetMapping("/list/users")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(@RequestParam(required = false) String username, @RequestParam(required = false) String email, Pageable pageable) {
-        ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, email, pageable);
+    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(@RequestParam(required = false) String username,
+                                                                       @RequestParam(required = false) String firstName,
+                                                                       @RequestParam(required = false) String middleName,
+                                                                       @RequestParam(required = false) String lastName,
+                                                                       @RequestParam(required = false) String phone,
+                                                                       @RequestParam(required = false) String email,
+                                                                       @RequestParam(required = false) String specificAddress,
+                                                                       @RequestParam(required = false) String educationLevel,
+                                                                       @RequestParam(required = false) String status,
+                                                                       Pageable pageable) {
+        ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, firstName, middleName, lastName, phone, email, specificAddress, educationLevel, status, pageable);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
@@ -202,10 +225,7 @@ public class StaffController {
      */
     @GetMapping("/list-all-subjects")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) SubjectStatus status,
-            @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<SubjectResponseDTO>>> findAllSubjects(@RequestParam(required = false) String name, @RequestParam(required = false) SubjectStatus status, @PageableDefault(size = 10) Pageable pageable) {
         ResponseData<Page<SubjectResponseDTO>> result = subjectService.findAll(name, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);
@@ -386,11 +406,7 @@ public class StaffController {
      * @return A ResponseEntity containing the paginated list of subject groups and a suitable HTTP status.
      */
     @GetMapping("/list-all-subject-groups")
-    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(
-            @RequestParam(required = false) String groupName,
-            @RequestParam(required = false) String subjectName,
-            @RequestParam(required = false) SubjectStatus status,
-            Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(@RequestParam(required = false) String groupName, @RequestParam(required = false) String subjectName, @RequestParam(required = false) SubjectStatus status, Pageable pageable) {
         ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(groupName, subjectName, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(result);
@@ -398,6 +414,30 @@ public class StaffController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Activates a subject group by its ID.
+     *
+     * <p>Receives a request to activate a subject group and processes it.
+     *
+     * @param id The unique identifier of the subject group to activate.
+     * @param id The unique identifier of the subject group to delete.
+     * @param id The unique identifier of the subject group to activate.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     *                                   <p>
+     *                                   Deletes a subject group by its ID.
+     *
+     *                                   <p>Receives a request to delete a subject group and processes it.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     *                                   <p>
+     *                                   Activates a subject group by its ID.
+     *
+     *                                   <p>Receives a request to activate a subject group and processes it.
+     */
     /**
      * Deletes a subject group by its ID.
      *
@@ -414,15 +454,7 @@ public class StaffController {
      *
      *                                   <p>Receives a request to activate a subject group and processes it.
      */
-/**
-     * Activates a subject group by its ID.
-     *
-     * <p>Receives a request to activate a subject group and processes it.
-     *
-     * @param id The unique identifier of the subject group to activate.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
-     */
-//    @PutMapping("/activate-subject-group/{id}")
+    //    @PutMapping("/activate-subject-group/{id}")
 //    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
 //        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
 //        if (result.getStatus() == ResponseCode.C200.getCode()) {

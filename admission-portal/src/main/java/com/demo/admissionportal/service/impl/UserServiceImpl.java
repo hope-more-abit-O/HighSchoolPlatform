@@ -59,10 +59,11 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseData<Page<UserResponseDTO>> getUser(String username, String email, Pageable pageable) {
+    public ResponseData<Page<UserResponseDTO>> getUser(String username, String firstName, String middleName, String lastName, String phone, String email,
+                                                       String specificAddress, String educationLevel, String status, Pageable pageable) {
         try {
             List<UserResponseDTO> userResponseDTOS = new ArrayList<>();
-            Page<UserInfo> userPage = userInfoRepository.findAll(username, email, pageable);
+            Page<UserInfo> userPage = userInfoRepository.findAll(username, firstName, middleName, lastName, phone, email, specificAddress, educationLevel, status, pageable);
             // Map UserInfo to UserResponseDTO
             userPage.forEach(userInfo -> {
                 UserResponseDTO responseDTO = new UserResponseDTO();
@@ -265,15 +266,14 @@ public class UserServiceImpl implements UserService {
         FullUserResponseDTO result = modelMapper.map(user, FullUserResponseDTO.class);
         result.setCreateBy(createBy);
 
-        if (user.getUpdateBy() != null){
+        if (user.getUpdateBy() != null) {
             ActionerDTO updateBy = actionerDTOs
                     .stream()
                     .filter(actioner -> actioner.getId().equals(user.getUpdateBy()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy actioner trong list"));
             result.setUpdateBy(updateBy);
-        }
-        else result.setUpdateBy(null);
+        } else result.setUpdateBy(null);
 
         return result;
     }
@@ -475,20 +475,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> findByCreateByAndRole(Integer id, Role role, Pageable pageable) throws ResourceNotFoundException{
+    public Page<User> findByCreateByAndRole(Integer id, Role role, Pageable pageable) throws ResourceNotFoundException {
         return userRepository.findByCreateByAndRole(id, role, pageable);
     }
 
     @Override
-    public List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException{
+    public List<ActionerDTO> getActioners(List<Integer> ids) throws ResourceNotFoundException {
         List<User> users = userRepository.findAllById(ids.stream().distinct().toList());
         if (users.isEmpty())
             throw new ResourceNotFoundException("Không tìm thấy actioner!", Map.of("ids", ids.toString()));
-        List<ActionerDTO> result =  users.stream().map((element) -> modelMapper.map(element, ActionerDTO.class)).toList();
+        List<ActionerDTO> result = users.stream().map((element) -> modelMapper.map(element, ActionerDTO.class)).toList();
 
         List<IdAndName> idAndNames = new ArrayList<>();
         for (User user : users) {
-            switch (user.getRole()){
+            switch (user.getRole()) {
                 case UNIVERSITY:
                     UniversityInfo uniInfo = universityInfoServiceImpl.findById(user.getId());
                     idAndNames.add(new IdAndName(uniInfo.getId(), uniInfo.getName()));
@@ -518,18 +518,20 @@ public class UserServiceImpl implements UserService {
         );
 
         return result;
-    };
+    }
+
+    ;
 
     @Override
-    public List<User> findByRole(Role role){
+    public List<User> findByRole(Role role) {
         return userRepository.findByRole(role);
     }
 
-    public UserInfo findUserInfoById(Integer id){
+    public UserInfo findUserInfoById(Integer id) {
         return userInfoRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Thông tin người dùng không tìm thấy"));
     }
 
-    public Page<User> findByRoleAndPageable(Role role, Pageable pageable){
+    public Page<User> findByRoleAndPageable(Role role, Pageable pageable) {
         return userRepository.findByRole(role, pageable);
     }
 }
