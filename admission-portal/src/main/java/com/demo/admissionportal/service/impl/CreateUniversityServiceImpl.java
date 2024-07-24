@@ -339,7 +339,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 CreateUniversityRequestStatus status,
                                                                 Integer createBy,
                                                                 Integer confirmBy){
-        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status.name(), createBy, confirmBy);
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, (status != null) ? status.name() : null, createBy, confirmBy);
 
         List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
 
