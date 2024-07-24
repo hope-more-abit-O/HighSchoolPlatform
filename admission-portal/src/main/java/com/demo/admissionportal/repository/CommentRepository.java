@@ -28,4 +28,12 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
      * @return the list
      */
     List<Comment> findByPostIdAndCommentParentId(Integer postId, Integer commentParentId);
+
+    /**
+     * Count by post id long.
+     *
+     * @param postId the post id
+     * @return the long
+     */
+    int countByPostId(Integer postId);
 }
