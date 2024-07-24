@@ -42,7 +42,6 @@ public class PostReportServiceImpl implements PostReportService {
                 log.info("User not found");
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
             }
-            List<Report> reports = reportRepository.findAllById()
             Report newReport = new Report();
             User user = existUser.get();
             Integer userId = user.getId();
@@ -53,15 +52,6 @@ public class PostReportServiceImpl implements PostReportService {
             newReport.setReport_type(ReportType.POST);
             newReport.setStatus(ReportStatus.PENDING);
             reportRepository.save(newReport);
-
-            PostReport postId = postReportRepository.findPostById(request.getPost_id());
-            if (postId == null ){
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy bài viết này.");
-            }
-            List<PostReport> postReports = new ArrayList<>();
-            for (Report report: reports){
-                PostReport reportPost = new PostReport(reportPost.getReportId(), null);
-            }
 
             return null;
         } catch (Exception e){
