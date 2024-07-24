@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,5 +20,7 @@ public class StaffResponseDTO implements Serializable {
     private String avatar;
     private String phone;
     private String status;
+    private Integer provinceId;
     private String note;
+    private Date createTime;
 }

@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,6 +102,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        return new ResponseData<>(ResponseCode.C205.getCode(), ex.getMessage());
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        String message = ex.getMessage();
+        logger.error("HttpMessageNotReadableException: {}", message);
+        Map<String, String> errors = new HashMap<>();
+        if (message.contains("Unexpected character")) {
+            message = "Định dạng không đúng.";
+            errors.put("error", message);
+        } else if (message.contains("Cannot deserialize value of type `java.lang.Float`")) {
+            message = "Định dạng không đúng.";
+            errors.put("error", message);
+        } else if (message.contains("Unrecognized field")){
+            message = "Request chứa thông tin không hợp lệ";
+            errors.put("error", message);
+        }
+        return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
     }
 }

@@ -1,13 +1,20 @@
 package com.demo.admissionportal.service.impl;
-
 import com.demo.admissionportal.constants.MessageStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.chat.ChatDetailDTO;
 import com.demo.admissionportal.dto.entity.chat.ChatResponseDTO;
 import com.demo.admissionportal.dto.entity.chat.UserDTO;
-import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.UserMessage;
+import com.demo.admissionportal.entity.UserInfo;
+import com.demo.admissionportal.entity.StaffInfo;
+import com.demo.admissionportal.entity.ConsultantInfo;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.repository.UserMessageRepository;
+import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.UserInfoRepository;
+import com.demo.admissionportal.repository.StaffInfoRepository;
+import com.demo.admissionportal.repository.ConsultantInfoRepository;
 import com.demo.admissionportal.service.UserMessageService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +55,10 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     @Transactional
     public Integer countNewMessages(Integer senderId, Integer recipientId) {
-        User sender = userRepository.findById(senderId).orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
-        User recipient = userRepository.findById(recipientId).orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
+        User recipient = userRepository.findById(recipientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
         return userMessageRepository.countBySenderAndRecipientAndStatus(sender, recipient, MessageStatus.RECEIVED);
     }
 
@@ -62,28 +71,35 @@ public class UserMessageServiceImpl implements UserMessageService {
             throw new ResourceNotFoundException("Chat ID not found");
         }
 
-        User sender = userRepository.findById(messages.get(0).getSenderId()).orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
-        User recipient = userRepository.findById(messages.get(0).getRecipientId()).orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
+        User sender = userRepository.findById(messages.get(0).getSenderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
+        User recipient = userRepository.findById(messages.get(0).getRecipientId())
+                .orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
 
         List<ChatDetailDTO> chatDetails = messages.stream().map(message -> {
             String type = message.getContent().startsWith("http") ? "IMAGE" : "TEXT";
-            return ChatDetailDTO.builder().senderId(message.getSenderId()).content(message.getContent()).type(type).time(new Date()).build();
+            return ChatDetailDTO.builder()
+                    .senderId(message.getSenderId())
+                    .content(message.getContent())
+                    .type(type)
+                    .time(new Date())
+                    .build();
         }).collect(Collectors.toList());
-        markMessagesAsRead(recipient.getId(), chatId);
+
         return ChatResponseDTO.builder()
                 .chatId(chatId)
-                .senderId(
-                        UserDTO.builder()
-                                .id(sender.getId())
-                                .name(getNameOfUser(sender))
-                                .avatar(sender.getAvatar())
-                                .build())
+                .senderId(UserDTO.builder()
+                        .id(sender.getId())
+                        .name(getNameOfUser(sender))
+                        .avatar(sender.getAvatar())
+                        .build())
                 .receiverId(UserDTO.builder()
                         .id(recipient.getId())
                         .name(getNameOfUser(recipient))
                         .avatar(recipient.getAvatar())
                         .build())
-                .chatDetail(chatDetails).build();
+                .chatDetail(chatDetails)
+                .build();
     }
 
     @Override
@@ -94,30 +110,21 @@ public class UserMessageServiceImpl implements UserMessageService {
                 message.setStatus(MessageStatus.RECEIVED);
                 userMessageRepository.save(message);
             }
-            return ChatDetailDTO.builder().senderId(message.getSenderId()).content(message.getContent()).type(message.getContent().startsWith("http") ? "IMAGE" : "TEXT").time(new Date()).build();
+            return ChatDetailDTO.builder()
+                    .senderId(message.getSenderId())
+                    .content(message.getContent())
+                    .type(message.getContent().startsWith("http") ? "IMAGE" : "TEXT")
+                    .time(new Date())
+                    .build();
         }).orElseThrow(() -> new ResourceNotFoundException("Can't find message (" + id + ")"));
     }
 
-    @Override
+
     @Transactional
-    public void updateStatuses(Integer senderId, Integer recipientId, MessageStatus status) {
-        User sender = userRepository.findById(senderId).orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
-        User recipient = userRepository.findById(recipientId).orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
-        List<UserMessage> messages = userMessageRepository.findBySenderAndRecipient(sender, recipient);
+    public void updateStatuses(UUID chatId, MessageStatus status) {
+        List<UserMessage> messages = userMessageRepository.findByChatId(chatId.toString());
         for (UserMessage message : messages) {
             message.setStatus(status);
-        }
-        userMessageRepository.saveAll(messages);
-    }
-
-    @Override
-    @Transactional
-    public void markMessagesAsRead(Integer recipientId, UUID chatId) {
-        List<UserMessage> messages = userMessageRepository.findByChatIdAndRecipientId(chatId.toString(), recipientId);
-        for (UserMessage message : messages) {
-            if (message.getStatus() == MessageStatus.DELIVERED) {
-                message.setStatus(MessageStatus.RECEIVED);
-            }
         }
         userMessageRepository.saveAll(messages);
     }
