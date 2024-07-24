@@ -155,7 +155,6 @@ public class StaffController {
      *
      * <p>Fetches a paginated list of users based on optional username and email parameters.
      *
-     * @param id              the id
      * @param username        The username to search for (optional).
      * @param firstName       the first name
      * @param middleName      the middle name
@@ -164,7 +163,7 @@ public class StaffController {
      * @param email           the gender
      * @param specificAddress the specific address
      * @param educationLevel  the education level
-     * @param birthday        the birthday
+     * @param status          the status
      * @param pageable        The pagination information.
      * @return A ResponseEntity containing the paginated list of users and a suitable HTTP status.
      */
@@ -415,6 +414,38 @@ public class StaffController {
     }
 
     /**
+     * Deletes a subject group by its ID.
+     *
+     * <p>Receives a request to delete a subject group and processes it.
+     *
+     * @param id The unique identifier of the subject group to delete.
+     * @param id The unique identifier of the subject group to activate.
+     * @param id The unique identifier of the subject group to delete.
+     * @param id The unique identifier of the subject group to activate.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception                                   <p>                                   Activates a subject group by its ID.                                   <p>Receives a request to activate a subject group and processes it.
+     *                                   <p>
+     *                                   Activates a subject group by its ID.
+     *
+     *                                   <p>Receives a request to activate a subject group and processes it.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     *                                   <p>
+     *                                   Deletes a subject group by its ID.
+     *
+     *                                   <p>Receives a request to delete a subject group and processes it.
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     *                                   <p>
+     *                                   Activates a subject group by its ID.
+     *
+     *                                   <p>Receives a request to activate a subject group and processes it.
+     */
+/**
      * Activates a subject group by its ID.
      *
      * <p>Receives a request to activate a subject group and processes it.
@@ -431,22 +462,6 @@ public class StaffController {
      *                                   Deletes a subject group by its ID.
      *
      *                                   <p>Receives a request to delete a subject group and processes it.
-     * @throws NotAllowedException       the not allowed exception
-     * @throws ResourceNotFoundException the resource not found exception
-     *                                   <p>
-     *                                   Activates a subject group by its ID.
-     *
-     *                                   <p>Receives a request to activate a subject group and processes it.
-     */
-    /**
-     * Deletes a subject group by its ID.
-     *
-     * <p>Receives a request to delete a subject group and processes it.
-     *
-     * @param id The unique identifier of the subject group to delete.
-     * @param id The unique identifier of the subject group to activate.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      * @throws NotAllowedException       the not allowed exception
      * @throws ResourceNotFoundException the resource not found exception
      *                                   <p>

@@ -16,6 +16,10 @@ public class PostReportId {
     private Integer reportId;
     private Integer postId;
 
+    public PostReportId(Integer reportId) {
+        this.reportId = reportId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

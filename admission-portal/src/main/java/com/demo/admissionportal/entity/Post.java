@@ -32,7 +32,6 @@ public class Post {
     @Column(name = "thumnail")
     private String thumnail;
 
-
     @Column(name = "quote")
     private String quote;
 

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -17,6 +18,8 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
+    @Column(name = "ticket_id")
+    private String ticket_id;
     @Column(name = "create_by")
     private Integer create_by;
     @Column(name = "create_time")
