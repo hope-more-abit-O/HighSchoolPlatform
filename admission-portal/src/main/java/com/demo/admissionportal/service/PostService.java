@@ -5,7 +5,11 @@ import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
+import com.demo.admissionportal.dto.response.post.PostDetailResponseDTOV2;
+import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -73,5 +77,20 @@ public interface PostService {
      * @param id the id
      * @return the response data
      */
-    ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUni(Integer id);
+    ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUniId(Integer id);
+
+    /**
+     * List all post consul or staff or uni response data.
+     *
+     * @param pageable the pageable
+     * @return the response data
+     */
+    ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(Pageable pageable);
+
+    /**
+     * List post favorite response data.
+     *
+     * @return the response data
+     */
+    ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite();
 }

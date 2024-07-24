@@ -15,6 +15,5 @@ import java.io.Serializable;
 @Data
 @Builder
 public class UserInfoPostResponseDTO implements Serializable {
-    private Integer id;
     private String fullName;
 }

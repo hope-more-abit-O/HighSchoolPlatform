@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.response.post;
 
+import com.demo.admissionportal.dto.response.comment.CommentResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,5 +20,6 @@ public class PostDetailResponseDTO implements Serializable {
     private PostPropertiesResponseDTO postProperties;
     private List<TypeResponseDTO> listType;
     private List<TagResponseDTO> listTag;
-    private UserInfoPostResponseDTO create_by;
+    private String create_by;
+    private List<CommentResponseDTO> comments;
 }

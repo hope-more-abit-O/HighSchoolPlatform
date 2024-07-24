@@ -1,13 +1,13 @@
-package com.demo.admissionportal.entity;
+package com.demo.admissionportal.dto.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessage {
-    private String role;
-    private String content;
+@Data
+public class IdAndName {
+    private Integer id;
+    private String name;
 }

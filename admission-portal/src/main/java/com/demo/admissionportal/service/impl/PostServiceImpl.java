@@ -3,11 +3,13 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.PostPropertiesStatus;
 import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.post.InfoPostResponseDTO;
 import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TagRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.comment.CommentResponseDTO;
 import com.demo.admissionportal.dto.response.post.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
@@ -19,17 +21,26 @@ import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.PostTagRepository;
 import com.demo.admissionportal.repository.sub_repository.PostTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.PostViewRepository;
+import com.demo.admissionportal.service.CommentService;
 import com.demo.admissionportal.service.PostService;
 import com.demo.admissionportal.service.TagService;
 import com.demo.admissionportal.util.impl.RandomCodeGeneratorUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,18 +60,25 @@ public class PostServiceImpl implements PostService {
     private final PostTagRepository postTagRepository;
     private final RandomCodeGeneratorUtil randomCodeGeneratorUtil;
     private final ModelMapper modelMapper;
-    private final UserInfoRepository userInfoRepository;
+    private final UserRepository userRepository;
     private final StaffInfoRepository staffInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
+    private final CommentService commentService;
+    private final UniversityInfoRepository universityInfoRepository;
+    private final UniversityCampusRepository universityCampusRepository;
+    private final ProvinceRepository provinceRepository;
+    private final CommentRepository commentRepository;
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
+        Integer createBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
             }
             // Insert Post
-            Post post = postSave(requestDTO);
+            Post post = postSave(requestDTO, createBy);
             if (post == null) {
                 throw new Exception("Save post thất bại!");
             }
@@ -72,7 +90,7 @@ public class PostServiceImpl implements PostService {
             }
 
             // Insert Post View
-            PostView postView = postViewSave(requestDTO.getCreate_by(), post);
+            PostView postView = postViewSave(createBy, post);
             if (postView == null) {
                 throw new Exception("Save post view thất bại!");
             }
@@ -80,7 +98,7 @@ public class PostServiceImpl implements PostService {
             // Check Tag Name if user input duplicate
             List<String> checkTagDuplicate = validateDuplicateTag(requestDTO.getListTag());
             if (!checkTagDuplicate.isEmpty()) {
-                throw new Exception("Không được nhập tag trùng nhau");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Không được nhập tag trùng nhau");
             }
             // Store list Tags
             List<Integer> tagIds = new ArrayList<>();
@@ -110,7 +128,7 @@ public class PostServiceImpl implements PostService {
                 Tag listTagById = tagRepository.findTagById(tag);
                 listTag.add(listTagById);
             }
-            UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
+            String info = getUserInfoPostDTO(post.getCreateBy());
             PostDetailResponseDTO responseDTO = PostDetailResponseDTO.builder()
                     .postProperties(mapperPostPropertiesResponseDTO(post))
                     .listType(mapperTypeResponseDTO(listType))
@@ -126,17 +144,35 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    /**
+     * Mapper post properties response dto post properties response dto.
+     *
+     * @param post the post
+     * @return the post properties response dto
+     */
     public PostPropertiesResponseDTO mapperPostPropertiesResponseDTO(Post post) {
         return modelMapper.map(post, PostPropertiesResponseDTO.class);
     }
 
 
+    /**
+     * Mapper type response dto list.
+     *
+     * @param lisType the lis type
+     * @return the list
+     */
     public List<TypeResponseDTO> mapperTypeResponseDTO(List<Type> lisType) {
         return lisType.stream()
                 .map(tag -> modelMapper.map(tag, TypeResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Mapper tag response dto list.
+     *
+     * @param listTag the list tag
+     * @return the list
+     */
     public List<TagResponseDTO> mapperTagResponseDTO(List<Tag> listTag) {
         return listTag.stream()
                 .map(type -> modelMapper.map(type, TagResponseDTO.class))
@@ -190,13 +226,14 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private Post postSave(PostRequestDTO requestDTO) {
+    private Post postSave(PostRequestDTO requestDTO, Integer createBy) {
         try {
             Post post = new Post();
             post.setTitle(requestDTO.getTitle());
             post.setContent(requestDTO.getContent());
+            post.setQuote(requestDTO.getQuote());
             post.setThumnail(requestDTO.getThumnail());
-            post.setCreateBy(requestDTO.getCreate_by());
+            post.setCreateBy(createBy);
             post.setCreateTime(new Date());
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
@@ -248,30 +285,31 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResponseData<String> changeStatus(PostDeleteRequestDTO requestDTO) {
+        Integer createBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
             }
 
             // Remove post
-            Post resultChangeStatusPost = changeStatusPost(requestDTO);
+            Post resultChangeStatusPost = changeStatusPost(requestDTO, createBy);
             if (resultChangeStatusPost == null) {
                 throw new Exception("Xoá post thất bại");
             }
             // Remove post tag
             List<Integer> tagIds = new ArrayList<>();
-            List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds);
+            List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds, createBy);
             if (resultChangeStatusPostTag == null) {
                 throw new Exception("Thay đổi trạng thái  post tag thất bại");
             }
             // Remove Post Type
-            boolean resultChangeStatusPostType = changeStatusPostType(requestDTO);
+            boolean resultChangeStatusPostType = changeStatusPostType(requestDTO, createBy);
             if (!resultChangeStatusPostType) {
                 throw new Exception("Thay đổi trạng thái  post type thất bại");
             }
 
             // Remove Post View
-            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO);
+            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO, createBy);
             if (!resultChangeStatusPostView) {
                 throw new Exception("Thay đổi trạng thái post view thất bại");
             }
@@ -282,7 +320,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO) {
+    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO, Integer createBy) {
         try {
             PostView postView = postViewRepository.findPostViewById(requestDTO.getPostId());
             if (postView == null) {
@@ -294,7 +332,7 @@ public class PostServiceImpl implements PostService {
                 postView.setStatus(PostPropertiesStatus.INACTIVE);
             }
             postView.setUpdateTime(new Date());
-            postView.setUpdateBy(requestDTO.getUserId());
+            postView.setUpdateBy(createBy);
             postViewRepository.save(postView);
             return true;
         } catch (Exception ex) {
@@ -303,7 +341,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO) {
+    private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO, Integer createBy) {
         try {
             List<PostType> posts = postTypeRepository.findPostTypeByPostId(requestDTO.getPostId());
             for (PostType post : posts) {
@@ -313,7 +351,7 @@ public class PostServiceImpl implements PostService {
                     post.setStatus(PostPropertiesStatus.INACTIVE);
                 }
                 post.setUpdateTime(new Date());
-                post.setUpdateBy(requestDTO.getUserId());
+                post.setUpdateBy(createBy);
                 postTypeRepository.save(post);
             }
             return true;
@@ -324,7 +362,7 @@ public class PostServiceImpl implements PostService {
     }
 
 
-    private Post changeStatusPost(PostDeleteRequestDTO requestDTO) {
+    private Post changeStatusPost(PostDeleteRequestDTO requestDTO, Integer createBy) {
         try {
             Post post = postRepository.findFirstById(requestDTO.getPostId());
             if (post == null) {
@@ -332,11 +370,13 @@ public class PostServiceImpl implements PostService {
             }
             if (post.getStatus().equals(PostStatus.INACTIVE)) {
                 post.setStatus(PostStatus.ACTIVE);
+                post.setNote(requestDTO.getNote());
             } else {
                 post.setStatus(PostStatus.INACTIVE);
+                post.setNote(requestDTO.getNote());
             }
             post.setUpdateTime(new Date());
-            post.setUpdateBy(requestDTO.getUserId());
+            post.setUpdateBy(createBy);
             return postRepository.save(post);
 
         } catch (Exception ex) {
@@ -345,7 +385,7 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private List<PostTag> changeStatusPostTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds) {
+    private List<PostTag> changeStatusPostTag(PostDeleteRequestDTO requestDTO, List<Integer> tagIds, Integer createBy) {
         try {
             List<PostTag> postTagList = postTagRepository.findPostTagByPostId(requestDTO.getPostId());
             if (postTagList == null) {
@@ -358,7 +398,7 @@ public class PostServiceImpl implements PostService {
                     postTag.setStatus(PostPropertiesStatus.INACTIVE);
                 }
                 postTag.setUpdateTime(new Date());
-                postTag.setUpdateBy(requestDTO.getUserId());
+                postTag.setUpdateBy(createBy);
                 tagIds.add(postTag.getId().getTagId());
                 postTagRepository.save(postTag);
             }
@@ -410,28 +450,25 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
                 .collect(Collectors.toList());
-
-        UserInfo userInfo = userInfoRepository.findUserInfoById(post.getCreateBy());
-
+        List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
-            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
+//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
         }
-        if (postPropertiesResponseDTO.getUpdate_time() != null) {
-            postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
-        }
-        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
+        String info = getUserInfoPostDTO(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .create_by(info)
+                .comments(commentResponseDTO)
                 .build();
     }
 
     @Override
     public ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO) {
+        Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
             if (requestDTO == null || requestDTO.getPostId() == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
@@ -448,14 +485,14 @@ public class PostServiceImpl implements PostService {
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
             existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
-            existingPost.setUpdateBy(requestDTO.getUpdate_by());
+            existingPost.setUpdateBy(updateBy);
             postRepository.save(existingPost);
 
             // Update Post Types
-            updatePostType(existingPost, requestDTO.getListType(), requestDTO.getUpdate_by());
+            updatePostType(existingPost, requestDTO.getListType(), updateBy);
 
             // Update Tag
-            updatePostTag(existingPost, requestDTO.getListTag(), requestDTO.getUpdate_by());
+            updatePostTag(existingPost, requestDTO.getListTag(), updateBy);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật post thành công");
         } catch (Exception ex) {
@@ -555,14 +592,10 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
-        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
+        String info = getUserInfoPostDTO(post.getCreateBy());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
-        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         if (postPropertiesResponseDTO.getCreate_time() != null) {
-            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
-        }
-        if (postPropertiesResponseDTO.getUpdate_time() != null) {
-            postPropertiesResponseDTO.setUpdate_time(formatter.format(post.getUpdateTime()));
+            postPropertiesResponseDTO.setCreate_time(post.getCreateTime());
         }
         return PostResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
@@ -586,18 +619,12 @@ public class PostServiceImpl implements PostService {
         return url.replace(" ", "-");
     }
 
-    private UserInfoPostResponseDTO mapperStaffInfoResponseDTO(StaffInfo staffInfo) {
-        UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
-        userInfoPostResponseDTO.setId(staffInfo.getId());
-        userInfoPostResponseDTO.setFullName(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
-        return userInfoPostResponseDTO;
+    private String mapperStaffInfoResponseDTO(StaffInfo staffInfo) {
+        return (staffInfo.getFirstName().trim() + " " + staffInfo.getMiddleName().trim() + " " + staffInfo.getLastName().trim());
     }
 
-    private UserInfoPostResponseDTO mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
-        UserInfoPostResponseDTO userInfoPostResponseDTO = new UserInfoPostResponseDTO();
-        userInfoPostResponseDTO.setId(consultantInfo.getId());
-        userInfoPostResponseDTO.setFullName(consultantInfo.getFirstname() + " " + consultantInfo.getMiddleName() + " " + consultantInfo.getLastName());
-        return userInfoPostResponseDTO;
+    private String mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
+        return (consultantInfo.getFirstName().trim() + " " + consultantInfo.getMiddleName().trim() + " " + consultantInfo.getLastName().trim());
     }
 
     @Override
@@ -642,7 +669,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUni(Integer id) {
+    public ResponseData<List<PostDetailResponseDTO>> listPostByConsultOrStaffOrUniId(Integer id) {
         try {
             List<PostDetailResponseDTO> response = new ArrayList<>();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -671,7 +698,7 @@ public class PostServiceImpl implements PostService {
     private List<PostDetailResponseDTO> getPostByUniversityId(Integer id) {
         List<PostDetailResponseDTO> response = null;
         try {
-            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosById(id);
+            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosByUniversityId(id);
             for (ConsultantInfo consultantInfo : consultantInfos) {
                 List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
                 Set<String> filter = new HashSet<>();
@@ -689,6 +716,12 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    /**
+     * Gets posts by staff or consultant id.
+     *
+     * @param id the id
+     * @return the posts by staff or consultant id
+     */
     public List<PostDetailResponseDTO> getPostsByStaffOrConsultantId(Integer id) {
         List<PostDetailResponseDTO> response = null;
         try {
@@ -707,6 +740,12 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    /**
+     * Map to list post detail post detail response dto.
+     *
+     * @param post the post
+     * @return the post detail response dto
+     */
     public PostDetailResponseDTO mapToListPostDetail(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
@@ -717,7 +756,7 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
                 .collect(Collectors.toList());
-        UserInfoPostResponseDTO info = getUserInfoPostDTO(post.getCreateBy());
+        String info = getUserInfoPostDTO(post.getCreateBy());
 
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         return PostDetailResponseDTO.builder()
@@ -728,15 +767,257 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    public UserInfoPostResponseDTO getUserInfoPostDTO(Integer create_by) {
-        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(create_by);
-        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(create_by);
-        UserInfoPostResponseDTO userInfo = null;
+    /**
+     * Gets user info post dto.
+     *
+     * @param createBy the create by
+     * @return the user info post dto
+     */
+    public String getUserInfoPostDTO(Integer createBy) {
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
+        String userInfo = null;
         if (staffInfo != null) {
             userInfo = mapperStaffInfoResponseDTO(staffInfo);
         } else if (consultantInfo != null) {
             userInfo = mapperConsultantInfoResponseDTO(consultantInfo);
         }
         return userInfo;
+    }
+
+
+    @Override
+    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(Pageable pageable) {
+        try {
+            List<PostDetailResponseDTOV2> response = new ArrayList<>();
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
+            switch (userRole) {
+                case "STAFF":
+                    response = getAllPostByStaff();
+                    break;
+                case "CONSULTANT":
+                    response = getAllPostByConsultantId(userId);
+                    break;
+                case "UNIVERSITY":
+                    response = getPostByUniversityIdV2(userId);
+                    break;
+            }
+            if (response == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post");
+            }
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), response.size());
+            List<PostDetailResponseDTOV2> pagedResponse = response.subList(start, end);
+
+            Page<PostDetailResponseDTOV2> postDetailResponseDTOV2Page = new PageImpl<>(pagedResponse, pageable, response.size());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", postDetailResponseDTOV2Page);
+        } catch (Exception ex) {
+            log.info("Error when list all post by consult/staff/uni: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post", null);
+        }
+    }
+
+    private List<PostDetailResponseDTOV2> getAllPostByConsultantId(Integer id) {
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
+        return getPostByUniversityIdV2(consultantInfo.getUniversityId());
+    }
+
+    private List<PostDetailResponseDTOV2> getAllPostByStaff() {
+        List<StaffInfo> staffInfo = staffInfoRepository.findAll();
+        return staffInfo.stream()
+                .flatMap(staff -> getPostsByStaffOrConsultantIdV2(staff.getId()).stream())
+                .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite() {
+        try {
+            log.info("Start retrieve post favorite");
+            // Filter duplicate by id, Title, Content
+            List<Post> post = postRepository.findAll();
+            List<PostFavoriteResponseDTO> postResponseDTOList = post.stream()
+                    .sorted(Comparator.comparing(Post::getCreateTime).reversed())
+                    .map(this::mapToPostFavoriteDTO)
+                    .peek(this::filterPost)
+                    .filter(this::filterRecentPosts)
+                    .collect(Collectors.toList());
+
+            /* Group by day and get the highest interaction post for each day
+                Example: KEY: 2024-01-21    VALUES
+                              ----//----    2127
+                              ----//----    2128
+                              ----//----    2129
+                 We need to calculator interact post and get highest in each day by key
+            */
+            // Group by day and get the highest interaction post for each day
+            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay = postResponseDTOList.stream()
+                    .collect(Collectors.groupingBy(
+                            postFavoriteResponseDTO -> {
+                                LocalDate localDate = postFavoriteResponseDTO.getPostProperties().getCreate_time().toInstant()
+                                        .atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+                                return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                            },
+                            Collectors.collectingAndThen(
+                                    Collectors.maxBy(Comparator.comparing(PostFavoriteResponseDTO::getInteractPost)),
+                                    Optional::get
+                            )
+                    ));
+            // Collect results and display most recent create_date
+            List<PostFavoriteResponseDTO> resultOfFilter = new ArrayList<>(highestInteractionByDay.values())
+                    .stream()
+                    .sorted(Comparator.comparing(PostFavoriteResponseDTO::getPublishAgo).reversed())
+                    .toList();
+
+            log.info("End retrieve post favorite");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", resultOfFilter);
+        } catch (Exception ex) {
+            log.info("Error when get post favorite: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post favorite");
+        }
+    }
+
+    private boolean filterRecentPosts(PostFavoriteResponseDTO postFavoriteResponseDTO) {
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        Date datePost = postFavoriteResponseDTO.getPostProperties().getCreate_time();
+        Date dateNow = new Date();
+        LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
+        LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
+        long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
+        return dateAgo >= 0 && dateAgo <= 3;
+    }
+
+    private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
+        // Count comment in post
+        int countComment = commentRepository.countByPostId(postFavoriteResponseDTO.getPostProperties().getId());
+        // Get view in post
+        int view = postFavoriteResponseDTO.getPostProperties().getView();
+        // Get like in post
+        int like = postFavoriteResponseDTO.getPostProperties().getLike();
+        // Average contact with post
+        float interactPost = (float) (countComment + view + like) / 3;
+        postFavoriteResponseDTO.setInteractPost(interactPost);
+    }
+
+    /**
+     * Map to post favorite dto post favorite response dto.
+     *
+     * @param post the post
+     * @return the post favorite response dto
+     */
+    public PostFavoriteResponseDTO mapToPostFavoriteDTO(Post post) {
+        try {
+            ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
+            StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(post.getCreateBy());
+            String fullName = null;
+            String location = null;
+            Integer id = 0;
+            // Case 1 : find post by staff
+            if (staffInfo != null && consultantInfo == null) {
+                Province province = provinceRepository.findProvinceById(staffInfo.getProvinceId());
+                id = staffInfo.getId();
+                fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
+                location = province.getName();
+            } else if (consultantInfo != null && staffInfo == null) {
+                // Case 2 : if consultant is existed and find it
+                User user = userRepository.findUserById(consultantInfo.getUniversityId());
+                UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+                UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+                id = universityInfo.getId();
+                fullName = universityInfo.getName() + " " + universityCampus.getCampusName();
+                location = universityCampus.getSpecificAddress();
+            }
+
+            PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+            return PostFavoriteResponseDTO.builder()
+                    .postProperties(postPropertiesResponseDTO)
+                    .info(InfoPostResponseDTO.builder()
+                            .id(id)
+                            .name(fullName)
+                            .location(location)
+                            .build())
+                    .publishAgo(postPropertiesResponseDTO.getCreate_time())
+                    .build();
+        } catch (Exception ex) {
+            log.info("Error when map post favorite: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Gets posts by staff or consultant id v 2.
+     *
+     * @param id the id
+     * @return the posts by staff or consultant id v 2
+     */
+    public List<PostDetailResponseDTOV2> getPostsByStaffOrConsultantIdV2(Integer id) {
+        List<PostDetailResponseDTOV2> response = null;
+        try {
+            List<Post> posts = postRepository.findPostByUserId(id);
+            Set<String> filter = new HashSet<>();
+            if (posts != null) {
+                response = posts.stream()
+                        .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
+                        .map(this::mapToListPostDetailV2)
+                        .collect(Collectors.toList());
+            }
+            return response;
+        } catch (Exception ex) {
+            log.error("Error when get posts version 2 with user id {}:", ex.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * Map to list post detail v 2 post detail response dtov 2.
+     *
+     * @param post the post
+     * @return the post detail response dtov 2
+     */
+    public PostDetailResponseDTOV2 mapToListPostDetailV2(Post post) {
+        List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
+                .collect(Collectors.toList());
+        String listType = typeResponseDTOList.stream()
+                .map(type -> String.valueOf(type.getName()))
+                .collect(Collectors.joining(","));
+        String info = getUserInfoPostDTO(post.getCreateBy());
+
+        PostDetailResponseDTOV2 postPropertiesResponseDTO = modelMapper.map(post, PostDetailResponseDTOV2.class);
+
+        return PostDetailResponseDTOV2.builder()
+                .id(postPropertiesResponseDTO.getId())
+                .title(postPropertiesResponseDTO.getTitle())
+                .createBy(info.trim())
+                .createTime(post.getCreateTime())
+                .status(postPropertiesResponseDTO.getStatus())
+                .type(listType)
+                .url(postPropertiesResponseDTO.getUrl())
+                .note(postPropertiesResponseDTO.getNote())
+                .build();
+    }
+
+    private List<PostDetailResponseDTOV2> getPostByUniversityIdV2(Integer id) {
+        List<PostDetailResponseDTOV2> response = null;
+        try {
+            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosByUniversityId(id);
+            for (ConsultantInfo consultantInfo : consultantInfos) {
+                List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
+                Set<String> filter = new HashSet<>();
+                if (posts != null) {
+                    response = posts.stream()
+                            .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
+                            .map(this::mapToListPostDetailV2)
+                            .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
+                            .collect(Collectors.toList());
+                }
+            }
+            return response;
+        } catch (Exception ex) {
+            log.error("Error when get posts version 2 with university id {}:", ex.getMessage());
+        }
+        return response;
     }
 }

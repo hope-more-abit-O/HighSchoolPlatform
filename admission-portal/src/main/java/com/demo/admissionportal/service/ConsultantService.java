@@ -12,6 +12,8 @@ import com.demo.admissionportal.exception.NotAllowedException;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Defines the contract for managing consultant information, including creation and retrieval.
@@ -91,4 +93,6 @@ public interface ConsultantService {
     ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request) throws ResourceNotFoundException, StoreDataFailedException;
 
     ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException,ResourceNotFoundException, BadRequestException, StoreDataFailedException;
-    ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request) throws ResourceNotFoundException, StoreDataFailedException;}
+    ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request) throws ResourceNotFoundException, StoreDataFailedException;
+    Page<FullConsultantResponseDTO> getConsultant(Integer createBy, Pageable pageable) throws ResourceNotFoundException;
+}

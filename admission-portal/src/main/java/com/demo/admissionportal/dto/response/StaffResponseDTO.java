@@ -5,18 +5,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+import java.util.Date;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class StaffResponseDTO {
+public class StaffResponseDTO implements Serializable {
     private Integer id;
     private String username;
     private String email;
-    private String firstName;
-    private String middleName;
-    private String lastName;
+    private String name;
     private String avatar;
     private String phone;
     private String status;
+    private Integer provinceId;
+    private String note;
+    private Date createTime;
 }

@@ -1,10 +1,13 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
 import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
+import com.demo.admissionportal.service.UniversityService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority('CONSULTANT')")
 public class ConsultantController {
     private final ConsultantService consultantService;
+    private final UniversityService universityService;
 
     /**
      * Retrieves details of a consultant by their ID.
@@ -50,5 +54,11 @@ public class ConsultantController {
     public ResponseEntity<?> seftUpdateConsultantAddress(@RequestBody @Valid UpdateConsultantAddressRequest request)
             throws ResourceNotFoundException, StoreDataFailedException{
         return ResponseEntity.ok(consultantService.selfUpdateConsultantAddress(request));
+    }
+
+    @GetMapping("/university/{id}")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
     }
 }

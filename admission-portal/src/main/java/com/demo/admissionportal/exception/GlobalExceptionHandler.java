@@ -1,15 +1,22 @@
 package com.demo.admissionportal.exception;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,5 +98,24 @@ public class GlobalExceptionHandler {
         // Handle the exception here, e.g., return a custom error response.
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
                 .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        String message = ex.getMessage();
+        logger.error("HttpMessageNotReadableException: {}", message);
+        Map<String, String> errors = new HashMap<>();
+        if (message.contains("Unexpected character")) {
+            message = "Định dạng không đúng.";
+            errors.put("error", message);
+        } else if (message.contains("Cannot deserialize value of type `java.lang.Float`")) {
+            message = "Định dạng không đúng.";
+            errors.put("error", message);
+        } else if (message.contains("Unrecognized field")){
+            message = "Request chứa thông tin không hợp lệ";
+            errors.put("error", message);
+        }
+        return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
     }
 }

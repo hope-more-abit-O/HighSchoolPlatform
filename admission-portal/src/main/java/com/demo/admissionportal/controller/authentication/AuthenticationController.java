@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller.authentication;
 
+import com.demo.admissionportal.config.authentication.config.LogoutConfig;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.LoginRequestDTO;
 import com.demo.admissionportal.dto.request.authen.ChangePasswordRequestDTO;
@@ -17,14 +18,18 @@ import com.demo.admissionportal.service.OTPService;
 import com.demo.admissionportal.service.resetPassword.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.security.Principal;
 
 /**
@@ -38,6 +43,7 @@ public class AuthenticationController {
     private final AuthenticationUserService authenticationUserService;
     private final ResetPasswordService resetPasswordService;
     private final OTPService otpService;
+    private final LogoutConfig logoutConfig;
 
     /**
      * Login response entity.
@@ -214,5 +220,16 @@ public class AuthenticationController {
         }
         log.error("Failed to reset password");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        authenticationUserService.refreshToken(request, response);
+    }
+
+    @PostMapping("/logout")
+    @SecurityRequirement(name = "BearerAuth")
+    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        logoutConfig.logout(request, response, authentication);
     }
 }

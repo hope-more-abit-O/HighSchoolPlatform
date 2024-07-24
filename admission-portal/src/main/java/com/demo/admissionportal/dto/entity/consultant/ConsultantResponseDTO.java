@@ -4,7 +4,6 @@ import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.dto.entity.address.InfoDistrictDTO;
 import com.demo.admissionportal.dto.entity.address.InfoProvinceDTO;
 import com.demo.admissionportal.dto.entity.address.InfoWardDTO;
-import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.entity.ConsultantInfo;
 import lombok.AllArgsConstructor;
@@ -48,6 +47,7 @@ public class ConsultantResponseDTO {
     private UniversityInfoResponseDTO university;
     private String name;
     private String phone;
+    private String specificAddress;
     private InfoProvinceDTO province;
     private InfoDistrictDTO district;
     private InfoWardDTO ward;
@@ -83,7 +83,7 @@ public class ConsultantResponseDTO {
      */
     public void convertName(ConsultantInfo consultantInfo){
         StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append(consultantInfo.getFirstname()).append(" ");
+        nameBuilder.append(consultantInfo.getFirstName()).append(" ");
         if (consultantInfo.getMiddleName() != null && !consultantInfo.getMiddleName().isEmpty())
             nameBuilder.append(consultantInfo.getMiddleName()).append(" ");
         nameBuilder.append(consultantInfo.getLastName()).append(" ");

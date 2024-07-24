@@ -1,12 +1,12 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.dto.request.post.TypePostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostRequestDTO;
 import com.demo.admissionportal.dto.request.post.TypePostUpdateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.type.TypeListResponseDTO;
 import com.demo.admissionportal.entity.Type;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * The interface Type service.
@@ -23,9 +23,10 @@ public interface TypeService {
     /**
      * Gets list type post.
      *
+     * @param pageable the pageable
      * @return the list type post
      */
-    ResponseData<List<Type>> getListTypePost();
+    ResponseData<Page<TypeListResponseDTO>> getListTypePost(Pageable pageable);
 
     /**
      * Gets post by id.
@@ -38,11 +39,10 @@ public interface TypeService {
     /**
      * Change status response data.
      *
-     * @param id         the id
-     * @param requestDTO the request dto
+     * @param id the id
      * @return the response data
      */
-    ResponseData<Type> changeStatus(Integer id , TypePostDeleteRequestDTO requestDTO);
+    ResponseData<Type> changeStatus(Integer id);
 
     /**
      * Update type response data.

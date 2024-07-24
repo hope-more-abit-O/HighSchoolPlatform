@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 
+import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.request.UpdateSubjectGroupRequestDTO;
 import com.demo.admissionportal.dto.request.CreateSubjectGroupRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -48,7 +49,7 @@ public interface SubjectGroupService {
      * @param pageable    the pageable
      * @return the response data
      */
-    ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, String status, Pageable pageable);
+    ResponseData<Page<SubjectGroupResponseDTO>> findAll(String groupName, String subjectName, SubjectStatus status, Pageable pageable);
 
     /**
      * Delete subject group response data.

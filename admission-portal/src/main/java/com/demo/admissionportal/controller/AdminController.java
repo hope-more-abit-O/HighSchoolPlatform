@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,29 +45,13 @@ public class AdminController {
     private final UniversityService universityService;
 
     /**
-     * Register admin response entity.
-     *
-     * @param request the request
-     * @return the response entity
-     */
-//    @PostMapping("/register")
-//    public ResponseEntity<ResponseData<AdminInfo>> registerAdmin(@RequestBody @Valid RegisterAdminRequestDTO request) {
-//        ResponseData<AdminInfo> response = adminService.registerAdmin(request);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-//        }
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//    }
-
-    /**
      * Register staff response entity.
      *
      * @param request the request
      * @return the response entity
      */
     @PostMapping("/register-staff")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ResponseData<RegisterStaffResponse>> registerStaff(@RequestBody @Valid RegisterStaffRequestDTO request) {
         ResponseData<RegisterStaffResponse> response = staffService.registerStaff(request);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -100,7 +86,7 @@ public class AdminController {
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) AccountStatus status,
             Pageable pageable) {
-        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName,middleName, lastName, email, phone, status, pageable);
+        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -114,6 +100,7 @@ public class AdminController {
      * @return the staff by id
      */
     @GetMapping("/get-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> getStaffById(@PathVariable int id) {
         ResponseData<?> result = staffService.getStaffById(id);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
@@ -135,6 +122,7 @@ public class AdminController {
      * @return the response entity
      */
     @DeleteMapping("/delete-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> deleteStaffById(@Valid @PathVariable int id, @Valid @RequestBody DeleteStaffRequest request) {
         log.info("Received request to delete staff with ID: {} and note: {}", id, request.note());
         ResponseData<?> result = staffService.deleteStaffById(id, request);
@@ -157,6 +145,7 @@ public class AdminController {
      * @return the response entity
      */
     @PutMapping("/activate-staff/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> activateStaffById(@PathVariable int id, @RequestBody ActiveStaffRequest request) {
         log.info("Received request to activate staff with ID: {} and note: {}", id, request.note());
         ResponseData<?> result = staffService.activateStaffById(id, request);
@@ -219,9 +208,32 @@ public class AdminController {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 
-
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable) {
-        return ResponseEntity.ok(createUniversityService.getBy(pageable));
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String universityName,
+            @RequestParam(required = false) String universityCode,
+            @RequestParam(required = false) String universityEmail,
+            @RequestParam(required = false) String universityUsername,
+            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer confirmBy
+    ) {
+        return ResponseEntity.ok(createUniversityService.getBy(
+                pageable, id, universityName, universityCode, universityEmail,
+                universityUsername, status, createBy, confirmBy
+        ));
+    }
+
+    @GetMapping("/university")
+    public ResponseEntity<?> getInfoUniversity(@PageableDefault(size = 10) Pageable page){
+        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(page));
+    }
+
+    @GetMapping("/university/{id}")
+    public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
     }
 }

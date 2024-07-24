@@ -1,12 +1,14 @@
 package com.demo.admissionportal.dto.response.post;
 
 import com.demo.admissionportal.constants.PostStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * The type Post properties response dto.
@@ -18,14 +20,12 @@ import java.io.Serializable;
 public class PostPropertiesResponseDTO implements Serializable {
     private Integer id;
     private String title;
-    private String content;
     private String thumnail;
     private String quote;
-    private Integer view;
-    private Integer like;
     private PostStatus status;
-    private String create_time;
-    private String update_time;
-    private Integer update_by;
+    private Date create_time;
     private String url;
+    @JsonIgnore
+    private Integer like;
+    private Integer view;
 }

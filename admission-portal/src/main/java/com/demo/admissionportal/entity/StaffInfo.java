@@ -1,7 +1,5 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.constants.ProviderType;
-import com.demo.admissionportal.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,9 +13,8 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @Table(name = "staff_info")
-public class    StaffInfo {
+public class StaffInfo {
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "staff_id")
     private Integer id;
 
@@ -36,12 +33,30 @@ public class    StaffInfo {
     @Column(name = "phone")
     private String phone;
 
-    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone) {
+    @Column(name = "province_id")
+    private Integer provinceId;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "staff_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private User user;
+
+    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone, Integer provinceId, User user) {
         this.id = id;
         this.adminId = adminId;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.phone = phone;
+        this.provinceId = provinceId;
+    }
+
+    public StaffInfo(Integer id, Integer adminId, String firstName, String middleName, String lastName, String phone, Integer provinceId) {
+        this.id = id;
+        this.adminId = adminId;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.provinceId = provinceId;
     }
 }

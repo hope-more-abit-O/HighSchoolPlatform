@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.SubjectStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,12 +27,9 @@ public class SubjectGroup {
     @Column(name = "name")
     private String name;
 
-    @Size(max = 255)
-    @NotNull
-    @Nationalized
-    @ColumnDefault("ACTIVE")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private SubjectStatus status;
 
     @Column(name = "create_time")
     private Date createTime;
