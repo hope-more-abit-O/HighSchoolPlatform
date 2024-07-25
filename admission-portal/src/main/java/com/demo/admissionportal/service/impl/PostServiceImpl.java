@@ -877,7 +877,7 @@ public class PostServiceImpl implements PostService {
         LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
         LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
         long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-        return dateAgo >= 0 && dateAgo <= 3;
+        return dateAgo >= 0 && dateAgo <= 6;
     }
 
     private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
