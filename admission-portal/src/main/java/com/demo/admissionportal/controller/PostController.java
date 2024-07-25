@@ -5,10 +5,7 @@ import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
-import com.demo.admissionportal.dto.response.post.PostDetailResponseDTOV2;
-import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
-import com.demo.admissionportal.dto.response.post.PostResponseDTO;
+import com.demo.admissionportal.dto.response.post.*;
 import com.demo.admissionportal.service.PostService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -214,4 +211,14 @@ public class PostController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @GetMapping("/random")
+    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable){
+        ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(pageable);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
 }

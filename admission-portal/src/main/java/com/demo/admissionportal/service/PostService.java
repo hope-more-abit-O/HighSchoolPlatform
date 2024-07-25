@@ -4,10 +4,7 @@ import com.demo.admissionportal.dto.request.post.PostDeleteRequestDTO;
 import com.demo.admissionportal.dto.request.post.PostRequestDTO;
 import com.demo.admissionportal.dto.request.post.UpdatePostRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.post.PostDetailResponseDTO;
-import com.demo.admissionportal.dto.response.post.PostDetailResponseDTOV2;
-import com.demo.admissionportal.dto.response.post.PostFavoriteResponseDTO;
-import com.demo.admissionportal.dto.response.post.PostResponseDTO;
+import com.demo.admissionportal.dto.response.post.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -94,4 +91,11 @@ public interface PostService {
      * @return the response data
      */
     ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite();
+
+    /**
+     * List post random response data.
+     *
+     * @return the response data
+     */
+    ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Pageable pageable);
 }
