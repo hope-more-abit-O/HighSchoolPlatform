@@ -189,8 +189,8 @@ public class PostController {
     @GetMapping("/list")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
-    public ResponseEntity<ResponseData<Page<PostDetailResponseDTOV2>>> getPostsList(@PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff(pageable);
+    public ResponseEntity<ResponseData<Page<PostDetailResponseDTOV2>>> getPostsList(@RequestParam(required = false) String title, @PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff(title, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
