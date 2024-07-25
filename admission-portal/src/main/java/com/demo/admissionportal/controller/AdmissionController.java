@@ -1,5 +1,7 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
@@ -8,11 +10,12 @@ import com.demo.admissionportal.exception.ResourceNotFoundException;
 import com.demo.admissionportal.exception.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/admission")
@@ -51,5 +54,23 @@ public class AdmissionController {
         throws DataExistedException{
         admissionService.createAdmission(request);
         return ResponseEntity.ok("Good");
+    }
+
+    @GetMapping("")
+    public ResponseEntity<ResponseData<Page<FullAdmissionDTO>>> getCreateAdmissionRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String source,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) Date createTime,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer updateBy,
+            @RequestParam(required = false) Date updateTime,
+            @RequestParam(required = false) AdmissionStatus status
+    ) {
+        return ResponseEntity.ok(admissionService.getBy(
+                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status
+        ));
     }
 }

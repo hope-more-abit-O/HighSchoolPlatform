@@ -1,21 +1,20 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.AdmissionQuotaDTO;
 import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramMethodQuotaDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
+import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionMethodResponse;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionTrainingProgramResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionTrainingProgramSubjectGroupResponse;
-import com.demo.admissionportal.entity.Major;
-import com.demo.admissionportal.entity.Method;
-import com.demo.admissionportal.entity.SubjectGroup;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.DataExistedException;
@@ -28,14 +27,19 @@ import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.MajorServiceImpl;
 import com.demo.admissionportal.service.impl.MethodServiceImpl;
 import com.demo.admissionportal.service.impl.SubjectGroupServiceImpl;
+import com.demo.admissionportal.service.impl.UniversityInfoServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -52,6 +56,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final MethodServiceImpl methodService;
     private final ModelMapper modelMapper;
     private final SubjectGroupServiceImpl subjectGroupService;
+    private final UniversityInfoServiceImpl universityInfoServiceImpl;
 
     public Admission save(Admission admission) {
         try {
@@ -325,4 +330,71 @@ public class AdmissionServiceImpl implements AdmissionService {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Admission training program id not found"));
     }
+
+    public ResponseData<Page<FullAdmissionDTO>> getBy(Pageable pageable,
+                                                      Integer id,
+                                                      Integer year,
+                                                      String source,
+                                                      Integer universityId,
+                                                      Date createTime,
+                                                      Integer createBy,
+                                                      Integer updateBy,
+                                                      Date updateTime,
+                                                      AdmissionStatus status) {
+        Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
+
+        List<ActionerDTO> actionerDTOs = this.getActioners(admissions.getContent());
+
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.getContent().stream().map(Admission::getUniversityId).toList());
+
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mapping(element, actionerDTOs, universityInfos)));
+    }
+
+    protected List<ActionerDTO> getActioners(List<Admission> admissions) {
+        Set<Integer> actionerIds = admissions.stream()
+                .flatMap(ad -> Stream.of(ad.getCreateBy(), ad.getUpdateBy()).filter(Objects::nonNull))
+                .collect(Collectors.toSet());
+
+        return userService.getActioners(actionerIds.stream().toList());
+    }
+
+    protected FullAdmissionDTO mapping(Admission admission, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
+        FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
+
+        if (admission.getUpdateBy() != null){
+            if (admission.getUpdateBy() == admission.getCreateBy()){
+                ActionerDTO actionerDTO = getCreateBy(admission, actionerDTOs);
+                result.setUpdateBy(actionerDTO);
+                result.setCreateBy(actionerDTO);
+            }
+            else {
+                result.setUpdateBy(getCreateBy(admission, actionerDTOs));
+                result.setCreateBy(getUpdateBy(admission, actionerDTOs));
+            }
+        }
+        else{
+            result.setUpdateBy(null);
+            result.setCreateBy(getCreateBy(admission, actionerDTOs));
+        }
+
+        UniversityInfo universityInfo =  universityInfos.stream().filter(uni -> uni.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University id not found"));
+        result.setUniversity(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class));
+
+        return result;
+    }
+
+    protected ActionerDTO getCreateBy(Admission admission, List<ActionerDTO> actionerDTOs) {
+        return actionerDTOs.stream().filter(ac -> ac.getId().equals(admission.getCreateBy()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission create by id not found"));
+    }
+
+    protected ActionerDTO getUpdateBy(Admission admission, List<ActionerDTO> actionerDTOs) {
+        return actionerDTOs.stream().filter(ac -> ac.getId().equals(admission.getUpdateBy()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission create by id not found"));
+    }
+
+
+
 }

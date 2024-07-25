@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -20,5 +22,9 @@ public class UniversityInfoServiceImpl implements UniversityInfoService {
             log.error("University's information with id: {} not found.", id);
             return new ResourceNotFoundException("University's information with id: " + id + " not found");
         });
+    }
+
+    public List<UniversityInfo> findByIds(List<Integer> ids)throws ResourceNotFoundException {
+        return universityInfoRepository.findAllById(ids);
     }
 }
