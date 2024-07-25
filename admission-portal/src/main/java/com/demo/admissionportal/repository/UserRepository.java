@@ -107,4 +107,30 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Page<User> findByRole(Role role, Pageable pageable);
     Page<User> findByCreateByAndRole(Integer createBy, Role role, Pageable pageable);
+
+    @Query(value = """
+        SELECT usr.*
+        FROM [user] usr
+        INNER JOIN university_info u ON usr.id = u.university_id
+        LEFT JOIN university_campus unic ON unic.university_id = u.university_id
+        WHERE (:id IS NULL OR usr.id = :id)
+          AND (:username IS NULL OR usr.username LIKE %:username%)
+          AND (:code IS NULL OR u.code LIKE %:code%)
+          AND (:name IS NULL OR u.name LIKE %:name% OR unic.campus_name LIKE %:name%)
+          AND (:phone IS NULL OR unic.phone LIKE %:phone%)
+          AND (:email IS NULL OR usr.email LIKE %:email% OR unic.email LIKE %:email%)
+          AND (:status IS NULL OR usr.status = :status)
+          AND (:createBy IS NULL OR usr.create_by = :createBy)
+    """, nativeQuery = true)
+    Page<User> findUniversityAccountBy(
+            Pageable pageable,
+            @org.springframework.data.repository.query.Param("id") Integer id,
+            @org.springframework.data.repository.query.Param("code") String code,
+            @org.springframework.data.repository.query.Param("username") String username,
+            @org.springframework.data.repository.query.Param("name") String name,
+            @org.springframework.data.repository.query.Param("phone") String phone,
+            @org.springframework.data.repository.query.Param("email") String email,
+            @org.springframework.data.repository.query.Param("status") String status,
+            @org.springframework.data.repository.query.Param("createBy") Integer createBy
+    );
 }
