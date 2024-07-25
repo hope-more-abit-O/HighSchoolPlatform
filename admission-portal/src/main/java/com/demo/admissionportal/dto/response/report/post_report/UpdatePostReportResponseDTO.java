@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.response.report.post_report;
 
 import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,9 +12,9 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdatePostReportResponseDTO {
-    private Integer reportId;
+    private Integer id;
     private String ticketId;
-    private Integer createBy;
+    private ActionerDTO createBy;
     private Date createTime;
     private String reportType;
     private String content;

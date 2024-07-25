@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.*;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
@@ -10,13 +11,16 @@ import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReport
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.Report;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import com.demo.admissionportal.entity.sub_entity.id.PostReportId;
 import com.demo.admissionportal.repository.PostRepository;
 import com.demo.admissionportal.repository.ReportRepository;
+import com.demo.admissionportal.repository.UserInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.PostReportRepository;
 import com.demo.admissionportal.service.ReportService;
+import com.demo.admissionportal.util.impl.NameUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,8 @@ public class ReportServiceImpl implements ReportService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
     private final PostRepository postRepository;
+    private final UserInfoRepository userInfoRepository;
+    private final NameUtils nameUtils;
 
     @Override
     @Transactional
@@ -48,8 +54,8 @@ public class ReportServiceImpl implements ReportService {
                 log.info("User not found");
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
             }
-            if(!existUser.get().getRole().equals(Role.USER)){
-                log.info("User not allow to create");
+            if (!existUser.get().getRole().equals(Role.USER)) {
+                log.info("User not allowed to create");
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
             User user = existUser.get();
@@ -83,6 +89,7 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tạo báo cáo bài viết");
         }
     }
+
     private String generateTicketId() {
         return UUID.randomUUID().toString().replace("-", "");
     }
@@ -91,12 +98,12 @@ public class ReportServiceImpl implements ReportService {
     public ResponseData<ReportPostResponseDTO> getPostReportById(Integer reportId, Authentication authentication) {
         String username = authentication.getName();
         Optional<User> existUser = userRepository.findByUsername(username);
-        if (existUser.isEmpty() ) {
+        if (existUser.isEmpty()) {
             log.info("Staff not found");
             return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
         }
-        if(!existUser.get().getRole().equals(Role.STAFF)){
-            log.info("User not allow to get");
+        if (!existUser.get().getRole().equals(Role.STAFF)) {
+            log.info("User not allowed to get");
             return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
         }
 
@@ -121,10 +128,22 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Bài viết không được tìm thấy !");
         }
         Post post = postOpt.get();
+
+        User user = userRepository.findById(report.getCreate_by()).orElse(null);
+        ActionerDTO actioner = null;
+        if (user != null) {
+            Optional<UserInfo> userInfoOpt = userInfoRepository.findById(user.getId());
+            if (userInfoOpt.isPresent()) {
+                UserInfo userInfo = userInfoOpt.get();
+                String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
+                actioner = new ActionerDTO(user.getId(), fullName, user.getRole().name(), user.getStatus().name());
+            }
+        }
+
         ReportPostResponseDTO responseDTO = new ReportPostResponseDTO(
                 report.getId(),
                 report.getTicket_id(),
-                report.getCreate_by(),
+                actioner,
                 report.getCreate_time(),
                 report.getReport_type().toString(),
                 report.getContent(),
@@ -186,10 +205,21 @@ public class ReportServiceImpl implements ReportService {
             }
             Post post = postOpt.get();
 
+            User creator = userRepository.findById(report.getCreate_by()).orElse(null);
+            ActionerDTO actioner = null;
+            if (creator != null) {
+                Optional<UserInfo> userInfoOpt = userInfoRepository.findById(creator.getId());
+                if (userInfoOpt.isPresent()) {
+                    UserInfo userInfo = userInfoOpt.get();
+                    String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
+                    actioner = new ActionerDTO(creator.getId(), fullName, creator.getRole().name(), creator.getStatus().name());
+                }
+            }
+
             UpdatePostReportResponseDTO responseDTO = new UpdatePostReportResponseDTO(
                     report.getId(),
                     report.getTicket_id(),
-                    report.getCreate_by(),
+                    actioner,
                     report.getCreate_time(),
                     report.getReport_type().toString(),
                     report.getContent(),
@@ -228,13 +258,31 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostResponseDTO> responseDTOs = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
+            Page<FindAllReportsWithPostResponseDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bài viết được tìm thấy", responseDTOs);
+            Page<FindAllReportsWithPostResponseDTO> responseDTOPage = reportPage.map(report -> {
+                ActionerDTO actioner = null;
+                if (report.getCreateBy() != null && report.getCreateBy().getId() != null) {
+                    Optional<User> userOpt = userRepository.findById(report.getCreateBy().getId());
+                    if (userOpt.isPresent()) {
+                        User user = userOpt.get();
+                        Optional<UserInfo> userInfoOpt = userInfoRepository.findById(user.getId());
+                        if (userInfoOpt.isPresent()) {
+                            UserInfo userInfo = userInfoOpt.get();
+                            String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
+                            actioner = new ActionerDTO(user.getId(), fullName, user.getRole().name(), user.getStatus().name());
+                        }
+                    }
+                }
+                report.setCreateBy(actioner);
+                return report;
+            });
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bài viết được tìm thấy", responseDTOPage);
         } catch (Exception e) {
             log.error("Error while fetching post reports", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo bài viết");
         }
     }
-
 }
+

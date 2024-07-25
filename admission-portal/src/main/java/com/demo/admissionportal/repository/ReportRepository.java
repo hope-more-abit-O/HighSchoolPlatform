@@ -5,15 +5,13 @@ import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWi
 import com.demo.admissionportal.entity.Report;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Date;
-import java.util.Optional;
-
+@Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
-    Optional<Report> findById(Integer reportId);
 
     @Query("SELECT new com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO(" +
             "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, post.url) " +
@@ -31,6 +29,4 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
                                                                    @Param("content") String content,
                                                                    @Param("status") ReportStatus status,
                                                                    Pageable pageable);
-
 }
-

@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-
 @RestController
 @RequestMapping("/api/v1/reports")
 @AllArgsConstructor
@@ -42,6 +41,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdPostReport);
     }
+
     @GetMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -54,6 +54,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @PutMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -69,6 +70,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -86,6 +88,4 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
     }
-
-
 }

@@ -54,7 +54,6 @@ public interface ReportService {
      * @param reportId       the report id
      * @param ticketId       the ticket id
      * @param createBy       the create by
-     * @param createTime     the create time
      * @param content        the content
      * @param status         the status
      * @return the response data
