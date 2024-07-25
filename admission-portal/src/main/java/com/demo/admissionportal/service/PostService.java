@@ -82,10 +82,11 @@ public interface PostService {
     /**
      * List all post consul or staff or uni response data.
      *
+     * @param title    the title
      * @param pageable the pageable
      * @return the response data
      */
-    ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(Pageable pageable);
+    ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, Pageable pageable);
 
     /**
      * List post favorite response data.

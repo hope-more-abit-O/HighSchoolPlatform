@@ -787,20 +787,20 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(Pageable pageable) {
+    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, Pageable pageable) {
         try {
             List<PostDetailResponseDTOV2> response = new ArrayList<>();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
             switch (userRole) {
                 case "STAFF":
-                    response = getAllPostByStaff();
+                    response = getAllPostByStaff(title, pageable);
                     break;
                 case "CONSULTANT":
-                    response = getAllPostByConsultantId(userId);
+                    response = getAllPostByConsultantId(title, userId, pageable);
                     break;
                 case "UNIVERSITY":
-                    response = getPostByUniversityIdV2(userId);
+                    response = getPostByUniversityIdV2(title, userId, pageable);
                     break;
             }
             if (response == null) {
@@ -818,16 +818,17 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private List<PostDetailResponseDTOV2> getAllPostByConsultantId(Integer id) {
+    private List<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, Integer id, Pageable pageable) {
+
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
-        return getPostByUniversityIdV2(consultantInfo.getUniversityId());
+        return getPostByUniversityIdV2(title, consultantInfo.getUniversityId(), pageable);
     }
 
-    private List<PostDetailResponseDTOV2> getAllPostByStaff() {
-        List<StaffInfo> staffInfo = staffInfoRepository.findAll();
-        return staffInfo.stream()
-                .flatMap(staff -> getPostsByStaffOrConsultantIdV2(staff.getId()).stream())
-                .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
+    private List<PostDetailResponseDTOV2> getAllPostByStaff(String title, Pageable pageable) {
+        List<Post> postWithStaffInfo = postRepository.findPostWithStaffInfo(title, pageable);
+        return postWithStaffInfo.stream()
+                .map(post -> getPostsByStaff(post.getCreateBy(), post.getId()))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -948,19 +949,16 @@ public class PostServiceImpl implements PostService {
     /**
      * Gets posts by staff or consultant id v 2.
      *
-     * @param id the id
+     * @param createBy the create by
+     * @param postId   the post id
      * @return the posts by staff or consultant id v 2
      */
-    public List<PostDetailResponseDTOV2> getPostsByStaffOrConsultantIdV2(Integer id) {
-        List<PostDetailResponseDTOV2> response = null;
+    public PostDetailResponseDTOV2 getPostsByStaff(Integer createBy, Integer postId) {
+        PostDetailResponseDTOV2 response = null;
         try {
-            List<Post> posts = postRepository.findPostByUserId(id);
-            Set<String> filter = new HashSet<>();
+            Post posts = postRepository.findAllByStaffId(createBy, postId);
             if (posts != null) {
-                response = posts.stream()
-                        .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
-                        .map(this::mapToListPostDetailV2)
-                        .collect(Collectors.toList());
+                response = mapToListPostDetailV2(posts);
             }
             return response;
         } catch (Exception ex) {
@@ -999,20 +997,14 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private List<PostDetailResponseDTOV2> getPostByUniversityIdV2(Integer id) {
-        List<PostDetailResponseDTOV2> response = null;
+    private List<PostDetailResponseDTOV2> getPostByUniversityIdV2(String title, Integer id, Pageable pageable) {
+        List<PostDetailResponseDTOV2> response = new ArrayList<>();
         try {
-            List<ConsultantInfo> consultantInfos = consultantInfoRepository.findAllConsultantInfosByUniversityId(id);
-            for (ConsultantInfo consultantInfo : consultantInfos) {
-                List<Post> posts = postRepository.findPostByUserId(consultantInfo.getId());
-                Set<String> filter = new HashSet<>();
-                if (posts != null) {
-                    response = posts.stream()
-                            .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
-                            .map(this::mapToListPostDetailV2)
-                            .sorted(Comparator.comparing(PostDetailResponseDTOV2::getId))
-                            .collect(Collectors.toList());
-                }
+            List<Post> posts = postRepository.findAllByUniId(title, id, pageable);
+            if (posts != null) {
+                response = posts.stream()
+                        .map(this::mapToListPostDetailV2)
+                        .collect(Collectors.toList());
             }
             return response;
         } catch (Exception ex) {
