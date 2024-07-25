@@ -14,9 +14,50 @@ import org.springframework.security.core.Authentication;
 
 import java.util.Date;
 
+/**
+ * The interface Report service.
+ */
 public interface ReportService {
+    /**
+     * Create post report response data.
+     *
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response data
+     */
     ResponseData<PostReport> createPostReport(CreatePostReportRequest request, Authentication authentication);
+
+    /**
+     * Gets post report by id.
+     *
+     * @param reportId       the report id
+     * @param authentication the authentication
+     * @return the post report by id
+     */
     ResponseData<ReportPostResponseDTO> getPostReportById(Integer reportId, Authentication authentication);
+
+    /**
+     * Update post report response data.
+     *
+     * @param reportId       the report id
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response data
+     */
     ResponseData<UpdatePostReportResponseDTO> updatePostReport(Integer reportId, UpdatePostReportRequest request, Authentication authentication);
-    ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication);
+
+    /**
+     * Find all post reports response data.
+     *
+     * @param pageable       the pageable
+     * @param authentication the authentication
+     * @param reportId       the report id
+     * @param ticketId       the ticket id
+     * @param createBy       the create by
+     * @param createTime     the create time
+     * @param content        the content
+     * @param status         the status
+     * @return the response data
+     */
+    ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
 }

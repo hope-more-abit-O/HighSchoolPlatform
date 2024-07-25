@@ -83,6 +83,9 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tạo báo cáo bài viết");
         }
     }
+    private String generateTicketId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
 
     @Override
     public ResponseData<ReportPostResponseDTO> getPostReportById(Integer reportId, Authentication authentication) {
@@ -210,7 +213,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication) {
+    public ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication,
+                                                                                    Integer reportId, String ticketId, Integer createBy,
+                                                                                    String content, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -223,23 +228,7 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<PostReport> postReports = postReportRepository.findAll(pageable);
-            Page<FindAllReportsWithPostResponseDTO> responseDTOs = postReports.map(postReport -> {
-                Optional<Report> reportOpt = reportRepository.findById(postReport.getReportId());
-                if (reportOpt.isPresent()) {
-                    Report report = reportOpt.get();
-                    return new FindAllReportsWithPostResponseDTO(
-                            report.getId(),
-                            report.getTicket_id(),
-                            report.getCreate_by(),
-                            report.getCreate_time(),
-                            report.getContent(),
-                            report.getStatus(),
-                            postRepository.findById(postReport.getPostId()).map(Post::getUrl).orElse(null)
-                    );
-                }
-                return null;
-            });
+            Page<FindAllReportsWithPostResponseDTO> responseDTOs = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bài viết được tìm thấy", responseDTOs);
         } catch (Exception e) {
@@ -248,9 +237,4 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-
-
-    private String generateTicketId() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
 }

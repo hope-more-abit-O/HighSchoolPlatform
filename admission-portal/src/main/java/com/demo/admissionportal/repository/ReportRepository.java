@@ -14,4 +14,23 @@ import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Integer> {
     Optional<Report> findById(Integer reportId);
+
+    @Query("SELECT new com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO(" +
+            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, post.url) " +
+            "FROM Report r " +
+            "JOIN PostReport pr ON r.id = pr.reportId " +
+            "JOIN Post post ON pr.postId = post.id " +
+            "WHERE (:reportId IS NULL OR r.id = :reportId) " +
+            "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
+            "AND (:createBy IS NULL OR r.create_by = :createBy) " +
+            "AND (:content IS NULL OR r.content LIKE %:content%) " +
+            "AND (:status IS NULL OR r.status = :status)")
+    Page<FindAllReportsWithPostResponseDTO> findAllReportsWithPost(@Param("reportId") Integer reportId,
+                                                                   @Param("ticketId") String ticketId,
+                                                                   @Param("createBy") Integer createBy,
+                                                                   @Param("content") String content,
+                                                                   @Param("status") ReportStatus status,
+                                                                   Pageable pageable);
+
 }
+
