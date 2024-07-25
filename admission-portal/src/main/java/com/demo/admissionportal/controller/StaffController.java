@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
@@ -94,8 +95,16 @@ public class StaffController {
      * @return the university management
      */
     @GetMapping("/university/management")
-    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(Pageable pageable) {
-        return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable));
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) AccountStatus status) {
+        return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable, id, code, username, name, phone, email, status));
     }
 
     /**

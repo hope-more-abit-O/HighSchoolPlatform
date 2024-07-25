@@ -273,36 +273,57 @@ public class UniversityServiceImpl implements UniversityService {
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
 
-    public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable) {
+    public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable,
+                                                                                            Integer id,
+                                                                                            String code,
+                                                                                            String username,
+                                                                                            String name,
+                                                                                            String phone,
+                                                                                            String email,
+                                                                                            AccountStatus status) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
-        List<User> uniAccounts = userService.findByCreateByAndRole(staffId, Role.UNIVERSITY, pageable).getContent();
+        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , staffId);
+//        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, null, null, null, null, null, (status != null) ? status.name() : null , staffId);
 
-        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
+
+        if (uniAccounts.getTotalElements() == 0)
+            return ResponseData.ok("Không có trường đại học phụ thuộc");
+
+        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());
 
         List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
                 .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
                 .toList());
 
-        Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts, actionerDTOS, uniInfos));
+        Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts.getContent(), actionerDTOS, uniInfos), pageable, uniAccounts.getSize());
 
         return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
     }
 
-    public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable) {
-        List<User> uniAccounts = userService.findByRoleAndPageable(Role.UNIVERSITY, pageable).getContent();
+    public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable,
+                                                                                       Integer id,
+                                                                                       String code,
+                                                                                       String username,
+                                                                                       String name,
+                                                                                       String phone,
+                                                                                       String email,
+                                                                                       AccountStatus status,
+                                                                                       Integer createBy) {
+        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy);
 
-        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.stream().map(User::getId).toList());
+        if (uniAccounts.getTotalElements() == 0)
+            return ResponseData.ok("Không tìm thấy trường đại học.");
+
+        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());
 
         List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
                 .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
                 .toList());
 
-        List<UniversityFullResponseDTO> dtos = mapping(uniAccounts, actionerDTOS, uniInfos);
+        Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts.getContent(), actionerDTOS, uniInfos), pageable, uniAccounts.getSize());
 
-        Page<UniversityFullResponseDTO> result = new PageImpl<>(dtos, pageable, dtos.size());
-
-        return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.", result);
+        return ResponseData.ok("Lấy thông tin các trường đại học thành công.",result);
     }
 
     public List<UniversityFullResponseDTO> mapping(List<User> uniAccounts, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {
