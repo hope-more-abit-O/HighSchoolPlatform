@@ -44,4 +44,5 @@ public interface CreateUniversityRequestRepository extends JpaRepository<CreateU
             @Param("status") String status,
             @Param("createBy") Integer createBy,
             @Param("confirmBy") Integer confirmBy
-    );}
+    );
+}

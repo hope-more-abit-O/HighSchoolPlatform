@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
@@ -132,6 +133,21 @@ public interface UniversityService {
 
     ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException;
 
-    ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable);
-    ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable);
+    ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable,
+                                                                                     Integer id,
+                                                                                     String code,
+                                                                                     String username,
+                                                                                     String name,
+                                                                                     String phone,
+                                                                                     String email,
+                                                                                     AccountStatus status);
+    ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable,
+                                                                                Integer id,
+                                                                                String code,
+                                                                                String username,
+                                                                                String name,
+                                                                                String phone,
+                                                                                String email,
+                                                                                AccountStatus status,
+                                                                                Integer createBy);
 }

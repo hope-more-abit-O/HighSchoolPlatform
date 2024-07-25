@@ -227,9 +227,19 @@ public class AdminController {
     }
 
     @GetMapping("/university")
-    public ResponseEntity<?> getInfoUniversity(@PageableDefault(size = 10) Pageable page){
-        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(page));
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) AccountStatus status,
+            @RequestParam(required = false) Integer createBy) {
+        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(pageable, id, code, username, name, phone, email, status, createBy));
     }
+
 
     @GetMapping("/university/{id}")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
