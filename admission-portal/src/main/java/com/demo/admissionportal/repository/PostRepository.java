@@ -2,6 +2,7 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.Post;
 import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -58,8 +59,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT * " +
             "FROM post p " +
             "JOIN staff_info si ON p.create_by = si.staff_id " +
-            "WHERE p.title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
-    List<Post> findPostWithStaffInfo(@Param("title") String title, Pageable pageable);
+            "WHERE :title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
+    Page<Post> findPostWithStaffInfo(@Param("title") String title, Pageable pageable);
 
 
     /**
@@ -84,10 +85,10 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * @param pageable the pageable
      * @return the post
      */
-    @Query(value = "SELECT p.* " +
+    @Query(value = "SELECT * " +
             "FROM post p " +
             "JOIN consultant_info ci ON p.create_by = ci.consultant_id " +
             "WHERE ci.university_id = :createBy " +
-            "AND p.title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
-    List<Post> findAllByUniId(@Param("title") String title, @Param("createBy") Integer createBy, Pageable pageable);
+            "AND :title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
+    Page<Post> findAllByUniId(@Param("title") String title, @Param("createBy") Integer createBy, Pageable pageable);
 }
