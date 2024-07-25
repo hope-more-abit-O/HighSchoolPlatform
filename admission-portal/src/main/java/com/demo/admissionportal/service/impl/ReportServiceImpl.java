@@ -8,22 +8,16 @@ import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportR
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
-import com.demo.admissionportal.entity.Post;
-import com.demo.admissionportal.entity.Report;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserInfo;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
-import com.demo.admissionportal.entity.sub_entity.id.PostReportId;
-import com.demo.admissionportal.repository.PostRepository;
-import com.demo.admissionportal.repository.ReportRepository;
-import com.demo.admissionportal.repository.UserInfoRepository;
-import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.PostReportRepository;
 import com.demo.admissionportal.service.ReportService;
 import com.demo.admissionportal.util.impl.NameUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -43,6 +37,8 @@ public class ReportServiceImpl implements ReportService {
     private final PostRepository postRepository;
     private final UserInfoRepository userInfoRepository;
     private final NameUtils nameUtils;
+    private final StaffInfoRepository staffInfoRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional
@@ -129,16 +125,7 @@ public class ReportServiceImpl implements ReportService {
         }
         Post post = postOpt.get();
 
-        User user = userRepository.findById(report.getCreate_by()).orElse(null);
-        ActionerDTO actioner = null;
-        if (user != null) {
-            Optional<UserInfo> userInfoOpt = userInfoRepository.findById(user.getId());
-            if (userInfoOpt.isPresent()) {
-                UserInfo userInfo = userInfoOpt.get();
-                String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
-                actioner = new ActionerDTO(user.getId(), fullName, user.getRole().name(), user.getStatus().name());
-            }
-        }
+        ActionerDTO actioner = getUserDetails(report.getCreate_by());
 
         ReportPostResponseDTO responseDTO = new ReportPostResponseDTO(
                 report.getId(),
@@ -205,16 +192,7 @@ public class ReportServiceImpl implements ReportService {
             }
             Post post = postOpt.get();
 
-            User creator = userRepository.findById(report.getCreate_by()).orElse(null);
-            ActionerDTO actioner = null;
-            if (creator != null) {
-                Optional<UserInfo> userInfoOpt = userInfoRepository.findById(creator.getId());
-                if (userInfoOpt.isPresent()) {
-                    UserInfo userInfo = userInfoOpt.get();
-                    String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
-                    actioner = new ActionerDTO(creator.getId(), fullName, creator.getRole().name(), creator.getStatus().name());
-                }
-            }
+            ActionerDTO actioner = getUserDetails(report.getCreate_by());
 
             UpdatePostReportResponseDTO responseDTO = new UpdatePostReportResponseDTO(
                     report.getId(),
@@ -263,16 +241,7 @@ public class ReportServiceImpl implements ReportService {
             Page<FindAllReportsWithPostResponseDTO> responseDTOPage = reportPage.map(report -> {
                 ActionerDTO actioner = null;
                 if (report.getCreateBy() != null && report.getCreateBy().getId() != null) {
-                    Optional<User> userOpt = userRepository.findById(report.getCreateBy().getId());
-                    if (userOpt.isPresent()) {
-                        User user = userOpt.get();
-                        Optional<UserInfo> userInfoOpt = userInfoRepository.findById(user.getId());
-                        if (userInfoOpt.isPresent()) {
-                            UserInfo userInfo = userInfoOpt.get();
-                            String fullName = nameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
-                            actioner = new ActionerDTO(user.getId(), fullName, user.getRole().name(), user.getStatus().name());
-                        }
-                    }
+                    actioner = getUserDetails(report.getCreateBy().getId());
                 }
                 report.setCreateBy(actioner);
                 return report;
@@ -284,5 +253,38 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo bài viết");
         }
     }
-}
 
+    private ActionerDTO getStaffDetails(Integer userId) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    StaffInfo staffInfo = staffInfoRepository.findById(userId).orElse(null);
+                    String fullName;
+                    if (staffInfo != null) {
+                        fullName = NameUtils.getFullName(staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName());
+                    } else {
+                        fullName = "Nhân viên UAP";
+                    }
+                    ActionerDTO actionerDTO = new ActionerDTO(user.getId(), fullName, null, null);
+                    actionerDTO.setRole(modelMapper.map(user.getRole(), String.class));
+                    actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
+                    return actionerDTO;
+                }).orElse(null);
+    }
+
+    private ActionerDTO getUserDetails(Integer userId) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    UserInfo userInfo = userInfoRepository.findById(userId).orElse(null);
+                    String fullName;
+                    if (userInfo != null) {
+                        fullName = NameUtils.getFullName(userInfo.getFirstName(), userInfo.getMiddleName(), userInfo.getLastName());
+                    } else {
+                        fullName = "Người dùng UAP";
+                    }
+                    ActionerDTO actionerDTO = new ActionerDTO(user.getId(), fullName, null, null);
+                    actionerDTO.setRole(modelMapper.map(user.getRole(), String.class));
+                    actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
+                    return actionerDTO;
+                }).orElse(null);
+    }
+}

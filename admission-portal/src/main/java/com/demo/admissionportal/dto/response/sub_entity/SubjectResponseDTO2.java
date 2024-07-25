@@ -1,29 +1,23 @@
 package com.demo.admissionportal.dto.response.sub_entity;
 
-import com.demo.admissionportal.dto.entity.ActionerDTO;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class SubjectResponseDTO {
+public class SubjectResponseDTO2 {
     private Integer id;
     private String name;
     private String status;
-    private ActionerDTO createBy;
     private Date createTime;
 
-    public SubjectResponseDTO(Integer id, String name, String status) {
+    public SubjectResponseDTO2(Integer id, String name, String status, Date createTime) {
         this.id = id;
         this.name = name;
         this.status = status;
-    }
-
-    public SubjectResponseDTO(Integer id, String name, String name1, Date createTime) {
-
+        this.createTime = createTime;
     }
 }
