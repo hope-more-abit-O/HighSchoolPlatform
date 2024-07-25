@@ -32,13 +32,13 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
      * @param pageable     the pageable
      * @return the page
      */
-    @Query(value = "SELECT DISTINCT sg.id, sg.name, sg.status, sg.create_by, sg.update_by, sg.create_time, sg.update_time FROM subject_group sg " +
+    @Query(value = "SELECT sg.id, sg.name, sg.status, sg.create_by, sg.update_by, sg.create_time, sg.update_time FROM subject_group sg " +
             "LEFT JOIN subject_group_subject sgs ON sg.id = sgs.subject_group_id " +
             "LEFT JOIN subject s ON sgs.subject_id = s.id " +
             "WHERE (:groupName IS NULL OR sg.name LIKE %:groupName%) AND " +
             "(:subjectName IS NULL OR s.name LIKE %:subjectName%) AND " +
-            "(:statusString IS NULL OR sg.status = :statusString) ",
-            countQuery = "SELECT COUNT(DISTINCT sg.id) FROM subject_group sg " +
+            "(:statusString IS NULL OR sg.status = :statusString)",
+            countQuery = "SELECT COUNT(sg.id) FROM subject_group sg " +
                     "LEFT JOIN subject_group_subject sgs ON sg.id = sgs.subject_group_id " +
                     "LEFT JOIN subject s ON sgs.subject_id = s.id " +
                     "WHERE (:groupName IS NULL OR sg.name LIKE %:groupName%) AND " +
@@ -46,4 +46,5 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
                     "(:statusString IS NULL OR sg.status = :statusString)",
             nativeQuery = true)
     Page<SubjectGroup> findAll(String groupName, String subjectName, String statusString, Pageable pageable);
+
 }
