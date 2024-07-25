@@ -149,5 +149,6 @@ public interface UniversityService {
                                                                                 String phone,
                                                                                 String email,
                                                                                 AccountStatus status,
-                                                                                Integer createBy);
+                                                                                Integer createBy,
+                                                                                String createByName);
 }

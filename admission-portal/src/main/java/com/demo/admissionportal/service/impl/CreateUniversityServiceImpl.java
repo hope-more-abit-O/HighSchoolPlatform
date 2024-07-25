@@ -338,8 +338,18 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 String universityUsername,
                                                                 CreateUniversityRequestStatus status,
                                                                 Integer createBy,
+                                                                String createByName,
                                                                 Integer confirmBy){
-        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, (status != null) ? status.name() : null, createBy, confirmBy);
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                id,
+                universityName,
+                universityCode,
+                universityEmail,
+                universityUsername,
+                (status != null) ? status.name() : null,
+                createBy,
+                createByName,
+                confirmBy);
 
         List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
 
@@ -351,7 +361,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .flatMap((request) -> Stream.of(request.getCreateBy(), request.getUpdateBy(), request.getConfirmBy()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        List<ActionerDTO> actionerDTOs = userServiceImpl.getActionerDTOsByIds(actionerIds.stream().toList());
+        List<ActionerDTO> actionerDTOs = userServiceImpl.getActioners(actionerIds.stream().toList());
         return actionerDTOs;
     }
 }

@@ -309,8 +309,9 @@ public class UniversityServiceImpl implements UniversityService {
                                                                                        String phone,
                                                                                        String email,
                                                                                        AccountStatus status,
-                                                                                       Integer createBy) {
-        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy);
+                                                                                       Integer createBy,
+                                                                                       String createByName){
+        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy, createByName);
 
         if (uniAccounts.getTotalElements() == 0)
             return ResponseData.ok("Không tìm thấy trường đại học.");

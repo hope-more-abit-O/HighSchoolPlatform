@@ -218,11 +218,12 @@ public class AdminController {
             @RequestParam(required = false) String universityUsername,
             @RequestParam(required = false) CreateUniversityRequestStatus status,
             @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String createByName,
             @RequestParam(required = false) Integer confirmBy
     ) {
         return ResponseEntity.ok(createUniversityService.getBy(
                 pageable, id, universityName, universityCode, universityEmail,
-                universityUsername, status, createBy, confirmBy
+                universityUsername, status, createBy, createByName, confirmBy
         ));
     }
 
@@ -236,8 +237,18 @@ public class AdminController {
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) AccountStatus status,
-            @RequestParam(required = false) Integer createBy) {
-        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(pageable, id, code, username, name, phone, email, status, createBy));
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String createByName) {
+        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(pageable,
+                id,
+                code,
+                username,
+                name,
+                phone,
+                email,
+                status,
+                createBy,
+                createByName));
     }
 
 

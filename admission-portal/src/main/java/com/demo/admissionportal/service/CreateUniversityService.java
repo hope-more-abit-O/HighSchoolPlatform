@@ -25,6 +25,7 @@ public interface CreateUniversityService {
                                                                 String universityUsername,
                                                                 CreateUniversityRequestStatus status,
                                                                 Integer createBy,
+                                                                String createByName,
                                                                 Integer confirmBy);
 
     ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable);
