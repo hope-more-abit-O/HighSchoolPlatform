@@ -58,16 +58,21 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         SubjectGroup existSubjectGroup = subjectGroupRepository.findByName(request.getName());
         if (existSubjectGroup != null) {
             log.warn("Subject group with name {} already exists", request.getName());
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học đã tồn tại !");
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Tổ hợp môn học đã tồn tại !");
         }
+
         List<Integer> subjectIds = request.getSubjectIds();
         if (subjectIds.size() < 3) {
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Phải có ít nhất 3 môn học để tạo thành tổ hợp !");
+            return new ResponseData<>(ResponseCode.C205.getCode(), "Phải có ít nhất 3 môn học để tạo thành tổ hợp !");
+        }
+        if (!validateSubjectIds(subjectIds)){
+            return new ResponseData<>(ResponseCode.C205.getCode(),"Tổ hợp môn học không hợp lệ !");
         }
         List<Subject> subjects = subjectRepository.findAllById(subjectIds);
         if (subjects.size() != subjectIds.size()) {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học có chứa môn học không được tìm thấy !");
         }
+
         for (Subject subject : subjects) {
             if (!subject.getStatus().equals(SubjectStatus.ACTIVE)) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học có chứa môn học không được tìm thấy !");
@@ -101,7 +106,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             log.debug("Principal type: {}", principal.getClass().getName());
             log.info("Principal type: {}", principal.getClass().getName());
             if (!(principal instanceof User staff)) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Người tham chiếu không hợp lệ !");
             }
             Integer staffId = staff.getId();
             List<SubjectGroupSubject> subjectGroupSubjects = new ArrayList<>();
@@ -133,6 +138,22 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             log.error("Error when create subject group", ex);
             return new ResponseData<>(ResponseCode.C201.getCode(), ResponseCode.C201.getMessage());
         }
+    }
+
+    private boolean validateSubjectIds(List<Integer> subjectIds) {
+        if (subjectIds == null || subjectIds.isEmpty()) {
+            return false;
+        }
+        Set<Integer> uniqueIds = new HashSet<>();
+        for (Integer subjectId : subjectIds) {
+            if (subjectId == null ) {
+                return false;
+            }
+            if (!uniqueIds.add(subjectId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

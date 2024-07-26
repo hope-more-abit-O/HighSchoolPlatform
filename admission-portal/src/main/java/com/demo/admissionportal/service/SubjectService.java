@@ -44,4 +44,6 @@ public interface SubjectService {
      */
     //TODO: JAVADOC
     Subject findById(Integer id) throws ResourceNotFoundException;
+    ResponseData<?> deleteSubject(Integer id);
+    ResponseData<?> activateSubject(Integer id);
 }
