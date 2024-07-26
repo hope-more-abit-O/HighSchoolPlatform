@@ -65,15 +65,15 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
-    public ResponseData<Page<TypeListResponseDTO>> getListTypePost(Pageable pageable) {
+    public ResponseData<Page<TypeListResponseDTO>> getListTypePost(String typeName, Pageable pageable) {
         try {
-            Page<Type> list = typeRepository.findAllType(pageable);
+            Page<Type> list = typeRepository.findAllType(typeName,pageable);
             List<TypeListResponseDTO> typeResponseDTOList = list.stream()
                     .map(this::mapToTypeList)
                     .collect(Collectors.toList());
             Page<TypeListResponseDTO> typeListResponseDTOPage = new PageImpl<>(typeResponseDTOList, pageable, list.getTotalElements());
-            if (list != null) {
-                log.info("Lấy danh sách thành công: {}", list);
+            if (typeListResponseDTOPage != null) {
+                log.info("Lấy danh sách thành công: {}", typeListResponseDTOPage);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách thành công", typeListResponseDTOPage);
             }
         } catch (Exception ex) {

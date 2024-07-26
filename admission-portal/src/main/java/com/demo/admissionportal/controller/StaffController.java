@@ -9,6 +9,7 @@ import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.User;
@@ -259,10 +260,8 @@ public class StaffController {
      */
     @GetMapping("/get-subject/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
-        ResponseData<
-
-                Subject> response = subjectService.getSubjectById(id);
+    public ResponseEntity<ResponseData<SubjectResponseDTO>> getSubjectById(@PathVariable Integer id) {
+        ResponseData<SubjectResponseDTO> response = subjectService.getSubjectById(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -313,17 +312,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to activate.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-    @PutMapping("/activate-subject/{id}")
-    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
-        ResponseData<?> response = subjectService.activateSubject(id);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+//    @PutMapping("/activate-subject/{id}")
+//    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
+//        ResponseData<?> response = subjectService.activateSubject(id);
+//        if (response.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.OK).body(response);
+//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
 
     /**
      * Deletes a subject by its ID.

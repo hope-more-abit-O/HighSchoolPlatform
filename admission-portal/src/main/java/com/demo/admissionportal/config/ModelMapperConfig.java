@@ -18,7 +18,7 @@ public class ModelMapperConfig {
      * @return the model mapper
      */
     @Bean
-    public ModelMapper GetmodelMapper() {
+    public ModelMapper getModelMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
         modelMapper.getConfiguration().setAmbiguityIgnored(true);
@@ -31,6 +31,12 @@ public class ModelMapperConfig {
         modelMapper.addConverter(new PostPropertiesConverter());
         modelMapper.addConverter(new PostStatusConverter());
         modelMapper.addConverter(new CreateUniversityRequestStatusToStringConverter());
+        modelMapper.addConverter(new MessageStatusConverter());
+        modelMapper.addConverter(new ReportStatusConverter());
+        modelMapper.addConverter(new ReportTypeConverter());
+        modelMapper.addConverter(new StudentReportStatusConverter());
+        modelMapper.addConverter(new SubjectStatusConverter());
+        modelMapper.addConverter(new EducationLevelConverter());
         return modelMapper;
     }
 

@@ -1,12 +1,13 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import com.demo.admissionportal.service.ReportService;
@@ -20,8 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -42,11 +41,12 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdPostReport);
     }
+
     @GetMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<ReportPostResponseDTO>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
-        ResponseData<ReportPostResponseDTO> postReportResponse = reportService.getPostReportById(reportId, authentication);
+    public ResponseEntity<ResponseData<ReportPostResponse>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
+        ResponseData<ReportPostResponse> postReportResponse = reportService.getPostReportById(reportId, authentication);
         if (postReportResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportResponse);
         } else if (postReportResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -54,6 +54,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @PutMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -69,11 +70,20 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<Page<FindAllReportsWithPostResponseDTO>>> findAllPostReports(Pageable pageable, Authentication authentication) {
-        ResponseData<Page<FindAllReportsWithPostResponseDTO>> postReportsResponse = reportService.findAllPostReports(pageable, authentication);
+    public ResponseEntity<ResponseData<Page<ListAllPostReportResponse>>> findAllPostReports(
+            Pageable pageable,
+            Authentication authentication,
+            @RequestParam(required = false) Integer reportId,
+            @RequestParam(required = false) String ticketId,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) ReportStatus status) {
+        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, reportType, status);
         if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportsResponse);
         }

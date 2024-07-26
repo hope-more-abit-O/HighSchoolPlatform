@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.response.report.post_report;
 
-import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,12 +10,13 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FindAllReportsWithPostResponseDTO {
+public class ListAllPostReportResponse {
     private Integer reportId;
     private String ticketId;
-    private Integer createBy;
+    private ActionerDTO createBy;
     private Date createTime;
     private String content;
-    private ReportStatus status;
+    private String reportType;
+    private String status;
     private String postUrl;
 }
