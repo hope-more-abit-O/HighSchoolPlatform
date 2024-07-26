@@ -1,7 +1,9 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.constants.ReportStatus;
-import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
+import com.demo.admissionportal.constants.ReportType;
+import com.demo.admissionportal.dto.entity.report.ReportPostDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -58,10 +60,10 @@ public interface ReportService {
      *
      * @param reportId       The ID of the post report to be retrieved.
      * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the post report along with {@link ReportPostResponseDTO}.
+     * @return A {@link ResponseData} object containing the details of the post report along with {@link ReportPostDTO}.
      * @since 1.0
      */
-    ResponseData<ReportPostResponseDTO> getPostReportById(Integer reportId, Authentication authentication);
+    ResponseData<ReportPostResponse> getPostReportById(Integer reportId, Authentication authentication);
 
     /**
      * <h2>Update Post Report</h2>
@@ -91,9 +93,10 @@ public interface ReportService {
      * @param ticketId       Optional filter for the ticket ID.
      * @param createBy       Optional filter for the creator ID.
      * @param content        Optional filter for the content.
+     * @param reportType     the report type
      * @param status         Optional filter for the report status.
      * @return A {@link ResponseData} object containing a paginated list of post reports.
      * @since 1.0
      */
-    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
+    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status);
 }

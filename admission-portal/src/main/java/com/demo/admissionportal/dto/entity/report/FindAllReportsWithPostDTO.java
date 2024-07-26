@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.entity.report;
 
 import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,14 +19,16 @@ public class FindAllReportsWithPostDTO {
     private Date createTime;
     private String content;
     private ReportStatus status;
+    private ReportType reportType;
     private String postUrl;
 
-    public FindAllReportsWithPostDTO(Integer reportId, String ticketId, Integer createById, Date createTime, String content, ReportStatus status, String postUrl) {
+    public FindAllReportsWithPostDTO(Integer reportId, String ticketId, Integer createById, Date createTime, String content, ReportStatus status, ReportType reportType, String postUrl) {
         this.reportId = reportId;
         this.ticketId = ticketId;
         this.createBy = new ActionerDTO(createById, null, null, null);
         this.createTime = createTime;
         this.content = content;
+        this.reportType = reportType;
         this.status = status;
         this.postUrl = postUrl;
     }

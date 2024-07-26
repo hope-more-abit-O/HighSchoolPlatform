@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.report.FindAllReportsWithPostDTO;
 import com.demo.admissionportal.entity.Report;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ReportRepository extends JpaRepository<Report, Integer> {
 
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.FindAllReportsWithPostDTO(" +
-            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, post.url) " +
+            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, r.report_type, post.url) " +
             "FROM Report r " +
             "JOIN PostReport pr ON r.id = pr.reportId " +
             "JOIN Post post ON pr.postId = post.id " +
@@ -22,11 +23,13 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
             "AND (:createBy IS NULL OR r.create_by = :createBy) " +
             "AND (:content IS NULL OR r.content LIKE %:content%) " +
+            "AND (:reportType IS NULL OR r.report_type = :reportType) " +
             "AND (:status IS NULL OR r.status = :status)")
     Page<FindAllReportsWithPostDTO> findAllReportsWithPost(@Param("reportId") Integer reportId,
                                                            @Param("ticketId") String ticketId,
                                                            @Param("createBy") Integer createBy,
                                                            @Param("content") String content,
                                                            @Param("status") ReportStatus status,
+                                                           @Param("reportType") ReportType reportType,
                                                            Pageable pageable);
 }
