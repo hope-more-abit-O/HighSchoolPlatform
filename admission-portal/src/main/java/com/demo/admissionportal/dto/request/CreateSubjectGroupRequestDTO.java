@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateSubjectGroupRequestDTO {
 //    @NotNull(message = "Tên nhóm môn học không được để trống")
-    @NotBlank(message = "Tên nhóm môn học không được để trống")
+    @NotBlank(message = "Tên tổ hợp môn học không được để trống")
     @Size(max = 3, message = "Tên nhóm môn học không được vượt quá 3 ký tự")
     private String name;
 
