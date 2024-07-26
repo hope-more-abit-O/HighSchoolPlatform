@@ -1,28 +1,27 @@
-package com.demo.admissionportal.exception;
+package com.demo.admissionportal.exception.exceptions;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Map;
 
-/**
- * The type Data existed exception.
- */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class DataExistedException extends RuntimeException{
+@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+public class QueryException extends RuntimeException {
     private Map<String, String> errors;
     /**
      * Instantiates a new Resource not found exception.
      *
      * @param message the message
      */
-    public DataExistedException(String message) {
+    public QueryException(String message) {
         super(message);
     }
 
-    public DataExistedException(String message, Map<String, String> errors) {
+    public QueryException(String message, Map<String, String> errors) {
         super(message);
         this.errors = errors;
     }

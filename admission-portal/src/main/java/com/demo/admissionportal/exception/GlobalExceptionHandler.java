@@ -2,18 +2,15 @@ package com.demo.admissionportal.exception;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.demo.admissionportal.exception.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +86,15 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
         return new ResponseData<>(HttpStatus.UNAUTHORIZED.value(), "Không có quyền thực hiện.", ex.getMessage());
+    }
+
+    @ExceptionHandler(QueryException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseData<Object> handleQueryExceptionException(QueryException ex) {
+        if (ex.getErrors() != null && !ex.getErrors().isEmpty()) {
+            return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(), ex.getErrors());
+        }
+        return new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Có lỗi khi query tại database.", ex.getMessage());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

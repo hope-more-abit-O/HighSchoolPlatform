@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.response;
+package com.demo.admissionportal.dto.response.sub_entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -47,11 +47,12 @@ public class TestController {
             @RequestParam(required = false) String universityUsername,
             @RequestParam(required = false) CreateUniversityRequestStatus status,
             @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String createByName,
             @RequestParam(required = false) Integer confirmBy
     ) {
         return ResponseEntity.ok(createUniversityService.getBy(
                 pageable, id, universityName, universityCode, universityEmail,
-                universityUsername, status, createBy, confirmBy
+                universityUsername, status, createBy, createByName, confirmBy
         ));
     }
 }

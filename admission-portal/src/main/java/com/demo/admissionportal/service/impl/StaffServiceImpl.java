@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.request.ActiveStaffRequest;
 import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
@@ -12,15 +13,15 @@ import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.ProvinceRepository;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.StaffService;
 import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
+import com.demo.admissionportal.util.impl.NameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -111,49 +113,47 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
-        log.info("Get all staff with filters: Username: {}, firstName: {}, middleName: {}, lastName: {}, Email: {}, Phone: {}, Status: {}", username, firstName, middleName, lastName, email, phone, status);
-        List<StaffResponseDTO> staffResponse = new ArrayList<>();
         String statusString = status != null ? status.name() : null;
         Page<StaffInfo> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, statusString, pageable);
-        staffPage.forEach(staffInfo -> {
-            StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
-            staffResponseDTO.setId(staffInfo.getId());
-            staffResponseDTO.setUsername(staffInfo.getUser().getUsername());
+
+        List<StaffResponseDTO> staffResponse = staffPage.getContent().stream().map(staffInfo -> {
+            StaffResponseDTO staffResponseDTO = modelMapper.map(staffInfo, StaffResponseDTO.class);
             staffResponseDTO.setName(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
-            staffResponseDTO.setPhone(staffInfo.getPhone());
-            staffResponseDTO.setStatus(staffInfo.getUser().getStatus().name());
-            staffResponseDTO.setEmail(staffInfo.getUser().getEmail());
-            staffResponseDTO.setAvatar(staffInfo.getUser().getAvatar());
-            staffResponseDTO.setProvinceId(staffInfo.getProvinceId());
-            staffResponseDTO.setNote(staffInfo.getUser().getNote());
-            staffResponseDTO.setCreateTime(staffInfo.getUser().getCreateTime());
-            staffResponse.add(staffResponseDTO);
-        });
+            User user = staffInfo.getUser();
+            if (user != null) {
+                staffResponseDTO.setUsername(user.getUsername());
+                staffResponseDTO.setEmail(user.getEmail());
+                staffResponseDTO.setAvatar(user.getAvatar());
+                staffResponseDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
+            }
+            return staffResponseDTO;
+        }).collect(Collectors.toList());
+
         Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
         log.info("Successfully get list of staffs: {}", staffPage);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
     }
 
+
     @Override
     public ResponseData<?> getStaffById(int id) {
-
         Optional<StaffInfo> staffOpt = staffInfoRepository.findById(id);
         if (staffOpt.isEmpty()) {
             log.warn("Staff with id: {} not found", id);
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên này !");
         }
         StaffInfo existStaff = staffOpt.get();
-        User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
         StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
+        User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
         staffResponseDTO.setUsername(userStaff.getUsername());
         staffResponseDTO.setEmail(userStaff.getEmail());
-        staffResponseDTO.setName(existStaff.getFirstName() + " " + existStaff.getMiddleName() + " " + existStaff.getLastName());
         staffResponseDTO.setAvatar(userStaff.getAvatar());
-        staffResponseDTO.setStatus(userStaff.getStatus().name());
+        staffResponseDTO.setStatus(modelMapper.map(userStaff.getStatus(), String.class));
 
         log.info("Staff details retrieved successfully for ID: {}", id);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponseDTO);
     }
+
 
 
     @Override
@@ -164,7 +164,7 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C209.getCode(), "Không thể xác thực nhân viên này !");
         }
         Province existProvince = provinceRepository.findProvinceById(id);
-        if (existProvince == null){
+        if (existProvince == null) {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tỉnh/Thành phố không được tìm thấy.");
         }
 
@@ -182,22 +182,20 @@ public class StaffServiceImpl implements StaffService {
         StaffInfo existStaff = existStaffOpt.get();
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-            existStaff.setFirstName(request.getFirstName());
-            existStaff.setMiddleName(request.getMiddleName());
-            existStaff.setLastName(request.getLastName());
-            existStaff.setPhone(request.getPhone());
+            modelMapper.map(request, existStaff);
             existStaff.setProvinceId(request.getProvinceId());
 
             User staff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
             staff.setAvatar(request.getAvatar());
             userRepository.save(staff);
             staffInfoRepository.save(existStaff);
+
             StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
             staffResponseDTO.setUsername(staff.getUsername());
-            staffResponseDTO.setName(existStaff.getFirstName() + " " + existStaff.getMiddleName() + " " + existStaff.getLastName());
             staffResponseDTO.setEmail(staff.getEmail());
             staffResponseDTO.setAvatar(staff.getAvatar());
-            staffResponseDTO.setStatus(staff.getStatus().name());
+            staffResponseDTO.setStatus(modelMapper.map(staff.getStatus(), String.class));
+
             log.info("Staff updated successfully with ID: {}", existStaff.getId());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
         } catch (Exception e) {
@@ -205,6 +203,7 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
         }
     }
+
 
 
     @Override
@@ -226,6 +225,7 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa nhân viên thất bại, vui lòng kiểm tra lại !");
         }
     }
+
 
     @Override
     public ResponseData<?> activateStaffById(int id, ActiveStaffRequest request) {

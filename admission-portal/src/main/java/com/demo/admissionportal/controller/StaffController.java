@@ -9,12 +9,13 @@ import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.exception.NotAllowedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -82,9 +83,16 @@ public class StaffController {
      * @return the create university requests
      */
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable, @RequestParam(required = false) Integer id, @RequestParam(required = false) String universityName, @RequestParam(required = false) String universityCode, @RequestParam(required = false) String universityEmail, @RequestParam(required = false) String universityUsername, @RequestParam(required = false) CreateUniversityRequestStatus status, @RequestParam(required = false) Integer confirmBy) {
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable,
+                                                                                                      @RequestParam(required = false) Integer id,
+                                                                                                      @RequestParam(required = false) String universityName,
+                                                                                                      @RequestParam(required = false) String universityCode,
+                                                                                                      @RequestParam(required = false) String universityEmail,
+                                                                                                      @RequestParam(required = false) String universityUsername,
+                                                                                                      @RequestParam(required = false) CreateUniversityRequestStatus status,
+                                                                                                      @RequestParam(required = false) Integer confirmBy) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, confirmBy));
+        return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, null, confirmBy));
     }
 
     /**
@@ -252,10 +260,8 @@ public class StaffController {
      */
     @GetMapping("/get-subject/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Subject>> getSubjectById(@PathVariable Integer id) {
-        ResponseData<
-
-                Subject> response = subjectService.getSubjectById(id);
+    public ResponseEntity<ResponseData<SubjectResponseDTO>> getSubjectById(@PathVariable Integer id) {
+        ResponseData<SubjectResponseDTO> response = subjectService.getSubjectById(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -306,17 +312,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to activate.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-    @PutMapping("/activate-subject/{id}")
-    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
-        ResponseData<?> response = subjectService.activateSubject(id);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+//    @PutMapping("/activate-subject/{id}")
+//    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
+//        ResponseData<?> response = subjectService.activateSubject(id);
+//        if (response.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.OK).body(response);
+//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
 
     /**
      * Deletes a subject by its ID.
