@@ -20,4 +20,6 @@ public interface MajorRepository extends JpaRepository<Major, Integer> {
     List<Major> findByNameIn(Set<String> majorsNames);
 
     List<Major> findByCodeIn(Set<String> majorCodes);
+
+    Optional<Major> findByCode(String code);
 }
