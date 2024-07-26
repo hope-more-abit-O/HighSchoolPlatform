@@ -45,6 +45,8 @@ public class SecurityConfiguration {
     private static final String STUDENT_REPORT = "/api/v1/student-report/**";
     private static final String COMMENT_API = "api/v1/comment/**";
     private static final String REPORTS_API = "/api/v1/reports/**";
+    private static final String MAJOR_API = "/api/v1/major/**";
+    private static final String METHOD_API = "/api/v1/method/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -67,6 +69,8 @@ public class SecurityConfiguration {
                                         ADDRESS_API,
                                         POST_API,
                                         FILE_API,
+                                        MAJOR_API,
+                                        METHOD_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

@@ -1,17 +1,22 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +27,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MethodServiceImpl {
+public class MethodServiceImpl implements MethodService{
     private final MethodRepository methodRepository;
     private final ModelMapper modelMapper;
 
@@ -207,5 +212,28 @@ public class MethodServiceImpl {
         ));
 
         return result;
+    }
+
+    @Override
+    public ResponseData<Page<Method>> getAllMethods(
+            Pageable pageable,
+            Integer id,
+            String code,
+            String name,
+            Date createTime,
+            Integer createBy,
+            Date updateTime,
+            Integer updateBy,
+            MethodStatus status) {
+        try {
+            Page<Method> methods = methodRepository.findMethodBy(pageable, id, code, name, createTime, createBy, updateTime, updateBy, status);
+
+            if (methods.getTotalElements() == 0)
+                return ResponseData.ok("Không tìm thấy phương pháp.");
+
+            return ResponseData.ok("Lấy thông tin các phương pháp thành công.", methods);
+        } catch (Exception e) {
+            throw new QueryException(e.getMessage());
+        }
     }
 }

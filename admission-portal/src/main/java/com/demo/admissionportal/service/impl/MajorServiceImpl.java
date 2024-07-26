@@ -1,17 +1,23 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.MajorStatus;
 import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MajorRepository;
+import com.demo.admissionportal.service.MajorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +28,7 @@ import java.util.stream.Stream;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class MajorServiceImpl {
+public class MajorServiceImpl implements MajorService {
     private final MajorRepository majorRepository;
     private final ModelMapper modelMapper;
 
@@ -206,5 +212,29 @@ public class MajorServiceImpl {
         ));
 
         return result;
+    }
+
+    public ResponseData<Page<Major>> getAllMajors(
+            Pageable pageable,
+            Integer id,
+            String code,
+            String name,
+            String note,
+            MajorStatus status,
+            Integer createBy,
+            Integer updateBy,
+            Date createTime,
+            Date updateTime) {
+        try {
+            Page<Major> majors = majorRepository.findMajorBy(pageable, id, code, name, note,
+                    (status != null) ? status.name() : null, createBy, updateBy, createTime, updateTime);
+
+            if (majors.getTotalElements() == 0)
+                return ResponseData.ok("Không tìm thấy chuyên ngành.");
+
+            return ResponseData.ok("Lấy thông tin các chuyên ngành thành công.", majors);
+        } catch (Exception e) {
+            throw new QueryException(e.getMessage());
+        }
     }
 }
