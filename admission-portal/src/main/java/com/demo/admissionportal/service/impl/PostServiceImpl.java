@@ -69,6 +69,9 @@ public class PostServiceImpl implements PostService {
     private final ProvinceRepository provinceRepository;
     private final CommentRepository commentRepository;
 
+    private List<PostRandomResponseDTO> lastRandomPosts;
+    private LocalDate lastRandomDate;
+
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
@@ -789,7 +792,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, Pageable pageable) {
         try {
-            List<PostDetailResponseDTOV2> response = new ArrayList<>();
+            Page<PostDetailResponseDTOV2> response = Page.empty();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
             switch (userRole) {
@@ -806,30 +809,22 @@ public class PostServiceImpl implements PostService {
             if (response == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post");
             }
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), response.size());
-            List<PostDetailResponseDTOV2> pagedResponse = response.subList(start, end);
-
-            Page<PostDetailResponseDTOV2> postDetailResponseDTOV2Page = new PageImpl<>(pagedResponse, pageable, response.size());
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", postDetailResponseDTOV2Page);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post: ", response);
         } catch (Exception ex) {
             log.info("Error when list all post by consult/staff/uni: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post", null);
         }
     }
 
-    private List<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, Integer id, Pageable pageable) {
+    private Page<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, Integer id, Pageable pageable) {
 
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
         return getPostByUniversityIdV2(title, consultantInfo.getUniversityId(), pageable);
     }
 
-    private List<PostDetailResponseDTOV2> getAllPostByStaff(String title, Pageable pageable) {
-        List<Post> postWithStaffInfo = postRepository.findPostWithStaffInfo(title, pageable);
-        return postWithStaffInfo.stream()
-                .map(post -> getPostsByStaff(post.getCreateBy(), post.getId()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    private Page<PostDetailResponseDTOV2> getAllPostByStaff(String title, Pageable pageable) {
+        Page<Post> postWithStaffInfo = postRepository.findPostWithStaffInfo(title, pageable);
+        return postWithStaffInfo.map(post -> getPostsByStaff(post.getCreateBy(), post.getId()));
     }
 
     @Override
@@ -886,7 +881,7 @@ public class PostServiceImpl implements PostService {
         LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
         LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
         long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-        return dateAgo >= 0 && dateAgo <= 3;
+        return dateAgo >= 0 && dateAgo <= 6;
     }
 
     private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
@@ -997,19 +992,89 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private List<PostDetailResponseDTOV2> getPostByUniversityIdV2(String title, Integer id, Pageable pageable) {
-        List<PostDetailResponseDTOV2> response = new ArrayList<>();
+    private Page<PostDetailResponseDTOV2> getPostByUniversityIdV2(String title, Integer id, Pageable pageable) {
         try {
-            List<Post> posts = postRepository.findAllByUniId(title, id, pageable);
-            if (posts != null) {
-                response = posts.stream()
-                        .map(this::mapToListPostDetailV2)
-                        .collect(Collectors.toList());
+            Page<Post> posts = postRepository.findAllByUniId(title, id, pageable);
+            if (posts != null && !posts.isEmpty()) {
+                return posts.map(this::mapToListPostDetailV2);
             }
-            return response;
         } catch (Exception ex) {
             log.error("Error when get posts version 2 with university id {}:", ex.getMessage());
         }
-        return response;
+        return Page.empty(pageable);
     }
+
+
+    @Override
+    public ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Pageable pageable) {
+        try {
+            // Check date and store
+            LocalDate today = LocalDate.now();
+            // Case 1 : If not pass 1 day, will get old result
+            if (lastRandomDate != null && !(ChronoUnit.DAYS.between(lastRandomDate, today) >= 1)) {
+                int start = (int) pageable.getOffset();
+                int end = Math.min((start + pageable.getPageSize()), lastRandomPosts.size());
+                Page<PostRandomResponseDTO> page = new PageImpl<>(lastRandomPosts.subList(start, end), pageable, lastRandomPosts.size());
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post random: ", page);
+            }
+            // Case 2 : If pass 1 day, will run new random post and update time random
+            List<PostRandomResponseDTO> responseDTOS = getRandomPost();
+            if (responseDTOS == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post random");
+            }
+            lastRandomPosts = responseDTOS;
+            lastRandomDate = today;
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), responseDTOS.size());
+            Page<PostRandomResponseDTO> page = new PageImpl<>(responseDTOS.subList(start, end), pageable, responseDTOS.size());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post random: ", page);
+        } catch (Exception ex) {
+            log.error("Error while get post random: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm post", null);
+        }
+    }
+
+    private List<PostRandomResponseDTO> getRandomPost() {
+        // Get random post
+        List<Post> posts = postRepository.findAll();
+        List<PostRandomResponseDTO> postRandomResponseDTOList = posts.stream()
+                .map(this::mapToRandomPost)
+                .collect(Collectors.toList());
+        Collections.shuffle(postRandomResponseDTOList, new Random());
+        return postRandomResponseDTOList;
+    }
+
+    private PostRandomResponseDTO mapToRandomPost(Post post) {
+        PostRandomResponseDTO postRandomResponseDTO = new PostRandomResponseDTO();
+        // Get user in post
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(post.getCreateBy());
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
+        if (staffInfo != null) {
+            postRandomResponseDTO = mapperStaffInfoRandomPost(post, staffInfo);
+        } else if (consultantInfo != null) {
+            postRandomResponseDTO = mapperConsultantInfoRandomPost(post, consultantInfo);
+        }
+        return postRandomResponseDTO;
+    }
+
+    private PostRandomResponseDTO mapperConsultantInfoRandomPost(Post post, ConsultantInfo consultantInfo) {
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
+        UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+        PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
+        int comment = commentRepository.countByPostId(post.getId());
+        postRandomResponseDTO.setCreateBy(universityInfo.getName() + " " + universityCampus.getCampusName());
+        postRandomResponseDTO.setReplyComment(comment);
+        return postRandomResponseDTO;
+    }
+
+
+    private PostRandomResponseDTO mapperStaffInfoRandomPost(Post post, StaffInfo staffInfo) {
+        PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
+        int comment = commentRepository.countByPostId(post.getId());
+        postRandomResponseDTO.setCreateBy(staffInfo.getFirstName().trim() + " " + staffInfo.getMiddleName().trim() + " " + staffInfo.getLastName().trim());
+        postRandomResponseDTO.setReplyComment(comment);
+        return postRandomResponseDTO;
+    }
+
 }
