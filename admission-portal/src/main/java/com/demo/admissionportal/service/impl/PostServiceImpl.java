@@ -833,38 +833,21 @@ public class PostServiceImpl implements PostService {
             log.info("Start retrieve post favorite");
             // Filter duplicate by id, Title, Content
             List<Post> post = postRepository.findAll();
-            List<PostFavoriteResponseDTO> postResponseDTOList = post.stream()
-                    .sorted(Comparator.comparing(Post::getCreateTime).reversed())
-                    .map(this::mapToPostFavoriteDTO)
-                    .peek(this::filterPost)
-                    .filter(this::filterRecentPosts)
-                    .collect(Collectors.toList());
+            int dateRemain = 0;
+            List<PostFavoriteResponseDTO> postResponseDTOList = filterPostResponse(post, dateRemain);
 
-            /* Group by day and get the highest interaction post for each day
-                Example: KEY: 2024-01-21    VALUES
-                              ----//----    2127
-                              ----//----    2128
-                              ----//----    2129
-                 We need to calculator interact post and get highest in each day by key
-            */
-            // Group by day and get the highest interaction post for each day
-            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay = postResponseDTOList.stream()
-                    .collect(Collectors.groupingBy(
-                            postFavoriteResponseDTO -> {
-                                LocalDate localDate = postFavoriteResponseDTO.getPostProperties().getCreate_time().toInstant()
-                                        .atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
-                                return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                            },
-                            Collectors.collectingAndThen(
-                                    Collectors.maxBy(Comparator.comparing(PostFavoriteResponseDTO::getInteractPost)),
-                                    Optional::get
-                            )
-                    ));
+            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay = groupByInteractPost(postResponseDTOList);
+
             // Collect results and display most recent create_date
-            List<PostFavoriteResponseDTO> resultOfFilter = new ArrayList<>(highestInteractionByDay.values())
-                    .stream()
-                    .sorted(Comparator.comparing(PostFavoriteResponseDTO::getPublishAgo).reversed())
-                    .toList();
+            List<PostFavoriteResponseDTO> resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
+
+            // Check resultOfFilter is not enough 4 posts will add 1 day remain to get
+            while (resultOfFilter.size() < 4) {
+                dateRemain++;
+                postResponseDTOList = filterPostResponse(post, dateRemain);
+                highestInteractionByDay = groupByInteractPost(postResponseDTOList);
+                resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
+            }
 
             log.info("End retrieve post favorite");
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", resultOfFilter);
@@ -874,14 +857,53 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean filterRecentPosts(PostFavoriteResponseDTO postFavoriteResponseDTO) {
+    private List<PostFavoriteResponseDTO> getPostFavoriteResponseDTOS(Map<Date, PostFavoriteResponseDTO> highestInteractionByDay) {
+        return new ArrayList<>(highestInteractionByDay.values())
+                .stream()
+                .sorted(Comparator.comparing(PostFavoriteResponseDTO::getPublishAgo).reversed())
+                .toList();
+    }
+
+    private Map<Date, PostFavoriteResponseDTO> groupByInteractPost(List<PostFavoriteResponseDTO> postResponseDTOList) {
+          /* Group by day and get the highest interaction post for each day
+                Example: KEY: 2024-01-21    VALUES
+                              ----//----    2127
+                              ----//----    2128
+                              ----//----    2129
+                 We need to calculator interact post and get highest in each day by key
+            */
+        // Group by day and get the highest interaction post for each day
+        return postResponseDTOList.stream()
+                .collect(Collectors.groupingBy(
+                        postFavoriteResponseDTO -> {
+                            LocalDate localDate = postFavoriteResponseDTO.getPostProperties().getCreate_time().toInstant()
+                                    .atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+                            return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        },
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparing(PostFavoriteResponseDTO::getInteractPost)),
+                                Optional::get
+                        )
+                ));
+    }
+
+    public List<PostFavoriteResponseDTO> filterPostResponse(List<Post> post, Integer dateRemain) {
+        return post.stream()
+                .sorted(Comparator.comparing(Post::getCreateTime).reversed())
+                .map(this::mapToPostFavoriteDTO)
+                .peek(this::filterPost)
+                .filter(filter -> filterRecentPosts(filter, dateRemain))
+                .collect(Collectors.toList());
+    }
+
+    private boolean filterRecentPosts(PostFavoriteResponseDTO postFavoriteResponseDTO, Integer dateRemain) {
         ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
         Date datePost = postFavoriteResponseDTO.getPostProperties().getCreate_time();
         Date dateNow = new Date();
         LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
         LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
         long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-        return dateAgo >= 0 && dateAgo <= 6;
+        return dateAgo >= 0 && dateAgo <= 6 + dateRemain;
     }
 
     private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
