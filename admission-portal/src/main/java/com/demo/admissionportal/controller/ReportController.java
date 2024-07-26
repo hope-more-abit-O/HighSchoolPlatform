@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-
 @RestController
 @RequestMapping("/api/v1/reports")
 @AllArgsConstructor
@@ -42,6 +41,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdPostReport);
     }
+
     @GetMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -54,6 +54,7 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @PutMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
@@ -69,11 +70,19 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
+
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<Page<FindAllReportsWithPostResponseDTO>>> findAllPostReports(Pageable pageable, Authentication authentication) {
-        ResponseData<Page<FindAllReportsWithPostResponseDTO>> postReportsResponse = reportService.findAllPostReports(pageable, authentication);
+    public ResponseEntity<ResponseData<Page<FindAllReportsWithPostResponseDTO>>> findAllPostReports(
+            Pageable pageable,
+            Authentication authentication,
+            @RequestParam(required = false) Integer reportId,
+            @RequestParam(required = false) String ticketId,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) ReportStatus status) {
+        ResponseData<Page<FindAllReportsWithPostResponseDTO>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, status);
         if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportsResponse);
         }

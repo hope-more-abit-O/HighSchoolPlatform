@@ -6,24 +6,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubjectResponseDTO {
+public class SubjectGroupResponseDTO2 {
     private Integer id;
     private String name;
     private String status;
-    private ActionerDTO createBy;
-    private Date createTime;
 
-    public SubjectResponseDTO(Integer id, String name, String status) {
+    public SubjectGroupResponseDTO2(Integer id, String name, String status, ActionerDTO createBy) {
         this.id = id;
         this.name = name;
         this.status = status;
-    }
-
-    public SubjectResponseDTO(Integer id, String name, String name1, Date createTime) {
-
     }
 }

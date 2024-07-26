@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   admission-portal:
-    image: dyhieu/uap-test-2:2024
+    image: highschoolvn/admission-portal:latest
     ports:
       - "7654:8080"
     environment:

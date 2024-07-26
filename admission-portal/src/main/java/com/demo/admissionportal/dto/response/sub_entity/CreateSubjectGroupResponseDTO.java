@@ -1,14 +1,20 @@
-package com.demo.admissionportal.dto.response;
+package com.demo.admissionportal.dto.response.sub_entity;
 
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
-@Data
 @NoArgsConstructor
-public class CreateSubjectResponseDTO {
+@AllArgsConstructor
+@Getter
+@Setter
+public class CreateSubjectGroupResponseDTO {
     private Integer id;
     private String name;
     private String status;
@@ -18,8 +24,9 @@ public class CreateSubjectResponseDTO {
     private Date updateTime;
     @JsonIgnore
     private Integer updateBy;
+    private List<CreateSubjectResponseDTO> subjects;
 
-    public CreateSubjectResponseDTO(Integer id, String name, Date createTime, Integer createBy, Integer updateBy, String name1) {
+    public CreateSubjectGroupResponseDTO(Integer id, String name, Date createTime, Integer createBy, Integer updateBy, String name1) {
         this.id = id;
         this.name = name;
         this.createTime = createTime;
