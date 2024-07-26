@@ -6,7 +6,8 @@ import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO;
+import com.demo.admissionportal.dto.entity.report.FindAllReportsWithPostDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
@@ -221,9 +222,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication,
-                                                                                    Integer reportId, String ticketId, Integer createBy,
-                                                                                    String content, ReportStatus status) {
+    public ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication,
+                                                                            Integer reportId, String ticketId, Integer createBy,
+                                                                            String content, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -236,15 +237,17 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostResponseDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
+            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
 
-            Page<FindAllReportsWithPostResponseDTO> responseDTOPage = reportPage.map(report -> {
+            Page<ListAllPostReportResponse> responseDTOPage = reportPage.map(report -> {
                 ActionerDTO actioner = null;
                 if (report.getCreateBy() != null && report.getCreateBy().getId() != null) {
                     actioner = getUserDetails(report.getCreateBy().getId());
                 }
-                report.setCreateBy(actioner);
-                return report;
+                ListAllPostReportResponse responseDTO = modelMapper.map(report, ListAllPostReportResponse.class);
+                responseDTO.setCreateBy(actioner);
+//                responseDTO.setStatus(modelMapper.map(report.getStatus(), String.class));
+                return responseDTO;
             });
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bài viết được tìm thấy", responseDTOPage);
