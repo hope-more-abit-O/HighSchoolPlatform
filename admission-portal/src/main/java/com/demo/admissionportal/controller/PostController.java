@@ -91,19 +91,6 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
     }
 
-    /**
-     * Gets posts.
-     *
-     * @return the posts
-     */
-    @GetMapping
-    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPosts() {
-        ResponseData<List<PostResponseDTO>> response = postService.getPosts();
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
 
     /**
      * Gets posts by id.

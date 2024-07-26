@@ -842,7 +842,7 @@ public class PostServiceImpl implements PostService {
             List<PostFavoriteResponseDTO> resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
 
             // Check resultOfFilter is not enough 4 posts will add 1 day remain to get
-            while (resultOfFilter.size() < 4) {
+            while (resultOfFilter.size() < 6) {
                 dateRemain++;
                 postResponseDTOList = filterPostResponse(post, dateRemain);
                 highestInteractionByDay = groupByInteractPost(postResponseDTOList);
@@ -1084,18 +1084,28 @@ public class PostServiceImpl implements PostService {
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
         UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
+        List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
+                .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
         postRandomResponseDTO.setCreateBy(universityInfo.getName() + " " + universityCampus.getCampusName());
-        postRandomResponseDTO.setReplyComment(comment);
+        postRandomResponseDTO.setComment(comment);
+        postRandomResponseDTO.setListType(typeResponseDTOList);
         return postRandomResponseDTO;
     }
 
 
     private PostRandomResponseDTO mapperStaffInfoRandomPost(Post post, StaffInfo staffInfo) {
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
+        List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
+                .stream()
+                .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
+                .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
         postRandomResponseDTO.setCreateBy(staffInfo.getFirstName().trim() + " " + staffInfo.getMiddleName().trim() + " " + staffInfo.getLastName().trim());
-        postRandomResponseDTO.setReplyComment(comment);
+        postRandomResponseDTO.setComment(comment);
+        postRandomResponseDTO.setListType(typeResponseDTOList);
         return postRandomResponseDTO;
     }
 
