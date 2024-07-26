@@ -5,7 +5,7 @@ import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsWithPostResponseDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import org.springframework.data.domain.Page;
@@ -95,5 +95,5 @@ public interface ReportService {
      * @return A {@link ResponseData} object containing a paginated list of post reports.
      * @since 1.0
      */
-    ResponseData<Page<FindAllReportsWithPostResponseDTO>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
+    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
 }
