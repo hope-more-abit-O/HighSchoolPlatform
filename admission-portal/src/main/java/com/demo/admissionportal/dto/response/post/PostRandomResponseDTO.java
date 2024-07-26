@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * The type Post random response dto.
@@ -25,6 +26,7 @@ public class PostRandomResponseDTO implements Serializable {
     private Date create_time;
     private String url;
     private Integer like;
-    private Integer replyComment;
+    private Integer comment;
     private String createBy;
+    private List<TypeResponseDTO> listType;
 }

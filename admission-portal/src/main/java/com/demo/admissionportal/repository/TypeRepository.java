@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.Type;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,7 +31,15 @@ public interface TypeRepository extends JpaRepository<Type, Integer> {
      */
     List<Type> findTypeByName(String name);
 
-    @Query(value = "SELECT * " +
-                   "FROM type", nativeQuery = true)
-    Page<Type> findAllType(Pageable pageable);
+    /**
+     * Find all type page.
+     *
+     * @param name     the name
+     * @param pageable the pageable
+     * @return the page
+     */
+    @Query(value = "SELECT t.* " +
+            "FROM [type] t " +
+            "WHERE :name IS NULL OR t.name LIKE %:name%", nativeQuery = true)
+    Page<Type> findAllType(@Param("name") String name, Pageable pageable);
 }

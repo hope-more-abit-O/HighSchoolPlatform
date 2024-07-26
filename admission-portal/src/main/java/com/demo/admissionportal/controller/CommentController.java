@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.request.comment.ReplyCommentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.comment.CommentResponseDTO;
 import com.demo.admissionportal.service.CommentService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/comment")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class CommentController {
 
     private final CommentService commentService;

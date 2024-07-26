@@ -23,10 +23,11 @@ public interface TypeService {
     /**
      * Gets list type post.
      *
+     * @param typeName the type name
      * @param pageable the pageable
      * @return the list type post
      */
-    ResponseData<Page<TypeListResponseDTO>> getListTypePost(Pageable pageable);
+    ResponseData<Page<TypeListResponseDTO>> getListTypePost(String typeName, Pageable pageable);
 
     /**
      * Gets post by id.
