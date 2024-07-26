@@ -16,12 +16,11 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.exception.NotAllowedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.QueryException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
-import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
@@ -32,11 +31,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -301,30 +297,35 @@ public class UniversityServiceImpl implements UniversityService {
         return ResponseData.ok("Lấy thông tin các trường đại học phụ thuộc nhân viên thành công.",result);
     }
 
-    public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(Pageable pageable,
-                                                                                       Integer id,
-                                                                                       String code,
-                                                                                       String username,
-                                                                                       String name,
-                                                                                       String phone,
-                                                                                       String email,
-                                                                                       AccountStatus status,
-                                                                                       Integer createBy,
-                                                                                       String createByName){
-        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy, createByName);
+    public ResponseData<Page<UniversityFullResponseDTO>> getAllUniversityFullResponses(
+            Pageable pageable,
+            Integer id,
+            String code,
+            String username,
+            String name,
+            String phone,
+            String email,
+            AccountStatus status,
+            Integer createBy,
+            String createByName){
+        try{
+            Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy, createByName);
 
-        if (uniAccounts.getTotalElements() == 0)
-            return ResponseData.ok("Không tìm thấy trường đại học.");
+            if (uniAccounts.getTotalElements() == 0)
+                return ResponseData.ok("Không tìm thấy trường đại học.");
 
-        List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());
+            List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());
 
-        List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
-                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
-                .toList());
+            List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
+                    .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                    .toList());
 
-        Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts.getContent(), actionerDTOS, uniInfos), pageable, uniAccounts.getSize());
+            Page<UniversityFullResponseDTO> result = new PageImpl<>(mapping(uniAccounts.getContent(), actionerDTOS, uniInfos), pageable, uniAccounts.getSize());
 
-        return ResponseData.ok("Lấy thông tin các trường đại học thành công.",result);
+            return ResponseData.ok("Lấy thông tin các trường đại học thành công.",result);
+        } catch (Exception e){
+            throw new QueryException(e.getMessage());
+        }
     }
 
     public List<UniversityFullResponseDTO> mapping(List<User> uniAccounts, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {

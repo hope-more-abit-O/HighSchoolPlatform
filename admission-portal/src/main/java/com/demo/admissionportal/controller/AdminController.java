@@ -11,8 +11,8 @@ import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.AdminService;
 import com.demo.admissionportal.service.CreateUniversityService;
 import com.demo.admissionportal.service.StaffService;
@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -221,9 +220,10 @@ public class AdminController {
             @RequestParam(required = false) String createByName,
             @RequestParam(required = false) Integer confirmBy
     ) {
-        return ResponseEntity.ok(createUniversityService.getBy(
-                pageable, id, universityName, universityCode, universityEmail,
-                universityUsername, status, createBy, createByName, confirmBy
+        return ResponseEntity.ok(
+                createUniversityService.getBy(
+                        pageable, id, universityName, universityCode, universityEmail,
+                        universityUsername, status, createBy, createByName, confirmBy
         ));
     }
 
@@ -239,16 +239,10 @@ public class AdminController {
             @RequestParam(required = false) AccountStatus status,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) String createByName) {
-        return ResponseEntity.ok(universityService.getAllUniversityFullResponses(pageable,
-                id,
-                code,
-                username,
-                name,
-                phone,
-                email,
-                status,
-                createBy,
-                createByName));
+        return ResponseEntity.ok(
+                universityService.getAllUniversityFullResponses(pageable,
+                        id, code, username, name, phone,
+                        email, status, createBy, createByName));
     }
 
 

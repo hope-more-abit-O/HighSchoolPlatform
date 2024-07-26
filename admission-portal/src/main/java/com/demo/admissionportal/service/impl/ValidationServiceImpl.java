@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
-import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;

@@ -3,7 +3,6 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
-import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.controller.CreateUniversityController;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
@@ -12,9 +11,10 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.QueryException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.CreateUniversityRequestRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
@@ -26,17 +26,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -340,20 +336,28 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 Integer createBy,
                                                                 String createByName,
                                                                 Integer confirmBy){
-        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
-                id,
-                universityName,
-                universityCode,
-                universityEmail,
-                universityUsername,
-                (status != null) ? status.name() : null,
-                createBy,
-                createByName,
-                confirmBy);
 
-        List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
+        try {
+            Page<CreateUniversityRequest>  createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                    id,
+                    universityName,
+                    universityCode,
+                    universityEmail,
+                    universityUsername,
+                    (status == null) ? null : status.name(),
+                    createBy,
+                    createByName,
+                    confirmBy);
 
-        return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", createUniversityRequests.map((element) -> this.mapping(element, actionerDTOs)));
+            if (createUniversityRequests.getTotalElements() == 0)
+                return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.");
+
+            List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
+
+            return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", createUniversityRequests.map((element) -> this.mapping(element, actionerDTOs)));
+        } catch (Exception e) {
+            throw new QueryException(e.getMessage());
+        }
     }
 
     public List<ActionerDTO> getActioners(List<CreateUniversityRequest> createUniversityRequests){
@@ -361,7 +365,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .flatMap((request) -> Stream.of(request.getCreateBy(), request.getUpdateBy(), request.getConfirmBy()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        List<ActionerDTO> actionerDTOs = userServiceImpl.getActioners(actionerIds.stream().toList());
+		List<ActionerDTO> actionerDTOs = userServiceImpl.getActioners(actionerIds.stream().toList());
         return actionerDTOs;
     }
 }

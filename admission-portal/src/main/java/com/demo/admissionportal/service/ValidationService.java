@@ -1,6 +1,6 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
 
 public interface ValidationService {
     /**

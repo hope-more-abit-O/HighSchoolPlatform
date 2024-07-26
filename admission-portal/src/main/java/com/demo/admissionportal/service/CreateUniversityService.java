@@ -5,9 +5,8 @@ import com.demo.admissionportal.dto.entity.create_university_request.CreateUnive
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.PostCreateUniversityRequestResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.CreateUniversityRequest;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
