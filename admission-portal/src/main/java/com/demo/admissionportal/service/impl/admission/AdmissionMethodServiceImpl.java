@@ -1,11 +1,10 @@
 package com.demo.admissionportal.service.impl.admission;
 
-import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.admission.AdmissionMethod;
-import com.demo.admissionportal.exception.CreateEntityFailedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.CreateEntityFailedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionMethodRepository;
 import com.demo.admissionportal.service.impl.MethodServiceImpl;
 import lombok.RequiredArgsConstructor;

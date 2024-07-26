@@ -9,7 +9,7 @@ import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.SubjectRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;

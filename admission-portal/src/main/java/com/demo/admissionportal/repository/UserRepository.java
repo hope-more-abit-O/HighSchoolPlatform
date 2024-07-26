@@ -114,12 +114,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         INNER JOIN university_info u ON usr.id = u.university_id
         LEFT JOIN university_campus unic ON unic.university_id = u.university_id
         WHERE (:id IS NULL OR usr.id = :id)
-          AND (:username IS NULL OR usr.username LIKE %:username%)
-          AND (:code IS NULL OR u.code LIKE %:code%)
-          AND (:name IS NULL OR u.name LIKE %:name% OR unic.campus_name LIKE %:name%)
+          AND (:username IS NULL OR LOWER(usr.username) LIKE LOWER(CONCAT('%', :username, '%')))
+          AND (:code IS NULL OR LOWER(u.code) LIKE LOWER(CONCAT('%', :code, '%')))
+          AND (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(unic.campus_name) LIKE LOWER(CONCAT('%', :name, '%')))
           AND (:phone IS NULL OR unic.phone LIKE %:phone%)
-          AND (:email IS NULL OR usr.email LIKE %:email% OR unic.email LIKE %:email%)
-          AND (:status IS NULL OR usr.status = :status)
+          AND (:email IS NULL OR LOWER(usr.email) LIKE LOWER(CONCAT('%', :email, '%')) OR LOWER(unic.email) LIKE LOWER(CONCAT('%', :email, '%')))
+          AND (:status IS NULL OR LOWER(usr.status) = LOWER(:status))
           AND (:createBy IS NULL OR usr.create_by = :createBy)
     """, nativeQuery = true)
     Page<User> findUniversityAccountBy(
@@ -132,5 +132,33 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @org.springframework.data.repository.query.Param("email") String email,
             @org.springframework.data.repository.query.Param("status") String status,
             @org.springframework.data.repository.query.Param("createBy") Integer createBy
+    );
+    @Query(value = """
+        SELECT usr.*
+        FROM [user] usr
+        INNER JOIN university_info u ON usr.id = u.university_id
+        INNER JOIN staff_info si ON si.staff_id = usr.create_by 
+        LEFT JOIN university_campus unic ON unic.university_id = u.university_id
+        WHERE (:id IS NULL OR usr.id = :id)
+            AND (:username IS NULL OR LOWER(usr.username) LIKE LOWER(CONCAT('%', :username, '%')))
+            AND (:code IS NULL OR LOWER(u.code) LIKE LOWER(CONCAT('%', :code, '%')))
+            AND (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(unic.campus_name) LIKE LOWER(CONCAT('%', :name, '%')))
+            AND (:phone IS NULL OR unic.phone LIKE %:phone%)
+            AND (:email IS NULL OR LOWER(usr.email) LIKE LOWER(CONCAT('%', :email, '%')) OR LOWER(unic.email) LIKE LOWER(CONCAT('%', :email, '%')))
+            AND (:status IS NULL OR LOWER(usr.status) = LOWER(:status))
+            AND (:createBy IS NULL OR usr.create_by = :createBy)
+            AND (:createByName IS NULL OR LOWER(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, ''))) LIKE LOWER(CONCAT('%', :createByName, '%')))
+ """, nativeQuery = true)
+    Page<User> findUniversityAccountBy(
+            Pageable pageable,
+            @org.springframework.data.repository.query.Param("id") Integer id,
+            @org.springframework.data.repository.query.Param("code") String code,
+            @org.springframework.data.repository.query.Param("username") String username,
+            @org.springframework.data.repository.query.Param("name") String name,
+            @org.springframework.data.repository.query.Param("phone") String phone,
+            @org.springframework.data.repository.query.Param("email") String email,
+            @org.springframework.data.repository.query.Param("status") String status,
+            @org.springframework.data.repository.query.Param("createBy") Integer createBy,
+            @org.springframework.data.repository.query.Param("createByName") String createByName
     );
 }

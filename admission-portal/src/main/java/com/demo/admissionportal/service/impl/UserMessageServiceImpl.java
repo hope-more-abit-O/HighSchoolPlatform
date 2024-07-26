@@ -9,7 +9,7 @@ import com.demo.admissionportal.entity.UserMessage;
 import com.demo.admissionportal.entity.UserInfo;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.ConsultantInfo;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.UserMessageRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.UserInfoRepository;

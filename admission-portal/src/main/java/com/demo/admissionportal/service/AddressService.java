@@ -4,7 +4,7 @@ import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 

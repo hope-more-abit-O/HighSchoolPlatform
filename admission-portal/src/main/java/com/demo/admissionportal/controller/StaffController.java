@@ -12,9 +12,9 @@ import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.exception.NotAllowedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -82,9 +82,16 @@ public class StaffController {
      * @return the create university requests
      */
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable, @RequestParam(required = false) Integer id, @RequestParam(required = false) String universityName, @RequestParam(required = false) String universityCode, @RequestParam(required = false) String universityEmail, @RequestParam(required = false) String universityUsername, @RequestParam(required = false) CreateUniversityRequestStatus status, @RequestParam(required = false) Integer confirmBy) {
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable,
+                                                                                                      @RequestParam(required = false) Integer id,
+                                                                                                      @RequestParam(required = false) String universityName,
+                                                                                                      @RequestParam(required = false) String universityCode,
+                                                                                                      @RequestParam(required = false) String universityEmail,
+                                                                                                      @RequestParam(required = false) String universityUsername,
+                                                                                                      @RequestParam(required = false) CreateUniversityRequestStatus status,
+                                                                                                      @RequestParam(required = false) Integer confirmBy) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, confirmBy));
+        return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, null, confirmBy));
     }
 
     /**

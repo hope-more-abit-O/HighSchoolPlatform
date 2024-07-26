@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.entity.Ward;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.WardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
