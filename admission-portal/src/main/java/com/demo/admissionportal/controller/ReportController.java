@@ -1,8 +1,9 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ReportStatus;
+import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -44,8 +45,8 @@ public class ReportController {
     @GetMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<ReportPostResponseDTO>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
-        ResponseData<ReportPostResponseDTO> postReportResponse = reportService.getPostReportById(reportId, authentication);
+    public ResponseEntity<ResponseData<ReportPostResponse>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
+        ResponseData<ReportPostResponse> postReportResponse = reportService.getPostReportById(reportId, authentication);
         if (postReportResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportResponse);
         } else if (postReportResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -80,8 +81,9 @@ public class ReportController {
             @RequestParam(required = false) String ticketId,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) String content,
+            @RequestParam(required = false) ReportType reportType,
             @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, status);
+        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, reportType, status);
         if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportsResponse);
         }

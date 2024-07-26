@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -11,7 +12,8 @@ import java.util.Date;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ReportPostResponseDTO {
+@NoArgsConstructor
+public class ReportPostDTO {
     private Integer reportId;
     private String ticketId;
     private ActionerDTO createBy;

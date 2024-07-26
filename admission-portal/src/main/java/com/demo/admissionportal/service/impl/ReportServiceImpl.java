@@ -2,7 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.report.ReportPostResponseDTO;
+import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -92,7 +92,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public ResponseData<ReportPostResponseDTO> getPostReportById(Integer reportId, Authentication authentication) {
+    public ResponseData<ReportPostResponse> getPostReportById(Integer reportId, Authentication authentication) {
         String username = authentication.getName();
         Optional<User> existUser = userRepository.findByUsername(username);
         if (existUser.isEmpty()) {
@@ -128,19 +128,13 @@ public class ReportServiceImpl implements ReportService {
 
         ActionerDTO actioner = getUserDetails(report.getCreate_by());
 
-        ReportPostResponseDTO responseDTO = new ReportPostResponseDTO(
-                report.getId(),
-                report.getTicket_id(),
-                actioner,
-                report.getCreate_time(),
-                report.getReport_type().toString(),
-                report.getContent(),
-                post.getId(),
-                post.getTitle(),
-                post.getCreateBy(),
-                post.getCreateTime(),
-                report.getStatus()
-        );
+        ReportPostResponse responseDTO = modelMapper.map(report, ReportPostResponse.class);
+        responseDTO.setCreateBy(actioner);
+        responseDTO.setPostId(post.getId());
+        responseDTO.setTitle(post.getTitle());
+        responseDTO.setPostCreateBy(post.getCreateBy());
+        responseDTO.setPostCreateTime(post.getCreateTime());
+
         return new ResponseData<>(ResponseCode.C200.getCode(), "Thông tin báo cáo về bài viết được tìm thấy !", responseDTO);
     }
 
@@ -224,7 +218,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication,
                                                                             Integer reportId, String ticketId, Integer createBy,
-                                                                            String content, ReportStatus status) {
+                                                                            String content, ReportType reportType, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -237,7 +231,7 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, pageable);
+            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, reportType, pageable);
 
             Page<ListAllPostReportResponse> responseDTOPage = reportPage.map(report -> {
                 ActionerDTO actioner = null;
