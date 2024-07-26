@@ -9,8 +9,8 @@ import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.UniversityServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -149,5 +149,6 @@ public interface UniversityService {
                                                                                 String phone,
                                                                                 String email,
                                                                                 AccountStatus status,
-                                                                                Integer createBy);
+                                                                                Integer createBy,
+                                                                                String createByName);
 }
