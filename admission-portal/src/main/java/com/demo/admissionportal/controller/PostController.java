@@ -212,7 +212,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @GetMapping("/random")
+    @GetMapping("/if-you-like")
     public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable){
         ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
