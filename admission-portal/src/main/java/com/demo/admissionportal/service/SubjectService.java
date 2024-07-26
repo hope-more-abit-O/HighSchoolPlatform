@@ -5,7 +5,7 @@ import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

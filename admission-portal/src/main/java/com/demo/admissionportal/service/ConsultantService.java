@@ -7,10 +7,10 @@ import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRe
 import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.exception.DataExistedException;
-import com.demo.admissionportal.exception.NotAllowedException;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
-import com.demo.admissionportal.exception.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

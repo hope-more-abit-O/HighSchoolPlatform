@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.exception.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.service.UniversityInfoService;
 import lombok.RequiredArgsConstructor;

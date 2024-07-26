@@ -23,16 +23,19 @@ public interface CreateUniversityRequestRepository extends JpaRepository<CreateU
     Page<CreateUniversityRequest> findByCreateBy(Integer createBy, Pageable pageable);
 
     @Query(value = """
-    SELECT *
-    FROM create_university_request
-    WHERE (:id IS NULL OR id = :id)
-      AND (:universityName IS NULL OR university_name LIKE %:universityName%)
-      AND (:universityCode IS NULL OR university_code LIKE %:universityCode%)
-      AND (:universityEmail IS NULL OR university_email LIKE %:universityEmail%)
-      AND (:universityUsername IS NULL OR university_username LIKE %:universityUsername%)
-      AND (:status IS NULL OR status = :status)
-      AND (:createBy IS NULL OR create_by = :createBy)
-      AND (:confirmBy IS NULL OR confirm_by = :confirmBy)
+    SELECT cur.*
+    FROM [create_university_request] cur
+    INNER JOIN [user] usr ON usr.id = cur.create_by
+    LEFT JOIN [staff_info] si ON si.staff_id = usr.id
+    WHERE (:id IS NULL OR cur.id = :id)
+        AND (:universityName IS NULL OR LOWER(cur.university_name) LIKE LOWER(CONCAT('%', :universityName, '%')))
+        AND (:universityCode IS NULL OR LOWER(cur.university_code) LIKE LOWER(CONCAT('%', :universityCode, '%')))
+        AND (:universityEmail IS NULL OR LOWER(cur.university_email) LIKE LOWER(CONCAT('%', :universityEmail, '%')))
+        AND (:universityUsername IS NULL OR LOWER(cur.university_username) LIKE LOWER(CONCAT('%', :universityUsername, '%')))
+        AND (:status IS NULL OR cur. status = :status)
+        AND (:createBy IS NULL OR cur.create_by = :createBy)
+        AND (:confirmBy IS NULL OR cur.confirm_by = :confirmBy)
+        AND (:createByName IS NULL OR LOWER(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, ''))) LIKE LOWER(CONCAT('%', :createByName, '%')))
     """, nativeQuery = true)
     Page<CreateUniversityRequest> findAllBy(
             Pageable pageable,
@@ -43,6 +46,7 @@ public interface CreateUniversityRequestRepository extends JpaRepository<CreateU
             @Param("universityUsername") String universityUsername,
             @Param("status") String status,
             @Param("createBy") Integer createBy,
+            @Param("createByName") String createByName,
             @Param("confirmBy") Integer confirmBy
     );
 }

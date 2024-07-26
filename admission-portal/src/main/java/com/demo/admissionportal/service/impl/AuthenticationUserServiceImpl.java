@@ -11,7 +11,7 @@ import com.demo.admissionportal.dto.request.redis.VerifyAccountRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.authen.*;
 import com.demo.admissionportal.entity.*;
-import com.demo.admissionportal.exception.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.AuthenticationUserService;
 import com.demo.admissionportal.service.JwtService;
@@ -37,7 +37,6 @@ import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.Optional;
 
 /**
  * The type Authentication user service.
