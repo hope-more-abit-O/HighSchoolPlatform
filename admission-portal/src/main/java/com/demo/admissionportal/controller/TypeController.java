@@ -51,8 +51,8 @@ public class TypeController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
-    public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<TypeListResponseDTO>> result = typeService.getListTypePost(pageable);
+    public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@RequestParam(required = false) String typeName, @PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<TypeListResponseDTO>> result = typeService.getListTypePost(typeName, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
