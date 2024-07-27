@@ -7,17 +7,29 @@ public enum PostStatus {
     /**
      * Pending post status.
      */
-    PENDING,
+    PENDING("Chờ duyệt"),
     /**
      * Active post status.
      */
-    ACTIVE,
+    ACTIVE("Hoạt động"),
     /**
      * Private post status.
      */
-    PRIVATE,
+    PRIVATE("Bị ẩn"),
     /**
      * Inactive post status.
      */
-    INACTIVE
+    INACTIVE("Không hoạt động");
+
+    /**
+     * -- GETTER --
+     *  Gets name.
+     *
+     * @return the name
+     */
+    public final String name;
+
+    PostStatus(String name) {
+        this.name = name;
+    }
 }

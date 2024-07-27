@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setUsername(userInfo.getUser().getUsername());
                 responseDTO.setEmail(userInfo.getUser().getEmail());
                 responseDTO.setName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(userInfo.getUser().getStatus().name());
+                responseDTO.setStatus(userInfo.getUser().getStatus().name);
                 responseDTO.setCreate_time(userInfo.getUser().getCreateTime());
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);

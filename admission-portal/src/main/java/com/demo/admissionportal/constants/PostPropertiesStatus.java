@@ -7,9 +7,21 @@ public enum PostPropertiesStatus {
     /**
      * Active post properties status.
      */
-    ACTIVE,
+    ACTIVE("Hoạt động"),
     /**
      * Inactive post properties status.
      */
-    INACTIVE
+    INACTIVE("Không hoạt động");
+
+    /**
+     * -- GETTER --
+     *  Gets name.
+     *
+     * @return the name
+     */
+    public final String name;
+
+    PostPropertiesStatus(String name) {
+        this.name = name;
+    }
 }
