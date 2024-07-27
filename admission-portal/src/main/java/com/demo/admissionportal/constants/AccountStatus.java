@@ -1,40 +1,24 @@
 package com.demo.admissionportal.constants;
 
-import lombok.Getter;
-
 /**
  * Enumeration representing the different status of an account.
  *
  * @author duyhieu
- * @version 1.1
  * @last-updater hopeless
- * @since 11 /06/2024
+ * @version 1.1
+ * @since 11/06/2024
  */
-@Getter
 public enum AccountStatus {
     /**
      * Active account status.
      */
-    ACTIVE("Hoạt động"),
+    ACTIVE,
     /**
      * Inactive account status.
      */
-    INACTIVE("Không hoạt động"),
+    INACTIVE,
     /**
      * Pending account status.
      */
-    PENDING("Chờ duyệt");
-
-    /**
-     * -- GETTER --
-     *  Gets name.
-     *
-     * @return the name
-     */
-    private final String name;
-
-    AccountStatus(String name) {
-        this.name = name;
-    }
-
+    PENDING
 }
