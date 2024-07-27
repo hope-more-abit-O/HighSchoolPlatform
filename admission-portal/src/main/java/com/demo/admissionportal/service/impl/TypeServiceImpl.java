@@ -177,7 +177,7 @@ public class TypeServiceImpl implements TypeService {
                 .createBy(createBy.getFirstName().trim() + " " + createBy.getMiddleName().trim() + " " + createBy.getLastName().trim())
                 .createTime(type.getCreateTime())
                 .updateBy(updateBy != null ? updateBy.getFirstName().trim() + " " + updateBy.getMiddleName().trim() + " " + updateBy.getLastName().trim() : null)
-                .status(type.getStatus())
+                .status(type.getStatus().name)
                 .build();
     }
 }
