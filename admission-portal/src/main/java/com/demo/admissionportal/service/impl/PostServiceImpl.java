@@ -1007,7 +1007,7 @@ public class PostServiceImpl implements PostService {
                 .title(postPropertiesResponseDTO.getTitle())
                 .createBy(info.trim())
                 .createTime(post.getCreateTime())
-                .status(postPropertiesResponseDTO.getStatus())
+                .status(post.getStatus().name)
                 .type(listType)
                 .url(postPropertiesResponseDTO.getUrl())
                 .note(postPropertiesResponseDTO.getNote())
