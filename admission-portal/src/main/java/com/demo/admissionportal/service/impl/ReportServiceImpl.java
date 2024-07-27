@@ -2,6 +2,8 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.report.FindAllReportsCompletedDTO;
+import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
@@ -168,6 +170,9 @@ public class ReportServiceImpl implements ReportService {
             if (reportOpt.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo không được tìm thấy !");
             }
+            if (reportOpt.get().getStatus().equals(ReportStatus.COMPLETED)){
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Báo cáo đã được xử lý.");
+            }
             Report report = reportOpt.get();
 
             postReport.setReportAction(request.getReportAction());
@@ -231,7 +236,7 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(reportId, ticketId, createBy, content, status, reportType, pageable);
+            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(pageable, reportId, ticketId, createBy, content, status, reportType);
 
             Page<ListAllPostReportResponse> responseDTOPage = reportPage.map(report -> {
                 ActionerDTO actioner = null;
@@ -240,7 +245,6 @@ public class ReportServiceImpl implements ReportService {
                 }
                 ListAllPostReportResponse responseDTO = modelMapper.map(report, ListAllPostReportResponse.class);
                 responseDTO.setCreateBy(actioner);
-//                responseDTO.setStatus(modelMapper.map(report.getStatus(), String.class));
                 return responseDTO;
             });
 
@@ -250,6 +254,43 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo bài viết");
         }
     }
+
+    @Override
+    public ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
+                                                                                           Integer reportId, String ticketId, Integer createBy,
+                                                                                           ReportType reportType, ReportStatus status
+    ) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            if (!existUser.get().getRole().equals(Role.STAFF)) {
+                log.info("User not allowed to view reports");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+            }
+
+            Page<FindAllReportsCompletedDTO> reportPage = reportRepository.findAllReportsWithPostByStatus(pageable, reportId, ticketId, createBy, ReportStatus.COMPLETED, reportType);
+
+            Page<FindAllReportsCompletedResponse> responseDTOPage = reportPage.map(report -> {
+                ActionerDTO actioner = null;
+                if (report.getCreateBy() != null) {
+                    actioner = getUserDetails(report.getCreateBy().getId());
+                }
+                FindAllReportsCompletedResponse responseDTO = modelMapper.map(report, FindAllReportsCompletedResponse.class);
+                responseDTO.setCreateBy(actioner);
+                return responseDTO;
+            });
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo đã xử lý được tìm thấy", responseDTOPage);
+        } catch (Exception e) {
+            log.error("Error while fetching completed post reports", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo đã xử lý");
+        }
+    }
+
 
     private ActionerDTO getStaffDetails(Integer userId) {
         return userRepository.findById(userId)

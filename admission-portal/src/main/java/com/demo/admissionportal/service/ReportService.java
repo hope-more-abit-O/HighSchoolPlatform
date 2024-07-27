@@ -3,12 +3,14 @@ package com.demo.admissionportal.service;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.report.ReportPostDTO;
+import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
+import com.demo.admissionportal.entity.Report;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -99,4 +101,8 @@ public interface ReportService {
      * @since 1.0
      */
     ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status);
+
+    ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
+                                                                                    Integer reportId, String ticketId, Integer createBy,
+                                                                                    ReportType reportType, ReportStatus status);
 }
