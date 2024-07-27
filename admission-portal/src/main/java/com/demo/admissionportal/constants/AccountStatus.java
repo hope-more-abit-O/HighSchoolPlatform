@@ -12,13 +12,25 @@ public enum AccountStatus {
     /**
      * Active account status.
      */
-    ACTIVE,
+    ACTIVE("Hoạt động"),
     /**
      * Inactive account status.
      */
-    INACTIVE,
+    INACTIVE("Không hoạt động"),
     /**
      * Pending account status.
      */
-    PENDING
+    PENDING("Chờ duyệt");
+
+    /**
+     * -- GETTER --
+     *  Gets name.
+     *
+     * @return the name
+     */
+    public final String name;
+
+    AccountStatus(String name) {
+        this.name = name;
+    }
 }
