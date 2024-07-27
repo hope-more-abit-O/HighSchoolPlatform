@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Method;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,4 +20,7 @@ public interface MethodService {
             Date updateTime,
             Integer updateBy,
             MethodStatus status);
+
+    @Transactional
+    ResponseData<Method> createMethod(String name, String code);
 }

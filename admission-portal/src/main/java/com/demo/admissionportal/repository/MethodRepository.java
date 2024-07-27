@@ -55,4 +55,6 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
             @Param("updateBy") Integer updateBy,
             @Param("status") MethodStatus status
     );
+
+    boolean existsByNameAndCode(String name, String code);
 }

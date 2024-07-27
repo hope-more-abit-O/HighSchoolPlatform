@@ -5,13 +5,14 @@ import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.Method;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -233,6 +234,28 @@ public class MethodServiceImpl implements MethodService{
 
             return ResponseData.ok("Lấy thông tin các phương pháp thành công.", methods);
         } catch (Exception e) {
+            throw new QueryException(e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseData<Method> createMethod(String name, String code) {
+        Integer id = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        if (methodRepository.existsByNameAndCode(name, code)) {
+            throw new DataExistedException("Tên hoặc mã phương thức tuyển sinh đã tồn tại");
+        }
+
+        try {
+            Method method = new Method();
+            method.setCode(code);
+            method.setName(name);
+            method.setCreateTime(new Date());
+            method.setCreateBy(id);
+            method.setStatus(MethodStatus.ACTIVE);
+
+            return ResponseData.ok("Method created successfully.", methodRepository.save(method));
+        } catch (Exception e){
             throw new QueryException(e.getMessage());
         }
     }
