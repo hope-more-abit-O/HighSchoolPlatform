@@ -118,8 +118,8 @@ public class PostController {
      * @return the posts newest
      */
     @GetMapping("/newest")
-    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest() {
-        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest();
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest(@RequestParam(value = "locationId", required = false) Integer locationId) {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest(locationId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -200,7 +200,7 @@ public class PostController {
     }
 
     @GetMapping("/if-you-like")
-    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable){
+    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable) {
         ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

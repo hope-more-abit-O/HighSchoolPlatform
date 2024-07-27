@@ -216,7 +216,7 @@ public class UserServiceImpl implements UserService {
             }
             userRepository.save(user);
             ChangeStatusUserResponseDTO response = new ChangeStatusUserResponseDTO();
-            response.setCurrentStatus(user.getStatus());
+            response.setCurrentStatus(user.getStatus().getName());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công", response);
         } catch (Exception ex) {
             log.error("Error while change status user: {}", ex.getMessage());
