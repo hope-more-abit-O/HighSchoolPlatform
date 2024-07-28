@@ -35,11 +35,13 @@ public interface TypeRepository extends JpaRepository<Type, Integer> {
      * Find all type page.
      *
      * @param name     the name
+     * @param status   the status
      * @param pageable the pageable
      * @return the page
      */
     @Query(value = "SELECT t.* " +
             "FROM [type] t " +
-            "WHERE :name IS NULL OR t.name LIKE %:name%", nativeQuery = true)
-    Page<Type> findAllType(@Param("name") String name, Pageable pageable);
+            "WHERE (:name IS NULL OR t.name LIKE %:name%) " +
+            "AND (:status IS NULL OR t.status = :status)", nativeQuery = true)
+    Page<Type> findAllType(@Param("name") String name, @Param("status") String status, Pageable pageable);
 }

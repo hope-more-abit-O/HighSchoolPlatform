@@ -80,10 +80,11 @@ public interface PostService {
      * List all post consul or staff or uni response data.
      *
      * @param title    the title
+     * @param status   the status
      * @param pageable the pageable
      * @return the response data
      */
-    ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, Pageable pageable);
+    ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, String status, Pageable pageable);
 
     /**
      * List post favorite response data.
@@ -95,6 +96,7 @@ public interface PostService {
     /**
      * List post random response data.
      *
+     * @param pageable the pageable
      * @return the response data
      */
     ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Pageable pageable);
