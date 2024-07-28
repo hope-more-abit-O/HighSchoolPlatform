@@ -312,17 +312,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to activate.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-//    @PutMapping("/activate-subject/{id}")
-//    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
-//        ResponseData<?> response = subjectService.activateSubject(id);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.OK).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
+    @PutMapping("/activate-subject/{id}")
+    public ResponseEntity<?> activateSubject(@PathVariable @Valid Integer id) {
+        ResponseData<?> response = subjectService.activateSubject(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
     /**
      * Deletes a subject by its ID.
@@ -332,17 +332,17 @@ public class StaffController {
      * @param id The unique identifier of the subject to delete.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-//    @DeleteMapping("/delete-subject/{id}")
-//    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id) {
-//        ResponseData<?> response = subjectService.deleteSubject(id);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.OK).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
+    @DeleteMapping("/delete-subject/{id}")
+    public ResponseEntity<?> deleteSubject(@PathVariable @Valid Integer id) {
+        ResponseData<?> response = subjectService.deleteSubject(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
     /**
      * Creates a new subject group.
@@ -353,7 +353,7 @@ public class StaffController {
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
     @PostMapping("/create-subject-group")
-    public ResponseEntity<ResponseData<?>> createSubjectGroup(@Valid @RequestBody CreateSubjectGroupRequestDTO request) {
+    public ResponseEntity<ResponseData<?>> createSubjectGroup(@RequestBody @Valid CreateSubjectGroupRequestDTO request) {
         if (request == null) {
             return ResponseEntity.badRequest().body(new ResponseData<>(ResponseCode.C205.getCode(), "Request cannot be null or empty"));
         }
@@ -484,26 +484,26 @@ public class StaffController {
      *
      *                                   <p>Receives a request to activate a subject group and processes it.
      */
-    //    @PutMapping("/activate-subject-group/{id}")
-//    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
-//        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
-//        if (result.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.ok(result);
-//        }
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-//    }
+        @PutMapping("/activate-subject-group/{id}")
+    public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
+        ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
 
-    //    @DeleteMapping("/delete-subject-group/{id}")
-//    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
-//        ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
-//        if (response.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.OK).body(response);
-//        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//        }
-//    }
+        @DeleteMapping("/delete-subject-group/{id}")
+    public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
+        ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
     @GetMapping("/consultant/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
