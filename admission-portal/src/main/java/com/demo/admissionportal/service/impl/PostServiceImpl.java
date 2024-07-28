@@ -790,20 +790,20 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, Pageable pageable) {
+    public ResponseData<Page<PostDetailResponseDTOV2>> listAllPostConsulOrStaff(String title, String status, Pageable pageable) {
         try {
             Page<PostDetailResponseDTOV2> response = Page.empty();
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             String userRole = String.valueOf(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole());
             switch (userRole) {
                 case "STAFF":
-                    response = getAllPostByStaff(title, pageable);
+                    response = getAllPostByStaff(title, status, pageable);
                     break;
                 case "CONSULTANT":
-                    response = getAllPostByConsultantId(title, userId, pageable);
+                    response = getAllPostByConsultantId(title, status, userId, pageable);
                     break;
                 case "UNIVERSITY":
-                    response = getPostByUniversityIdV2(title, userId, pageable);
+                    response = getPostByUniversityIdV2(title, status, userId, pageable);
                     break;
             }
             if (response == null) {
@@ -816,14 +816,14 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private Page<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, Integer id, Pageable pageable) {
+    private Page<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, String status, Integer id, Pageable pageable) {
 
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
-        return getPostByUniversityIdV2(title, consultantInfo.getUniversityId(), pageable);
+        return getPostByUniversityIdV2(title, status, consultantInfo.getUniversityId(), pageable);
     }
 
-    private Page<PostDetailResponseDTOV2> getAllPostByStaff(String title, Pageable pageable) {
-        Page<Post> postWithStaffInfo = postRepository.findPostWithStaffInfo(title, pageable);
+    private Page<PostDetailResponseDTOV2> getAllPostByStaff(String title, String status, Pageable pageable) {
+        Page<Post> postWithStaffInfo = postRepository.findPostWithStaffInfo(title, status, pageable);
         return postWithStaffInfo.map(post -> getPostsByStaff(post.getCreateBy(), post.getId()));
     }
 
@@ -1007,16 +1007,16 @@ public class PostServiceImpl implements PostService {
                 .title(postPropertiesResponseDTO.getTitle())
                 .createBy(info.trim())
                 .createTime(post.getCreateTime())
-                .status(postPropertiesResponseDTO.getStatus())
+                .status(post.getStatus().name)
                 .type(listType)
                 .url(postPropertiesResponseDTO.getUrl())
                 .note(postPropertiesResponseDTO.getNote())
                 .build();
     }
 
-    private Page<PostDetailResponseDTOV2> getPostByUniversityIdV2(String title, Integer id, Pageable pageable) {
+    private Page<PostDetailResponseDTOV2> getPostByUniversityIdV2(String title, String status, Integer id, Pageable pageable) {
         try {
-            Page<Post> posts = postRepository.findAllByUniId(title, id, pageable);
+            Page<Post> posts = postRepository.findAllByUniId(title, status, id, pageable);
             if (posts != null && !posts.isEmpty()) {
                 return posts.map(this::mapToListPostDetailV2);
             }

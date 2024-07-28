@@ -214,7 +214,7 @@ public class StaffController {
      * @param requestDTO The request containing the new status details.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      */
-    @PostMapping("/user/{id}/change-status")
+    @PostMapping("/user/change-status/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<ChangeStatusUserResponseDTO>> changeStatus(@PathVariable("id") Integer id, @RequestBody ChangeStatusUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {

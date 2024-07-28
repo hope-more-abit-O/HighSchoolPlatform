@@ -16,6 +16,5 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 public class ChangeStatusUserResponseDTO implements Serializable {
-    @Enumerated(EnumType.STRING)
-    private AccountStatus currentStatus;
+    private String currentStatus;
 }

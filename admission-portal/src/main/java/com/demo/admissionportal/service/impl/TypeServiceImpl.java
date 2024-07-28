@@ -65,9 +65,9 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
-    public ResponseData<Page<TypeListResponseDTO>> getListTypePost(String typeName, Pageable pageable) {
+    public ResponseData<Page<TypeListResponseDTO>> getListTypePost(String typeName, String status, Pageable pageable) {
         try {
-            Page<Type> list = typeRepository.findAllType(typeName,pageable);
+            Page<Type> list = typeRepository.findAllType(typeName, status, pageable);
             List<TypeListResponseDTO> typeResponseDTOList = list.stream()
                     .map(this::mapToTypeList)
                     .collect(Collectors.toList());
@@ -177,7 +177,7 @@ public class TypeServiceImpl implements TypeService {
                 .createBy(createBy.getFirstName().trim() + " " + createBy.getMiddleName().trim() + " " + createBy.getLastName().trim())
                 .createTime(type.getCreateTime())
                 .updateBy(updateBy != null ? updateBy.getFirstName().trim() + " " + updateBy.getMiddleName().trim() + " " + updateBy.getLastName().trim() : null)
-                .status(type.getStatus())
+                .status(type.getStatus().name)
                 .build();
     }
 }

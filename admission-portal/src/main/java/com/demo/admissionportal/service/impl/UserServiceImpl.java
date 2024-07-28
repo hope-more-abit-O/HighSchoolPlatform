@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
                 responseDTO.setUsername(userInfo.getUser().getUsername());
                 responseDTO.setEmail(userInfo.getUser().getEmail());
                 responseDTO.setName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName());
-                responseDTO.setStatus(userInfo.getUser().getStatus().name());
+                responseDTO.setStatus(userInfo.getUser().getStatus().name);
                 responseDTO.setCreate_time(userInfo.getUser().getCreateTime());
                 responseDTO.setNote(userInfo.getUser().getNote());
                 userResponseDTOS.add(responseDTO);
@@ -216,7 +216,7 @@ public class UserServiceImpl implements UserService {
             }
             userRepository.save(user);
             ChangeStatusUserResponseDTO response = new ChangeStatusUserResponseDTO();
-            response.setCurrentStatus(user.getStatus());
+            response.setCurrentStatus(user.getStatus().name);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công", response);
         } catch (Exception ex) {
             log.error("Error while change status user: {}", ex.getMessage());
