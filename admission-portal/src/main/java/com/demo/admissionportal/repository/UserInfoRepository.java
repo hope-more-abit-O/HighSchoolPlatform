@@ -42,7 +42,7 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
             "AND (:email IS NULL OR u.email LIKE %:email%) " +
             "AND (:specificAddress IS NULL OR uf.specific_address LIKE %:specificAddress%) " +
             "AND (:educationLevel IS NULL OR uf.education_level LIKE %:educationLevel%) " +
-            "AND (:status IS NULL OR u.status LIKE %:status%) ", nativeQuery = true)
+            "AND (:status IS NULL OR u.status = :status) ", nativeQuery = true)
     Page<UserInfo> findAll(
             @Param("username") String username,
             @Param("firstName") String firstName,

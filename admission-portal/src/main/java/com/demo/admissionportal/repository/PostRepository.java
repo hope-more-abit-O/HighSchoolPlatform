@@ -59,8 +59,9 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT * " +
             "FROM post p " +
             "JOIN staff_info si ON p.create_by = si.staff_id " +
-            "WHERE :title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
-    Page<Post> findPostWithStaffInfo(@Param("title") String title, Pageable pageable);
+            "WHERE (:title IS NULL OR p.title LIKE %:title%) " +
+            "AND (:status IS NULL OR p.status = :status)", nativeQuery = true)
+    Page<Post> findPostWithStaffInfo(@Param("title") String title, @Param("title") String status, Pageable pageable);
 
 
     /**
@@ -89,6 +90,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "FROM post p " +
             "JOIN consultant_info ci ON p.create_by = ci.consultant_id " +
             "WHERE ci.university_id = :createBy " +
-            "AND :title IS NULL OR p.title LIKE %:title%", nativeQuery = true)
-    Page<Post> findAllByUniId(@Param("title") String title, @Param("createBy") Integer createBy, Pageable pageable);
+            "AND (:title IS NULL OR p.title LIKE %:title%) " +
+            "AND (:status IS NULL OR p.status = :status)", nativeQuery = true)
+    Page<Post> findAllByUniId(@Param("title") String title, @Param("status") String status, @Param("createBy") Integer createBy, Pageable pageable);
 }
