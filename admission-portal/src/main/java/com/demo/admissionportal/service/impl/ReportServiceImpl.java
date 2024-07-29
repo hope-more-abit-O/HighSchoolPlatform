@@ -2,17 +2,19 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.report.FindAllReportsCompletedDTO;
+import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO;
+import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsCompletedDTO;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
 import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.entity.report.FindAllReportsWithPostDTO;
+import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO;
 import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.*;
@@ -334,8 +336,16 @@ public class ReportServiceImpl implements ReportService {
 
             CommentReport commentReport = new CommentReport();
             commentReport.setReportId(savedReport.getId());
+            commentReport.setCommentContent(comment.getContent());
             commentReport.setCommentId(comment.getId());
             commentReport.setReportAction(PostReportActionType.NONE.name());
+
+            if (comment.getCommentParentId() == null) {
+                comment.setComment_type(CommentType.ROOT);
+            } else {
+                comment.setComment_type(CommentType.CHILD);
+            }
+
             commentReportRepository.save(commentReport);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Báo cáo đã được tạo thành công", commentReport);
@@ -344,6 +354,32 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tạo báo cáo bình luận");
         }
     }
+    @Override
+    public ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
+                                                                                  Integer reportId, String ticketId, Integer createBy,
+                                                                                  String content, ReportType reportType, ReportStatus status) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            if (!existUser.get().getRole().equals(Role.STAFF)) {
+                log.info("User not allowed to view reports");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+            }
+
+            Page<FindAllCommentReportsDTO> reportPage = reportRepository.findAllCommentReports(pageable, reportId, ticketId, createBy, content, status, reportType);
+            Page<ListAllCommentReportResponse> responseDTOPage = reportPage.map(report -> modelMapper.map(report, ListAllCommentReportResponse.class));
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bình luận được tìm thấy", responseDTOPage);
+        } catch (Exception e) {
+            log.error("Error while fetching comment reports", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo bình luận");
+        }
+    }
+
 
     @Override
     public ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication) {
@@ -387,6 +423,7 @@ public class ReportServiceImpl implements ReportService {
         responseDTO.setCommentId(comment.getId());
         responseDTO.setContent(comment.getContent());
         responseDTO.setCommentCreateBy(comment.getCommenter_id());
+        responseDTO.setCommentType(comment.getComment_type().name());
         responseDTO.setCommentCreateTime(comment.getCreate_time());
 
         return new ResponseData<>(ResponseCode.C200.getCode(), "Thông tin báo cáo về bình luận được tìm thấy !", responseDTO);
@@ -471,8 +508,6 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo bình luận");
         }
     }
-
-
 
     private ActionerDTO getStaffDetails(Integer userId) {
         return userRepository.findById(userId)

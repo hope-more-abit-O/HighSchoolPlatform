@@ -2,10 +2,11 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
-import com.demo.admissionportal.dto.entity.report.ReportPostDTO;
+import com.demo.admissionportal.dto.entity.report.post_report.ReportPostDTO;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
 import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
@@ -14,7 +15,6 @@ import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportR
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
-import com.demo.admissionportal.entity.Report;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import org.springframework.data.domain.Page;
@@ -112,4 +112,8 @@ public interface ReportService {
     ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
                                                                                     Integer reportId, String ticketId, Integer createBy,
                                                                                     ReportType reportType, ReportStatus status);
+
+    ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
+                                                                           Integer reportId, String ticketId, Integer createBy,
+                                                                           String content, ReportType reportType, ReportStatus status);
 }

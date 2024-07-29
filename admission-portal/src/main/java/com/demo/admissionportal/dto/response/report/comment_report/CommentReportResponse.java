@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.response.report.comment_report;
 
+import com.demo.admissionportal.constants.CommentType;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
@@ -17,11 +18,12 @@ public class CommentReportResponse {
     private String ticketId;
     private ActionerDTO createBy;
     private Date createTime;
-    private String content;
+    private String reportContent;
     private String reportType;
     private String status;
     private Integer commentId;
-    private String commentContent;
+    private String content;
     private Integer commentCreateBy;
     private Date commentCreateTime;
+    private String commentType;
 }
