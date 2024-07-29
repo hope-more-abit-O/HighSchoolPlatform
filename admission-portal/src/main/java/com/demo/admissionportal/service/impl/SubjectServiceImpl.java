@@ -14,6 +14,7 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.SubjectRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
@@ -28,10 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +41,7 @@ public class SubjectServiceImpl implements SubjectService {
     private final ModelMapper modelMapper;
     private final SubjectGroupSubjectRepository subjectGroupSubjectRepository;
     private final StaffInfoRepository staffInfoRepository;
+    private final SubjectGroupRepository subjectGroupRepository;
 
     @Override
     public ResponseData<Page<SubjectResponseDTO>> findAll(String name, SubjectStatus status, Pageable pageable) {
@@ -112,56 +111,56 @@ public class SubjectServiceImpl implements SubjectService {
         }
         return new ResponseData<>(ResponseCode.C201.getCode(), "Xuất hiện lỗi khi tạo môn học", null);
     }
-//
-//    @Override
-//    public ResponseData<?> deleteSubject(Integer id) {
-//        try {
-//            Subject subject = subjectRepository.findById(id).orElse(null);
-//            if (subject == null || subject.getStatus().equals(SubjectStatus.INACTIVE)) {
-//                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
-//            }
-//            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectId(id);
-//            List<SubjectGroup> activeSubjectGroups = new ArrayList<>();
-//
-//            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
-//                SubjectGroup subjectGroup = subjectGroupRepository.findById(sgs.getSubjectGroupId()).orElse(null);
-//                if (subjectGroup != null && subjectGroup.getStatus().equals(SubjectStatus.ACTIVE.name())) {
-//                    activeSubjectGroups.add(subjectGroup);
-//                }
-//            }
-//            if (!activeSubjectGroups.isEmpty()) {
-//                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học tồn tại trong tổ hợp môn học đang hoạt động và không thể xóa !", activeSubjectGroups);
-//            }
-//            subject.setStatus(SubjectStatus.INACTIVE);
-//            subjectRepository.save(subject);
-//            log.info("Subject with ID {} has been deleted", id);
-//
-//            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được xóa thành công !");
-//        } catch (Exception ex) {
-//            log.error("Failed to delete subject: {}", ex.getMessage());
-//            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa môn học !");
-//        }
-//    }
-//
-//    @Override
-//    public ResponseData<?> activateSubject(Integer id) {
-//        try {
-//            Subject subject = subjectRepository.findById(id).orElse(null);
-//            if (subject == null) {
-//                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
-//            }
-//            if (subject.getStatus().equals(SubjectStatus.ACTIVE)){
-//                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học đang hoạt động !");
-//            }
-//            subject.setStatus(SubjectStatus.ACTIVE);
-//            subjectRepository.save(subject);
-//            log.info("Subject with ID {} has been activated", id);
-//            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được kích hoạt thành công !");
-//        } catch (Exception ex) {
-//            log.error("Error occurred while activating subject: {}", ex.getMessage());
-//            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt môn học !");
-//        }
-//    }
+
+    @Override
+    public ResponseData<?> deleteSubject(Integer id) {
+        try {
+            Subject subject = subjectRepository.findById(id).orElse(null);
+            if (subject == null || subject.getStatus().equals(SubjectStatus.INACTIVE)) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
+            }
+            List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectId(id);
+            List<SubjectGroup> activeSubjectGroups = new ArrayList<>();
+
+            for (SubjectGroupSubject sgs : subjectGroupSubjects) {
+                SubjectGroup subjectGroup = subjectGroupRepository.findById(sgs.getSubjectGroupId()).orElse(null);
+                if (subjectGroup != null && subjectGroup.getStatus().equals(SubjectStatus.ACTIVE.name())) {
+                    activeSubjectGroups.add(subjectGroup);
+                }
+            }
+            if (!activeSubjectGroups.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học tồn tại trong tổ hợp môn học đang hoạt động và không thể xóa !", activeSubjectGroups);
+            }
+            subject.setStatus(SubjectStatus.INACTIVE);
+            subjectRepository.save(subject);
+            log.info("Subject with ID {} has been deleted", id);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được xóa thành công !");
+        } catch (Exception ex) {
+            log.error("Failed to delete subject: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa môn học !");
+        }
+    }
+
+    @Override
+    public ResponseData<?> activateSubject(Integer id) {
+        try {
+            Subject subject = subjectRepository.findById(id).orElse(null);
+            if (subject == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Môn học không được tìm thấy !");
+            }
+            if (subject.getStatus().equals(SubjectStatus.ACTIVE)){
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học đang hoạt động !");
+            }
+            subject.setStatus(SubjectStatus.ACTIVE);
+            subjectRepository.save(subject);
+            log.info("Subject with ID {} has been activated", id);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Môn học đã được kích hoạt thành công !");
+        } catch (Exception ex) {
+            log.error("Error occurred while activating subject: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình kích hoạt môn học !");
+        }
+    }
 
     public Subject findById(Integer id) throws ResourceNotFoundException{
         log.info("Find subject by ID {}", id);

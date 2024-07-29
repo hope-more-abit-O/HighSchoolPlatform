@@ -19,7 +19,7 @@ public class PostDetailResponseDTOV2 implements Serializable {
     private String type;
     private String createBy;
     private Date createTime;
-    private PostStatus status;
+    private String status;
     private String note;
     private String url;
 }

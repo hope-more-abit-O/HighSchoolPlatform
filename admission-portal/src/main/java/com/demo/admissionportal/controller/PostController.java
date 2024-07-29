@@ -173,8 +173,10 @@ public class PostController {
     @GetMapping("/list")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
-    public ResponseEntity<ResponseData<Page<PostDetailResponseDTOV2>>> getPostsList(@RequestParam(required = false) String title, @PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff(title, pageable);
+    public ResponseEntity<ResponseData<Page<PostDetailResponseDTOV2>>> getPostsList(@RequestParam(required = false) String title,
+                                                                                    @RequestParam(required = false) String status,
+                                                                                    @PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<PostDetailResponseDTOV2>> response = postService.listAllPostConsulOrStaff(title, status, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -200,7 +202,7 @@ public class PostController {
     }
 
     @GetMapping("/if-you-like")
-    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable){
+    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable) {
         ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

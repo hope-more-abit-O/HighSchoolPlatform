@@ -16,12 +16,13 @@ public interface SubjectService {
     /**
      * List all subjects with optional filters.
      *
-     * @param name the subject name
-     * @param status the subject status
+     * @param name     the subject name
+     * @param status   the subject status
      * @param pageable the pageable
      * @return the response data
      */
     ResponseData<Page<SubjectResponseDTO>> findAll(String name, SubjectStatus status, Pageable pageable);
+
     /**
      * Get subject by id.
      *
@@ -29,6 +30,7 @@ public interface SubjectService {
      * @return the response data
      */
     ResponseData<SubjectResponseDTO> getSubjectById(Integer id);
+
     /**
      * Create subject request subject dto.
      *
@@ -36,12 +38,30 @@ public interface SubjectService {
      * @return the request subject dto
      */
     ResponseData<Subject> createSubject(RequestSubjectDTO requestSubjectDTO);
+
     /**
      * Activate subject by id.
      *
      * @param id the subject id
      * @return the response data
+     * @throws ResourceNotFoundException the resource not found exception
      */
-    //TODO: JAVADOC
+//TODO: JAVADOC
     Subject findById(Integer id) throws ResourceNotFoundException;
+
+    /**
+     * Delete subject response data.
+     *
+     * @param id the id
+     * @return the response data
+     */
+    ResponseData<?> deleteSubject(Integer id);
+
+    /**
+     * Activate subject response data.
+     *
+     * @param id the id
+     * @return the response data
+     */
+    ResponseData<?> activateSubject(Integer id);
 }

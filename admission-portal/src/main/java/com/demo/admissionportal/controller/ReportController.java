@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
@@ -89,4 +90,24 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
     }
+
+    @GetMapping("/completed")
+    @PreAuthorize("hasAuthority('STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<Page<FindAllReportsCompletedResponse>>> findAllCompletePostReports(
+            Pageable pageable,
+            Authentication authentication,
+            @RequestParam(required = false) Integer reportId,
+            @RequestParam(required = false) String ticketId,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) ReportStatus status
+    ) {
+        ResponseData<Page<FindAllReportsCompletedResponse>> postReportsResponse = reportService.findAllCompletedPostReports(pageable, authentication, reportId, ticketId, createBy, reportType, status);
+        if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(postReportsResponse);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
+    }
+
 }

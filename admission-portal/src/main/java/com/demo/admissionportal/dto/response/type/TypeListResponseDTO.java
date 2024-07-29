@@ -20,5 +20,5 @@ public class TypeListResponseDTO implements Serializable {
     private Date createTime;
     private Date updateTime;
     private String updateBy;
-    private PostPropertiesStatus status;
+    private String status;
 }

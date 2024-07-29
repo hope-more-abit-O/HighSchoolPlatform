@@ -121,6 +121,12 @@ public class GlobalExceptionHandler {
         } else if (message.contains("Unrecognized field")){
             message = "Request chứa thông tin không hợp lệ";
             errors.put("error", message);
+        } else if(message.contains("JSON parse error: Chỉ cho phép số tự nhiên")){
+            message = "Chỉ cho phép số tự nhiên";
+            errors.put("error", message);
+        } else if (message.contains("JSON parse error: Môn học không tồn tại")){
+            message = "Tổ hợp môn học có chứa môn học không tồn tại";
+            errors.put("error", message);
         }
         return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
     }
