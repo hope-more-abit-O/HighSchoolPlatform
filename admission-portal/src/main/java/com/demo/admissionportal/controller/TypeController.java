@@ -49,16 +49,32 @@ public class TypeController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Gets type posts.
+     *
+     * @param typeName the type name
+     * @param status   the status
+     * @param pageable the pageable
+     * @return the type posts
+     */
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
-    public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@RequestParam(required = false) String typeName, @PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<TypeListResponseDTO>> result = typeService.getListTypePost(typeName, pageable);
+    public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@RequestParam(required = false) String typeName,
+                                                                                @RequestParam(required = false) String status,
+                                                                                @PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<TypeListResponseDTO>> result = typeService.getListTypePost(typeName, status, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Gets type by id.
+     *
+     * @param postId the post id
+     * @return the type by id
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> getTypeById(@PathVariable(name = "id") Integer postId) {
@@ -74,6 +90,12 @@ public class TypeController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Change status response entity.
+     *
+     * @param typeId the type id
+     * @return the response entity
+     */
     @PostMapping("/change-status/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer typeId) {
@@ -91,6 +113,13 @@ public class TypeController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Update type response entity.
+     *
+     * @param postId     the post id
+     * @param requestDTO the request dto
+     * @return the response entity
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Type>> updateType(@PathVariable(name = "id") Integer postId, @RequestBody @Valid TypePostUpdateRequestDTO requestDTO) {
