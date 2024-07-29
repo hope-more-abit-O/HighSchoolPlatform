@@ -4,6 +4,9 @@ import com.demo.admissionportal.constants.MajorStatus;
 import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.request.major.CreateMajorRequest;
+import com.demo.admissionportal.dto.request.major.UpdateMajorRequest;
+import com.demo.admissionportal.dto.request.major.UpdateMajorStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.User;
@@ -13,6 +16,8 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MajorRepository;
 import com.demo.admissionportal.service.MajorService;
+import com.demo.admissionportal.util.impl.ServiceUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -33,6 +38,7 @@ public class MajorServiceImpl implements MajorService {
     private final ModelMapper modelMapper;
 
     public Major findById(int id){
+        log.info("Find major by id: {}", id);
         return majorRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
     }
 
@@ -214,7 +220,7 @@ public class MajorServiceImpl implements MajorService {
         return result;
     }
 
-    public ResponseData<Page<Major>> getAllMajors(
+    public ResponseData<Page<Major>> getAllMajorsInfo(
             Pageable pageable,
             Integer id,
             String code,
@@ -237,4 +243,103 @@ public class MajorServiceImpl implements MajorService {
             throw new QueryException(e.getMessage());
         }
     }
+
+    @Override
+    public InfoMajorDTO updateMajor(UpdateMajorRequest request) {
+        try {
+            Integer updaterId = ServiceUtils.getId();
+            log.info("Updater ID: {}", updaterId);
+            log.info("Received request to update major with ID: {}", request.getMajorId());
+
+            Major major = this.findById(request.getMajorId());
+            log.info("Found major: {}", major);
+
+            major.update(request.getMajorName(), request.getMajorCode(), request.getNote(), updaterId);
+            log.info("Updated major with new values from request.");
+
+            Major savedMajor = majorRepository.save(major);
+            log.info("Successfully saved updated major with ID: {}", savedMajor.getId());
+
+            InfoMajorDTO infoMajorDTO = modelMapper.map(savedMajor, InfoMajorDTO.class);
+            log.info("Mapped updated major to InfoMajorDTO: {}", infoMajorDTO);
+
+            return infoMajorDTO;
+        } catch (Exception e){
+            log.error(e.getMessage());
+            for (StackTraceElement stackTraceElement : e.getCause().getCause().getStackTrace()) {
+                log.warn(stackTraceElement.toString());
+            }
+            throw new QueryException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseData<InfoMajorDTO> updateMajorStatus(UpdateMajorStatusRequest request) {
+        Integer updaterId = ServiceUtils.getId();
+        log.info("Updater ID: {}", updaterId);
+        log.info("Received request to update major with ID: {}", request.getMajorId());
+
+        Major major = this.findById(request.getMajorId());
+        log.info("Found major: {}", major);
+
+        log.info("Comparing new status: {} with existed status: {}", request.getMajorStatus(), major.getStatus());
+        if (major.getStatus().equals(request.getMajorStatus())){
+            log.info("Status is the same.");
+            return ResponseData.ok("Trạng thái giống nhau.", modelMapper.map(major, InfoMajorDTO.class));
+        }
+
+        major.update(request.getMajorStatus(), request.getNote(), updaterId);
+        log.info("Updated major with new values from request.");
+
+        Major savedMajor = majorRepository.save(major);
+        log.info("Successfully saved updated major with ID: {}", savedMajor.getId());
+
+        InfoMajorDTO infoMajorDTO = modelMapper.map(savedMajor, InfoMajorDTO.class);
+        log.info("Mapped updated major to InfoMajorDTO: {}", infoMajorDTO);
+
+        return ResponseData.ok("Cập nhập trạng thái thành công.", infoMajorDTO);
+    }
+
+    @Override
+    @Transactional
+    public InfoMajorDTO createMajor(CreateMajorRequest request){
+        log.info("Start Transactional!");
+        Integer id = ServiceUtils.getId();
+        log.info("Get staff / admin's id: {}", id);
+
+        log.info("Received request to create major with name: '{}' and code: '{}'", request.getMajorName(), request.getMajorCode());
+
+        List<Major> majorsExisted = majorRepository.findByNameOrCode(request.getMajorName(), request.getMajorCode());
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (!majorsExisted.isEmpty()){
+            log.info("Found existing majors with the same name or code.");
+
+            for (Major major : majorsExisted) {
+                if ((major.getName().equals(request.getMajorName())) && (errors.get("majorName") == null)) {
+                    log.error("Major name '{}' already exists.", request.getMajorName());
+                    errors.put("majorName", "Tên ngành đã tồn tại.");
+                }
+                if ((major.getCode().equals(request.getMajorCode())) && (errors.get("code") == null)) {
+                    log.error("Major code '{}' already exists.", request.getMajorCode());
+                    errors.put("majorCode", "Mã ngành đã tồn tại.");
+                }
+            }
+
+            log.error("Major already exists with errors: {}", errors);
+            throw new DataExistedException("Ngành đã tồn tại.", errors);
+        }
+
+        try {
+            log.info("Saving new major with name: '{}' and code: '{}'", request.getMajorName(), request.getMajorCode());
+            Major savedMajor = majorRepository.save(new Major(request.getMajorName(), request.getMajorCode(), request.getNote(), id));
+            log.info("Successfully saved new major with id: {}", savedMajor.getId());
+            return modelMapper.map(savedMajor, InfoMajorDTO.class);
+        } catch (Exception e){
+            log.error("Error occurred while saving major: {}", e.getMessage(), e);
+            throw new QueryException(e.getMessage());
+        }
+    }
+
 }

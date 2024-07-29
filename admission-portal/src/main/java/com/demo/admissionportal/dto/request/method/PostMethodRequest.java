@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 public class PostMethodRequest {
-    @NotNull
-    @EnumName
+    @NotNull (message = "Tên phương thức không được để trống")
+    @EnumName (message = "Tên phương thức phải là chứ cái")
     private String name;
-    @NotNull
-    @EnumMethodCode
+    @NotNull (message = "Mã phương thức không được để trống")
+    @EnumMethodCode (message = "Mã phương thức phải là số, có từ 3 - 9 số")
     private String code;
 }

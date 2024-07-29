@@ -65,4 +65,21 @@ public class Method {
         this.createTime = new Date();
         this.status = MethodStatus.ACTIVE;
     }
+
+    public void update(String methodName, String methodCode, String methodNote, Integer updaterId) {
+        if (methodName != null && methodName.isEmpty())
+            this.name = methodName;
+        if (methodCode != null && methodCode.isEmpty())
+            this.code = methodCode;
+        if (methodNote != null && methodNote.isEmpty()) {}
+        this.updateTime = new Date();
+        this.updateBy = updaterId;
+    }
+
+    public void updateStatus(MethodStatus status, String note, Integer updaterId) {
+        this.status = status;
+//        this.note = note;
+        this.updateTime = new Date();
+        this.updateBy = updaterId;
+    }
 }

@@ -4,6 +4,8 @@ import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.request.method.PutMethodRequest;
+import com.demo.admissionportal.dto.request.method.UpdateMethodStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.User;
@@ -12,6 +14,7 @@ import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -241,22 +244,99 @@ public class MethodServiceImpl implements MethodService{
     @Override
     @Transactional
     public ResponseData<Method> createMethod(String name, String code) {
+        log.info("Start Transactional!");
+
         Integer id = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        if (methodRepository.existsByNameAndCode(name, code)) {
-            throw new DataExistedException("Tên hoặc mã phương thức tuyển sinh đã tồn tại");
+        log.info("Get staff / admin's id: {}", id);
+
+        log.info("Received request to create method with name: '{}' and code: '{}'", name, code);
+
+        List<Method> existedMethods = methodRepository.findByNameOrCode(name, code);
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (!existedMethods.isEmpty()) {
+            log.info("Found existing methods with the same name or code.");
+
+            for (Method method : existedMethods) {
+                if (method.getName().equals(name) && !errors.containsKey("name")) {
+                    log.error("Method name '{}' already exists.", name);
+                    errors.put("name", "Tên phương thức tuyển sinh đã tồn tại.");
+                }
+                if (method.getCode().equals(code) && !errors.containsKey("code")) {
+                    log.error("Method code '{}' already exists.", code);
+                    errors.put("code", "Mã phương thức tuyển sinh đã tồn tại.");
+                }
+            }
+
+            log.error("Method already exists with errors: {}", errors);
+            throw new DataExistedException("Tên hoặc mã phương thức tuyển sinh đã tồn tại", errors);
+
         }
 
         try {
-            Method method = new Method();
-            method.setCode(code);
-            method.setName(name);
-            method.setCreateTime(new Date());
-            method.setCreateBy(id);
-            method.setStatus(MethodStatus.ACTIVE);
+            log.info("Creating new method with name: '{}' and code: '{}'", name, code);
+            Method method = new Method(code, name, id);
 
-            return ResponseData.ok("Method created successfully.", methodRepository.save(method));
-        } catch (Exception e){
+            Method savedMethod = methodRepository.save(method);
+            log.info("Successfully created method with id: {}", savedMethod.getId());
+
+            return ResponseData.ok("Method created successfully.", savedMethod);
+        } catch (Exception e) {
+            log.error("Error occurred while creating method: {}", e.getMessage(), e);
             throw new QueryException(e.getMessage());
         }
     }
+
+    @Override
+    public ResponseData<Method> updateMethod(PutMethodRequest request) {
+        try {
+            Integer updaterId = ServiceUtils.getId();
+            log.info("Updater ID: {}", updaterId);
+            log.info("Received request to update method with ID: {}", request.getMethodId());
+
+            Method method = this.findById(request.getMethodId());
+            log.info("Found method: {}", method);
+
+            method.update(request.getMethodName(), request.getMethodCode(), request.getNote(), updaterId);
+            log.info("Updated method with new values from request.");
+
+            Method savedMethod = methodRepository.save(method);
+            log.info("Successfully saved updated method with ID: {}", savedMethod.getId());
+
+            return ResponseData.ok("Cập nhập phương thức xét tuyển thành công.", savedMethod);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            for (StackTraceElement stackTraceElement : e.getCause().getCause().getStackTrace()) {
+                log.warn(stackTraceElement.toString());
+            }
+            throw new QueryException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseData<Method> updateMethodStatus(UpdateMethodStatusRequest request) {
+        Integer updaterId = ServiceUtils.getId();
+        log.info("Updater ID: {}", updaterId);
+        log.info("Received request to update method status with ID: {}", request.getId());
+
+        Method method = this.findById(request.getId());
+        log.info("Found method: {}", method);
+
+        log.info("Comparing new status: {} with existing status: {}", request.getId(), method.getStatus());
+        if (method.getStatus().equals(request.getStatus())) {
+            log.info("Status is the same.");
+            return ResponseData.ok("Trạng thái giống nhau.",method);
+        }
+
+        method.updateStatus(request.getStatus(), request.getNote(), updaterId);
+        log.info("Updated method with new status from request.");
+
+        Method savedMethod = methodRepository.save(method);
+        log.info("Successfully saved updated method with ID: {}", savedMethod.getId());
+
+        return ResponseData.ok("Cập nhập trạng thái thành công.",method);
+    }
+
+
 }

@@ -1,6 +1,8 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.MethodStatus;
+import com.demo.admissionportal.dto.request.method.PutMethodRequest;
+import com.demo.admissionportal.dto.request.method.UpdateMethodStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Method;
 import jakarta.transaction.Transactional;
@@ -23,4 +25,8 @@ public interface MethodService {
 
     @Transactional
     ResponseData<Method> createMethod(String name, String code);
+
+    ResponseData<Method> updateMethod(PutMethodRequest request);
+
+    ResponseData<Method> updateMethodStatus(UpdateMethodStatusRequest request);
 }

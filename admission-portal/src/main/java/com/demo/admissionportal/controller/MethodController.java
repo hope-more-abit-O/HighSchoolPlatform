@@ -2,6 +2,8 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.request.method.PostMethodRequest;
+import com.demo.admissionportal.dto.request.method.PutMethodRequest;
+import com.demo.admissionportal.dto.request.method.UpdateMethodStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.service.impl.MethodService;
@@ -37,5 +39,15 @@ public class MethodController {
     @PostMapping
     public ResponseEntity addMethod(@RequestBody @Valid PostMethodRequest request) {
         return ResponseEntity.ok(methodService.createMethod(request.getName(), request.getCode()));
+    }
+
+    @PutMapping
+    public ResponseEntity updateMethod(@RequestBody @Valid PutMethodRequest request) {
+        return ResponseEntity.ok(methodService.updateMethod(request));
+    }
+
+    @PatchMapping
+    public ResponseEntity updateMethodStatus(@RequestBody @Valid UpdateMethodStatusRequest request) {
+        return ResponseEntity.ok(methodService.updateMethodStatus(request));
     }
 }

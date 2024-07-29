@@ -57,4 +57,6 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
     );
 
     boolean existsByNameAndCode(String name, String code);
+
+    List<Method> findByNameOrCode(String name, String code);
 }

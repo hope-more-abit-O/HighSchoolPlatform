@@ -103,4 +103,6 @@ public interface MajorRepository extends JpaRepository<Major, Integer> {
             @Param("createBy") Integer createBy,
             @Param("updateBy") Integer updateBy
     );
+
+    List<Major> findByNameOrCode(String name, String code);
 }
