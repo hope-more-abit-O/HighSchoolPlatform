@@ -47,6 +47,7 @@ public class SecurityConfiguration {
     private static final String REPORTS_API = "/api/v1/reports/**";
     private static final String MAJOR_API = "/api/v1/major/**";
     private static final String METHOD_API = "/api/v1/method/**";
+    private static final String SEARCH_API = "/api/v1/search/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -71,6 +72,7 @@ public class SecurityConfiguration {
                                         FILE_API,
                                         MAJOR_API,
                                         METHOD_API,
+                                        SEARCH_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
