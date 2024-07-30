@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.entity.report;
+package com.demo.admissionportal.dto.entity.report.post_report;
 
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;

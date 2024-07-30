@@ -25,6 +25,9 @@ public class CommentReport {
     @Column(name = "comment_id")
     private Integer commentId;
 
+    @Column(name = "content")
+    private String commentContent;
+
     @Column(name = "report_action")
     private String reportAction;
 }

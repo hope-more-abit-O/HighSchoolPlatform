@@ -3,6 +3,9 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
+import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
@@ -10,6 +13,7 @@ import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportR
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
+import com.demo.admissionportal.entity.sub_entity.CommentReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import com.demo.admissionportal.service.ReportService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -108,6 +112,24 @@ public class ReportController {
             return ResponseEntity.ok(postReportsResponse);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
+    }
+    @PostMapping("/comment/create")
+    public ResponseData<CommentReport> createCommentReport(@RequestBody @Valid CreateCommentReportRequest request, Authentication authentication) {
+        return reportService.createCommentReport(request, authentication);
+    }
+    @GetMapping("/comment/{reportId}")
+    public ResponseData<CommentReportResponse> getCommentReportById(@PathVariable Integer reportId, Authentication authentication) {
+        return reportService.getCommentReportById(reportId, authentication);
+    }
+    @GetMapping("/comments")
+    public ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
+                                                                                  @RequestParam(required = false) Integer reportId,
+                                                                                  @RequestParam(required = false) String ticketId,
+                                                                                  @RequestParam(required = false) Integer createBy,
+                                                                                  @RequestParam(required = false) String content,
+                                                                                  @RequestParam(required = false) ReportType reportType,
+                                                                                  @RequestParam(required = false) ReportStatus status) {
+        return reportService.findAllCommentReports(pageable, authentication, reportId, ticketId, createBy, content, reportType, status);
     }
 
 }
