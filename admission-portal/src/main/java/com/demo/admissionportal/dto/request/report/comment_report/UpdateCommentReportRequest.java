@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateCommentReportRequest {
-    @NotNull(message = "Bình luận không thể để trống!")
-    private Integer commentId;
+public class UpdateCommentReportRequest {
+    @NotNull(message = "Hành động báo cáo không thể để trống!")
+    private String reportAction;
 
-    @NotNull(message = "Lý do báo cáo không được để trống!")
-    private String content;
+    @NotNull(message = "Phản hồi không thể để trống!")
+    private String response;
 }
+
