@@ -1,4 +1,4 @@
-package com.demo.admissionportal.service.impl;
+package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.request.method.PutMethodRequest;

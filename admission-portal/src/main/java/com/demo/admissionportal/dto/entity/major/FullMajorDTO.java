@@ -1,4 +1,4 @@
-package com.demo.admissionportal.service;
+package com.demo.admissionportal.dto.entity.major;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;

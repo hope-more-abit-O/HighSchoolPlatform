@@ -6,7 +6,8 @@ import com.demo.admissionportal.dto.request.method.PutMethodRequest;
 import com.demo.admissionportal.dto.request.method.UpdateMethodStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Method;
-import com.demo.admissionportal.service.impl.MethodService;
+import com.demo.admissionportal.service.MethodService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,16 +38,19 @@ public class MethodController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity addMethod(@RequestBody @Valid PostMethodRequest request) {
         return ResponseEntity.ok(methodService.createMethod(request.getName(), request.getCode()));
     }
 
     @PutMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity updateMethod(@RequestBody @Valid PutMethodRequest request) {
         return ResponseEntity.ok(methodService.updateMethod(request));
     }
 
     @PatchMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity updateMethodStatus(@RequestBody @Valid UpdateMethodStatusRequest request) {
         return ResponseEntity.ok(methodService.updateMethodStatus(request));
     }
