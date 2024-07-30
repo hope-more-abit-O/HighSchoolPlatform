@@ -276,7 +276,7 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
             }
             subjectGroup.setStatus(SubjectStatus.INACTIVE);
             subjectGroupRepository.save(subjectGroup);
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học được xóa thành công !");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tổ hợp môn học được xóa thành công !");
         } catch (Exception e) {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Đã xảy ra lỗi trong quá trình xóa tổ hợp môn học !");
         }
