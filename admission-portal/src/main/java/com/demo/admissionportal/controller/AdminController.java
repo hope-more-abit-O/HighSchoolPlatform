@@ -5,7 +5,9 @@ import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
-import com.demo.admissionportal.dto.request.*;
+import com.demo.admissionportal.dto.request.ActiveStaffRequest;
+import com.demo.admissionportal.dto.request.DeleteStaffRequest;
+import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
@@ -28,6 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * The type Admin controller.
@@ -215,7 +219,7 @@ public class AdminController {
             @RequestParam(required = false) String universityCode,
             @RequestParam(required = false) String universityEmail,
             @RequestParam(required = false) String universityUsername,
-            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) List<CreateUniversityRequestStatus> status,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) String createByName,
             @RequestParam(required = false) Integer confirmBy

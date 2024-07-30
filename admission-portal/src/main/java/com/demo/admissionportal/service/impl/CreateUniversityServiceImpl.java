@@ -332,22 +332,40 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 String universityCode,
                                                                 String universityEmail,
                                                                 String universityUsername,
-                                                                CreateUniversityRequestStatus status,
+                                                                List<CreateUniversityRequestStatus> status,
                                                                 Integer createBy,
                                                                 String createByName,
                                                                 Integer confirmBy){
 
         try {
-            Page<CreateUniversityRequest>  createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
-                    id,
-                    universityName,
-                    universityCode,
-                    universityEmail,
-                    universityUsername,
-                    (status == null) ? null : status.name(),
-                    createBy,
-                    createByName,
-                    confirmBy);
+            List<String> statusStrings = status != null
+                    ? status.stream().map(CreateUniversityRequestStatus::name).toList()
+                    : null;
+
+            Page<CreateUniversityRequest>  createUniversityRequests;
+
+            if (statusStrings != null){
+                createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                        id,
+                        universityName,
+                        universityCode,
+                        universityEmail,
+                        universityUsername,
+                        statusStrings,
+                        createBy,
+                        createByName,
+                        confirmBy);
+            } else {
+                createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                        id,
+                        universityName,
+                        universityCode,
+                        universityEmail,
+                        universityUsername,
+                        createBy,
+                        createByName,
+                        confirmBy);
+            }
 
             if (createUniversityRequests.getContent().isEmpty())
                 return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.");

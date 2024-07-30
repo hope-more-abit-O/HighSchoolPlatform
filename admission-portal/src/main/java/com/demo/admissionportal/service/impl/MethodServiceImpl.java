@@ -14,6 +14,7 @@ import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
+import com.demo.admissionportal.service.MethodService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MethodServiceImpl implements MethodService{
+public class MethodServiceImpl implements MethodService {
     private final MethodRepository methodRepository;
     private final ModelMapper modelMapper;
 

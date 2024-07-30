@@ -226,14 +226,25 @@ public class MajorServiceImpl implements MajorService {
             String code,
             String name,
             String note,
-            MajorStatus status,
+            List<MajorStatus> status,
             Integer createBy,
             Integer updateBy,
             Date createTime,
             Date updateTime) {
         try {
-            Page<Major> majors = majorRepository.findMajorBy(pageable, id, code, name, note,
-                    (status != null) ? status.name() : null, createBy, updateBy, createTime, updateTime);
+            List<String> statusStrings = status != null
+                    ? status.stream().map(MajorStatus::name).toList()
+                    : null;
+
+            Page<Major> majors ;
+
+            if (statusStrings != null){
+                majors = majorRepository.findMajorBy(pageable, id, code, name, note,
+                        statusStrings, createBy, updateBy, createTime, updateTime);
+            } else {
+                majors = majorRepository.findMajorBy(pageable, id, code, name, note,
+                        createBy, updateBy, createTime, updateTime);
+            }
 
             if (majors.getContent().isEmpty())
                 return ResponseData.ok("Không tìm thấy chuyên ngành.");
