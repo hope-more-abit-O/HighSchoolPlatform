@@ -232,7 +232,7 @@ public class MethodServiceImpl implements MethodService{
         try {
             Page<Method> methods = methodRepository.findMethodBy(pageable, id, code, name, createTime, createBy, updateTime, updateBy, status);
 
-            if (methods.getTotalElements() == 0)
+            if (methods.getContent().isEmpty())
                 return ResponseData.ok("Không tìm thấy phương pháp.");
 
             return ResponseData.ok("Lấy thông tin các phương pháp thành công.", methods);

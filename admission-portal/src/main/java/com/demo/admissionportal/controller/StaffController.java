@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.entity.create_university_request.CreateUnive
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
@@ -16,6 +17,7 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -506,6 +508,7 @@ public class StaffController {
         }
     }
 
+
     /**
      * Gets by id.
      *
@@ -517,5 +520,10 @@ public class StaffController {
     @GetMapping("/consultant/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
+    }
+
+    @PatchMapping("/university/change-status/{id}")
+    public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
+        return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 }

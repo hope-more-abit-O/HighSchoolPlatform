@@ -235,7 +235,7 @@ public class MajorServiceImpl implements MajorService {
             Page<Major> majors = majorRepository.findMajorBy(pageable, id, code, name, note,
                     (status != null) ? status.name() : null, createBy, updateBy, createTime, updateTime);
 
-            if (majors.getTotalElements() == 0)
+            if (majors.getContent().isEmpty())
                 return ResponseData.ok("Không tìm thấy chuyên ngành.");
 
             return ResponseData.ok("Lấy thông tin các chuyên ngành thành công.", majors);
