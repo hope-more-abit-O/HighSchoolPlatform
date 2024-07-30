@@ -111,7 +111,7 @@ public interface ReportService {
 
     ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
                                                                                     Integer reportId, String ticketId, Integer createBy,
-                                                                                    ReportType reportType, ReportStatus status);
+                                                                                    ReportType reportType);
 
     ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
                                                                            Integer reportId, String ticketId, Integer createBy,

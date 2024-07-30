@@ -30,13 +30,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -268,8 +267,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
                                                                                            Integer reportId, String ticketId, Integer createBy,
-                                                                                           ReportType reportType, ReportStatus status
-    ) {
+                                                                                           ReportType reportType) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -282,15 +280,29 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsCompletedDTO> reportPage = reportRepository.findAllReportsWithPostByStatus(pageable, reportId, ticketId, createBy, ReportStatus.COMPLETED, reportType);
+            Page<FindAllReportsCompletedDTO> postReports = reportRepository.findAllReportsWithPostByStatus(pageable, reportId, ticketId, createBy, reportType);
+            Page<FindAllCommentReportsDTO> commentReports = reportRepository.findAllCommentReportsByStatus(pageable, reportId, ticketId, reportType);
+
+            List<Object> mergedReports = new ArrayList<>();
+            mergedReports.addAll(postReports.getContent());
+            mergedReports.addAll(commentReports.getContent());
+
+            Page<Object> reportPage = new PageImpl<>(mergedReports, pageable, postReports.getTotalElements() + commentReports.getTotalElements());
 
             Page<FindAllReportsCompletedResponse> responseDTOPage = reportPage.map(report -> {
-                ActionerDTO actioner = null;
-                if (report.getCreateBy() != null) {
-                    actioner = getUserDetails(report.getCreateBy().getId());
+                FindAllReportsCompletedResponse responseDTO = null;
+
+                if (report instanceof FindAllReportsCompletedDTO) {
+                    FindAllReportsCompletedDTO postReport = (FindAllReportsCompletedDTO) report;
+                    responseDTO = modelMapper.map(postReport, FindAllReportsCompletedResponse.class);
+                    if (postReport.getCreateBy() != null) {
+                        ActionerDTO actioner = getUserDetails(postReport.getCreateBy().getId());
+                        responseDTO.setCreateBy(actioner);
+                    }
+                } else if (report instanceof FindAllCommentReportsDTO) {
+                    FindAllCommentReportsDTO commentReport = (FindAllCommentReportsDTO) report;
+                    responseDTO = modelMapper.map(commentReport, FindAllReportsCompletedResponse.class);
                 }
-                FindAllReportsCompletedResponse responseDTO = modelMapper.map(report, FindAllReportsCompletedResponse.class);
-                responseDTO.setCreateBy(actioner);
                 return responseDTO;
             });
 
@@ -300,6 +312,8 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo đã xử lý");
         }
     }
+
+
     //Comment Report
     @Override
     @Transactional
