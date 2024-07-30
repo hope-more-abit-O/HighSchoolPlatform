@@ -32,7 +32,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT p.* FROM post p " +
             "INNER JOIN post_type pt ON p.id = pt.post_id " +
             "INNER JOIN type t ON pt.type_id = t.id " +
-            "INNER JOIN [user] u ON p.create_by = u.id ", nativeQuery = true)
+            "INNER JOIN [user] u ON p.create_by = u.id " +
+            "AND p.status = 'ACTIVE'", nativeQuery = true)
     List<Post> findPost();
 
 
@@ -53,6 +54,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * Find post with staff info list.
      *
      * @param title    the title
+     * @param status   the status
      * @param pageable the pageable
      * @return the list
      */
@@ -82,6 +84,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * Find all by uni id post.
      *
      * @param title    the title
+     * @param status   the status
      * @param createBy the create by
      * @param pageable the pageable
      * @return the post
@@ -93,4 +96,30 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "AND (:title IS NULL OR p.title LIKE %:title%) " +
             "AND (:status IS NULL OR p.status = :status)", nativeQuery = true)
     Page<Post> findAllByUniId(@Param("title") String title, @Param("status") String status, @Param("createBy") Integer createBy, Pageable pageable);
+
+    /**
+     * Find post with location id list.
+     *
+     * @param locationId the location id
+     * @return the list
+     */
+    @Query(value = "SELECT p.*, pr2.name " +
+            "FROM post p " +
+            "LEFT JOIN [user] u ON p.create_by = u.id " +
+            "LEFT JOIN consultant_info ci ON u.id = ci.consultant_id " +
+            "LEFT JOIN province pr1 ON ci.province_id = pr1.id " +
+            "LEFT JOIN staff_info si ON u.id = si.staff_id " +
+            "LEFT JOIN province pr2 ON si.province_id = pr2.id " +
+            "WHERE (pr1.id = :locationId OR pr2.id = :locationId) " +
+            "AND p.status = 'ACTIVE'", nativeQuery = true)
+    List<Post> findPostWithLocationId(@Param("locationId") Integer locationId);
+
+    /**
+     * Find all with no location id list.
+     *
+     * @return the list
+     */
+    @Query(value = "SELECT p.* FROM post p " +
+            "WHERE p.status = 'ACTIVE'", nativeQuery = true)
+    List<Post> findAllWithStatus();
 }

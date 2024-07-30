@@ -71,6 +71,7 @@ public class PostServiceImpl implements PostService {
 
     private List<PostRandomResponseDTO> lastRandomPosts;
     private LocalDate lastRandomDate;
+    private Integer lastSearch;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -631,12 +632,17 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<List<PostResponseDTO>> getPostsNewest() {
+    public ResponseData<List<PostResponseDTO>> getPostsNewest(Integer locationId) {
         try {
             log.info("Start retrieve post by descend create time");
+            List<Post> post;
+            if (locationId == null || locationId == 0) {
+                post = postRepository.findPost();
+            } else {
+                post = postRepository.findPostWithLocationId(locationId);
+            }
             // Filter duplicate by Id, Title, Content
             Set<String> filter = new HashSet<>();
-            List<Post> post = postRepository.findPost();
             List<PostResponseDTO> postResponseDTOList = post.stream()
                     .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
                     .sorted(Comparator.comparing(Post::getCreateTime).reversed())
@@ -652,10 +658,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<List<PostResponseDTO>> getPostsGeneral() {
+    public ResponseData<List<PostResponseDTO>> getPostsGeneral(Integer locationId) {
         try {
             log.info("Start retrieve post by general");
-            List<Post> post = postRepository.findPost();
+            List<Post> post;
+            if (locationId == null || locationId == 0) {
+                post = postRepository.findPost();
+            } else {
+                post = postRepository.findPostWithLocationId(locationId);
+            }
             Set<String> filter = new HashSet<>();
             List<PostResponseDTO> postResponseDTOList = post.stream()
                     .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
@@ -828,27 +839,34 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite() {
+    public ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite(Integer locationId) {
         try {
             log.info("Start retrieve post favorite");
-            // Filter duplicate by id, Title, Content
-            List<Post> post = postRepository.findAll();
+            List<Post> post;
+            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay;
+            List<PostFavoriteResponseDTO> postResponseDTOList;
             int dateRemain = 0;
-            List<PostFavoriteResponseDTO> postResponseDTOList = filterPostResponse(post, dateRemain);
 
-            Map<Date, PostFavoriteResponseDTO> highestInteractionByDay = groupByInteractPost(postResponseDTOList);
+            post = (locationId == null || locationId == 0) ? postRepository.findAllWithStatus() : postRepository.findPostWithLocationId(locationId);
+
+            postResponseDTOList = filterPostResponse(post, dateRemain);
+            highestInteractionByDay = groupByInteractPost(postResponseDTOList);
 
             // Collect results and display most recent create_date
             List<PostFavoriteResponseDTO> resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
 
-            // Check resultOfFilter is not enough 4 posts will add 1 day remain to get
-            while (resultOfFilter.size() < 6) {
-                dateRemain++;
-                postResponseDTOList = filterPostResponse(post, dateRemain);
-                highestInteractionByDay = groupByInteractPost(postResponseDTOList);
-                resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
+            /*
+             Case 1:  If post has more than 3 elements will add 1 day remain to get post again
+             Case 2: If post has less than 3 elements will return it
+             */
+            if (highestInteractionByDay.size() > 3) {
+                while (resultOfFilter.size() <= 4) {
+                    dateRemain++;
+                    postResponseDTOList = filterPostResponse(post, dateRemain);
+                    highestInteractionByDay = groupByInteractPost(postResponseDTOList);
+                    resultOfFilter = getPostFavoriteResponseDTOS(highestInteractionByDay);
+                }
             }
-
             log.info("End retrieve post favorite");
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post favorite", resultOfFilter);
         } catch (Exception ex) {
@@ -903,7 +921,7 @@ public class PostServiceImpl implements PostService {
         LocalDateTime localDateTimePost = datePost.toInstant().atZone(vietnamZone).toLocalDateTime();
         LocalDateTime localDateTimeNow = dateNow.toInstant().atZone(vietnamZone).toLocalDateTime();
         long dateAgo = ChronoUnit.DAYS.between(localDateTimePost.toLocalDate(), localDateTimeNow.toLocalDate());
-        return dateAgo >= 0 && dateAgo <= 6 + dateRemain;
+        return dateAgo >= 0 && dateAgo <= 10 + dateRemain;
     }
 
     private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
@@ -1028,24 +1046,25 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Pageable pageable) {
+    public ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Integer locationId, Pageable pageable) {
         try {
             // Check date and store
             LocalDate today = LocalDate.now();
             // Case 1 : If not pass 1 day, will get old result
-            if (lastRandomDate != null && !(ChronoUnit.DAYS.between(lastRandomDate, today) >= 1)) {
+            if (lastRandomDate != null && !(ChronoUnit.DAYS.between(lastRandomDate, today) >= 1) && (locationId == lastSearch)) {
                 int start = (int) pageable.getOffset();
                 int end = Math.min((start + pageable.getPageSize()), lastRandomPosts.size());
                 Page<PostRandomResponseDTO> page = new PageImpl<>(lastRandomPosts.subList(start, end), pageable, lastRandomPosts.size());
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post random: ", page);
             }
             // Case 2 : If pass 1 day, will run new random post and update time random
-            List<PostRandomResponseDTO> responseDTOS = getRandomPost();
+            List<PostRandomResponseDTO> responseDTOS = getRandomPost(locationId);
             if (responseDTOS == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post random");
             }
             lastRandomPosts = responseDTOS;
             lastRandomDate = today;
+            lastSearch = locationId;
 
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), responseDTOS.size());
@@ -1057,9 +1076,9 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private List<PostRandomResponseDTO> getRandomPost() {
+    private List<PostRandomResponseDTO> getRandomPost(Integer locationId) {
         // Get random post
-        List<Post> posts = postRepository.findAll();
+        List<Post> posts = (locationId == null || locationId == 0) ? postRepository.findAllWithStatus() : postRepository.findPostWithLocationId(locationId);
         List<PostRandomResponseDTO> postRandomResponseDTOList = posts.stream()
                 .map(this::mapToRandomPost)
                 .collect(Collectors.toList());
