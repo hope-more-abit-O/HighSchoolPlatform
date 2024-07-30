@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.entity.create_university_request.CreateUnive
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
@@ -16,6 +17,7 @@ import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -99,6 +101,13 @@ public class StaffController {
      * Gets university management.
      *
      * @param pageable the pageable
+     * @param id       the id
+     * @param code     the code
+     * @param username the username
+     * @param name     the name
+     * @param phone    the phone
+     * @param email    the email
+     * @param status   the status
      * @return the university management
      */
     @GetMapping("/university/management")
@@ -460,31 +469,19 @@ public class StaffController {
      *
      *                                   <p>Receives a request to activate a subject group and processes it.
      */
-/**
+    /**
      * Activates a subject group by its ID.
      *
      * <p>Receives a request to activate a subject group and processes it.
      *
      * @param id The unique identifier of the subject group to activate.
-     * @param id The unique identifier of the subject group to delete.
-     * @param id The unique identifier of the subject group to activate.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
-     * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      * @return A ResponseEntity containing the operation's result and a suitable HTTP status.
      * @throws NotAllowedException       the not allowed exception
-     * @throws ResourceNotFoundException the resource not found exception
-     *                                   <p>
-     *                                   Deletes a subject group by its ID.
-     *
-     *                                   <p>Receives a request to delete a subject group and processes it.
+     * @throws ResourceNotFoundException the resource not found exception                                   <p>                                   Deletes a subject group by its ID.                                   <p>Receives a request to delete a subject group and processes it.
      * @throws NotAllowedException       the not allowed exception
-     * @throws ResourceNotFoundException the resource not found exception
-     *                                   <p>
-     *                                   Activates a subject group by its ID.
-     *
-     *                                   <p>Receives a request to activate a subject group and processes it.
+     * @throws ResourceNotFoundException the resource not found exception                                   <p>                                   Activates a subject group by its ID.                                   <p>Receives a request to activate a subject group and processes it.
      */
-        @PutMapping("/activate-subject-group/{id}")
+    @PutMapping("/activate-subject-group/{id}")
     public ResponseEntity<ResponseData<?>> activateSubjectGroup(@PathVariable Integer id) {
         ResponseData<?> result = subjectGroupService.activateSubjectGroup(id);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
@@ -493,7 +490,13 @@ public class StaffController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
-        @DeleteMapping("/delete-subject-group/{id}")
+    /**
+     * Delete subject group response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     */
+    @DeleteMapping("/delete-subject-group/{id}")
     public ResponseEntity<?> deleteSubjectGroup(@PathVariable @Valid Integer id) {
         ResponseData<?> response = subjectGroupService.deleteSubjectGroup(id);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -504,8 +507,23 @@ public class StaffController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+
+    /**
+     * Gets by id.
+     *
+     * @param id the id
+     * @return the by id
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     */
     @GetMapping("/consultant/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
+    }
+
+    @PatchMapping("/university/change-status/{id}")
+    public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
+        return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 }

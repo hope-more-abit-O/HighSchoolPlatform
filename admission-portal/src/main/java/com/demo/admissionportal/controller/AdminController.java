@@ -7,7 +7,7 @@ import com.demo.admissionportal.dto.entity.create_university_request.CreateUnive
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
-import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
@@ -193,17 +193,8 @@ public class AdminController {
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.adminNote()));
     }
 
-    /**
-     * Active university by id response entity.
-     *
-     * @param id      the id
-     * @param request the request
-     * @return the response entity
-     * @throws ResourceNotFoundException the resource not found exception
-     * @throws StoreDataFailedException  the store data failed exception
-     */
     @PatchMapping("/university/change-status/{id}")
-    public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
+    public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 
