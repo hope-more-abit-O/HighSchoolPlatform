@@ -232,9 +232,9 @@ public class MajorServiceImpl implements MajorService {
             Date createTime,
             Date updateTime) {
         try {
-            List<String> statusStrings = status != null
-                    ? status.stream().map(MajorStatus::name).toList()
-                    : null;
+            List<String> statusStrings = (status == null || status.isEmpty())
+                    ? null
+                    : status.stream().map(MajorStatus::name).toList();
 
             Page<Major> majors ;
 

@@ -283,7 +283,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         if (createUniversityRequest.getConfirmBy() != null)
             actionerIds.add(createUniversityRequest.getConfirmBy());
 
-        List<ActionerDTO> actioners = userServiceImpl.getActionerDTOsByIds(actionerIds);
+        List<ActionerDTO> actioners = userServiceImpl.getActioners(actionerIds);
 
         for (ActionerDTO actioner : actioners) {
             if (actioner.getId().equals(createUniversityRequest.getCreateBy())) {
@@ -338,9 +338,9 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 Integer confirmBy){
 
         try {
-            List<String> statusStrings = status != null
-                    ? status.stream().map(CreateUniversityRequestStatus::name).toList()
-                    : null;
+            List<String> statusStrings = (status == null || status.isEmpty())
+                    ? null
+                    : status.stream().map(CreateUniversityRequestStatus::name).toList();
 
             Page<CreateUniversityRequest>  createUniversityRequests;
 
