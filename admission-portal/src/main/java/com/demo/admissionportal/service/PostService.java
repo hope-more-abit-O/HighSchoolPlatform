@@ -57,16 +57,18 @@ public interface PostService {
     /**
      * Gets posts newest.
      *
+     * @param locationId the location id
      * @return the posts newest
      */
-    ResponseData<List<PostResponseDTO>> getPostsNewest();
+    ResponseData<List<PostResponseDTO>> getPostsNewest(Integer locationId);
 
     /**
      * Gets posts general.
      *
+     * @param locationId the location id
      * @return the posts general
      */
-    ResponseData<List<PostResponseDTO>> getPostsGeneral();
+    ResponseData<List<PostResponseDTO>> getPostsGeneral(Integer locationId);
 
     /**
      * List post by consultant or staff or university response data.
@@ -89,15 +91,17 @@ public interface PostService {
     /**
      * List post favorite response data.
      *
+     * @param locationId the location id
      * @return the response data
      */
-    ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite();
+    ResponseData<List<PostFavoriteResponseDTO>> listPostFavorite(Integer locationId);
 
     /**
      * List post random response data.
      *
-     * @param pageable the pageable
+     * @param locationId the location id
+     * @param pageable   the pageable
      * @return the response data
      */
-    ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Pageable pageable);
+    ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Integer locationId, Pageable pageable);
 }
