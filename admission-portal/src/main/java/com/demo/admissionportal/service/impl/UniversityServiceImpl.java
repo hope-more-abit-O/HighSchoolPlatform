@@ -10,7 +10,7 @@ import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
-import com.demo.admissionportal.dto.request.university.DeleteUniversityRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
@@ -209,7 +209,7 @@ public class UniversityServiceImpl implements UniversityService {
         return universityInfo;
     }
 
-    public ResponseData updateUniversityStatus(Integer id, AccountStatus status, DeleteUniversityRequest request) throws ResourceNotFoundException, StoreDataFailedException {
+    public ResponseData updateUniversityStatus(Integer id, AccountStatus status, UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         User uniAccount = userService.findById(id);
@@ -257,7 +257,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     @Override
     public ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException {
-        Integer adminId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         User uniAccount = userService.findById(id);
 
