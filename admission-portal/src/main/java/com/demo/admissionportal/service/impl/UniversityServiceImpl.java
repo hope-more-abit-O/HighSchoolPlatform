@@ -283,7 +283,7 @@ public class UniversityServiceImpl implements UniversityService {
 //        Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, null, null, null, null, null, (status != null) ? status.name() : null , staffId);
 
 
-        if (uniAccounts.getTotalElements() == 0)
+        if (uniAccounts.getContent().isEmpty())
             return ResponseData.ok("Không có trường đại học phụ thuộc");
 
         List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());
@@ -311,7 +311,7 @@ public class UniversityServiceImpl implements UniversityService {
         try{
             Page<User> uniAccounts = userRepository.findUniversityAccountBy(pageable, id, code, username, name, phone, email, (status != null) ? status.name() : null , createBy, createByName);
 
-            if (uniAccounts.getTotalElements() == 0)
+            if (uniAccounts.getContent().isEmpty())
                 return ResponseData.ok("Không tìm thấy trường đại học.");
 
             List<UniversityInfo> uniInfos = this.findByIds(uniAccounts.getContent().stream().map(User::getId).toList());

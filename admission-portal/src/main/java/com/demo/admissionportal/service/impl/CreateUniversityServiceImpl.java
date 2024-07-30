@@ -349,7 +349,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                     createByName,
                     confirmBy);
 
-            if (createUniversityRequests.getTotalElements() == 0)
+            if (createUniversityRequests.getContent().isEmpty())
                 return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.");
 
             List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
