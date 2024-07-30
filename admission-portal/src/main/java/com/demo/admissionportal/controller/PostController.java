@@ -115,11 +115,12 @@ public class PostController {
     /**
      * Gets posts newest.
      *
+     * @param locationId the location id
      * @return the posts newest
      */
     @GetMapping("/newest")
-    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest() {
-        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest();
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsNewest(@RequestParam(required = false, name = "locationId") Integer locationId) {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsNewest(locationId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -129,11 +130,12 @@ public class PostController {
     /**
      * Gets posts general.
      *
+     * @param locationId the location id
      * @return the posts general
      */
     @GetMapping("/general")
-    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsGeneral() {
-        ResponseData<List<PostResponseDTO>> response = postService.getPostsGeneral();
+    public ResponseEntity<ResponseData<List<PostResponseDTO>>> getPostsGeneral(@RequestParam(required = false, name = "locationId") Integer locationId) {
+        ResponseData<List<PostResponseDTO>> response = postService.getPostsGeneral(locationId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -167,6 +169,8 @@ public class PostController {
     /**
      * Gets posts list.
      *
+     * @param title    the title
+     * @param status   the status
      * @param pageable the pageable
      * @return the posts list
      */
@@ -190,20 +194,28 @@ public class PostController {
     /**
      * Gets posts favorite.
      *
+     * @param locationId the location id
      * @return the posts favorite
      */
     @GetMapping("/favorite")
-    public ResponseEntity<ResponseData<List<PostFavoriteResponseDTO>>> getPostsFavorite() {
-        ResponseData<List<PostFavoriteResponseDTO>> response = postService.listPostFavorite();
+    public ResponseEntity<ResponseData<List<PostFavoriteResponseDTO>>> getPostsFavorite(@RequestParam(required = false, name = "locationId") Integer locationId) {
+        ResponseData<List<PostFavoriteResponseDTO>> response = postService.listPostFavorite(locationId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Gets post random.
+     *
+     * @param locationId the location id
+     * @param pageable   the pageable
+     * @return the post random
+     */
     @GetMapping("/if-you-like")
-    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(Pageable pageable) {
-        ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(pageable);
+    public ResponseEntity<ResponseData<Page<PostRandomResponseDTO>>> getPostRandom(@RequestParam(required = false, name = "locationId") Integer locationId, Pageable pageable) {
+        ResponseData<Page<PostRandomResponseDTO>> response = postService.listPostRandom(locationId, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
