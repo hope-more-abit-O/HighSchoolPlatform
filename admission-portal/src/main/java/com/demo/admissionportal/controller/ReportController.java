@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/reports")
 @AllArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class ReportController {
     private final ReportService postReportService;
     private final ReportService reportService;
@@ -46,7 +47,6 @@ public class ReportController {
      */
     @PostMapping("/post")
     @PreAuthorize("hasAuthority('USER')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<PostReport>> createPostReport(@RequestBody @Valid CreatePostReportRequest request, Authentication authentication) {
         ResponseData<PostReport> createdPostReport = postReportService.createPostReport(request, authentication);
         if (createdPostReport.getStatus() == ResponseCode.C200.getCode()) {
@@ -66,7 +66,6 @@ public class ReportController {
      */
     @GetMapping("/post/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<ReportPostResponse>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
         ResponseData<ReportPostResponse> postReportResponse = reportService.getPostReportById(reportId, authentication);
         if (postReportResponse.getStatus() == ResponseCode.C200.getCode()) {
@@ -87,7 +86,6 @@ public class ReportController {
      */
     @PutMapping("/post/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UpdatePostReportResponseDTO>> updatePostReport(
             @PathVariable Integer reportId,
             @RequestBody @Valid UpdatePostReportRequest request,
@@ -116,7 +114,6 @@ public class ReportController {
      */
     @GetMapping("/posts")
     @PreAuthorize("hasAuthority('STAFF')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Page<ListAllPostReportResponse>>> findAllPostReports(
             Pageable pageable,
             Authentication authentication,
@@ -148,7 +145,6 @@ public class ReportController {
      */
     @GetMapping("/completed")
     @PreAuthorize("hasAuthority('STAFF')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Page<FindAllReportsCompletedResponse>>> findAllCompletePostReports(
             Pageable pageable,
             Authentication authentication,
@@ -217,7 +213,6 @@ public class ReportController {
      */
     @GetMapping("/comments")
     @PreAuthorize("hasAuthority('STAFF')")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Page<ListAllCommentReportResponse>>> findAllCommentReports(Pageable pageable,
                                                                                                   Authentication authentication,
                                                                                                   @RequestParam(required = false) Integer reportId,
