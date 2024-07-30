@@ -1,6 +1,5 @@
 package com.demo.admissionportal.dto.response.post;
 
-import com.demo.admissionportal.constants.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
