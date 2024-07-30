@@ -4,12 +4,14 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.staff.FindAllStaffDTO;
 import com.demo.admissionportal.dto.request.ActiveStaffRequest;
 import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
+import com.demo.admissionportal.dto.response.staff.FindAllStaffResponse;
 import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
@@ -112,26 +114,19 @@ public class StaffServiceImpl implements StaffService {
 
 
     @Override
-    public ResponseData<Page<StaffResponseDTO>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
+    public ResponseData<Page<FindAllStaffResponse>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
         String statusString = status != null ? status.name() : null;
-        Page<StaffInfo> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, statusString, pageable);
+        Page<FindAllStaffDTO> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, AccountStatus.valueOf(statusString), pageable);
 
-        List<StaffResponseDTO> staffResponse = staffPage.getContent().stream().map(staffInfo -> {
-            StaffResponseDTO staffResponseDTO = modelMapper.map(staffInfo, StaffResponseDTO.class);
-            staffResponseDTO.setName(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
-            User user = staffInfo.getUser();
-            if (user != null) {
-                staffResponseDTO.setUsername(user.getUsername());
-                staffResponseDTO.setEmail(user.getEmail());
-                staffResponseDTO.setAvatar(user.getAvatar());
-                staffResponseDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
-            }
+        Page<FindAllStaffResponse> staffResponsePage = staffPage.map(staffInfo -> {
+            FindAllStaffResponse staffResponseDTO = modelMapper.map(staffInfo, FindAllStaffResponse.class);
+            staffResponseDTO.setName(staffInfo.getName());
+
             return staffResponseDTO;
-        }).collect(Collectors.toList());
+        });
 
-        Page<StaffResponseDTO> result = new PageImpl<>(staffResponse, staffPage.getPageable(), staffPage.getTotalElements());
         log.info("Successfully get list of staffs: {}", staffPage);
-        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), result);
+        return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponsePage);
     }
 
 
@@ -203,8 +198,6 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
         }
     }
-
-
 
     @Override
     public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {

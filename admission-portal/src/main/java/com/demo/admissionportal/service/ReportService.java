@@ -8,13 +8,10 @@ import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentR
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
-import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
-import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
+import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
-import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import org.springframework.data.domain.Page;
@@ -85,7 +82,7 @@ public interface ReportService {
      * @return A {@link ResponseData} object containing the result of the update operation along with the updated {@link UpdatePostReportResponseDTO}.
      * @since 1.0
      */
-    ResponseData<UpdatePostReportResponseDTO> updatePostReport(Integer reportId, UpdatePostReportRequest request, Authentication authentication);
+    ResponseData<UpdatePostReportResponse> updatePostReport(Integer reportId, UpdatePostReportRequest request, Authentication authentication);
     ResponseData<CommentReport> createCommentReport(CreateCommentReportRequest request, Authentication authentication);
     ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication);
     ResponseData<UpdateCommentReportResponseDTO> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication);

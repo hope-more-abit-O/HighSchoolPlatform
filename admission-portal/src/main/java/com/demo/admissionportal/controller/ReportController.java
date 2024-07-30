@@ -6,13 +6,10 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
-import com.demo.admissionportal.dto.response.report.post_report.FindAllReportsCompletedResponse;
-import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
+import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.report.post_report.ListAllPostReportResponse;
-import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponseDTO;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import com.demo.admissionportal.service.ReportService;
@@ -86,11 +83,11 @@ public class ReportController {
      */
     @PutMapping("/post/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<UpdatePostReportResponseDTO>> updatePostReport(
+    public ResponseEntity<ResponseData<UpdatePostReportResponse>> updatePostReport(
             @PathVariable Integer reportId,
             @RequestBody @Valid UpdatePostReportRequest request,
             Authentication authentication) {
-        ResponseData<UpdatePostReportResponseDTO> postReportResponse = reportService.updatePostReport(reportId, request, authentication);
+        ResponseData<UpdatePostReportResponse> postReportResponse = reportService.updatePostReport(reportId, request, authentication);
         if (postReportResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportResponse);
         } else if (postReportResponse.getStatus() == ResponseCode.C203.getCode()) {
