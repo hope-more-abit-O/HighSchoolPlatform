@@ -56,18 +56,16 @@ public interface StaffService {
      * last name, email, phone, and status. The response includes summary details of each staff member.
      * </p>
      *
-     * @param username   Optional filter for the username.
-     * @param firstName  Optional filter for the first name.
-     * @param middleName Optional filter for the middle name.
-     * @param lastName   Optional filter for the last name.
-     * @param email      Optional filter for the email.
-     * @param phone      Optional filter for the phone.
-     * @param status     Optional filter for the account status.
-     * @param pageable   Pagination details.
+     * @param username Optional filter for the username.
+     * @param name     the name
+     * @param email    Optional filter for the email.
+     * @param phone    Optional filter for the phone.
+     * @param status   Optional filter for the account status.
+     * @param pageable Pagination details.
      * @return A {@link ResponseData} object containing a paginated list of staff members.
      * @since 1.0
      */
-    ResponseData<Page<FindAllStaffResponse>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable);
+    ResponseData<Page<FindAllStaffResponse>> findAll(String username, String name, String email, String phone, AccountStatus status, Pageable pageable);
 
     /**
      * <h2>Get Staff By ID</h2>
