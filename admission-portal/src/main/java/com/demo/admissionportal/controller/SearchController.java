@@ -1,6 +1,7 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.service.SearchPostService;
@@ -21,12 +22,12 @@ public class SearchController {
     private final SearchPostService searchPostService;
 
     @PostMapping("/post")
-    public ResponseEntity<ResponseData<Page<Post>>> searchPost(@RequestParam(required = false, name = "title") String title,
-                                                               @RequestParam(required = false, name = "tag") String tag,
-                                                               @RequestParam(required = false, name = "schoolName") String schoolName,
-                                                               @RequestParam(required = false, name = "code") String code, Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = false, name = "title") String title,
+                                                                        @RequestParam(required = false, name = "tag") String tag,
+                                                                        @RequestParam(required = false, name = "schoolName") String schoolName,
+                                                                        @RequestParam(required = false, name = "code") String code, Pageable pageable) {
 
-        ResponseData<Page<Post>> response = searchPostService.searchPost(title, tag, schoolName, code, pageable);
+        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchPost(title, tag, schoolName, code, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }

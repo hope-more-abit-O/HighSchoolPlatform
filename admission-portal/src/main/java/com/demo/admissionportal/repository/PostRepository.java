@@ -122,30 +122,4 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT p.* FROM post p " +
             "WHERE p.status = 'ACTIVE'", nativeQuery = true)
     List<Post> findAllWithStatus();
-
-    /**
-     * Search post page.
-     *
-     * @param title      the title
-     * @param tag        the tag
-     * @param schoolName the school name
-     * @param code       the code
-     * @param pageable   the pageable
-     * @return the page
-     */
-    @Query(value = "SELECT p.* " +
-            "FROM post p " +
-            "JOIN post_tag pt ON p.id = pt.post_id " +
-            "JOIN tag t ON pt.tag_id = t.id " +
-            "LEFT JOIN consultant_info ci ON p.create_by = ci.consultant_id " +
-            "LEFT JOIN staff_info si ON p.create_by = si.staff_id " +
-            "LEFT JOIN [user] u ON u.id = p.create_by " +
-            "LEFT JOIN  university_info ui ON ci.university_id = ui.university_id " +
-            "LEFT JOIN  university_campus uc ON ui.university_id = uc.university_id " +
-            "JOIN province pr ON uc.province_id = pr.id OR si.province_id = pr.id " +
-            "WHERE (:title IS NULL OR ui.code LIKE :title) OR " +
-            "(:schoolName IS NULL OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :schoolName) OR " +
-            "(:tag IS NULL OR t.name LIKE :tag) OR " +
-            "(:code IS NULL OR p.title LIKE :code)", nativeQuery = true)
-    Page<Post> searchPost(@Param("title") String title, @Param("tag") String tag, @Param("schoolName") String schoolName, @Param("tag") String code, Pageable pageable);
 }

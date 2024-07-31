@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.PostStatus;
+import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
 import com.demo.admissionportal.entity.sub_entity.PostType;
 import jakarta.persistence.*;
@@ -17,6 +18,23 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "post")
+@SqlResultSetMapping(
+        name = "PostSearchDTOResult",
+        classes = @ConstructorResult(
+                targetClass = PostSearchDTO.class,
+                columns = {
+                        @ColumnResult(name = "id", type = Integer.class),
+                        @ColumnResult(name = "title", type = String.class),
+                        @ColumnResult(name = "createTime", type = Date.class),
+                        @ColumnResult(name = "quote", type = String.class),
+                        @ColumnResult(name = "thumnail", type = String.class),
+                        @ColumnResult(name = "url", type = String.class),
+                        @ColumnResult(name = "createBy", type = String.class),
+                        @ColumnResult(name = "avatar", type = String.class),
+                        @ColumnResult(name = "universityName", type = String.class)
+                }
+        )
+)
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
