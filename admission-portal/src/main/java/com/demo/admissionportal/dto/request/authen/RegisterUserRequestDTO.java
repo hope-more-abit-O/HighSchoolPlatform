@@ -44,9 +44,6 @@ public class RegisterUserRequestDTO implements Serializable {
     @NotNull(message = "Mật khẩu không được để trống")
     private String password;
 
-    @NotNull(message = "Avatar không được để trống")
-    private String avatar;
-
     @NotNull(message = "Họ tên không được để trống")
     @EnumName(message = "Họ tên chỉ chứa chữ")
     private String firstName;
