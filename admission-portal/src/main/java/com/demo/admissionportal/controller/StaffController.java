@@ -524,7 +524,7 @@ public class StaffController {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
-    @PatchMapping("/university/change-status/{id}")
+    @PutMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
