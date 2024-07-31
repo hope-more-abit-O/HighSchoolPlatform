@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentR
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
 import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
@@ -83,9 +84,35 @@ public interface ReportService {
      * @since 1.0
      */
     ResponseData<UpdatePostReportResponse> updatePostReport(Integer reportId, UpdatePostReportRequest request, Authentication authentication);
+
+    /**
+     * Create comment report response data.
+     *
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response data
+     */
     ResponseData<CommentReport> createCommentReport(CreateCommentReportRequest request, Authentication authentication);
+
+    /**
+     * Gets comment report by id.
+     *
+     * @param reportId       the report id
+     * @param authentication the authentication
+     * @return the comment report by id
+     */
     ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication);
-    ResponseData<UpdateCommentReportResponseDTO> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication);
+
+    /**
+     * Update comment report response data.
+     *
+     * @param reportId       the report id
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response data
+     */
+    ResponseData<UpdateCommentReportResponse> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication);
+
     /**
      * <h2>Find All Post Reports</h2>
      * <p>
@@ -99,18 +126,40 @@ public interface ReportService {
      * @param ticketId       Optional filter for the ticket ID.
      * @param createBy       Optional filter for the creator ID.
      * @param content        Optional filter for the content.
-     * @param reportType     the report type
      * @param status         Optional filter for the report status.
      * @return A {@link ResponseData} object containing a paginated list of post reports.
      * @since 1.0
      */
-    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status);
+    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
 
+    /**
+     * Find all completed post reports response data.
+     *
+     * @param pageable       the pageable
+     * @param authentication the authentication
+     * @param reportId       the report id
+     * @param ticketId       the ticket id
+     * @param createBy       the create by
+     * @param reportType     the report type
+     * @return the response data
+     */
     ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
                                                                                     Integer reportId, String ticketId, Integer createBy,
                                                                                     ReportType reportType);
 
+    /**
+     * Find all comment reports response data.
+     *
+     * @param pageable       the pageable
+     * @param authentication the authentication
+     * @param reportId       the report id
+     * @param ticketId       the ticket id
+     * @param createBy       the create by
+     * @param content        the content
+     * @param status         the status
+     * @return the response data
+     */
     ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
                                                                            Integer reportId, String ticketId, Integer createBy,
-                                                                           String content, ReportType reportType, ReportStatus status);
+                                                                           String content, ReportStatus status);
 }

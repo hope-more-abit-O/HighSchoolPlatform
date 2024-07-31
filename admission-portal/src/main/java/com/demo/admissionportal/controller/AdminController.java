@@ -69,23 +69,19 @@ public class AdminController {
     /**
      * Find all staff response entity.
      *
-     * @param username   the username
-     * @param firstName  the first name
-     * @param middleName the middle name
-     * @param lastName   the last name
-     * @param email      the email
-     * @param phone      the phone
-     * @param status     the status
-     * @param pageable   the pageable
+     * @param username the username
+     * @param name     the name
+     * @param email    the email
+     * @param phone    the phone
+     * @param status   the status
+     * @param pageable the pageable
      * @return the response entity
      */
     @GetMapping("/list-all-staffs")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ResponseData<Page<FindAllStaffResponse>>> findAllStaff(
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String middleName,
-            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) String status,
@@ -101,11 +97,9 @@ public class AdminController {
             }
         }
 
-        ResponseData<Page<FindAllStaffResponse>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, accountStatus, pageable);
+        ResponseData<Page<FindAllStaffResponse>> response = staffService.findAll(username, name, email, phone, accountStatus, pageable);
         return ResponseEntity.status(response.getStatus() == ResponseCode.C200.getCode() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
-
 
 
     /**
@@ -178,6 +172,12 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
+    /**
+     * Create university response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     */
     @GetMapping("/create-university/{id}")
     public ResponseEntity<ResponseData<CreateUniversityRequestDTO>> createUniversity(@PathVariable int id) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tạo trường đại học thành công", createUniversityService.getById(id)));
@@ -189,6 +189,8 @@ public class AdminController {
      * @param id      the id
      * @param request the request
      * @return the response entity
+     * @throws ResourceNotFoundException the resource not found exception
+     * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/accept/{id}")
     public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
@@ -202,6 +204,8 @@ public class AdminController {
      * @param id      the id
      * @param request the request
      * @return the response entity
+     * @throws ResourceNotFoundException the resource not found exception
+     * @throws StoreDataFailedException  the store data failed exception
      */
     @PutMapping("/create-university/reject/{id}")
     public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
@@ -209,11 +213,35 @@ public class AdminController {
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.adminNote()));
     }
 
+    /**
+     * Active university by id response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     * @throws ResourceNotFoundException the resource not found exception
+     * @throws StoreDataFailedException  the store data failed exception
+     */
     @PutMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
 
+    /**
+     * Gets create university requests.
+     *
+     * @param pageable           the pageable
+     * @param id                 the id
+     * @param universityName     the university name
+     * @param universityCode     the university code
+     * @param universityEmail    the university email
+     * @param universityUsername the university username
+     * @param status             the status
+     * @param createBy           the create by
+     * @param createByName       the create by name
+     * @param confirmBy          the confirm by
+     * @return the create university requests
+     */
     @GetMapping("/create-university-request")
     public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
             Pageable pageable,
@@ -234,6 +262,21 @@ public class AdminController {
         ));
     }
 
+    /**
+     * Gets university management.
+     *
+     * @param pageable     the pageable
+     * @param id           the id
+     * @param code         the code
+     * @param username     the username
+     * @param name         the name
+     * @param phone        the phone
+     * @param email        the email
+     * @param status       the status
+     * @param createBy     the create by
+     * @param createByName the create by name
+     * @return the university management
+     */
     @GetMapping("/university")
     public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
             Pageable pageable,
@@ -253,6 +296,13 @@ public class AdminController {
     }
 
 
+    /**
+     * Find full university by id response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     * @throws Exception the exception
+     */
     @GetMapping("/university/{id}")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));

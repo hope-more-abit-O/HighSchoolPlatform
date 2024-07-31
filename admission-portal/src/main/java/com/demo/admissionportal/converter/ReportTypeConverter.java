@@ -14,9 +14,9 @@ public class ReportTypeConverter extends AbstractConverter<ReportType, String> {
 
         switch (type) {
             case POST:
-                return "Bài viết không phù hợp ";
+                return "Báo cáo bài viết vi phạm ";
             case COMMENT:
-                return "Bình luận không phù hợp";
+                return "Báo cáo bình luận vi phạm";
             case FUNCTION:
                 return "Khác";
             default:
