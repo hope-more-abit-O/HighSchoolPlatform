@@ -510,11 +510,6 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo bình luận");
         }
     }
-
-
-
-
-
     private ActionerDTO getStaffDetails(Integer userId) {
         return userRepository.findById(userId)
                 .map(user -> {
