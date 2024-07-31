@@ -2,6 +2,7 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
+import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsByStatusDTO;
 import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsCompletedDTO;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO;
@@ -40,15 +41,13 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
             "AND (:createBy IS NULL OR r.create_by = :createBy) " +
             "AND (:content IS NULL OR r.content LIKE %:content%) " +
-            "AND (:reportType IS NULL OR r.report_type = :reportType) " +
             "AND (:status IS NULL OR r.status = :status)")
     Page<FindAllReportsWithPostDTO> findAllReportsWithPost(Pageable pageable,
                                                            @Param("reportId") Integer reportId,
                                                            @Param("ticketId") String ticketId,
                                                            @Param("createBy") Integer createBy,
                                                            @Param("content") String content,
-                                                           @Param("status") ReportStatus status,
-                                                           @Param("reportType") ReportType reportType);
+                                                           @Param("status") ReportStatus status);
 
     /**
      * Find all reports with post by status page.
@@ -85,8 +84,8 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
      * @param reportType the report type
      * @return the page
      */
-    @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO(" +
-            "r.id, r.ticket_id, post.title,  r.create_time, r.status, r.report_type, comment.content) " +
+    @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsByStatusDTO(" +
+            "r.id, r.ticket_id, r.create_by, r.create_time, r.report_type, r.status) " +
             "FROM Report r " +
             "JOIN CommentReport cr ON r.id = cr.reportId " +
             "JOIN Comment comment ON cr.commentId = comment.id " +
@@ -95,10 +94,10 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
             "AND (:reportType IS NULL OR r.report_type = :reportType) " +
             "AND r.status = 'COMPLETED'")
-    Page<FindAllCommentReportsDTO> findAllCommentReportsByStatus(Pageable pageable,
-                                                                 @Param("reportId") Integer reportId,
-                                                                 @Param("ticketId") String ticketId,
-                                                                 @Param("reportType") ReportType reportType);
+    Page<FindAllCommentReportsByStatusDTO> findAllCommentReportsByStatus(Pageable pageable,
+                                                                         @Param("reportId") Integer reportId,
+                                                                         @Param("ticketId") String ticketId,
+                                                                         @Param("reportType") ReportType reportType);
 
     /**
      * Find all comment reports page.
@@ -122,15 +121,13 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
             "AND (:createBy IS NULL OR r.create_by = :createBy) " +
             "AND (:content IS NULL OR r.content LIKE %:content%) " +
-            "AND (:reportType IS NULL OR r.report_type = :reportType) " +
             "AND (:status IS NULL OR r.status = :status)")
     Page<FindAllCommentReportsDTO> findAllCommentReports(Pageable pageable,
                                                          @Param("reportId") Integer reportId,
                                                          @Param("ticketId") String ticketId,
                                                          @Param("createBy") Integer createBy,
                                                          @Param("content") String content,
-                                                         @Param("status") ReportStatus status,
-                                                         @Param("reportType") ReportType reportType);
+                                                         @Param("status") ReportStatus status);
 
 
 

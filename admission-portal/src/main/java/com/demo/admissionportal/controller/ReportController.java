@@ -4,8 +4,10 @@ import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
+import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
@@ -105,7 +107,6 @@ public class ReportController {
      * @param ticketId       the ticket id
      * @param createBy       the create by
      * @param content        the content
-     * @param reportType     the report type
      * @param status         the status
      * @return the response entity
      */
@@ -118,9 +119,8 @@ public class ReportController {
             @RequestParam(required = false) String ticketId,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) String content,
-            @RequestParam(required = false) ReportType reportType,
             @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, reportType, status);
+        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, status);
         if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(postReportsResponse);
         } else if (postReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -204,7 +204,6 @@ public class ReportController {
      * @param ticketId       the ticket id
      * @param createBy       the create by
      * @param content        the content
-     * @param reportType     the report type
      * @param status         the status
      * @return the response entity
      */
@@ -216,9 +215,8 @@ public class ReportController {
                                                                                                   @RequestParam(required = false) String ticketId,
                                                                                                   @RequestParam(required = false) Integer createBy,
                                                                                                   @RequestParam(required = false) String content,
-                                                                                                  @RequestParam(required = false) ReportType reportType,
                                                                                                   @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<ListAllCommentReportResponse>> commentReportsResponse = reportService.findAllCommentReports(pageable, authentication, reportId, ticketId, createBy, content, reportType, status);
+        ResponseData<Page<ListAllCommentReportResponse>> commentReportsResponse = reportService.findAllCommentReports(pageable, authentication, reportId, ticketId, createBy, content,status);
         if (commentReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(commentReportsResponse);
         } else if (commentReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -226,4 +224,29 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentReportsResponse);
     }
+
+    /**
+     * Update comment report response entity.
+     *
+     * @param reportId       the report id
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response entity
+     */
+    @PutMapping("/comment/{reportId}")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<UpdateCommentReportResponse>> updateCommentReport(
+            @PathVariable Integer reportId,
+            @RequestBody @Valid UpdateCommentReportRequest request,
+            Authentication authentication) {
+        ResponseData<UpdateCommentReportResponse> commentReportResponse = reportService.updateCommentReport(reportId, request, authentication);
+        if (commentReportResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(commentReportResponse);
+        } else if (commentReportResponse.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(commentReportResponse);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentReportResponse);
+    }
+
+
 }
