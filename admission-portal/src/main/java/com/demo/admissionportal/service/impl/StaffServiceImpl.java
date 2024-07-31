@@ -115,19 +115,19 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseData<Page<FindAllStaffResponse>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
-        String statusString = status != null ? status.name() : null;
-        Page<FindAllStaffDTO> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, AccountStatus.valueOf(statusString), pageable);
+        Page<FindAllStaffDTO> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, status, pageable);
 
         Page<FindAllStaffResponse> staffResponsePage = staffPage.map(staffInfo -> {
             FindAllStaffResponse staffResponseDTO = modelMapper.map(staffInfo, FindAllStaffResponse.class);
             staffResponseDTO.setName(staffInfo.getName());
-
             return staffResponseDTO;
         });
 
         log.info("Successfully get list of staffs: {}", staffPage);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponsePage);
     }
+
+
 
 
     @Override

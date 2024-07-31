@@ -92,7 +92,7 @@ public class AdminController {
             Pageable pageable) {
 
         AccountStatus accountStatus = null;
-        if (status != null) {
+        if (status != null && !status.isEmpty()) {
             try {
                 accountStatus = AccountStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -104,6 +104,9 @@ public class AdminController {
         ResponseData<Page<FindAllStaffResponse>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, accountStatus, pageable);
         return ResponseEntity.status(response.getStatus() == ResponseCode.C200.getCode() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+
+
 
     /**
      * Gets staff by id.
