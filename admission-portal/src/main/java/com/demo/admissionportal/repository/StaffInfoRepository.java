@@ -1,5 +1,7 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.dto.entity.staff.FindAllStaffDTO;
 import com.demo.admissionportal.entity.StaffInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,22 +28,28 @@ public interface StaffInfoRepository extends JpaRepository<StaffInfo, Integer> {
      * @param pageable     the pageable
      * @return the page
      */
-    @Query("SELECT s FROM StaffInfo s JOIN s.user u WHERE " +
-            "(:username IS NULL OR u.username LIKE %:username%) AND " +
-            "(:firstName IS NULL OR s.firstName LIKE %:firstName%) AND " +
-            "(:middleName IS NULL OR s.middleName LIKE %:middleName%) AND " +
-            "(:lastName IS NULL OR s.lastName LIKE %:lastName%) AND " +
-            "(:email IS NULL OR u.email LIKE %:email%) AND " +
-            "(:phone IS NULL OR s.phone LIKE %:phone%) AND " +
+    @Query("SELECT new com.demo.admissionportal.dto.entity.staff.FindAllStaffDTO(" +
+            "u.id, u.username, u.email, CONCAT(s.firstName, ' ', s.middleName, ' ', s.lastName), " +
+            "u.avatar, s.phone, u.status, p.name, u.note, u.createTime) " +
+            "FROM StaffInfo s " +
+            "JOIN s.user u " +
+            "LEFT JOIN Province p ON s.provinceId = p.id " +
+            "WHERE " +
+            "(:username IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) AND " +
+            "(:firstName IS NULL OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :firstName, '%'))) AND " +
+            "(:middleName IS NULL OR LOWER(s.middleName) LIKE LOWER(CONCAT('%', :middleName, '%'))) AND " +
+            "(:lastName IS NULL OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :lastName, '%'))) AND " +
+            "(:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+            "(:phone IS NULL OR LOWER(s.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
             "(:statusString IS NULL OR u.status = :statusString)")
-    Page<StaffInfo> findAllWithUserFields(@Param("username") String username,
-                                          @Param("firstName") String firstName,
-                                          @Param("middleName") String middleName,
-                                          @Param("lastName") String lastName,
-                                          @Param("email") String email,
-                                          @Param("phone") String phone,
-                                          @Param("statusString") String statusString,
-                                          Pageable pageable);
+    Page<FindAllStaffDTO> findAllWithUserFields(@Param("username") String username,
+                                                @Param("firstName") String firstName,
+                                                @Param("middleName") String middleName,
+                                                @Param("lastName") String lastName,
+                                                @Param("email") String email,
+                                                @Param("phone") String phone,
+                                                @Param("statusString") AccountStatus statusString,
+                                                Pageable pageable);
     /**
      * Find staff info by id staff info.
      *

@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.major.UpdateMajorStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.service.MajorService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/major")
@@ -29,7 +31,7 @@ public class MajorController {
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String note,
-            @RequestParam(required = false) MajorStatus status,
+            @RequestParam(required = false) List<MajorStatus> status,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date createTime,
@@ -38,16 +40,19 @@ public class MajorController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> createMajor(@RequestBody @Valid CreateMajorRequest request) {
         return ResponseEntity.ok(ResponseData.ok("Tạo ngành thành công.",majorService.createMajor(request)));
     }
 
     @PutMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateMajor(@RequestBody @Valid UpdateMajorRequest request){
         return ResponseEntity.ok(ResponseData.ok("Chỉnh sửa ngành thành công.", majorService.updateMajor(request)));
     }
 
     @PatchMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateMajorStatus(@RequestBody @Valid UpdateMajorStatusRequest request){
         return ResponseEntity.ok(majorService.updateMajorStatus(request));
     }

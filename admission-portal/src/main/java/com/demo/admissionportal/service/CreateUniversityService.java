@@ -10,6 +10,8 @@ import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 //TODO: JAVADOC
 public interface CreateUniversityService {
     ResponseData<PostCreateUniversityRequestResponse> createCreateUniversityRequest(CreateUniversityRequestRequest request);
@@ -22,7 +24,7 @@ public interface CreateUniversityService {
                                                                 String universityCode,
                                                                 String universityEmail,
                                                                 String universityUsername,
-                                                                CreateUniversityRequestStatus status,
+                                                                List<CreateUniversityRequestStatus> status,
                                                                 Integer createBy,
                                                                 String createByName,
                                                                 Integer confirmBy);

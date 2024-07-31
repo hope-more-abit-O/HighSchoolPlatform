@@ -33,6 +33,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * The type Staff controller.
  */
@@ -91,7 +93,7 @@ public class StaffController {
                                                                                                       @RequestParam(required = false) String universityCode,
                                                                                                       @RequestParam(required = false) String universityEmail,
                                                                                                       @RequestParam(required = false) String universityUsername,
-                                                                                                      @RequestParam(required = false) CreateUniversityRequestStatus status,
+                                                                                                      @RequestParam(required = false) List<CreateUniversityRequestStatus> status,
                                                                                                       @RequestParam(required = false) Integer confirmBy) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, null, confirmBy));
@@ -522,7 +524,7 @@ public class StaffController {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
-    @PatchMapping("/university/change-status/{id}")
+    @PutMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }

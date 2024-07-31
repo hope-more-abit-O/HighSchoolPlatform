@@ -5,12 +5,15 @@ import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
-import com.demo.admissionportal.dto.request.*;
+import com.demo.admissionportal.dto.request.ActiveStaffRequest;
+import com.demo.admissionportal.dto.request.DeleteStaffRequest;
+import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
+import com.demo.admissionportal.dto.response.staff.FindAllStaffResponse;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.AdminService;
@@ -27,6 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * The type Admin controller.
@@ -76,21 +81,32 @@ public class AdminController {
      */
     @GetMapping("/list-all-staffs")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ResponseData<Page<StaffResponseDTO>>> findAllStaff(
+    public ResponseEntity<ResponseData<Page<FindAllStaffResponse>>> findAllStaff(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String middleName,
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
-            @RequestParam(required = false) AccountStatus status,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
-        ResponseData<Page<StaffResponseDTO>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, status, pageable);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        AccountStatus accountStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                accountStatus = AccountStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseData<>(ResponseCode.C205.getCode(), "Trạng thái không hợp lệ"));
+            }
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+
+        ResponseData<Page<FindAllStaffResponse>> response = staffService.findAll(username, firstName, middleName, lastName, email, phone, accountStatus, pageable);
+        return ResponseEntity.status(response.getStatus() == ResponseCode.C200.getCode() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+
+
 
     /**
      * Gets staff by id.
@@ -193,7 +209,7 @@ public class AdminController {
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.adminNote()));
     }
 
-    @PatchMapping("/university/change-status/{id}")
+    @PutMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
@@ -206,7 +222,7 @@ public class AdminController {
             @RequestParam(required = false) String universityCode,
             @RequestParam(required = false) String universityEmail,
             @RequestParam(required = false) String universityUsername,
-            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) List<CreateUniversityRequestStatus> status,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) String createByName,
             @RequestParam(required = false) Integer confirmBy
