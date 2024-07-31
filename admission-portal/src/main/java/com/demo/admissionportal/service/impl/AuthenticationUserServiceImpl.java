@@ -63,6 +63,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
     private final WardRepository wardRepository;
     private final ProvinceRepository provinceRepository;
     private final DistrictRepository districtRepository;
+    private String IMAGE = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Fstudent.png?alt=media&token=c13af7ac-f8c3-4eac-b98a-6e9dd9a191fd";
 
     @Override
     public ResponseData<LoginResponseDTO> login(LoginRequestDTO request) {
@@ -176,6 +177,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
 
                 // Map user table
                 User user = modelMapper.map(request, User.class);
+                user.setAvatar(IMAGE);
                 user.setRole(Role.USER);
                 user.setStatus(AccountStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -200,6 +202,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 return new ResponseData<>(ResponseCode.C206.getCode(), "Đã gửi OTP vào Email. Xin vui lòng kiểm tra", codeVerifyAccountRequestDTO);
             } else if (request.getProvider().equals(ProviderType.GOOGLE.name())) {
                 User user = modelMapper.map(request, User.class);
+                user.setAvatar(IMAGE);
                 user.setRole(Role.USER);
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
                 user.setCreateTime(new Date());
