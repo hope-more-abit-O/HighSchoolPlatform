@@ -26,7 +26,6 @@ import java.util.Date;
                         @ColumnResult(name = "url", type = String.class),
                         @ColumnResult(name = "createBy", type = String.class),
                         @ColumnResult(name = "avatar", type = String.class),
-                        @ColumnResult(name = "universityName", type = String.class)
                 }
         )
 )
@@ -44,5 +43,4 @@ public class PostSearchDTO implements Serializable {
     private String url;
     private String createBy;
     private String avatar;
-    private String universityName;
 }
