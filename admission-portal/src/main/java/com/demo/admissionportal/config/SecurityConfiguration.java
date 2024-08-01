@@ -49,7 +49,7 @@ public class SecurityConfiguration {
     private static final String MAJOR_API = "/api/v1/major/**";
     private static final String METHOD_API = "/api/v1/method/**";
     private static final String SEARCH_API = "/api/v1/search/**";
-
+    private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -69,6 +69,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
                                 .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,
