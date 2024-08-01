@@ -35,11 +35,9 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = false, name = "content") String content,
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = true, name = "content") String content,
                                                                         @PageableDefault(size = 10) Pageable pageable) {
-
         ResponseData<Page<PostSearchDTO>> response = searchPostService.searchPost(content, pageable);
-
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -65,7 +63,6 @@ public class SearchController {
                                                                               @RequestParam(required = false, name = "authorId") Integer authorId,
                                                                               @PageableDefault(size = 10) Pageable pageable) {
         ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(typeId, locationId, startDate, endDate, authorId, pageable);
-
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
