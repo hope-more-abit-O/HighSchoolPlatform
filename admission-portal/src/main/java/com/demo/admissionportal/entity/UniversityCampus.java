@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.CampusType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,4 +61,8 @@ public class UniversityCampus implements Serializable {
 
     @Column(name = "update_by")
     private Integer updateBy;
+
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private CampusType type;
 }

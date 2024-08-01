@@ -5,6 +5,8 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+
 /**
  * The interface Search post service.
  */
@@ -13,12 +15,22 @@ public interface SearchPostService {
     /**
      * Search post response data.
      *
-     * @param title      the title
-     * @param tag        the tag
-     * @param schoolName the school name
-     * @param code       the code
+     * @param content  the content
+     * @param pageable the pageable
+     * @return the response data
+     */
+    ResponseData<Page<PostSearchDTO>> searchPost(String content, Pageable pageable);
+
+    /**
+     * Search filter post response data.
+     *
+     * @param typeId     the type id
+     * @param locationId the location id
+     * @param startDate  the start date
+     * @param endDate    the end date
+     * @param authorId   the author id
      * @param pageable   the pageable
      * @return the response data
      */
-    ResponseData<Page<PostSearchDTO>> searchPost(String title, String tag, String schoolName, String code, Pageable pageable);
+    ResponseData<Page<PostSearchDTO>> searchFilterPost(Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId, Pageable pageable);
 }
