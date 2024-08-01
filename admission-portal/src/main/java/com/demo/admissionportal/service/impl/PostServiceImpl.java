@@ -833,7 +833,6 @@ public class PostServiceImpl implements PostService {
     }
 
     private Page<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, String status, Integer id, Pageable pageable) {
-
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
         return getPostByUniversityIdV2(title, status, consultantInfo.getUniversityId(), pageable);
     }
@@ -1021,14 +1020,14 @@ public class PostServiceImpl implements PostService {
         String listType = typeResponseDTOList.stream()
                 .map(type -> String.valueOf(type.getName()))
                 .collect(Collectors.joining(","));
-        String info = getUserInfoPostDTO(post.getCreateBy());
 
+        String info = getUserInfoPostDTOV2(post.getCreateBy());
         PostDetailResponseDTOV2 postPropertiesResponseDTO = modelMapper.map(post, PostDetailResponseDTOV2.class);
 
         return PostDetailResponseDTOV2.builder()
                 .id(postPropertiesResponseDTO.getId())
                 .title(postPropertiesResponseDTO.getTitle())
-                .createBy(info.trim())
+                .createBy(info)
                 .createTime(post.getCreateTime())
                 .status(post.getStatus().name)
                 .type(listType)
@@ -1133,4 +1132,24 @@ public class PostServiceImpl implements PostService {
         return postRandomResponseDTO;
     }
 
+    public String getUserInfoPostDTOV2(Integer createBy) {
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
+        String userInfo = null;
+        if (staffInfo != null) {
+            userInfo = mapperStaffInfoResponseDTOV2(staffInfo);
+        } else if (consultantInfo != null) {
+            userInfo = mapperConsultantInfoResponseDTOV2(consultantInfo);
+        }
+        return userInfo;
+    }
+
+    private String mapperStaffInfoResponseDTOV2(StaffInfo staffInfo) {
+        return (staffInfo.getFirstName().trim() + " " + staffInfo.getMiddleName().trim() + " " + staffInfo.getLastName().trim());
+    }
+
+    private String mapperConsultantInfoResponseDTOV2(ConsultantInfo consultantInfo) {
+        ConsultantInfo info = consultantInfoRepository.findConsultantInfoById(consultantInfo.getId());
+        return info.getFirstName().trim() + " " + info.getMiddleName().trim() + " " + info.getLastName();
+    }
 }

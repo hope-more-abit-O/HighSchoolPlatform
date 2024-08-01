@@ -42,7 +42,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                     .university(mapToUniversity(universityId))
                     .campus(mapToListCampus(universityId))
                     .build();
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Đã tìm thấy universityId ", universityCampusDTO);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy universityId ", universityCampusDTO);
         } catch (Exception ex) {
             log.error("Error when get campus by university id: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xuất hiện lỗi khi tìm kíếm campus");
@@ -66,10 +66,9 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
     public List<UniversityCampusProperties> mapToListCampus(Integer universityId) {
         log.info("Start mapToListCampus");
         List<UniversityCampus> universityCampus = universityCampusRepository.findListUniversityCampusByUniversityId(universityId);
-        List<UniversityCampusProperties> list = universityCampus.stream()
+        return universityCampus.stream()
                 .map(this::mapToCampus)
                 .collect(Collectors.toList());
-        return list;
     }
 
     private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus) {
@@ -79,8 +78,10 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
         return UniversityCampusProperties.builder()
                 .phone(universityCampus.getPhone())
                 .campusName(universityCampus.getCampusName())
+                .email(universityCampus.getEmail())
                 .picture(mapToListPicture(universityCampus.getPicture()))
                 .address(universityCampus.getSpecificAddress() + ", " + wardCampus.getName() + ", " + districtCampus.getName() + ", " + provinceCampus.getName())
+                .type(universityCampus.getType().name)
                 .build();
     }
 

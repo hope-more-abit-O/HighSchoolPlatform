@@ -18,6 +18,8 @@ import java.util.List;
 public class UniversityCampusProperties implements Serializable {
     private String campusName;
     private String phone;
+    private String email;
     private List<String> picture;
     private String address;
+    private String type;
 }
