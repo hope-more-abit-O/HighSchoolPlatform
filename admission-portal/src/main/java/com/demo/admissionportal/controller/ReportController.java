@@ -64,7 +64,7 @@ public class ReportController {
      * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link PostReport}.
      * @since 1.0
      */
-    @PostMapping("/post")
+    @PostMapping("/post/create")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<PostReport>> createPostReport(@RequestBody @Valid CreatePostReportRequest request, Authentication authentication) {
         ResponseData<PostReport> createdPostReport = postReportService.createPostReport(request, authentication);
@@ -324,7 +324,7 @@ public class ReportController {
      * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link FunctionReport}.
      * @since 1.0
      */
-    @PostMapping("/function")
+    @PostMapping("/function/create")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<FunctionReport>> createFunctionReport(
             @RequestParam("content") String content,
