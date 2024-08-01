@@ -36,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -620,7 +621,10 @@ public class PostServiceImpl implements PostService {
     }
 
     private String convertURL(String url) {
-        return url.replace(" ", "-");
+        String normalized = Normalizer.normalize(url, Normalizer.Form.NFD);
+        String withoutDiacritics = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String urlFriendly = withoutDiacritics.replaceAll("[^\\p{Alnum}\\s]+", "").replaceAll("\\s+", "-");
+        return urlFriendly.toLowerCase();
     }
 
     private String mapperStaffInfoResponseDTO(StaffInfo staffInfo) {
