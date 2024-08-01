@@ -31,7 +31,6 @@ import java.util.List;
                         @ColumnResult(name = "url", type = String.class),
                         @ColumnResult(name = "createBy", type = String.class),
                         @ColumnResult(name = "avatar", type = String.class),
-                        @ColumnResult(name = "universityName", type = String.class)
                 }
         )
 )
