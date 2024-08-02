@@ -1,7 +1,10 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.MethodStatus;
+import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.major.FullMajorDTO;
 import com.demo.admissionportal.dto.entity.method.CreateMethodDTO;
+import com.demo.admissionportal.dto.entity.method.FullMethodDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.dto.request.method.PutMethodRequest;
@@ -15,10 +18,12 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MethodRepository;
 import com.demo.admissionportal.service.MethodService;
+import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.stream.Streams;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +40,8 @@ import java.util.stream.Stream;
 public class MethodServiceImpl implements MethodService {
     private final MethodRepository methodRepository;
     private final ModelMapper modelMapper;
+    private final UserService userService;
+    private final MajorServiceImpl majorServiceImpl;
 
     private Method findById(Integer id) throws ResourceNotFoundException{
         return methodRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức xét tuyển."));
@@ -220,7 +227,7 @@ public class MethodServiceImpl implements MethodService {
     }
 
     @Override
-    public ResponseData<Page<Method>> getAllMethods(
+    public ResponseData getAllMethods(
             Pageable pageable,
             Integer id,
             String code,
@@ -229,17 +236,46 @@ public class MethodServiceImpl implements MethodService {
             Integer createBy,
             Date updateTime,
             Integer updateBy,
-            MethodStatus status) {
+            List<MethodStatus> status) {
         try {
-            Page<Method> methods = methodRepository.findMethodBy(pageable, id, code, name, createTime, createBy, updateTime, updateBy, status);
+            List<String> statusStrings = (status == null || status.isEmpty())
+                    ? null
+                    : status.stream().map(MethodStatus::name).toList();
+
+            Page<Method> methods ;
+
+            if (statusStrings != null){
+                methods = methodRepository.findMethodBy(pageable, id, code, name,
+                        statusStrings, createBy, updateBy, createTime, updateTime);
+            } else {
+                methods = methodRepository.findMethodBy(pageable, id, code, name,
+                        createBy, updateBy, createTime, updateTime);
+            }
 
             if (methods.getContent().isEmpty())
-                return ResponseData.ok("Không tìm thấy phương pháp.");
+                return ResponseData.ok("Không tìm thấy phương thức tuyển sinh.");
 
-            return ResponseData.ok("Lấy thông tin các phương pháp thành công.", methods);
+//            List<Integer> actionerIds = Streams.nonNull(methods.getContent().stream().flatMap(m -> Stream.of(m.getCreateBy(), m.getUpdateBy()))).toList();
+//
+//            List<ActionerDTO> actionerDTOS = userService.getActioners(actionerIds);
+
+            return ResponseData.ok("Lấy thông tin các phương thức tuyển sinh thành công.", methods);
         } catch (Exception e) {
             throw new QueryException(e.getMessage());
         }
+    }
+
+    public FullMethodDTO mappingFullDTO(Method method, List<ActionerDTO> actionerDTOS) {
+        FullMajorDTO result = modelMapper.map(method, FullMajorDTO.class);
+        if (method.getCreateBy() == null)
+            result.setCreateBy(null);
+        else
+            result.setCreateBy(actionerDTOS.stream().filter(actionerDTO -> actionerDTO.getId().equals(method.getCreateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Actioner.", Map.of("id", method.getCreateBy().toString()))));
+        if (method.getUpdateBy() == null)
+            result.setUpdateBy(null);
+        else
+            result.setUpdateBy(actionerDTOS.stream().filter(actionerDTO -> actionerDTO.getId().equals(method.getUpdateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Actioner.", Map.of("id", method.getCreateBy().toString()))));
+        return null;
     }
 
     @Override
