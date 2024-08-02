@@ -161,4 +161,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @org.springframework.data.repository.query.Param("createBy") Integer createBy,
             @org.springframework.data.repository.query.Param("createByName") String createByName
     );
+
+
+    @Query(value = """
+    SELECT usr.*
+    FROM [user] usr
+    INNER JOIN [university_campus] unic ON unic.university_id = usr.id
+    WHERE usr.email = :email OR unic.email = :email""", nativeQuery = true)
+    Optional<User> validateEmail(@Param("email") String email);
 }
