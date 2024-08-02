@@ -87,14 +87,14 @@ public class MethodServiceImpl implements MethodService {
             String allNames = existedMethodsByName.stream()
                     .map(Method::getName)
                     .collect(Collectors.joining(", "));
-            errors.put("nameExisted", allNames);
+            errors.put("majorNameExisted", allNames);
         }
 
         if (!existedMethodsByCode.isEmpty()){
             String allCodes = existedMethodsByCode.stream()
                     .map(Method::getCode)
                     .collect(Collectors.joining(", "));
-            errors.put("codeExisted", allCodes);
+            errors.put("majorCodeExisted", allCodes);
         }
 
         if (!errors.isEmpty()) {
