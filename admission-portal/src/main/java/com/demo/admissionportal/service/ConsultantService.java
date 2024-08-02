@@ -3,10 +3,7 @@ package com.demo.admissionportal.service;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.InfoConsultantResponseDTO;
-import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
-import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
-import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
-import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
+import com.demo.admissionportal.dto.request.consultant.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
@@ -103,4 +100,5 @@ public interface ConsultantService {
     Page<FullConsultantResponseDTO> getFullConsultants(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
     Page<InfoConsultantResponseDTO> getInfoConsultants(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
     InfoConsultantResponseDTO getInfoConsultantById(Integer id) throws ResourceNotFoundException;
+    FullConsultantResponseDTO updateConsultantStatus(PatchConsultantStatusRequest request) throws ResourceNotFoundException;
 }

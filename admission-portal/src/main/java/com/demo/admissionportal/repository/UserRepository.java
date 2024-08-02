@@ -174,9 +174,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         AND (:universityName IS NULL OR LOWER(uni.name) LIKE LOWER(CONCAT('%', :universityName, '%')))
         AND (:universityId IS NULL OR uni.university_id = :universityId)
         AND (usr.status IN (:status))
-        AND (:createTime IS NULL OR usr.create_time = :createTime)
         AND (:createBy IS NULL OR usr.create_by = :createBy)
-        AND (:updateTime IS NULL OR usr.update_time = :updateTime)
         AND (:updateBy IS NULL OR usr.update_by = :updateBy)
         AND (usr.role = 'CONSULTANT')
     """, nativeQuery = true)
@@ -224,4 +222,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     INNER JOIN [university_campus] unic ON unic.university_id = usr.id
     WHERE usr.email = :email OR unic.email = :email""", nativeQuery = true)
     Optional<User> validateEmail(@Param("email") String email);
+
+    Optional<User> findByIdAndRole(Integer id, Role role);
 }
