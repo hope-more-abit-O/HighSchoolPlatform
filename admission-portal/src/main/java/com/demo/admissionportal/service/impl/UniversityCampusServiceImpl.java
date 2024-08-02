@@ -8,8 +8,8 @@ import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusPro
 import com.demo.admissionportal.dto.entity.university_campus.UniversityProperties;
 import com.demo.admissionportal.dto.request.university_campus.CreateCampusRequestDTO;
 import com.demo.admissionportal.dto.request.university_campus.UpdateCampusRequestDTO;
-import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.repository.*;
@@ -18,8 +18,6 @@ import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
