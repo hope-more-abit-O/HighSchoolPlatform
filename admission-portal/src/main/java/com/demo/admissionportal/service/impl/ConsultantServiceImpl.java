@@ -13,8 +13,7 @@ import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.entity.ConsultantInfo;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -26,6 +25,7 @@ import com.demo.admissionportal.util.impl.AddressUtils;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.NameUtils;
 import com.demo.admissionportal.util.impl.ServiceUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @Service
@@ -217,25 +218,113 @@ public class ConsultantServiceImpl implements ConsultantService {
         return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
     }
 
+    @Transactional
     public ResponseData updateConsultantInfoById(UpdateConsultantInfoByIdRequest request)
             throws ResourceNotFoundException, StoreDataFailedException {
-        ConsultantInfo consultantInfo = findInfoById(request.getId());
-        updateConsultantInfo(consultantInfo, request);
+        Integer updateBy = ServiceUtils.getId();
+        User consultantAccount = updateConsultantAccount(request, updateBy);
 
-        ConsultantResponseDTO response = mappingFullResponse(consultantInfo);
-        return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
+
+        ConsultantInfo consultantInfo = findInfoById(request.getId());
+
+        consultantInfo = updateConsultantInfo(consultantInfo, request);
+
+        return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.",
+                FullConsultantResponseDTO
+                        .builder()
+                        .account(userService.mappingFullResponse(consultantAccount))
+                        .info(mappingFullResponse(consultantInfo))
+                        .build());
     }
 
-    private void updateConsultantInfo(ConsultantInfo consultantInfo, ConsultantInfoRequest request)
-            throws StoreDataFailedException {
-        validationService.validatePhoneNumber(request.getPhone());
-        consultantInfo.setFirstName(request.getFirstName());
-        consultantInfo.setMiddleName(request.getMiddleName());
-        consultantInfo.setLastName(request.getLastName());
-        consultantInfo.setPhone(request.getPhone());
-        consultantInfo.setBirthday(Date.from(Instant.parse(request.getBirthDate())));
+    public User updateConsultantAccount(UpdateConsultantInfoByIdRequest request, Integer updateBy){
 
-        save(consultantInfo);
+        boolean accountChanged = false;
+        User consultantAccount = userService.findById(request.getId());
+
+        if (!consultantAccount.getEmail().equals(request.getEmail())){
+            validationService.validateEmail(request.getEmail());
+            consultantAccount.setEmail(request.getEmail());
+            accountChanged = true;
+        }
+
+        if (!consultantAccount.getUsername().equals(request.getUsername())){
+            validationService.validateUsername(request.getUsername());
+            consultantAccount.setUsername(request.getUsername());
+            accountChanged = true;
+        }
+
+        if (accountChanged){
+            consultantAccount.update(updateBy);
+            consultantAccount = userService.save(consultantAccount, "tư vấn viên");
+        }
+        return consultantAccount;
+    }
+
+    private ConsultantInfo updateConsultantInfo(ConsultantInfo consultantInfo, ConsultantInfoRequest request)
+            throws StoreDataFailedException {
+        boolean changed = false;
+
+        if (!consultantInfo.getPhone().equals(request.getPhone())){
+            validationService.validatePhoneNumber(request.getPhone());
+            consultantInfo.setPhone(request.getPhone());
+            changed = true;
+        }
+        if (!consultantInfo.getFirstName().equals(request.getFirstName())){
+            consultantInfo.setFirstName(request.getFirstName());
+            changed = true;
+        }
+
+        if (!consultantInfo.getMiddleName().equals(request.getMiddleName())){
+            consultantInfo.setMiddleName(request.getMiddleName());
+            changed = true;
+        }
+
+        if (!consultantInfo.getLastName().equals(request.getLastName())){
+            consultantInfo.setLastName(request.getLastName());
+            changed = true;
+        }
+
+        if (!consultantInfo.getBirthday().equals(request.getBirthday())){
+            consultantInfo.setBirthday(request.getBirthday());
+            changed = true;
+        }
+
+        if (!consultantInfo.getGender().equals(request.getGender())){
+            consultantInfo.setGender(request.getGender());
+            changed = true;
+        }
+        if ((consultantInfo.getSpecificAddress() == null) || !consultantInfo.getSpecificAddress().equals(request.getSpecificAddress())){
+            consultantInfo.setSpecificAddress(request.getSpecificAddress());
+            changed = true;
+        }
+
+        if ((consultantInfo.getProvince() == null) || !consultantInfo.getProvince().getId().equals(request.getProvinceId())){
+            Province province = addressService.findProvinceById(request.getProvinceId());
+            consultantInfo.setProvince(province);
+            changed = true;
+        }
+
+        if ((consultantInfo.getDistrict() == null) || !consultantInfo.getDistrict().getId().equals(request.getDistrictId())){
+            District district = districtService.findById(request.getDistrictId());
+            consultantInfo.setDistrict(district);
+            changed = true;
+        }
+
+        if ((consultantInfo.getWard() == null) || !consultantInfo.getProvince().getId().equals(request.getProvinceId())){
+            Ward ward = wardService.findById(request.getWardId());
+            consultantInfo.setWard(ward);
+            changed = true;
+        }
+
+        try {
+            if (changed)
+                return save(consultantInfo);
+            else return  consultantInfo;
+        } catch (Exception e){
+            throw new StoreDataFailedException("Cập nhập thông tin nhân viên thất bại", Map.of("error", e.getMessage()));
+        }
+
     }
 
     private void updateConsultantAddress(ConsultantInfo consultantInfo, UpdateConsultantAddressRequest request)
@@ -364,4 +453,21 @@ public class ConsultantServiceImpl implements ConsultantService {
                         .build();
     }
 
+    public FullConsultantResponseDTO getFullConsultantById(User consultantAccount) throws ResourceNotFoundException {
+
+        ConsultantInfo info = consultantInfoServiceImpl.findById(consultantAccount.getId());
+
+        return FullConsultantResponseDTO
+                        .builder()
+                        .account(modelMapper.map(consultantAccount, FullUserResponseDTO.class))
+                        .info(mappingFullResponse(info))
+                        .build();
+    }
+
+    @Transactional
+    public FullConsultantResponseDTO updateConsultantStatus(PatchConsultantStatusRequest request) throws ResourceNotFoundException {
+        User consultantAccount = userService.changeConsultantStatus(request.getConsultantId(), AccountStatus.valueOf(request.getStatus()), Role.CONSULTANT, request.getNote(), "tư vấn viên");
+
+        return getFullConsultantById(consultantAccount);
+    }
 }

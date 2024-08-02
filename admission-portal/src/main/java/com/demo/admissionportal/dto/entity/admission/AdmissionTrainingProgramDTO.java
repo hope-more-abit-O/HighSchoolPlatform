@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AdmissionTrainingProgramDTO {
-    private int admissionId;
+    private Integer admissionId;
     private String majorName;
     private String mainSubjectName;
     private String language;

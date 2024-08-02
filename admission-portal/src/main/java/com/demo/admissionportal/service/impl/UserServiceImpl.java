@@ -21,6 +21,7 @@ import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.NameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.stream.Streams;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -232,6 +233,13 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    public User findByIdAndRole(Integer id, Role role) throws ResourceNotFoundException {
+        return userRepository.findByIdAndRole(id, role).orElseThrow(() -> {
+            log.error("User's account with id: {} and role: {} not found.", id, role);
+            return new ResourceNotFoundException("Tài khoản với id: " + id + " và role:" + role + " không tìm thấy");
+        });
+    }
+
 
     @Override
     public List<User> findByIds(List<Integer> ids) {
@@ -241,15 +249,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public FullUserResponseDTO mappingFullResponse(User user) throws ResourceNotFoundException {
         FullUserResponseDTO responseDTO = modelMapper.map(user, FullUserResponseDTO.class);
-        ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
-        responseDTO.setCreateBy(actionerDTO);
+
+        List<Integer> actionerIds = Streams.nonNull(Stream.of(user.getCreateBy(), user.getUpdateBy())).toList();
+        List<ActionerDTO> actionerDTOS = this.getActioners(actionerIds);
+
+        responseDTO.setCreateBy(actionerDTOS.stream().filter(a -> a.getId().equals(user.getCreateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Actioner.", Map.of("id", user.getId().toString()))));
 
         if (user.getUpdateBy() == null) //Case 1: updateBy == null
             responseDTO.setUpdateBy(null);
         else if (Objects.equals(user.getCreateBy(), user.getUpdateBy())) //Case 2: updateBy == createBy
-            responseDTO.setUpdateBy(actionerDTO);
+            responseDTO.setUpdateBy(responseDTO.getCreateBy());
         else //Case 3: updateBy != createBy
-            responseDTO.setUpdateBy(modelMapper.map(findById(user.getUpdateBy()), ActionerDTO.class));
+            responseDTO.setUpdateBy(actionerDTOS.stream().filter(a -> a.getId().equals(user.getUpdateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Actioner.", Map.of("id", user.getId().toString()))));
 
         return responseDTO;
     }
@@ -361,28 +372,49 @@ public class UserServiceImpl implements UserService {
             if (result == null)
                 throw new Exception();
         } catch (Exception e) {
-            throw new StoreDataFailedException("Lưu " + name + " thất bại.");
+            throw new StoreDataFailedException("Lưu " + name + " thất bại.", Map.of("error", e.getCause().getLocalizedMessage()));
         }
         return result;
     }
 
-    public User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException {
+    public User changeStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException {
         Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
-        User account = findById(id);
+        User account = findByIdAndRole(id, role);
 
-        if (account.getStatus().equals(AccountStatus.ACTIVE))
-            account.setStatus(AccountStatus.INACTIVE);
-        else account.setStatus(AccountStatus.ACTIVE);
+        if (account.getStatus().equals(status))
+            throw new DataExistedException("Trạng thái tài khoản đang đúng.", Map.of("currentStatus", status.name));
+
+        account.setStatus(status);
         account.setNote(note);
         account.setUpdateTime(new Date());
         account.setUpdateBy(actionerId);
         try {
-            userRepository.save(account);
+            return  userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
         }
-        return account;
+    }
+
+    public User changeConsultantStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException {
+        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+
+        User account = findByIdAndRole(id, role);
+
+        if (!account.getCreateBy().equals(actionerId))
+            throw new NotAllowedException("Bạn không có quyền đổi trạng thái tư vấn viên không dưới quyền của mình.", Map.of("belongTo", account.getCreateBy().toString()));
+        if (account.getStatus().equals(status))
+            throw new DataExistedException("Trạng thái tài khoản đang đúng.", Map.of("currentStatus", status.name));
+
+        account.setStatus(status);
+        account.setNote(note);
+        account.setUpdateTime(new Date());
+        account.setUpdateBy(actionerId);
+        try {
+            return  userRepository.save(account);
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
+        }
     }
 
     public User changeConsultantStatus(Integer id, String note) throws NotAllowedException, StoreDataFailedException, ResourceNotFoundException {

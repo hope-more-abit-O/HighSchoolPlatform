@@ -129,4 +129,5 @@ public interface MajorRepository extends JpaRepository<Major, Integer> {
     );
 
     List<Major> findByNameOrCode(String name, String code);
+    Optional<Major> findByCode(String code);
 }

@@ -3,6 +3,8 @@ package com.demo.admissionportal.service.impl.admission;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Method;
 import com.demo.admissionportal.entity.admission.AdmissionMethod;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.exception.exceptions.CreateEntityFailedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionMethodRepository;
@@ -60,7 +62,7 @@ public class AdmissionMethodServiceImpl {
 
     }
 
-    private List<AdmissionMethod> saveAllAdmissionMethodWithListMethods(Integer admissionId, List<Method> methods) {
+    public List<AdmissionMethod> saveAllAdmissionMethodWithListMethods(Integer admissionId, List<Method> methods) {
         log.info("Saving admission methods for admission ID: {}", admissionId);
 
         List<AdmissionMethod> admissionMethods = new ArrayList<>();
@@ -99,7 +101,7 @@ public class AdmissionMethodServiceImpl {
 
     public List<AdmissionMethod> saveAdmissionMethod(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas)
             throws ResourceNotFoundException {
-
+            
         List<Method> methods = methodService.insertNewMethodsAndGetExistedMethods(quotas);
 
         return saveAllAdmissionMethodWithListMethods(admissionId, methods);

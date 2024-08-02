@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
@@ -52,12 +53,6 @@ public class UniversityController {
         return ResponseEntity.ok(consultantService.createConsultant(request));
     }
 
-    @PatchMapping("/consultant/change-status/{id}")
-    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request)
-            throws BadRequestException, StoreDataFailedException, DataExistedException, NotAllowedException {
-        return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
-    }
-
     /**
      * Retrieves details of a consultant by their ID.
      *
@@ -82,14 +77,14 @@ public class UniversityController {
             @RequestParam(required = false) String universityName,
             @RequestParam(required = false) Integer universityId,
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) List<AccountStatus> statuses,
+            @RequestParam(required = false) List<AccountStatus> status,
             @RequestParam(required = false) Integer updateBy
     ) throws NotAllowedException, ResourceNotFoundException {
         Integer uniId = ServiceUtils.getId();
         return ResponseEntity.ok(
                 ResponseData.ok("Tìm mọi tư vấn viên dưới quyền thành công.",
                         consultantService.getFullConsultants(
-                                pageable, id, name, username, universityName, universityId, statuses, uniId, updateBy
+                                pageable, id, name, username, universityName, universityId, status, uniId, updateBy
                         )
                 )
         );
@@ -104,5 +99,10 @@ public class UniversityController {
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/consultant")
+    public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request){
+        return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
     }
 }
