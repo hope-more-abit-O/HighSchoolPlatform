@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CampusType;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.UniversityCampusStatus;
+import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusDTO;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusProperties;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityProperties;
@@ -115,7 +116,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
             validationService.validateRegisterUniversityCampus(requestDTO.getEmail(), requestDTO.getPhone());
             UniversityCampus universityCampus = getUniversityCampus(requestDTO, universityId, picture);
             if (getUniversityCampus(requestDTO, universityId, picture) == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Cơ sở chính đã được đăng ký trước đó. Vui lòng cập nhật lại");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Cơ sở chính đã được đăng ký trước đó.");
             }
             UniversityCampus resultOfCreate = universityCampusRepository.save(universityCampus);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo campus thành công", resultOfCreate);
@@ -225,20 +226,6 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
         universityCampus.setUpdateBy(universityId);
         universityCampus.setUpdateTime(new Date());
         universityCampus.setPicture(picture != null ? picture.trim() : universityCampus.getPicture());
-        if (requestDTO.getType() == null) {
-            universityCampus.setType(universityCampus.getType());
-        } else {
-            if (requestDTO.getType().equals(CampusType.HEADQUARTERS)) {
-                UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
-                if (validateHeadQuarters != null) {
-                    return null;
-                } else {
-                    universityCampus.setType(requestDTO.getType());
-                }
-            } else {
-                universityCampus.setType(requestDTO.getType());
-            }
-        }
         return universityCampus;
     }
 
@@ -255,17 +242,52 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
         universityCampus.setCreateBy(universityId);
         universityCampus.setCreateTime(new Date());
         universityCampus.setPicture(picture.trim());
-        if (requestDTO.getType().equals(CampusType.HEADQUARTERS)) {
-            UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
-            if (validateHeadQuarters != null) {
-                return null;
-            } else {
-                universityCampus.setType(requestDTO.getType());
-            }
+        boolean isExisted = checkHeadQuartersExisted(universityId);
+        if (!isExisted) {
+            universityCampus.setType(CampusType.HEADQUARTERS);
         } else {
-            universityCampus.setType(requestDTO.getType());
+            universityCampus.setType(CampusType.SUB_HEADQUARTERS);
         }
         universityCampus.setStatus(UniversityCampusStatus.ACTIVE);
         return universityCampus;
+    }
+
+    private boolean checkHeadQuartersExisted(Integer universityId) {
+        boolean isExisted = false;
+        UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
+        return validateHeadQuarters == null ? isExisted : true;
+    }
+
+
+    @Override
+    public ResponseData<String> changeTypeUniversityCampus(Integer campusID) {
+        try {
+            Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
+            if (universityCampus.getId().equals(campusID)) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Campus hiện tại là cơ sở chính");
+            } else {
+                UniversityCampus campus = universityCampusRepository.findUniversityCampusById(campusID);
+                if (campus == null) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Campus Id không tồn tại");
+                }
+                // Update type to SUB_HEADQUARTERS
+                universityCampus.setType(CampusType.SUB_HEADQUARTERS);
+                universityCampus.setUpdateTime(new Date());
+                universityCampus.setUpdateBy(universityId);
+                universityCampusRepository.save(universityCampus);
+
+                // Update type to HEADQUARTERS
+                campus.setType(CampusType.HEADQUARTERS);
+                campus.setUpdateTime(new Date());
+                campus.setUpdateBy(universityId);
+                universityCampusRepository.save(campus);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái thành công");
+            }
+
+        } catch (Exception ex) {
+            log.error("Failed to updates type university campus: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật trạng thái thất bại", null);
+        }
     }
 }
