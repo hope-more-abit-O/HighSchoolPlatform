@@ -963,10 +963,11 @@ public class PostServiceImpl implements PostService {
                 // Case 2 : if consultant is existed and find it
                 User user = userRepository.findUserById(consultantInfo.getUniversityId());
                 UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
-                UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+                UniversityCampus universityCampus = universityCampusRepository.findFirstUniversityCampusByUniversityId(universityInfo.getId());
+                Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
                 id = universityInfo.getId();
-                fullName = universityInfo.getName() + " " + universityCampus.getCampusName();
-                location = universityCampus.getSpecificAddress();
+                fullName = universityInfo.getName();
+                location = province.getName();
             }
 
             PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
@@ -1105,14 +1106,13 @@ public class PostServiceImpl implements PostService {
 
     private PostRandomResponseDTO mapperConsultantInfoRandomPost(Post post, ConsultantInfo consultantInfo) {
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
-        UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
-        postRandomResponseDTO.setCreateBy(universityInfo.getName() + " " + universityCampus.getCampusName());
+        postRandomResponseDTO.setCreateBy(universityInfo.getName());
         postRandomResponseDTO.setComment(comment);
         postRandomResponseDTO.setListType(typeResponseDTOList);
         return postRandomResponseDTO;
