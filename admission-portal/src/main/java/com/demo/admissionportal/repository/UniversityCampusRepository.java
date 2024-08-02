@@ -1,6 +1,5 @@
 package com.demo.admissionportal.repository;
 
-import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.UniversityCampus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +19,10 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      * @param id the id
      * @return the university campus
      */
-    UniversityCampus findUniversityCampusByUniversityId(Integer id);
+    @Query(value = "SELECT * " +
+            "FROM university_campus uc " +
+            "WHERE uc.university_id = :id AND type = 'HEADQUARTERS'", nativeQuery = true)
+    UniversityCampus findFirstUniversityCampusByUniversityId(Integer id);
 
     /**
      * Find list university campus by university id list.
