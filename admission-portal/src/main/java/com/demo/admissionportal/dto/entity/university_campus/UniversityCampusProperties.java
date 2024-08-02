@@ -16,10 +16,12 @@ import java.util.List;
 @Builder
 @Data
 public class UniversityCampusProperties implements Serializable {
+    private Integer id;
     private String campusName;
     private String phone;
     private String email;
     private List<String> picture;
     private String address;
     private String type;
+    private String status;
 }

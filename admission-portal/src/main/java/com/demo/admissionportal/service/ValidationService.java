@@ -180,4 +180,5 @@ public interface ValidationService {
     boolean validateCreateUniversityRequest(String username, String email, String code) throws DataExistedException;
     boolean validateCreateUniversity(String username, String email, String code) throws DataExistedException;
     boolean validateAddress(Integer provinceId) throws ClassNotFoundException;
+    boolean validateRegisterUniversityCampus(String email, String phone) throws DataExistedException;
 }
