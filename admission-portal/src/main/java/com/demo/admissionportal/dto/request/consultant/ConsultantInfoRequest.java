@@ -52,4 +52,6 @@ public class ConsultantInfoRequest {
 
     @NotNull(message = "Giới tính không được để trống!")
     private Gender gender;
+
+    private String avatar;
 }

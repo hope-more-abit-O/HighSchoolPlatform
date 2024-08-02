@@ -224,7 +224,6 @@ public class ConsultantServiceImpl implements ConsultantService {
         Integer updateBy = ServiceUtils.getId();
         User consultantAccount = updateConsultantAccount(request, updateBy);
 
-
         ConsultantInfo consultantInfo = findInfoById(request.getId());
 
         consultantInfo = updateConsultantInfo(consultantInfo, request);
@@ -251,6 +250,11 @@ public class ConsultantServiceImpl implements ConsultantService {
         if (!consultantAccount.getUsername().equals(request.getUsername())){
             validationService.validateUsername(request.getUsername());
             consultantAccount.setUsername(request.getUsername());
+            accountChanged = true;
+        }
+
+        if (!consultantAccount.getAvatar().equals(request.getAvatar())){
+            consultantAccount.setAvatar(request.getAvatar());
             accountChanged = true;
         }
 
