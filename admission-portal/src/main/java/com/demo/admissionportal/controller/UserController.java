@@ -86,4 +86,6 @@ public class UserController {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
+
+
 }

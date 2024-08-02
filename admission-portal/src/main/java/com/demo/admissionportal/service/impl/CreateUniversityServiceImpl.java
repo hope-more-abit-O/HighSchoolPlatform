@@ -200,7 +200,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
             if (uni != null){
                 emailUtil.sendAccountPasswordRegister(uni, password);
-                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingResponse(uni));
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingFullResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (DataExistedException e){

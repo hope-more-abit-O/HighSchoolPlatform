@@ -520,12 +520,35 @@ public class StaffController {
      * @throws ResourceNotFoundException the resource not found exception
      */
     @GetMapping("/consultant/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
-        return ResponseEntity.ok(consultantService.getFullConsultantById(id));
+    public ResponseEntity<ResponseData> getConsultantById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.",consultantService.getFullConsultantById(id)));
     }
 
     @PatchMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
     }
+
+    @GetMapping("/consultants")
+    public ResponseEntity<ResponseData> getConsultants(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String universityName,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) List<AccountStatus> statuses,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer updateBy
+    ) throws NotAllowedException, ResourceNotFoundException {
+
+        return ResponseEntity.ok(
+                ResponseData.ok("Tìm mọi tư vấn viên dưới quyền thành công.",
+                        consultantService.getFullConsultants(
+                                pageable, id, name, username, universityName, universityId, statuses, createBy, updateBy
+                        )
+                )
+        );
+    }
+
 }

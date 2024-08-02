@@ -44,7 +44,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConsultantResponseDTO {
-    private UniversityInfoResponseDTO university;
     private String name;
     private String phone;
     private String specificAddress;
