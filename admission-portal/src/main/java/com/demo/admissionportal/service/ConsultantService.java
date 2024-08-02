@@ -1,6 +1,8 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
+import com.demo.admissionportal.dto.entity.consultant.InfoConsultantResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
 import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
@@ -14,6 +16,8 @@ import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Defines the contract for managing consultant information, including creation and retrieval.
@@ -95,4 +99,8 @@ public interface ConsultantService {
     ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException,ResourceNotFoundException, BadRequestException, StoreDataFailedException;
     ResponseData selfUpdateConsultantAddress(UpdateConsultantAddressRequest request) throws ResourceNotFoundException, StoreDataFailedException;
     Page<FullConsultantResponseDTO> getConsultant(Integer createBy, Pageable pageable) throws ResourceNotFoundException;
+
+    Page<FullConsultantResponseDTO> getFullConsultants(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
+    Page<InfoConsultantResponseDTO> getInfoConsultants(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
+    InfoConsultantResponseDTO getInfoConsultantById(Integer id) throws ResourceNotFoundException;
 }

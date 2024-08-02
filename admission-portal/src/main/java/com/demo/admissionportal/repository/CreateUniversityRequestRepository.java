@@ -33,7 +33,7 @@ public interface CreateUniversityRequestRepository extends JpaRepository<CreateU
         AND (:universityCode IS NULL OR LOWER(cur.university_code) LIKE LOWER(CONCAT('%', :universityCode, '%')))
         AND (:universityEmail IS NULL OR LOWER(cur.university_email) LIKE LOWER(CONCAT('%', :universityEmail, '%')))
         AND (:universityUsername IS NULL OR LOWER(cur.university_username) LIKE LOWER(CONCAT('%', :universityUsername, '%')))
-        AND (cur. status IN (:status))
+        AND (cur.status IN (:status))
         AND (:createBy IS NULL OR cur.create_by = :createBy)
         AND (:confirmBy IS NULL OR cur.confirm_by = :confirmBy)
         AND (:createByName IS NULL OR LOWER(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, ''))) LIKE LOWER(CONCAT('%', :createByName, '%')))

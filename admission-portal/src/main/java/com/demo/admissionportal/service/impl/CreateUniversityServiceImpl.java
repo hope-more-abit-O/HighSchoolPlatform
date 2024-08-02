@@ -200,7 +200,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
             if (uni != null){
                 emailUtil.sendAccountPasswordRegister(uni, password);
-                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingResponse(uni));
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingFullResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (DataExistedException e){
@@ -283,7 +283,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         if (createUniversityRequest.getConfirmBy() != null)
             actionerIds.add(createUniversityRequest.getConfirmBy());
 
-        List<ActionerDTO> actioners = userServiceImpl.getActionerDTOsByIds(actionerIds);
+        List<ActionerDTO> actioners = userServiceImpl.getActioners(actionerIds);
 
         for (ActionerDTO actioner : actioners) {
             if (actioner.getId().equals(createUniversityRequest.getCreateBy())) {
@@ -338,9 +338,9 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 Integer confirmBy){
 
         try {
-            List<String> statusStrings = status != null
-                    ? status.stream().map(CreateUniversityRequestStatus::name).toList()
-                    : null;
+            List<String> statusStrings = (status == null || status.isEmpty())
+                    ? null
+                    : status.stream().map(CreateUniversityRequestStatus::name).toList();
 
             Page<CreateUniversityRequest>  createUniversityRequests;
 

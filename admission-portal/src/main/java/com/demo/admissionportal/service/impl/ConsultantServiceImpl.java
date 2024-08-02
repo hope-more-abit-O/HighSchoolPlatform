@@ -1,25 +1,31 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
+import com.demo.admissionportal.dto.entity.consultant.ConsultantInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.ConsultantResponseDTO;
+import com.demo.admissionportal.dto.entity.consultant.FullConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.consultant.InfoConsultantResponseDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
+import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.ConsultantInfo;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
-import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.repository.ConsultantInfoRepository;
+import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.*;
 import com.demo.admissionportal.util.impl.AddressUtils;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.NameUtils;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -33,8 +39,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -53,6 +60,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final DistrictServiceImpl districtService;
     private final EmailUtil emailUtil;
     private final WardServiceImpl wardService;
+    private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
 
     /**
      * Retrieves complete details for a consultant using their ID.
@@ -86,15 +94,16 @@ public class ConsultantServiceImpl implements ConsultantService {
      */
     @Override
     public FullConsultantResponseDTO getFullConsultantByIdByUniversity(Integer id) throws ResourceNotFoundException {
-        Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Integer universityId = ServiceUtils.getId();
+
         User consultantAccount = userService.findById(id);
 
         if (!consultantAccount.getCreateBy().equals(universityId))
             throw new NotAllowedException("Bạn không có quyền để xem thông tin của tư vấn viên này");
 
         return new FullConsultantResponseDTO(
-                userService.mappingResponse(consultantAccount),
-                mappingResponse(findInfoById(id))
+                userService.mappingFullResponse(consultantAccount),
+                mappingFullResponse(findInfoById(id))
         );
     }
 
@@ -102,16 +111,8 @@ public class ConsultantServiceImpl implements ConsultantService {
     public FullConsultantResponseDTO getSelfInfo() throws ResourceNotFoundException {
         Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return new FullConsultantResponseDTO(
-                userService.mappingResponse(userService.findById(consultantId)),
-                mappingResponse(findInfoById(consultantId))
-        );
-    }
-
-    @Override
-    public FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException {
-        return new FullConsultantResponseDTO(
-                modelMapper.map(userService.findById(id), FullUserResponseDTO.class),
-                mappingResponse(findInfoById(id))
+                userService.mappingFullResponse(userService.findById(consultantId)),
+                mappingFullResponse(findInfoById(consultantId))
         );
     }
 
@@ -160,11 +161,23 @@ public class ConsultantServiceImpl implements ConsultantService {
         return ResponseData.created("Tạo tư vấn viên thành công.");
     }
 
-    protected ConsultantResponseDTO mappingResponse(ConsultantInfo info){
+    protected ConsultantResponseDTO mappingFullResponse(ConsultantInfo info){
         ConsultantResponseDTO infoResponse = modelMapper.map(info, ConsultantResponseDTO.class);
 
         infoResponse.setName(NameUtils.getFullName(info.getFirstName(), info.getMiddleName(), info.getLastName()));
-        infoResponse.setUniversity(universityService.getUniversityInfoResponseById(info.getUniversityId()));
+
+        if (info.getSpecificAddress() == null || info.getProvince() == null || info.getWard() == null || info.getDistrict() == null){
+            infoResponse.setAddress(null);
+        } else
+            infoResponse.setAddress(AddressUtils.getFullAddress(info.getSpecificAddress(), info.getWard(), info.getDistrict(), info.getProvince()));
+
+        return infoResponse;
+    }
+
+    protected ConsultantInfoResponseDTO mappingInfoResponse(ConsultantInfo info){
+        ConsultantInfoResponseDTO infoResponse = modelMapper.map(info, ConsultantInfoResponseDTO.class);
+
+        infoResponse.setName(NameUtils.getFullName(info.getFirstName(), info.getMiddleName(), info.getLastName()));
 
         if (info.getSpecificAddress() == null || info.getProvince() == null || info.getWard() == null || info.getDistrict() == null){
             infoResponse.setAddress(null);
@@ -190,7 +203,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         ConsultantInfo consultantInfo = findInfoById(consultantId);
         updateConsultantInfo(consultantInfo, request);
 
-        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        ConsultantResponseDTO response = mappingFullResponse(consultantInfo);
         return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
     }
 
@@ -200,7 +213,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         ConsultantInfo consultantInfo = findInfoById(consultantId);
         updateConsultantAddress(consultantInfo, request);
 
-        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        ConsultantResponseDTO response = mappingFullResponse(consultantInfo);
         return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
     }
 
@@ -209,7 +222,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         ConsultantInfo consultantInfo = findInfoById(request.getId());
         updateConsultantInfo(consultantInfo, request);
 
-        ConsultantResponseDTO response = mappingResponse(consultantInfo);
+        ConsultantResponseDTO response = mappingFullResponse(consultantInfo);
         return ResponseData.ok("Cập nhật thông tin tư vấn viên thành công.", response);
     }
 
@@ -220,7 +233,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         consultantInfo.setMiddleName(request.getMiddleName());
         consultantInfo.setLastName(request.getLastName());
         consultantInfo.setPhone(request.getPhone());
-        consultantInfo.setBirthday(Date.valueOf(request.getBirthDate()));
+        consultantInfo.setBirthday(Date.from(Instant.parse(request.getBirthDate())));
 
         save(consultantInfo);
     }
@@ -247,7 +260,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
     public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
         User consultantAccount = userService.changeConsultantStatus(id, request.getNote());
-        return ResponseData.ok("Cập nhập tư vấn viên thành công", userService.mappingResponse(consultantAccount));
+        return ResponseData.ok("Cập nhập tư vấn viên thành công", userService.mappingFullResponse(consultantAccount));
     }
 
     public InfoConsultantResponseDTO getById(Integer id) throws ResourceNotFoundException {
@@ -270,11 +283,85 @@ public class ConsultantServiceImpl implements ConsultantService {
 
         for (User consultantAccount : consultantAccounts) {
             fullConsultantResponseDTOS.add(FullConsultantResponseDTO.builder()
-                    .account(userService.mappingResponse(consultantAccount, actionerDTOS))
-                    .info(mappingResponse(infos.stream().filter(info -> info.getId().equals(consultantAccount.getId())).findFirst().get()))
+                    .account(userService.mappingFullResponse(consultantAccount, actionerDTOS))
+                    .info(mappingFullResponse(infos.stream().filter(info -> info.getId().equals(consultantAccount.getId())).findFirst().get()))
                     .build());
         }
 
         return new PageImpl<>(fullConsultantResponseDTOS, pageable, infos.size());
     }
+
+    public Page<FullConsultantResponseDTO> getFullConsultants(Pageable pageable, Integer id, String name,
+                                                              String username, String universityName, Integer universityId,
+                                                              List<AccountStatus> statuses, Integer createBy, Integer updateBy) throws ResourceNotFoundException {
+
+
+        Page<User> consultantAccounts = userService.getConsultantAccounts(pageable, id, name, username, universityName, universityId, statuses, createBy, updateBy);
+
+        if (consultantAccounts.getContent().isEmpty()){
+            return null;
+        }
+
+        List<Integer> actionerIds = Streams.nonNull(consultantAccounts.getContent().stream().flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy())).distinct()).toList();
+
+        List<ConsultantInfo> infos = consultantInfoRepository.findAllById(consultantAccounts.stream().map(User::getId).toList());
+        List<ActionerDTO> actionerDTOS = userService.getActioners(actionerIds);
+
+        Page<FullConsultantResponseDTO> result = consultantAccounts.map((consultantAccount) ->
+                FullConsultantResponseDTO
+                        .builder()
+                        .account(userService.mappingFullResponse(consultantAccount, actionerDTOS))
+                        .info(mappingFullResponse(infos.stream().filter(info -> info.getId().equals(consultantAccount.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ActionerDTO"))))
+                        .build());
+
+        return result;
+    }
+
+    public Page<InfoConsultantResponseDTO> getInfoConsultants(Pageable pageable, Integer id, String name,
+                                                          String username, String universityName, Integer universityId,
+                                                          List<AccountStatus> statuses, Integer createBy, Integer updateBy) throws ResourceNotFoundException {
+
+        Page<User> consultantAccounts = userService.getConsultantAccounts(pageable, id, name, username, universityName, universityId, statuses, createBy, updateBy);
+
+        if (consultantAccounts.getContent().isEmpty()){
+            return null;
+        }
+
+        List<ConsultantInfo> infos = consultantInfoRepository.findAllById(consultantAccounts.stream().map(User::getId).toList());
+
+        Page<InfoConsultantResponseDTO> result = consultantAccounts.map((consultantAccount) ->
+                InfoConsultantResponseDTO
+                        .builder()
+                        .account(modelMapper.map(consultantAccount, InfoUserResponseDTO.class))
+                        .info(mappingInfoResponse(infos.stream().filter(info -> info.getId().equals(consultantAccount.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ActionerDTO"))))
+                        .build());
+
+        return result;
+    }
+
+    public InfoConsultantResponseDTO getInfoConsultantById(Integer id) throws ResourceNotFoundException {
+
+        User consultantAccount = userService.findById(id);
+
+        ConsultantInfo info = consultantInfoServiceImpl.findById(consultantAccount.getId());
+
+        return InfoConsultantResponseDTO
+                        .builder()
+                        .account(modelMapper.map(consultantAccount, InfoUserResponseDTO.class))
+                        .info(mappingInfoResponse(info))
+                        .build();
+    }
+
+    public FullConsultantResponseDTO getFullConsultantById(Integer id) throws ResourceNotFoundException {
+        User consultantAccount = userService.findById(id);
+
+        ConsultantInfo info = consultantInfoServiceImpl.findById(consultantAccount.getId());
+
+        return FullConsultantResponseDTO
+                        .builder()
+                        .account(modelMapper.map(consultantAccount, FullUserResponseDTO.class))
+                        .info(mappingFullResponse(info))
+                        .build();
+    }
+
 }

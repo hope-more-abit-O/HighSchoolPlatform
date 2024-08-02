@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException {
+    public FullUserResponseDTO mappingFullResponse(User user) throws ResourceNotFoundException {
         FullUserResponseDTO responseDTO = modelMapper.map(user, FullUserResponseDTO.class);
         ActionerDTO actionerDTO = modelMapper.map(findById(user.getCreateBy()), ActionerDTO.class);
         responseDTO.setCreateBy(actionerDTO);
@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOs) throws ResourceNotFoundException {
+    public FullUserResponseDTO mappingFullResponse(User user, List<ActionerDTO> actionerDTOs) throws ResourceNotFoundException {
 
         ActionerDTO createBy = actionerDTOs
                 .stream()
@@ -278,7 +278,12 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    public List<FullUserResponseDTO> mappingResponse(List<User> users) throws ResourceNotFoundException {
+    @Override
+    public InfoUserResponseDTO mappingInfoResponse(User user) throws ResourceNotFoundException {
+        return modelMapper.map(user, InfoUserResponseDTO.class);
+    }
+
+    public List<FullUserResponseDTO> mappingFullResponse(List<User> users) throws ResourceNotFoundException {
         List<FullUserResponseDTO> responseDTOs = new ArrayList<>();
 
         List<ActionerDTO> actionerDTOS = this.getActioners(users.stream()
@@ -520,8 +525,6 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    ;
-
     @Override
     public List<User> findByRole(Role role) {
         return userRepository.findByRole(role);
@@ -533,5 +536,14 @@ public class UserServiceImpl implements UserService {
 
     public Page<User> findByRoleAndPageable(Role role, Pageable pageable) {
         return userRepository.findByRole(role, pageable);
+    }
+
+    @Override
+    public Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> status, Integer createBy, Integer updateBy){
+        List<String> statusesString = (status == null || status.isEmpty()) ? null : status.stream().map( (s) -> s.name()).toList();
+        if (statusesString ==null)
+            return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, createBy, updateBy);
+        else
+            return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, statusesString, createBy, updateBy);
     }
 }

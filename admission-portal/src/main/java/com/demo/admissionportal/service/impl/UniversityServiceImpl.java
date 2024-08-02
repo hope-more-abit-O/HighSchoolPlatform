@@ -90,7 +90,7 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     public UniversityFullResponseDTO getUniversityFullResponseById(Integer id) throws ResourceNotFoundException {
         return new UniversityFullResponseDTO(
-                userService.mappingResponse(userRepository.findUserById(id)),
+                userService.mappingFullResponse(userRepository.findUserById(id)),
                 modelMapper.map(this.findById(id), FullUniversityResponseDTO.class));
     }
 
@@ -98,7 +98,7 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityFullResponseDTO getSelfProfile() throws ResourceNotFoundException {
         Integer uniId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return new UniversityFullResponseDTO(
-                userService.mappingResponse(userRepository.findUserById(uniId)),
+                userService.mappingFullResponse(userRepository.findUserById(uniId)),
                 modelMapper.map(this.findById(uniId), FullUniversityResponseDTO.class));
     }
 
@@ -238,7 +238,7 @@ public class UniversityServiceImpl implements UniversityService {
         UniversityInfo info = findById(account.getId());
 
         FullUniversityResponseDTO fullInfo = modelMapper.map(info, FullUniversityResponseDTO.class);
-        return new UniversityFullResponseDTO(userService.mappingResponse(account), fullInfo);
+        return new UniversityFullResponseDTO(userService.mappingFullResponse(account), fullInfo);
     }
 
     @Transactional
@@ -333,7 +333,7 @@ public class UniversityServiceImpl implements UniversityService {
         uniAccounts.forEach( uniAccount -> {
             UniversityInfo universityInfo = universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())).findFirst().get();
             FullUniversityResponseDTO uniInfo = modelMapper.map(universityInfo, FullUniversityResponseDTO.class);
-            FullUserResponseDTO accountInfo = userService.mappingResponse(uniAccount, actionerDTOS);
+            FullUserResponseDTO accountInfo = userService.mappingFullResponse(uniAccount, actionerDTOS);
                 result.add(
                         UniversityFullResponseDTO.builder()
                                 .account(accountInfo)
@@ -347,7 +347,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     public UniversityFullResponseDTO mapping(User uniAccount, List<ActionerDTO> actionerDTOS, List<UniversityInfo> universityInfos) {
         return UniversityFullResponseDTO.builder()
-                        .account(userService.mappingResponse(uniAccount, actionerDTOS))
+                        .account(userService.mappingFullResponse(uniAccount, actionerDTOS))
                         .info(modelMapper.map(universityInfos.stream().filter(info -> info.getId().equals(uniAccount.getId())), FullUniversityResponseDTO.class))
                         .build();
     }

@@ -36,7 +36,7 @@ public class FullUserResponseDTO {
     private String role;
     private Date createTime;
     private ActionerDTO createBy;
-    private String updateTime;
+    private Date updateTime;
     private ActionerDTO updateBy;
     private String status;
 }
