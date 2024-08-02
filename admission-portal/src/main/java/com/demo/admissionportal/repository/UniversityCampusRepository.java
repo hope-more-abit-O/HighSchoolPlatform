@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.UniversityCampus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,5 +46,14 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
                     "WHERE uc.university_id = :id AND uc.type = 'HEADQUARTERS'", nativeQuery = true)
     UniversityCampus findHeadQuartersCampusByUniversityId(Integer id);
 
+    /**
+     * Find first by phone optional.
+     *
+     * @param phone the phone
+     * @return the optional
+     */
     Optional<UniversityCampus> findFirstByPhone(String phone);
+
+    UniversityCampus findUniversityCampusById(Integer id);
+
 }
