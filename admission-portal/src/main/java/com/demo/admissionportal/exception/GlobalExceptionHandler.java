@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseData<Object> handleResourceNotFountExceptions(ResourceNotFoundException ex) {
-        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Dữ liệu không tồn tại.", ex.getMessage());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Dữ liệu không tồn tại": ex.getMessage(), ex.getErrors());
     }
 
     /**
@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotAllowedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
-        return new ResponseData<>(HttpStatus.UNAUTHORIZED.value(), "Không có quyền thực hiện.", ex.getMessage());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Không có quyền thực hiện.": ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(QueryException.class)

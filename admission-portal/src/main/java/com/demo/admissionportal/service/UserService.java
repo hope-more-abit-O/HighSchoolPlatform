@@ -164,7 +164,8 @@ public interface UserService extends UserDetailsService {
      * @throws StoreDataFailedException  the store data failed exception
      * @throws ResourceNotFoundException the resource not found exception
      */
-    User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeConsultantStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
 
     /**
      * Change consultant status user.

@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
+import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
@@ -104,5 +105,10 @@ public class UniversityController {
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/consultant")
+    public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request){
+        return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
     }
 }

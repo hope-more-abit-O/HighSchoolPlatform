@@ -131,7 +131,7 @@ public interface UniversityService {
      */
     UniversityInfo findById(Integer id) throws ResourceNotFoundException;
 
-    ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException;
+    ResponseData updateUniversityStatus(Integer id, String note, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException;
 
     ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable,
                                                                                      Integer id,

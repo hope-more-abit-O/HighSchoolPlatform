@@ -154,4 +154,9 @@ public class User implements UserDetails, ResetPassword {
         }
         this.status = AccountStatus.ACTIVE;
     }
+
+    public void update(Integer id){
+        this.updateBy = id;
+        this.updateTime = new Date();
+    }
 }

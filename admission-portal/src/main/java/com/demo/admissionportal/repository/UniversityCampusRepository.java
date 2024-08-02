@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface University campus repository.
@@ -43,4 +44,6 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
                     "FROM university_campus uc " +
                     "WHERE uc.university_id = :id AND uc.type = 'HEADQUARTERS'", nativeQuery = true)
     UniversityCampus findHeadQuartersCampusByUniversityId(Integer id);
+
+    Optional<UniversityCampus> findFirstByPhone(String phone);
 }
