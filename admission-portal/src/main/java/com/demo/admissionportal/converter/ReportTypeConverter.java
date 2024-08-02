@@ -18,6 +18,8 @@ public class ReportTypeConverter extends AbstractConverter<ReportType, String> {
             case COMMENT:
                 return "Báo cáo bình luận vi phạm";
             case FUNCTION:
+                return "Báo lỗi chức năng";
+            case OTHER:
                 return "Khác";
             default:
                 return type.name();

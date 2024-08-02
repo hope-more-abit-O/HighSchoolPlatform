@@ -4,6 +4,8 @@ import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsByStatusDTO;
 import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO;
+import com.demo.admissionportal.dto.entity.report.function_report.FindAllFunctionReportByStatusDTO;
+import com.demo.admissionportal.dto.entity.report.function_report.FindAllFuntionReportDTO;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsCompletedDTO;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO;
 import com.demo.admissionportal.entity.Report;
@@ -23,13 +25,12 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     /**
      * Find all reports with post page.
      *
-     * @param pageable   the pageable
-     * @param reportId   the report id
-     * @param ticketId   the ticket id
-     * @param createBy   the create by
-     * @param content    the content
-     * @param status     the status
-     * @param reportType the report type
+     * @param pageable the pageable
+     * @param reportId the report id
+     * @param ticketId the ticket id
+     * @param createBy the create by
+     * @param content  the content
+     * @param status   the status
      * @return the page
      */
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO(" +
@@ -102,13 +103,12 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     /**
      * Find all comment reports page.
      *
-     * @param pageable   the pageable
-     * @param reportId   the report id
-     * @param ticketId   the ticket id
-     * @param createBy   the create by
-     * @param content    the content
-     * @param status     the status
-     * @param reportType the report type
+     * @param pageable the pageable
+     * @param reportId the report id
+     * @param ticketId the ticket id
+     * @param createBy the create by
+     * @param content  the content
+     * @param status   the status
      * @return the page
      */
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO(" +
@@ -130,5 +130,32 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
                                                          @Param("status") ReportStatus status);
 
 
+    @Query("SELECT new com.demo.admissionportal.dto.entity.report.function_report.FindAllFuntionReportDTO(" +
+            "r.id, r.status, r.create_time, r.report_type, r.create_by, r.ticket_id) " +
+            "FROM Report r " +
+            "JOIN FunctionReport fr ON r.id = fr.reportId " +
+            "WHERE (:reportId IS NULL OR r.id = :reportId) " +
+            "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
+            "AND (:createBy IS NULL OR r.create_by = :createBy) " +
+            "AND (:status IS NULL OR r.status = :status)")
+    Page<FindAllFuntionReportDTO> findAllFunctionReports(Pageable pageable,
+                                                         @Param("reportId") Integer reportId,
+                                                         @Param("ticketId") String ticketId,
+                                                         @Param("createBy") Integer createBy,
+                                                         @Param("status") ReportStatus status);
 
+    @Query("SELECT new com.demo.admissionportal.dto.entity.report.function_report.FindAllFunctionReportByStatusDTO(" +
+            "r.id, r.status, r.create_time, r.report_type, r.create_by, r.ticket_id) " +
+            "FROM Report r " +
+            "JOIN FunctionReport fr ON r.id = fr.reportId " +
+            "WHERE (:reportId IS NULL OR r.id = :reportId) " +
+            "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
+            "AND (:createBy IS NULL OR r.create_by = :createBy) " +
+            "AND (:reportType IS NULL OR r.report_type = :reportType) " +
+            "AND r.status = 'COMPLETED'")
+    Page<FindAllFunctionReportByStatusDTO> findAllFunctionReportsByStatus(Pageable pageable,
+                                                                          @Param("reportId") Integer reportId,
+                                                                          @Param("ticketId") String ticketId,
+                                                                          @Param("createBy") Integer createBy,
+                                                                          @Param("reportType") ReportType reportType);
 }

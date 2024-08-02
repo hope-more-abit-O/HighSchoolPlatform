@@ -14,5 +14,6 @@ public class UpdateCommentReportRequest {
     @EnumReportAction
     private String reportAction;
     private String response;
+    private Boolean isBanned;
 }
 

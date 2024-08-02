@@ -87,14 +87,7 @@ public class StaffController {
      * @return the create university requests
      */
     @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable,
-                                                                                                      @RequestParam(required = false) Integer id,
-                                                                                                      @RequestParam(required = false) String universityName,
-                                                                                                      @RequestParam(required = false) String universityCode,
-                                                                                                      @RequestParam(required = false) String universityEmail,
-                                                                                                      @RequestParam(required = false) String universityUsername,
-                                                                                                      @RequestParam(required = false) List<CreateUniversityRequestStatus> status,
-                                                                                                      @RequestParam(required = false) Integer confirmBy) {
+    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(Pageable pageable, @RequestParam(required = false) Integer id, @RequestParam(required = false) String universityName, @RequestParam(required = false) String universityCode, @RequestParam(required = false) String universityEmail, @RequestParam(required = false) String universityUsername, @RequestParam(required = false) List<CreateUniversityRequestStatus> status, @RequestParam(required = false) Integer confirmBy) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return ResponseEntity.ok(createUniversityService.getBy(pageable, id, universityName, universityCode, universityEmail, universityUsername, status, staffId, null, confirmBy));
     }
@@ -113,15 +106,7 @@ public class StaffController {
      * @return the university management
      */
     @GetMapping("/university/management")
-    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
-            Pageable pageable,
-            @RequestParam(required = false) Integer id,
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phone,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) AccountStatus status) {
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(Pageable pageable, @RequestParam(required = false) Integer id, @RequestParam(required = false) String code, @RequestParam(required = false) String username, @RequestParam(required = false) String name, @RequestParam(required = false) String phone, @RequestParam(required = false) String email, @RequestParam(required = false) AccountStatus status) {
         return ResponseEntity.ok(universityService.getUniversityFullResponseByStaffId(pageable, id, code, username, name, phone, email, status));
     }
 
@@ -197,16 +182,7 @@ public class StaffController {
      */
     @GetMapping("/list/users")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(@RequestParam(required = false) String username,
-                                                                       @RequestParam(required = false) String firstName,
-                                                                       @RequestParam(required = false) String middleName,
-                                                                       @RequestParam(required = false) String lastName,
-                                                                       @RequestParam(required = false) String phone,
-                                                                       @RequestParam(required = false) String email,
-                                                                       @RequestParam(required = false) String specificAddress,
-                                                                       @RequestParam(required = false) String educationLevel,
-                                                                       @RequestParam(required = false) String status,
-                                                                       Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<UserResponseDTO>>> getUser(@RequestParam(required = false) String username, @RequestParam(required = false) String firstName, @RequestParam(required = false) String middleName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String phone, @RequestParam(required = false) String email, @RequestParam(required = false) String specificAddress, @RequestParam(required = false) String educationLevel, @RequestParam(required = false) String status, Pageable pageable) {
         ResponseData<Page<UserResponseDTO>> user = userService.getUser(username, firstName, middleName, lastName, phone, email, specificAddress, educationLevel, status, pageable);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
@@ -524,6 +500,15 @@ public class StaffController {
         return ResponseEntity.ok(consultantService.getFullConsultantById(id));
     }
 
+    /**
+     * Active university by id response entity.
+     *
+     * @param id      the id
+     * @param request the request
+     * @return the response entity
+     * @throws ResourceNotFoundException the resource not found exception
+     * @throws StoreDataFailedException  the store data failed exception
+     */
     @PutMapping("/university/change-status/{id}")
     public ResponseEntity<ResponseData> activeUniversityById(@PathVariable Integer id, @RequestBody UpdateUniversityStatusRequest request) throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(universityService.updateUniversityStatus(id, request.note()));
