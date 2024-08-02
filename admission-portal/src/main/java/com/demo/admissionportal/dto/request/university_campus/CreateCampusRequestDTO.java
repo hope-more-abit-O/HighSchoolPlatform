@@ -48,8 +48,4 @@ public class CreateCampusRequestDTO implements Serializable {
 
     @NotNull(message = "Thành phố không được trống")
     private Integer provinceId;
-
-    @NotNull(message = "Chọn cơ sở không được trống")
-    @Enumerated(EnumType.STRING)
-    private CampusType type;
 }

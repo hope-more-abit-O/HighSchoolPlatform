@@ -56,6 +56,12 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      */
     Optional<UniversityCampus> findFirstByPhone(String phone);
 
+    /**
+     * Find university campus by id university campus.
+     *
+     * @param id the id
+     * @return the university campus
+     */
     UniversityCampus findUniversityCampusById(Integer id);
 
 }
