@@ -53,12 +53,6 @@ public class UniversityController {
         return ResponseEntity.ok(consultantService.createConsultant(request));
     }
 
-    @PatchMapping("/consultant/change-status/{id}")
-    public ResponseEntity<?> changeConsultantStatus(@PathVariable Integer id, @RequestBody ChangeConsultantStatusRequest request)
-            throws BadRequestException, StoreDataFailedException, DataExistedException, NotAllowedException {
-        return ResponseEntity.ok(consultantService.updateConsultantStatus(id, request));
-    }
-
     /**
      * Retrieves details of a consultant by their ID.
      *
