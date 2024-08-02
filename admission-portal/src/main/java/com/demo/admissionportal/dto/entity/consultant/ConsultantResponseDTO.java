@@ -47,6 +47,9 @@ import java.util.Date;
 @NoArgsConstructor
 public class ConsultantResponseDTO {
     private String name;
+    private String firstName;
+    private String middleName;
+    private String lastName;
     private String phone;
     private String specificAddress;
     private InfoProvinceDTO province;
