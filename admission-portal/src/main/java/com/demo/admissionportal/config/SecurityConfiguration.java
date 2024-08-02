@@ -50,6 +50,7 @@ public class SecurityConfiguration {
     private static final String METHOD_API = "/api/v1/method/**";
     private static final String SEARCH_API = "/api/v1/search/**";
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
+    private static final String ADMISSION_API = "/api/v1/admission/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -70,6 +71,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
                                 .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
+                                .requestMatchers(ADMISSION_API).hasAnyAuthority("ADMIN", "STAFF", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,

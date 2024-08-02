@@ -41,6 +41,9 @@ public class MajorServiceImpl implements MajorService {
         log.info("Find major by id: {}", id);
         return majorRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
     }
+    public Major findByName(String name){
+        return majorRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
+    }
 
     public List<Major> findByIds(List<Integer> ids)
             throws ResourceNotFoundException{
@@ -178,14 +181,14 @@ public class MajorServiceImpl implements MajorService {
             String allNames = existedMajorsByName.stream()
                     .map(Major::getName)
                     .collect(Collectors.joining(", "));
-            errors.put("nameExisted", allNames);
+            errors.put("majorNamesExisted", allNames);
         }
 
         if (!existedMajorsByCode.isEmpty()){
             String allCodes = existedMajorsByCode.stream()
                     .map(Major::getCode)
                     .collect(Collectors.joining(", "));
-            errors.put("codeExisted", allCodes);
+            errors.put("majorCodesExisted", allCodes);
         }
 
         if (!errors.isEmpty()) {
@@ -220,6 +223,17 @@ public class MajorServiceImpl implements MajorService {
         return result;
     }
 
+    public Major getMajor(List<Major> majors, Integer id) throws ResourceNotFoundException {
+        return majors.stream().filter(major -> major.getId().equals(id)).findFirst().orElse(null);
+    }
+    public String getMajorName(List<Major> majors, Integer id) throws ResourceNotFoundException {
+        return majors.stream().filter(major -> major.getId().equals(id)).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ngành")).getName();
+    }
+
+    public Major findByCode(String code)
+            throws ResourceNotFoundException{
+        return majorRepository.findByCode(code).orElseThrow(() -> new ResourceNotFoundException("Ngành học không tìm thấy"));
+    }
     public ResponseData<Page<Major>> getAllMajorsInfo(
             Pageable pageable,
             Integer id,
