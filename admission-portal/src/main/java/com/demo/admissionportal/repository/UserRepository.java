@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -124,14 +125,14 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     """, nativeQuery = true)
     Page<User> findUniversityAccountBy(
             Pageable pageable,
-            @org.springframework.data.repository.query.Param("id") Integer id,
-            @org.springframework.data.repository.query.Param("code") String code,
-            @org.springframework.data.repository.query.Param("username") String username,
-            @org.springframework.data.repository.query.Param("name") String name,
-            @org.springframework.data.repository.query.Param("phone") String phone,
-            @org.springframework.data.repository.query.Param("email") String email,
-            @org.springframework.data.repository.query.Param("status") String status,
-            @org.springframework.data.repository.query.Param("createBy") Integer createBy
+            @Param("id") Integer id,
+            @Param("code") String code,
+            @Param("username") String username,
+            @Param("name") String name,
+            @Param("phone") String phone,
+            @Param("email") String email,
+            @Param("status") String status,
+            @Param("createBy") Integer createBy
     );
     @Query(value = """
         SELECT usr.*
@@ -151,14 +152,76 @@ public interface UserRepository extends JpaRepository<User, Integer> {
  """, nativeQuery = true)
     Page<User> findUniversityAccountBy(
             Pageable pageable,
-            @org.springframework.data.repository.query.Param("id") Integer id,
-            @org.springframework.data.repository.query.Param("code") String code,
-            @org.springframework.data.repository.query.Param("username") String username,
-            @org.springframework.data.repository.query.Param("name") String name,
-            @org.springframework.data.repository.query.Param("phone") String phone,
-            @org.springframework.data.repository.query.Param("email") String email,
-            @org.springframework.data.repository.query.Param("status") String status,
-            @org.springframework.data.repository.query.Param("createBy") Integer createBy,
-            @org.springframework.data.repository.query.Param("createByName") String createByName
+            @Param("id") Integer id,
+            @Param("code") String code,
+            @Param("username") String username,
+            @Param("name") String name,
+            @Param("phone") String phone,
+            @Param("email") String email,
+            @Param("status") String status,
+            @Param("createBy") Integer createBy,
+            @Param("createByName") String createByName
     );
+
+    @Query(value = """
+    SELECT usr.*
+    FROM [user] usr
+    INNER JOIN [consultant_info] ci ON ci.consultant_id = usr.id
+    LEFT JOIN [university_info] uni ON uni.university_id = ci.university_id
+    WHERE (:id IS NULL OR usr.id = :id)
+        AND (:name IS NULL OR LOWER(CONCAT(COALESCE(ci.first_name, ''), ' ', COALESCE(ci.middle_name, ''), ' ', COALESCE(ci.last_name, ''))) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND (:username IS NULL OR LOWER(usr.username) LIKE LOWER(CONCAT('%', :username, '%')))
+        AND (:universityName IS NULL OR LOWER(uni.name) LIKE LOWER(CONCAT('%', :universityName, '%')))
+        AND (:universityId IS NULL OR uni.university_id = :universityId)
+        AND (usr.status IN (:status))
+        AND (:createTime IS NULL OR usr.create_time = :createTime)
+        AND (:createBy IS NULL OR usr.create_by = :createBy)
+        AND (:updateTime IS NULL OR usr.update_time = :updateTime)
+        AND (:updateBy IS NULL OR usr.update_by = :updateBy)
+        AND (usr.role = 'CONSULTANT')
+    """, nativeQuery = true)
+    Page<User> getConsultantAccount(
+            Pageable pageable,
+            @Param("id") Integer id,
+            @Param("name") String name,
+            @Param("username") String username,
+            @Param("universityName") String universityName,
+            @Param("universityId") Integer universityId,
+            @Param("status") List<String> status,
+            @Param("createBy") Integer createBy,
+            @Param("updateBy") Integer updateBy
+    );
+
+    @Query(value = """
+    SELECT usr.*
+    FROM [user] usr
+    INNER JOIN [consultant_info] ci ON ci.consultant_id = usr.id
+    LEFT JOIN [university_info] uni ON uni.university_id = ci.university_id
+    WHERE (:id IS NULL OR usr.id = :id)
+        AND (:name IS NULL OR LOWER(CONCAT(COALESCE(ci.first_name, ''), ' ', COALESCE(ci.middle_name, ''), ' ', COALESCE(ci.last_name, ''))) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND (:username IS NULL OR LOWER(usr.username) LIKE LOWER(CONCAT('%', :username, '%')))
+        AND (:universityName IS NULL OR LOWER(uni.name) LIKE LOWER(CONCAT('%', :universityName, '%')))
+        AND (:universityId IS NULL OR uni.university_id = :universityId)
+        AND (:createBy IS NULL OR usr.create_by = :createBy)
+        AND (:updateBy IS NULL OR usr.update_by = :updateBy)
+        AND (usr.role = 'CONSULTANT')
+    """, nativeQuery = true)
+    Page<User> getConsultantAccount(
+            Pageable pageable,
+            @Param("id") Integer id,
+            @Param("name") String name,
+            @Param("username") String username,
+            @Param("universityName") String universityName,
+            @Param("universityId") Integer universityId,
+            @Param("createBy") Integer createBy,
+            @Param("updateBy") Integer updateBy
+    );
+
+
+    @Query(value = """
+    SELECT usr.*
+    FROM [user] usr
+    INNER JOIN [university_campus] unic ON unic.university_id = usr.id
+    WHERE usr.email = :email OR unic.email = :email""", nativeQuery = true)
+    Optional<User> validateEmail(@Param("email") String email);
 }

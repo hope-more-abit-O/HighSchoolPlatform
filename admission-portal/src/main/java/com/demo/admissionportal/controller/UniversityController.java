@@ -1,25 +1,27 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
-import com.demo.admissionportal.dto.response.ResponseData;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/university")
@@ -69,13 +71,28 @@ public class UniversityController {
      */
     @GetMapping("/consultant/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
-        return ResponseEntity.ok(consultantService.getFullConsultantByIdByUniversity(id));
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.",consultantService.getFullConsultantByIdByUniversity(id)));
     }
 
-    @GetMapping("/consultant")
-    public ResponseEntity<?> getAllConsultant(Pageable pageable) throws NotAllowedException, ResourceNotFoundException{
-        Integer uniId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        return ResponseEntity.ok(ResponseData.ok( "Tìm mọi tư vấn viên dưới quyền thành công.",consultantService.getConsultant(uniId, pageable)));
+    @GetMapping("/consultants")
+    public ResponseEntity<ResponseData> getConsultants(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String universityName,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) List<AccountStatus> statuses,
+            @RequestParam(required = false) Integer updateBy
+    ) throws NotAllowedException, ResourceNotFoundException {
+        Integer uniId = ServiceUtils.getId();
+        return ResponseEntity.ok(
+                ResponseData.ok("Tìm mọi tư vấn viên dưới quyền thành công.",
+                        consultantService.getFullConsultants(
+                                pageable, id, name, username, universityName, universityId, statuses, uniId, updateBy
+                        )
+                )
+        );
     }
 
     @GetMapping("/info")

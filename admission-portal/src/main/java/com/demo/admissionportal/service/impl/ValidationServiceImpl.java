@@ -28,6 +28,8 @@ public class ValidationServiceImpl implements ValidationService {
     private final StaffInfoRepository staffInfoRepository;
     private final CreateUniversityRequestRepository createUniversityRequestRepository;
     private final ProvinceRepository provinceRepository;
+    private final UniversityCampusRepository universityCampusRepository;
+
     /**
      * Checks if a username is already taken.
      *
@@ -117,7 +119,7 @@ public class ValidationServiceImpl implements ValidationService {
     public boolean validateEmail(String email) throws DataExistedException {
         log.info("Checking email availability.");
         String errorMessage = "Email được sử dụng";
-        if (userRepository.findFirstByEmail(email).isPresent()) {
+        if (userRepository.validateEmail(email).isPresent()) {
             log.error("Email: {} not available!", email);
             throw new DataExistedException(errorMessage);
         }
@@ -175,7 +177,8 @@ public class ValidationServiceImpl implements ValidationService {
         boolean phoneAlreadyExists = Stream.of(
                 userInfoRepository.findFirstByPhone(phone),
                 consultantInfoRepository.findFirstByPhone(phone),
-                staffInfoRepository.findFirstByPhone(phone)
+                staffInfoRepository.findFirstByPhone(phone),
+                universityCampusRepository.findFirstByPhone(phone)
         ).anyMatch(Optional::isPresent);
         if (phoneAlreadyExists) {
             log.error("Phone number: {} is already taken!", phone);
@@ -368,6 +371,16 @@ public class ValidationServiceImpl implements ValidationService {
             log.error("University code: {} not available!", universityCode);
             throw new DataExistedException(errorMessage);
         }
+        return true;
+    }
+
+    @Override
+    public boolean validateRegisterUniversityCampus(String email, String phone) throws DataExistedException {
+        Map<String, String> errors = new HashMap<>();
+        validateAndPutError(errors, "email", () -> validateEmail(email));
+        validateAndPutError(errors, "phone", () -> validatePhoneNumber(phone));
+        if (!errors.isEmpty())
+            throw new DataExistedException("Dữ liệu đã tồn tại!", errors);
         return true;
     }
 }

@@ -1,6 +1,6 @@
 package com.demo.admissionportal.util.impl;
 
-import com.demo.admissionportal.util.enum_validator.EnumName;
+import com.demo.admissionportal.util.enum_validator.EnumNameV2;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -9,7 +9,7 @@ import java.text.Normalizer;
 /**
  * The type Enum name validator.
  */
-public class EnumNameValidator implements ConstraintValidator<EnumName, String> {
+public class EnumNameValidatorV2 implements ConstraintValidator<EnumNameV2, String> {
     @Override
     public boolean isValid(String name, ConstraintValidatorContext constraintValidatorContext) {
         if (name == null) {
@@ -17,7 +17,7 @@ public class EnumNameValidator implements ConstraintValidator<EnumName, String> 
         }
         name = name.trim();
         if (name.isEmpty()) {
-            return false;
+            return true;
         }
         for (char c : name.toCharArray()) {
             if ((!Character.isLetter(c)) && (c != ' ') && (!isVietnameseCharacter(c))) {
