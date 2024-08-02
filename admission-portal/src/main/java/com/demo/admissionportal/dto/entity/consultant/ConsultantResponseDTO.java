@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 /**
  * ConsultantResponseDTO is a data transfer object that encapsulates the response data
  * for a consultant, including details about the university they are associated with,
@@ -52,6 +54,7 @@ public class ConsultantResponseDTO {
     private InfoWardDTO ward;
     private String address;
     private String gender;
+    private Date birthday;
 
     /**
      * Converts the individual name components of the given {@link ConsultantInfo} into a full name
