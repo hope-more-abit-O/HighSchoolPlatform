@@ -1,4 +1,6 @@
 package com.demo.admissionportal.dto.request.university;
 
-public record UpdateUniversityStatusRequest(String note) {
+import com.demo.admissionportal.constants.AccountStatus;
+
+public record UpdateUniversityStatusRequest(String note, AccountStatus status) {
 }

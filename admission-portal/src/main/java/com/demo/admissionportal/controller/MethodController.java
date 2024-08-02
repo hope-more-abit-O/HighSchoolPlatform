@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.MajorStatus;
 import com.demo.admissionportal.constants.MethodStatus;
 import com.demo.admissionportal.dto.request.method.PostMethodRequest;
 import com.demo.admissionportal.dto.request.method.PutMethodRequest;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/method")
@@ -24,16 +26,16 @@ public class MethodController {
     private final MethodService methodService;
 
     @GetMapping
-    public ResponseEntity<ResponseData<Page<Method>>> getAllMethods(
+    public ResponseEntity<ResponseData> getAllMethods(
             Pageable pageable,
             @RequestParam(required = false) Integer id,
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String name,
+            @RequestParam(required = false) List<MethodStatus> status,
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date createTime,
-            @RequestParam(required = false) Date updateTime,
-            @RequestParam(required = false) MethodStatus status) {
+            @RequestParam(required = false) Date updateTime) {
         return ResponseEntity.ok(methodService.getAllMethods(pageable, id, code, name, createTime, createBy, updateTime, updateBy, status));
     }
 

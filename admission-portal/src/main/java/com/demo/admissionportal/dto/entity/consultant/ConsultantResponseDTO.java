@@ -51,7 +51,6 @@ public class ConsultantResponseDTO {
     private InfoDistrictDTO district;
     private InfoWardDTO ward;
     private String address;
-    private String note;
     private String gender;
 
     /**

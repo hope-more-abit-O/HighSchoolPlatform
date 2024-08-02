@@ -3,6 +3,7 @@ package com.demo.admissionportal.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Nationalized;
@@ -17,6 +18,7 @@ import java.util.Date;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "[user_info]")
 public class UserInfo implements Serializable {
     @Id
@@ -46,7 +48,6 @@ public class UserInfo implements Serializable {
     @Column(name = "gender")
     private String gender;
 
-    @NotNull
     @Nationalized
     @Column(name = "specific_address")
     private String specificAddress;

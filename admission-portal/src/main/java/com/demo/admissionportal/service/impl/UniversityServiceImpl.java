@@ -256,7 +256,7 @@ public class UniversityServiceImpl implements UniversityService {
     }
 
     @Override
-    public ResponseData updateUniversityStatus(Integer id, String note) throws ResourceNotFoundException, StoreDataFailedException {
+    public ResponseData updateUniversityStatus(Integer id, String note, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException {
         Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
         User uniAccount = userService.findById(id);
@@ -264,7 +264,7 @@ public class UniversityServiceImpl implements UniversityService {
         if (!uniAccount.getRole().equals(Role.UNIVERSITY))
             throw new ResourceNotFoundException("Không tồn tại trường đại học với id: " + id);
 
-        userService.changeStatus(id, note, "trường học");
+        userService.changeStatus(id, status, Role.UNIVERSITY, note, "trường học");
 
         return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
     }
