@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.demo.admissionportal.service.CreateUniversityService;
+import com.demo.admissionportal.service.impl.UniversityServiceImpl;
+import com.demo.admissionportal.service.impl.ValidationServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,6 +25,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TestController {
     private final ConsultantService consultantService;
+    private final UniversityServiceImpl universityServiceImpl;
+    private final CreateUniversityService createUniversityService;
+    private final ValidationServiceImpl validationServiceImpl;
 
     @GetMapping("/")
     public String home(){
@@ -51,5 +59,9 @@ public class TestController {
                         )
                 )
         );
+    }
+    @GetMapping("/validate-email/{email}")
+    public Boolean validateEmail(@PathVariable String email){
+        return validationServiceImpl.validateEmail(email);
     }
 }

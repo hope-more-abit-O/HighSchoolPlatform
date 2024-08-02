@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/post/type")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class TypeController {
     private final TypeService typeService;
 
@@ -36,6 +35,7 @@ public class TypeController {
      */
     @PostMapping
     @PreAuthorize("hasAuthority('STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Type>> createTypePost(@RequestBody @Valid TypePostRequestDTO requestDTO) {
         if (requestDTO == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -58,7 +58,6 @@ public class TypeController {
      * @return the type posts
      */
     @GetMapping("/list")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     public ResponseEntity<ResponseData<Page<TypeListResponseDTO>>> getTypePosts(@RequestParam(required = false) String typeName,
                                                                                 @RequestParam(required = false) String status,
                                                                                 @PageableDefault(size = 10) Pageable pageable) {
@@ -77,6 +76,7 @@ public class TypeController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Type>> getTypeById(@PathVariable(name = "id") Integer postId) {
         if (postId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có postId"));
@@ -98,6 +98,7 @@ public class TypeController {
      */
     @PostMapping("/change-status/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Type>> changeStatus(@PathVariable(name = "id") Integer typeId) {
         if (typeId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có TypeId"));
@@ -122,6 +123,7 @@ public class TypeController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Type>> updateType(@PathVariable(name = "id") Integer postId, @RequestBody @Valid TypePostUpdateRequestDTO requestDTO) {
         if (postId == null || requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Thiếu request"));

@@ -5,14 +5,21 @@ import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.report.post_report.ReportPostDTO;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
+import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
+import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
+import com.demo.admissionportal.dto.response.report.function_report.FindAllFunctionReportResponse;
+import com.demo.admissionportal.dto.response.report.function_report.FunctionReportResponse;
+import com.demo.admissionportal.dto.response.report.function_report.UpdateFunctionReportResponse;
 import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
+import com.demo.admissionportal.entity.sub_entity.FunctionReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,6 +76,26 @@ public interface ReportService {
      */
     ResponseData<ReportPostResponse> getPostReportById(Integer reportId, Authentication authentication);
 
+
+    /**
+     * <h2>Find All Post Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all post reports, optionally filtered by report ID, ticket ID, creator, content, and status.
+     * The response includes summary details of each post report. The authenticated user information is used to verify permissions.
+     * </p>
+     *
+     * @param pageable       Pagination details.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @param reportId       Optional filter for the report ID.
+     * @param ticketId       Optional filter for the ticket ID.
+     * @param createBy       Optional filter for the creator ID.
+     * @param content        Optional filter for the content.
+     * @param status         Optional filter for the report status.
+     * @return A {@link ResponseData} object containing a paginated list of post reports.
+     * @since 1.0
+     */
+    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
+
     /**
      * <h2>Update Post Report</h2>
      * <p>
@@ -83,14 +110,43 @@ public interface ReportService {
      * @since 1.0
      */
     ResponseData<UpdatePostReportResponse> updatePostReport(Integer reportId, UpdatePostReportRequest request, Authentication authentication);
-    ResponseData<CommentReport> createCommentReport(CreateCommentReportRequest request, Authentication authentication);
-    ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication);
-    ResponseData<UpdateCommentReportResponseDTO> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication);
+
     /**
-     * <h2>Find All Post Reports</h2>
+     * <h2>Create Comment Report</h2>
      * <p>
-     * Retrieves a paginated list of all post reports, optionally filtered by report ID, ticket ID, creator, content, and status.
-     * The response includes summary details of each post report. The authenticated user information is used to verify permissions.
+     * Creates a new comment report based on the provided request data. The request must contain valid report
+     * details including the comment ID and content. The authenticated user information is used to track who created
+     * the report.
+     * </p>
+     *
+     * @param request        The {@link CreateCommentReportRequest} containing the details of the new comment report.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link CommentReport}.
+     * @since 1.0
+     */
+    ResponseData<CommentReport> createCommentReport(CreateCommentReportRequest request, Authentication authentication);
+
+    /**
+     * <h2>Get Comment Report By ID</h2>
+     * <p>
+     * Retrieves the details of a specific comment report identified by the provided ID. The response includes all the
+     * report details along with the information about who created the report. The authenticated user information is
+     * used to verify permissions.
+     * </p>
+     *
+     * @param reportId       The ID of the comment report to be retrieved.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the details of the comment report along with {@link CommentReportResponse}.
+     * @since 1.0
+     */
+    ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication);
+
+
+    /**
+     * <h2>Find All Comment Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all comment reports, optionally filtered by report ID, ticket ID, creator, content, and status.
+     * The response includes summary details of each comment report. The authenticated user information is used to verify permissions.
      * </p>
      *
      * @param pageable       Pagination details.
@@ -99,18 +155,112 @@ public interface ReportService {
      * @param ticketId       Optional filter for the ticket ID.
      * @param createBy       Optional filter for the creator ID.
      * @param content        Optional filter for the content.
-     * @param reportType     the report type
      * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of post reports.
+     * @return A {@link ResponseData} object containing a paginated list of comment reports.
      * @since 1.0
      */
-    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status);
-
-    ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
-                                                                                    Integer reportId, String ticketId, Integer createBy,
-                                                                                    ReportType reportType);
-
     ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
                                                                            Integer reportId, String ticketId, Integer createBy,
-                                                                           String content, ReportType reportType, ReportStatus status);
+                                                                           String content, ReportStatus status);
+
+    /**
+     * <h2>Update Comment Report</h2>
+     * <p>
+     * Updates the details of an existing comment report identified by the provided ID. The request contains the updated
+     * report details. The authenticated user information is used to track who performed the update.
+     * </p>
+     *
+     * @param reportId       The ID of the comment report to be updated.
+     * @param request        The {@link UpdateCommentReportRequest} containing the updated details of the comment report.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the result of the update operation along with the updated {@link UpdateCommentReportResponseDTO}.
+     * @since 1.0
+     */
+    ResponseData<UpdateCommentReportResponse> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication);
+
+
+    /**
+     * <h2>Create Function Report</h2>
+     * <p>
+     * Creates a new function report based on the provided request data. The request must contain valid report
+     * details including the function issue and content. The authenticated user information is used to track who created
+     * the report.
+     * </p>
+     *
+     * @param request        The {@link CreateFunctionReportRequest} containing the details of the new function report.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link FunctionReport}.
+     * @since 1.0
+     */
+    ResponseData<FunctionReport> createFunctionReport(CreateFunctionReportRequest request, Authentication authentication);
+
+    /**
+     * <h2>Get Function Report By ID</h2>
+     * <p>
+     * Retrieves the details of a specific function report identified by the provided ID. The response includes all the
+     * report details along with the information about who created the report. The authenticated user information is
+     * used to verify permissions.
+     * </p>
+     *
+     * @param reportId       The ID of the function report to be retrieved.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the details of the function report along with {@link FunctionReportResponse}.
+     * @since 1.0
+     */
+    ResponseData<FunctionReportResponse> getFunctionReportById(Integer reportId, Authentication authentication);
+
+
+    /**
+     * <h2>Find All Function Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all function reports, optionally filtered by report ID, ticket ID, creator, and status.
+     * The response includes summary details of each function report. The authenticated user information is used to verify permissions.
+     * </p>
+     *
+     * @param pageable       Pagination details.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @param reportId       Optional filter for the report ID.
+     * @param ticketId       Optional filter for the ticket ID.
+     * @param createBy       Optional filter for the creator ID.
+     * @param status         Optional filter for the report status.
+     * @return A {@link ResponseData} object containing a paginated list of function reports.
+     * @since 1.0
+     */
+    ResponseData<Page<FindAllFunctionReportResponse>> findAllFunctionReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, ReportStatus status);
+
+    /**
+     * <h2>Update Function Report</h2>
+     * <p>
+     * Updates the details of an existing function report identified by the provided ID. The request contains the updated
+     * report details. The authenticated user information is used to track who performed the update.
+     * </p>
+     *
+     * @param reportId       The ID of the function report to be updated.
+     * @param request        The {@link UpdateFunctionReportRequest} containing the updated details of the function report.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @return A {@link ResponseData} object containing the result of the update operation along with the updated {@link UpdateFunctionReportResponse}.
+     * @since 1.0
+     */
+    ResponseData<UpdateFunctionReportResponse> updateFunctionReport(Integer reportId, UpdateFunctionReportRequest request, Authentication authentication);
+
+    /**
+     * <h2>Find All Completed Post Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
+     * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
+     * </p>
+     *
+     * @param pageable       Pagination details.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @param reportId       Optional filter for the report ID.
+     * @param ticketId       Optional filter for the ticket ID.
+     * @param createBy       Optional filter for the creator ID.
+     * @param reportType     Optional filter for the report type.
+     * @return A {@link ResponseData} object containing a paginated list of completed post reports.
+     * @since 1.0
+     */
+    ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedReports(Pageable pageable, Authentication authentication,
+                                                                                Integer reportId, String ticketId, Integer createBy,
+                                                                                ReportType reportType);
+
 }

@@ -2,7 +2,6 @@ package com.demo.admissionportal.dto.entity.report.comment_report;
 
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
-import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

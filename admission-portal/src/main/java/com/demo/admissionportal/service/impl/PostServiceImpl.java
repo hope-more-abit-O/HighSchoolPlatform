@@ -36,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -620,7 +621,10 @@ public class PostServiceImpl implements PostService {
     }
 
     private String convertURL(String url) {
-        return url.replace(" ", "-");
+        String normalized = Normalizer.normalize(url, Normalizer.Form.NFD);
+        String withoutDiacritics = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String urlFriendly = withoutDiacritics.replaceAll("[^\\p{Alnum}\\s]+", "").replaceAll("\\s+", "-");
+        return urlFriendly.toLowerCase();
     }
 
     private String mapperStaffInfoResponseDTO(StaffInfo staffInfo) {
@@ -628,7 +632,8 @@ public class PostServiceImpl implements PostService {
     }
 
     private String mapperConsultantInfoResponseDTO(ConsultantInfo consultantInfo) {
-        return (consultantInfo.getFirstName().trim() + " " + consultantInfo.getMiddleName().trim() + " " + consultantInfo.getLastName().trim());
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(consultantInfo.getId());
+        return universityInfo.getName().trim();
     }
 
     @Override
@@ -828,7 +833,6 @@ public class PostServiceImpl implements PostService {
     }
 
     private Page<PostDetailResponseDTOV2> getAllPostByConsultantId(String title, String status, Integer id, Pageable pageable) {
-
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(id);
         return getPostByUniversityIdV2(title, status, consultantInfo.getUniversityId(), pageable);
     }
@@ -1016,14 +1020,14 @@ public class PostServiceImpl implements PostService {
         String listType = typeResponseDTOList.stream()
                 .map(type -> String.valueOf(type.getName()))
                 .collect(Collectors.joining(","));
-        String info = getUserInfoPostDTO(post.getCreateBy());
 
+        String info = getUserInfoPostDTOV2(post.getCreateBy());
         PostDetailResponseDTOV2 postPropertiesResponseDTO = modelMapper.map(post, PostDetailResponseDTOV2.class);
 
         return PostDetailResponseDTOV2.builder()
                 .id(postPropertiesResponseDTO.getId())
                 .title(postPropertiesResponseDTO.getTitle())
-                .createBy(info.trim())
+                .createBy(info)
                 .createTime(post.getCreateTime())
                 .status(post.getStatus().name)
                 .type(listType)
@@ -1128,4 +1132,24 @@ public class PostServiceImpl implements PostService {
         return postRandomResponseDTO;
     }
 
+    public String getUserInfoPostDTOV2(Integer createBy) {
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
+        String userInfo = null;
+        if (staffInfo != null) {
+            userInfo = mapperStaffInfoResponseDTOV2(staffInfo);
+        } else if (consultantInfo != null) {
+            userInfo = mapperConsultantInfoResponseDTOV2(consultantInfo);
+        }
+        return userInfo;
+    }
+
+    private String mapperStaffInfoResponseDTOV2(StaffInfo staffInfo) {
+        return (staffInfo.getFirstName().trim() + " " + staffInfo.getMiddleName().trim() + " " + staffInfo.getLastName().trim());
+    }
+
+    private String mapperConsultantInfoResponseDTOV2(ConsultantInfo consultantInfo) {
+        ConsultantInfo info = consultantInfoRepository.findConsultantInfoById(consultantInfo.getId());
+        return info.getFirstName().trim() + " " + info.getMiddleName().trim() + " " + info.getLastName();
+    }
 }

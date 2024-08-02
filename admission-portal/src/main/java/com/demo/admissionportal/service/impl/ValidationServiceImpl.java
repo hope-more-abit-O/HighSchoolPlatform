@@ -117,7 +117,7 @@ public class ValidationServiceImpl implements ValidationService {
     public boolean validateEmail(String email) throws DataExistedException {
         log.info("Checking email availability.");
         String errorMessage = "Email được sử dụng";
-        if (userRepository.findFirstByEmail(email).isPresent()) {
+        if (userRepository.validateEmail(email).isPresent()) {
             log.error("Email: {} not available!", email);
             throw new DataExistedException(errorMessage);
         }

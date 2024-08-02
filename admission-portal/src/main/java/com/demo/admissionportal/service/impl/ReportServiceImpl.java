@@ -2,13 +2,24 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsByStatusDTO;
 import com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO;
+import com.demo.admissionportal.dto.entity.report.function_report.FindAllFunctionReportByStatusDTO;
+import com.demo.admissionportal.dto.entity.report.function_report.FindAllFuntionReportDTO;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsCompletedDTO;
 import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
+import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
+import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
+import com.demo.admissionportal.dto.response.file.UploadMultipleFilesResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
+import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponseDTO;
+import com.demo.admissionportal.dto.response.report.function_report.FindAllFunctionReportResponse;
+import com.demo.admissionportal.dto.response.report.function_report.FunctionReportResponse;
+import com.demo.admissionportal.dto.response.report.function_report.UpdateFunctionReportResponse;
+import com.demo.admissionportal.dto.response.report.function_report.UpdateFunctionReportResponseDTO;
 import com.demo.admissionportal.dto.response.report.post_report.*;
 import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
 import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
@@ -16,10 +27,12 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
+import com.demo.admissionportal.entity.sub_entity.FunctionReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.CommentReportRepository;
 import com.demo.admissionportal.repository.sub_repository.PostReportRepository;
+import com.demo.admissionportal.service.FirebaseStorageService;
 import com.demo.admissionportal.service.ReportService;
 import com.demo.admissionportal.util.impl.NameUtils;
 import jakarta.transaction.Transactional;
@@ -48,6 +61,8 @@ public class ReportServiceImpl implements ReportService {
     private final ModelMapper modelMapper;
     private final CommentRepository commentRepository;
     private final CommentReportRepository commentReportRepository;
+    private final FunctionReportRepository functionReportRepository;
+    private final FirebaseStorageService firebaseStorageService;
 
     @Override
     @Transactional
@@ -186,6 +201,15 @@ public class ReportServiceImpl implements ReportService {
             postReport.setReportAction(request.getReportAction());
             postReportRepository.save(postReport);
 
+            if (request.getReportAction().equals(PostReportActionType.DELETE.name())) {
+                Optional<Post> postOpt = postRepository.findById(postReport.getPostId());
+                if (postOpt.isPresent()) {
+                    Post post = postOpt.get();
+                    post.setStatus(PostStatus.INACTIVE);
+                    postRepository.save(post);
+                }
+            }
+
             report.setUpdate_time(new Date());
             report.setUpdate_by(staffId);
             report.setComplete_time(new Date());
@@ -209,6 +233,8 @@ public class ReportServiceImpl implements ReportService {
             responseDTO.setPostCreateTime(post.getCreateTime());
             responseDTO.setCreateBy(actioner);
             responseDTO.setReportAction(postReport.getReportAction());
+            responseDTO.setCompleteBy(staffId);
+            responseDTO.setUpdateBy(staffId);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật báo cáo bài viết thành công !", responseDTO);
         } catch (Exception e) {
             log.error("Error while updating post report", e);
@@ -219,7 +245,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication,
                                                                             Integer reportId, String ticketId, Integer createBy,
-                                                                            String content, ReportType reportType, ReportStatus status) {
+                                                                            String content, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -232,7 +258,7 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(pageable, reportId, ticketId, createBy, content, status, reportType);
+            Page<FindAllReportsWithPostDTO> reportPage = reportRepository.findAllReportsWithPost(pageable, reportId, ticketId, createBy, content, status);
 
             Page<ListAllPostReportResponse> responseDTOPage = reportPage.map(report -> {
                 ActionerDTO actioner = null;
@@ -252,9 +278,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedPostReports(Pageable pageable, Authentication authentication,
-                                                                                           Integer reportId, String ticketId, Integer createBy,
-                                                                                           ReportType reportType) {
+    public ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedReports(Pageable pageable, Authentication authentication,
+                                                                                       Integer reportId, String ticketId, Integer createBy,
+                                                                                       ReportType reportType) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -268,13 +294,15 @@ public class ReportServiceImpl implements ReportService {
             }
 
             Page<FindAllReportsCompletedDTO> postReports = reportRepository.findAllReportsWithPostByStatus(pageable, reportId, ticketId, createBy, reportType);
-            Page<FindAllCommentReportsDTO> commentReports = reportRepository.findAllCommentReportsByStatus(pageable, reportId, ticketId, reportType);
+            Page<FindAllCommentReportsByStatusDTO> commentReports = reportRepository.findAllCommentReportsByStatus(pageable, reportId, ticketId, reportType);
+            Page<FindAllFunctionReportByStatusDTO> functionReports = reportRepository.findAllFunctionReportsByStatus(pageable, reportId, ticketId, createBy, reportType);
 
-            List<Object> mergedReports = new ArrayList<>();
-            mergedReports.addAll(postReports.getContent());
-            mergedReports.addAll(commentReports.getContent());
+            List<Object> completedReports = new ArrayList<>();
+            completedReports.addAll(postReports.getContent());
+            completedReports.addAll(commentReports.getContent());
+            completedReports.addAll(functionReports.getContent());
 
-            Page<Object> reportPage = new PageImpl<>(mergedReports, pageable, postReports.getTotalElements() + commentReports.getTotalElements());
+            Page<Object> reportPage = new PageImpl<>(completedReports, pageable, postReports.getTotalElements() + commentReports.getTotalElements());
 
             Page<FindAllReportsCompletedResponse> responseDTOPage = reportPage.map(report -> {
                 FindAllReportsCompletedResponse responseDTO = null;
@@ -286,9 +314,20 @@ public class ReportServiceImpl implements ReportService {
                         ActionerDTO actioner = getUserDetails(postReport.getCreateBy().getId());
                         responseDTO.setCreateBy(actioner);
                     }
-                } else if (report instanceof FindAllCommentReportsDTO) {
-                    FindAllCommentReportsDTO commentReport = (FindAllCommentReportsDTO) report;
+                } else if (report instanceof FindAllCommentReportsByStatusDTO) {
+                    FindAllCommentReportsByStatusDTO commentReport = (FindAllCommentReportsByStatusDTO) report;
                     responseDTO = modelMapper.map(commentReport, FindAllReportsCompletedResponse.class);
+                    if (commentReport.getCreateBy() != null) {
+                        ActionerDTO actioner = getUserDetails(commentReport.getCreateBy().getId());
+                        responseDTO.setCreateBy(actioner);
+                    }
+                } else if (report instanceof FindAllFunctionReportByStatusDTO) {
+                    FindAllFunctionReportByStatusDTO functionReport = (FindAllFunctionReportByStatusDTO) report;
+                    responseDTO = modelMapper.map(functionReport, FindAllReportsCompletedResponse.class);
+                    if (functionReport.getCreateBy() != null) {
+                        ActionerDTO actioner = getUserDetails(functionReport.getCreateBy().getId());
+                        responseDTO.setCreateBy(actioner);
+                    }
                 }
                 return responseDTO;
             });
@@ -358,7 +397,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
                                                                                   Integer reportId, String ticketId, Integer createBy,
-                                                                                  String content, ReportType reportType, ReportStatus status) {
+                                                                                  String content, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -371,7 +410,7 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllCommentReportsDTO> reportPage = reportRepository.findAllCommentReports(pageable, reportId, ticketId, createBy, content, status, reportType);
+            Page<FindAllCommentReportsDTO> reportPage = reportRepository.findAllCommentReports(pageable, reportId, ticketId, createBy, content, status);
             Page<ListAllCommentReportResponse> responseDTOPage = reportPage.map(report -> modelMapper.map(report, ListAllCommentReportResponse.class));
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo bình luận được tìm thấy", responseDTOPage);
@@ -432,7 +471,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
-    public ResponseData<UpdateCommentReportResponseDTO> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication) {
+    public ResponseData<UpdateCommentReportResponse> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -460,7 +499,7 @@ public class ReportServiceImpl implements ReportService {
             if (reportOpt.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo không được tìm thấy !");
             }
-            if (reportOpt.get().getStatus().equals(ReportStatus.COMPLETED)){
+            if (reportOpt.get().getStatus().equals(ReportStatus.COMPLETED)) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Báo cáo đã được xử lý.");
             }
             Report report = reportOpt.get();
@@ -468,9 +507,28 @@ public class ReportServiceImpl implements ReportService {
             commentReport.setReportAction(request.getReportAction());
             commentReportRepository.save(commentReport);
 
-            report.setUpdate_time(new Date());
+            if (request.getReportAction().equals(PostReportActionType.DELETE.name())) {
+                Optional<Comment> commentOpt = commentRepository.findById(commentReport.getCommentId());
+                if (commentOpt.isPresent()) {
+                    Comment comment = commentOpt.get();
+                    comment.setComment_status(CommentStatus.DELETE);
+                    commentRepository.save(comment);
+
+                    if (Boolean.TRUE.equals(request.getIsBanned())) {
+                        Optional<User> commentUserOpt = userRepository.findById(comment.getCommenter_id());
+                        if (commentUserOpt.isPresent()) {
+                            User commentUser = commentUserOpt.get();
+                            commentUser.setStatus(AccountStatus.INACTIVE);
+                            userRepository.save(commentUser);
+                        }
+                    }
+                }
+            }
+
+            Date now = new Date();
+            report.setUpdate_time(now);
             report.setUpdate_by(staffId);
-            report.setComplete_time(new Date());
+            report.setComplete_time(now);
             report.setComplete_by(staffId);
             report.setResponse(request.getResponse());
             report.setStatus(ReportStatus.COMPLETED);
@@ -484,31 +542,193 @@ public class ReportServiceImpl implements ReportService {
 
             ActionerDTO actioner = getUserDetails(report.getCreate_by());
 
-            UpdateCommentReportResponseDTO responseDTO = new UpdateCommentReportResponseDTO(
-                    report.getId(),
-                    report.getTicket_id(),
-                    actioner,
-                    report.getCreate_time(),
-                    report.getReport_type().toString(),
-                    report.getContent(),
-                    comment.getId(),
-                    comment.getContent(),
-                    comment.getCommenter_id(),
-                    comment.getCreate_time(),
-                    report.getUpdate_time(),
-                    report.getUpdate_by(),
-                    report.getComplete_time(),
-                    report.getComplete_by(),
-                    commentReport.getReportAction(),
-                    report.getResponse(),
-                    report.getStatus()
-            );
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Update successful", responseDTO);
+            UpdateCommentReportResponseDTO responseDTO = modelMapper.map(report, UpdateCommentReportResponseDTO.class);
+            responseDTO.setActioner(actioner);
+            responseDTO.setCommentId(comment.getId());
+            responseDTO.setCommentContent(comment.getContent());
+            responseDTO.setCommenterId(comment.getCommenter_id());
+            responseDTO.setCommentCreateTime(comment.getCreate_time());
+            responseDTO.setReportAction(PostReportActionType.valueOf(commentReport.getReportAction()));
+
+            UpdateCommentReportResponse updateCommentReportResponse = modelMapper.map(responseDTO, UpdateCommentReportResponse.class);
+            updateCommentReportResponse.setCompleteBy(staffId);
+            updateCommentReportResponse.setUpdateBy(staffId);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật báo cáo bình luận thành công !", updateCommentReportResponse);
         } catch (Exception e) {
             log.error("Error while updating comment report", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo bình luận");
         }
     }
+    //Function
+    @Override
+    @Transactional
+    public ResponseData<FunctionReport> createFunctionReport(CreateFunctionReportRequest request, Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            User user = existUser.get();
+            Integer userId = user.getId();
+
+            ResponseData<UploadMultipleFilesResponse> uploadResponse = firebaseStorageService.uploadMultipleFiles(request.getProofs());
+            List<String> fileUrls = uploadResponse.getData().getUrl();
+            String proofs = String.join(",", fileUrls);
+
+            Report newReport = new Report();
+            newReport.setTicket_id(generateTicketId());
+            newReport.setCreate_by(userId);
+            newReport.setCreate_time(new Date());
+            newReport.setContent(request.getContent());
+            newReport.setReport_type(ReportType.FUNCTION);
+            newReport.setStatus(ReportStatus.PENDING);
+            Report savedReport = reportRepository.save(newReport);
+
+            FunctionReport functionReport = new FunctionReport();
+            functionReport.setReportId(savedReport.getId());
+            functionReport.setContent(request.getContent());
+            functionReport.setProofs(proofs);
+            functionReport.setReportAction(PostReportActionType.NONE.name());
+            functionReportRepository.save(functionReport);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Báo cáo chức năng Web thành công !", functionReport);
+        } catch (Exception e) {
+            log.error("Error while creating function report", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Error while creating function report");
+        }
+    }
+    @Override
+    public ResponseData<FunctionReportResponse> getFunctionReportById(Integer reportId, Authentication authentication) {
+        String username = authentication.getName();
+        Optional<User> existUser = userRepository.findByUsername(username);
+        if (existUser.isEmpty()) {
+            log.info("User not found");
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+        }
+        if (!existUser.get().getRole().equals(Role.STAFF)) {
+            log.info("User not allowed to get");
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+        }
+
+        Optional<Report> reportOpt = reportRepository.findById(reportId);
+        if (reportOpt.isEmpty()) {
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo không được tìm thấy !");
+        }
+        Report report = reportOpt.get();
+
+        Optional<FunctionReport> functionReportOpt = functionReportRepository.findById(reportId);
+        if (functionReportOpt.isEmpty()) {
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo về chức năng không được tìm thấy !");
+        }
+        FunctionReport functionReport = functionReportOpt.get();
+
+        ActionerDTO actioner = getUserDetails(report.getCreate_by());
+
+        FunctionReportResponse responseDTO = modelMapper.map(report, FunctionReportResponse.class);
+        responseDTO.setCreateBy(actioner);
+        responseDTO.setReportContent(functionReport.getContent());
+        responseDTO.setProofs(functionReport.getProofs());
+
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Thông tin báo cáo về chức năng được tìm thấy !", responseDTO);
+    }
+
+    @Override
+    @Transactional
+    public ResponseData<UpdateFunctionReportResponse> updateFunctionReport(Integer reportId, UpdateFunctionReportRequest request, Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            if (!existUser.get().getRole().equals(Role.STAFF)) {
+                log.info("User not allowed to update");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+            }
+            User user = existUser.get();
+            Integer staffId = user.getId();
+
+            Optional<FunctionReport> functionReportOpt = functionReportRepository.findById(reportId);
+            if (functionReportOpt.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo về chức năng không được tìm thấy !");
+            }
+            FunctionReport functionReport = functionReportOpt.get();
+
+            Optional<Report> reportOpt = reportRepository.findById(reportId);
+            if (reportOpt.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Báo cáo không được tìm thấy !");
+            }
+            if (reportOpt.get().getStatus().equals(ReportStatus.COMPLETED)) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Báo cáo đã được xử lý.");
+            }
+            Report report = reportOpt.get();
+
+            functionReport.setReportAction(PostReportActionType.NONE.name());
+            functionReportRepository.save(functionReport);
+
+            report.setUpdate_time(new Date());
+            report.setUpdate_by(staffId);
+            report.setComplete_time(new Date());
+            report.setComplete_by(staffId);
+            report.setResponse(request.getResponse());
+            report.setStatus(ReportStatus.COMPLETED);
+            reportRepository.save(report);
+
+            ActionerDTO actioner = getUserDetails(report.getCreate_by());
+
+            UpdateFunctionReportResponseDTO responseDTO = modelMapper.map(report, UpdateFunctionReportResponseDTO.class);
+            responseDTO.setCreateBy(actioner);
+            responseDTO.setReportContent(functionReport.getContent());
+            responseDTO.setProofs(functionReport.getProofs());
+            responseDTO.setReportAction(PostReportActionType.valueOf(functionReport.getReportAction()));
+
+            UpdateFunctionReportResponse result = modelMapper.map(responseDTO, UpdateFunctionReportResponse.class);
+            result.setCompleteBy(staffId);
+            result.setUpdateBy(staffId);
+            result.setReportAction(String.valueOf(responseDTO.getReportAction()));
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật báo cáo chức năng thành công !", result);
+        } catch (Exception e) {
+            log.error("Error while updating function report", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo chức năng");
+        }
+    }
+
+    @Override
+    public ResponseData<Page<FindAllFunctionReportResponse>> findAllFunctionReports(Pageable pageable, Authentication authentication,
+                                                                                    Integer reportId, String ticketId, Integer createBy, ReportStatus status) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            if (!existUser.get().getRole().equals(Role.STAFF)) {
+                log.info("User not allowed to view reports");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+            }
+
+            Page<FindAllFuntionReportDTO> reportPage = reportRepository.findAllFunctionReports(pageable, reportId, ticketId, createBy, status);
+
+            Page<FindAllFunctionReportResponse> responseDTOPage = reportPage.map(report -> {
+                ActionerDTO actioner = getUserDetails(report.getCreateBy().getId());
+                FindAllFunctionReportResponse responseDTO = modelMapper.map(report, FindAllFunctionReportResponse.class);
+                responseDTO.setCreateBy(actioner);
+                return responseDTO;
+            });
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo chức năng được tìm thấy", responseDTOPage);
+        } catch (Exception e) {
+            log.error("Error while fetching function reports", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo chức năng");
+        }
+    }
+
+
 
     private ActionerDTO getStaffDetails(Integer userId) {
         return userRepository.findById(userId)

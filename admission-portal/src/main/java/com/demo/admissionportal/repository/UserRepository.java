@@ -216,4 +216,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @Param("createBy") Integer createBy,
             @Param("updateBy") Integer updateBy
     );
+
+
+    @Query(value = """
+    SELECT usr.*
+    FROM [user] usr
+    INNER JOIN [university_campus] unic ON unic.university_id = usr.id
+    WHERE usr.email = :email OR unic.email = :email""", nativeQuery = true)
+    Optional<User> validateEmail(@Param("email") String email);
 }

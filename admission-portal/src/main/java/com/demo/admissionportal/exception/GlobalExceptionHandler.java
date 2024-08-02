@@ -8,9 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,5 +131,12 @@ public class GlobalExceptionHandler {
             errors.put("error", message);
         }
         return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingParams(MissingServletRequestParameterException ex, WebRequest request) {
+        String name = ex.getParameterName();
+        String message = String.format("Request param %s không tìm thấy", name);
+        return new ResponseEntity<>(new ResponseData<>(ResponseCode.C205.getCode(), message), HttpStatus.BAD_REQUEST);
     }
 }
