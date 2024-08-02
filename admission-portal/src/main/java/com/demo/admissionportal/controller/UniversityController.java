@@ -77,14 +77,14 @@ public class UniversityController {
             @RequestParam(required = false) String universityName,
             @RequestParam(required = false) Integer universityId,
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) List<AccountStatus> statuses,
+            @RequestParam(required = false) List<AccountStatus> status,
             @RequestParam(required = false) Integer updateBy
     ) throws NotAllowedException, ResourceNotFoundException {
         Integer uniId = ServiceUtils.getId();
         return ResponseEntity.ok(
                 ResponseData.ok("Tìm mọi tư vấn viên dưới quyền thành công.",
                         consultantService.getFullConsultants(
-                                pageable, id, name, username, universityName, universityId, statuses, uniId, updateBy
+                                pageable, id, name, username, universityName, universityId, status, uniId, updateBy
                         )
                 )
         );
