@@ -47,6 +47,7 @@ public class SearchController {
     /**
      * Search filter post response entity.
      *
+     * @param content    the content
      * @param typeId     the type name
      * @param locationId the location id
      * @param startDate  the start date
@@ -56,13 +57,14 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post/filter")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchFilterPost(@RequestParam(required = false, name = "typeId") Integer typeId,
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchFilterPost(@RequestParam(required = false, name = "content") String content,
+                                                                              @RequestParam(required = false, name = "typeId") Integer typeId,
                                                                               @RequestParam(required = false, name = "locationId") Integer locationId,
                                                                               @RequestParam(required = false, name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                               @RequestParam(required = false, name = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                                               @RequestParam(required = false, name = "authorId") Integer authorId,
                                                                               @PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(typeId, locationId, startDate, endDate, authorId, pageable);
+        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(content, typeId, locationId, startDate, endDate, authorId, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }

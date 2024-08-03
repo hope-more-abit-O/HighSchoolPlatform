@@ -24,6 +24,7 @@ public interface SearchPostService {
     /**
      * Search filter post response data.
      *
+     * @param content    the content
      * @param typeId     the type id
      * @param locationId the location id
      * @param startDate  the start date
@@ -32,5 +33,5 @@ public interface SearchPostService {
      * @param pageable   the pageable
      * @return the response data
      */
-    ResponseData<Page<PostSearchDTO>> searchFilterPost(Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId, Pageable pageable);
+    ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId, Pageable pageable);
 }
