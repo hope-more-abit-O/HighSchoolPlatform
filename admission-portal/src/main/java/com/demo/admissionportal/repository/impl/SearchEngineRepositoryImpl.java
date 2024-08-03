@@ -47,9 +47,9 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                 JOIN [tag] t ON pt.tag_id = t.id
                 LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
                 LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
-                LEFT JOIN [user] u ON u.id = p.create_by
                 LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
                 LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
+                LEFT JOIN [user] u ON u.id = si.staff_id  OR u.id = ui.university_id
                 LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
                 WHERE p.status = 'ACTIVE'
                         AND (p.title LIKE :content
@@ -80,9 +80,9 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                         JOIN [type] t ON t.id = pt.type_id
                         LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
                         LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
-                        LEFT JOIN [user] u ON u.id = p.create_by
                         LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
                         LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
+                        LEFT JOIN [user] u ON u.id = si.staff_id  OR u.id = ui.university_id
                         LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
                         WHERE p.status = 'ACTIVE'
                                AND (
