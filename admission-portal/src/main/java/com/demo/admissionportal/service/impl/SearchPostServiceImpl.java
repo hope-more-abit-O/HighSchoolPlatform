@@ -3,7 +3,6 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.post.PostResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.SearchPostService;
@@ -61,12 +60,13 @@ public class SearchPostServiceImpl implements SearchPostService {
     }
 
     @Override
-    public ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId, Pageable pageable) {
+    public ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId, Pageable pageable) {
         try {
             log.info("Start retrieve search post by filter");
-            List<PostSearchDTO> postRequestDTOS = new ArrayList<>();
+            List<PostSearchDTO> resultOfSearch = new ArrayList<>();
+            List<PostSearchDTO> postRequestDTOS;
             // Set default Newsiest has type id = 999
-            if (typeId != null && typeId == 999) {
+            if (typeId != null && typeId.contains(999)) {
                 List<Post> post = postRepository.findPost();
                 Set<String> filter = new HashSet<>();
                 postRequestDTOS = post.stream()
@@ -74,9 +74,10 @@ public class SearchPostServiceImpl implements SearchPostService {
                         .sorted(Comparator.comparing(Post::getCreateTime).reversed())
                         .map(this::mapToPostResponseDTO)
                         .collect(Collectors.toList());
+                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             }
             // Set default General has type id = 1000
-            else if (typeId != null && typeId == 1000) {
+            else if (typeId != null && typeId.contains(1000)) {
                 List<Post> post = postRepository.findPost();
                 Set<String> filter = new HashSet<>();
                 postRequestDTOS = post.stream()
@@ -84,8 +85,10 @@ public class SearchPostServiceImpl implements SearchPostService {
                         .map(this::mapToPostResponseDTO)
                         .collect(Collectors.toList());
                 Collections.shuffle(postRequestDTOS, new Random());
+                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             } else {
                 postRequestDTOS = searchEngineRepository.searchPostByFilter(content, typeId, locationId, startDate, endDate, authorId);
+                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             }
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
             if (order != null) {
@@ -93,13 +96,13 @@ public class SearchPostServiceImpl implements SearchPostService {
                 if (order.getDirection() == Sort.Direction.DESC) {
                     comparator = comparator.reversed();
                 }
-                postRequestDTOS = postRequestDTOS.stream()
+                resultOfSearch = resultOfSearch.stream()
                         .sorted(comparator)
                         .collect(Collectors.toList());
             }
             int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), postRequestDTOS.size());
-            Page<PostSearchDTO> page = new PageImpl<>(postRequestDTOS.subList(start, end), pageable, postRequestDTOS.size());
+            int end = Math.min((start + pageable.getPageSize()), resultOfSearch.size());
+            Page<PostSearchDTO> page = new PageImpl<>(resultOfSearch.subList(start, end), pageable, resultOfSearch.size());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách post by filter", page);
         } catch (Exception ex) {
             log.info("Error when search post by filter: {}", ex.getMessage());

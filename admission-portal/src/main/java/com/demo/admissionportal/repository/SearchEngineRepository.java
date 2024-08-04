@@ -32,5 +32,5 @@ public interface SearchEngineRepository extends JpaRepository<Post, Integer> {
      * @param authorId   the author id
      * @return the list
      */
-    List<PostSearchDTO> searchPostByFilter(String content, Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId);
+    List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId);
 }
