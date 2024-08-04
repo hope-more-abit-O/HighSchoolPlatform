@@ -12,6 +12,8 @@ import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentR
 import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
 import com.demo.admissionportal.dto.response.file.UploadMultipleFilesResponse;
+import com.demo.admissionportal.dto.response.report.FindAllReportsCompletedResponse;
+import com.demo.admissionportal.dto.response.report.FindAllReportsResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
@@ -276,6 +278,63 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo bài viết");
         }
     }
+    @Override
+    public ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status) {
+        try {
+            String username = authentication.getName();
+            Optional<User> existUser = userRepository.findByUsername(username);
+            if (existUser.isEmpty()) {
+                log.info("User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
+            }
+            if (!existUser.get().getRole().equals(Role.STAFF)) {
+                log.info("User not allowed to view reports");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
+            }
+
+            Page<FindAllReportsWithPostDTO> postReports = reportRepository.findAllReportsWithPost(pageable, reportId, ticketId, createBy, content, status);
+            Page<FindAllCommentReportsByStatusDTO> commentReports = reportRepository.findAllCommentReport(pageable, reportId, ticketId, createBy, content, status);
+            Page<FindAllFuntionReportDTO> functionReports = reportRepository.findAllFunctionReports(pageable, reportId, ticketId, createBy, status);
+
+            List<FindAllReportsResponse> allReports = new ArrayList<>();
+
+            allReports.addAll(postReports.map(report -> {
+                FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
+                if (report.getCreateBy() != null) {
+                    ActionerDTO actioner = getUserDetails(report.getCreateBy().getId());
+                    response.setCreateBy(actioner);
+                }
+                return response;
+            }).getContent());
+
+            allReports.addAll(commentReports.map(report -> {
+                FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
+                if (report.getCreateBy() != null) {
+                    ActionerDTO actioner = getUserDetails(report.getCreateBy().getId());
+                    response.setCreateBy(actioner);
+                }
+                return response;
+            }).getContent());
+
+            allReports.addAll(functionReports.map(report -> {
+                FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
+                if (report.getCreateBy() != null) {
+                    ActionerDTO actioner = getUserDetails(report.getCreateBy().getId());
+                    response.setCreateBy(actioner);
+                }
+                return response;
+            }).getContent());
+
+            Page<FindAllReportsResponse> reportPage = new PageImpl<>(allReports, pageable, postReports.getTotalElements() + commentReports.getTotalElements() + functionReports.getTotalElements());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo được tìm thấy", reportPage);
+        } catch (Exception e) {
+            log.error("Error while fetching reports", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo");
+        }
+    }
+
+
 
     @Override
     public ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedReports(Pageable pageable, Authentication authentication,

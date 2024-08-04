@@ -7,6 +7,8 @@ import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentR
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
+import com.demo.admissionportal.dto.response.report.FindAllReportsCompletedResponse;
+import com.demo.admissionportal.dto.response.report.FindAllReportsResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
@@ -164,6 +166,36 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
     }
+
+    /**
+     * Find all reports response entity.
+     *
+     * @param pageable       the pageable
+     * @param authentication the authentication
+     * @param reportId       the report id
+     * @param ticketId       the ticket id
+     * @param createBy       the create by
+     * @param content        the content
+     * @param status         the status
+     * @return the response entity
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<Page<FindAllReportsResponse>>> findAllReports(Pageable pageable, Authentication authentication,
+                                                                                     @RequestParam(required = false) Integer reportId,
+                                                                                     @RequestParam(required = false) String ticketId,
+                                                                                     @RequestParam(required = false) Integer createBy,
+                                                                                     @RequestParam(required = false) String content,
+                                                                                     @RequestParam(required = false) ReportStatus status) {
+        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, content, status);
+        if (reportsResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(reportsResponse);
+        } else if (reportsResponse.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reportsResponse);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(reportsResponse);
+    }
+
 
     /**
      * <h2>Find All Completed Post Reports</h2>
@@ -431,4 +463,5 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(functionReportsResponse);
     }
+
 }

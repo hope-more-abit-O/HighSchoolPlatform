@@ -129,6 +129,24 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
                                                          @Param("content") String content,
                                                          @Param("status") ReportStatus status);
 
+    @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO(" +
+            "r.id, r.ticket_id, p.title, r.create_time, r.status, r.report_type, cr.commentContent) " +
+            "FROM Report r " +
+            "JOIN CommentReport cr ON r.id = cr.reportId " +
+            "JOIN Comment c ON cr.commentId = c.id " +
+            "JOIN Post p ON c.postId = p.id " +
+            "WHERE (:reportId IS NULL OR r.id = :reportId) " +
+            "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
+            "AND (:createBy IS NULL OR r.create_by = :createBy) " +
+            "AND (:content IS NULL OR r.content LIKE %:content%) " +
+            "AND (:status IS NULL OR r.status = :status)")
+    Page<FindAllCommentReportsByStatusDTO> findAllCommentReport(Pageable pageable,
+                                                         @Param("reportId") Integer reportId,
+                                                         @Param("ticketId") String ticketId,
+                                                         @Param("createBy") Integer createBy,
+                                                         @Param("content") String content,
+                                                         @Param("status") ReportStatus status);
+
 
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.function_report.FindAllFuntionReportDTO(" +
             "r.id, r.status, r.create_time, r.report_type, r.create_by, r.ticket_id) " +
