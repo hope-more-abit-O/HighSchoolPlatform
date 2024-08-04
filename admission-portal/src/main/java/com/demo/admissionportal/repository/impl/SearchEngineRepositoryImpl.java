@@ -65,53 +65,52 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
     @Override
     public List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId) {
         StringBuilder sql = new StringBuilder("""
-                    SELECT p.id AS id,
-                        p.title AS title,
-                        p.create_time AS createTime,
-                        p.quote AS quote,
-                        p.thumnail AS thumnail,
-                        p.url AS url,
-                        u.avatar AS avatar,
-                        p.create_by AS createBy,
-                        p.title AS orderByTitle,
-                        CONCAT(ui.name, ' ', uc.campus_name) AS orderByName,
-                        t.name AS orderByTypeName,
-                        ui.code AS orderByCode
-                    FROM [post] p
-                    JOIN [post_type] pt ON p.id = pt.post_id
-                    JOIN [type] t ON t.id = pt.type_id
-                    LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
-                    LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
-                    LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
-                    LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
-                    LEFT JOIN [user] u ON u.id = p.create_by
-                    LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
-                    WHERE p.status = 'ACTIVE'
-                """);
+                SELECT p.id AS id,
+                    p.title AS title,
+                    p.create_time AS createTime,
+                    p.quote AS quote,
+                    p.thumnail AS thumnail,
+                    p.url AS url,
+                    u.avatar AS avatar,
+                    p.create_by AS createBy,
+                    p.title AS orderByTitle,
+                    CONCAT(ui.name, ' ', uc.campus_name) AS orderByName,
+                    t.name AS orderByTypeName,
+                    ui.code AS orderByCode
+                FROM [post] p
+                JOIN [post_type] pt ON p.id = pt.post_id
+                JOIN [type] t ON t.id = pt.type_id
+                LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
+                LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
+                LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
+                LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
+                LEFT JOIN [user] u ON u.id = p.create_by
+                LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
+                WHERE p.status = 'ACTIVE'
+            """);
 
         boolean hasPreviousCondition = false;
 
-
         if (content != null && !content.trim().isEmpty()) {
-            sql.append(" AND (p.title LIKE :content OR ui.name LIKE :content OR t.name LIKE :content OR ui.code LIKE :content)");
+            sql.append(" OR (p.title LIKE :content OR ui.name LIKE :content OR t.name LIKE :content OR ui.code LIKE :content)");
             hasPreviousCondition = true;
         }
 
         if (typeId != null && !typeId.isEmpty()) {
             sql.append(hasPreviousCondition ? " OR " : " AND ");
-            sql.append(" t.id IN (:typeId)");
+            sql.append(" (t.id IS NULL OR t.id IN (:typeId)) ");
             hasPreviousCondition = true;
         }
 
         if (authorId != null && !authorId.isEmpty()) {
             sql.append(hasPreviousCondition ? " OR " : " AND ");
-            sql.append(" ui.university_id IN (:authorId)");
+            sql.append(" (ui.university_id IS NULL OR ui.university_id IN (:authorId)) ");
             hasPreviousCondition = true;
         }
 
         if (locationId != null && !locationId.isEmpty()) {
             sql.append(hasPreviousCondition ? " OR " : " AND ");
-            sql.append(" pr.id IN (:locationId)");
+            sql.append(" (pr.id IS NULL OR pr.id IN (:locationId)) ");
             hasPreviousCondition = true;
         }
 
