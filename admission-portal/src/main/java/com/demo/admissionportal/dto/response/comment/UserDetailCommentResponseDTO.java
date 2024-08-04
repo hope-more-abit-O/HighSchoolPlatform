@@ -18,4 +18,5 @@ public class UserDetailCommentResponseDTO implements Serializable {
     private Integer id;
     private String fullName;
     private String avatar;
+    private String role;
 }

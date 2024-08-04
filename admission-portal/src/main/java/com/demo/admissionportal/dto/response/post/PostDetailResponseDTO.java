@@ -21,5 +21,6 @@ public class PostDetailResponseDTO implements Serializable {
     private List<TypeResponseDTO> listType;
     private List<TagResponseDTO> listTag;
     private String create_by;
+    private String role;
     private List<CommentResponseDTO> comments;
 }
