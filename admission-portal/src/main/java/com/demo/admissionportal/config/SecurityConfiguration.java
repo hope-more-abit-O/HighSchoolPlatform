@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -51,6 +53,7 @@ public class SecurityConfiguration {
     private static final String SEARCH_API = "/api/v1/search/**";
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
+    private static final String PACKAGE_API = "/api/v1/package/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
