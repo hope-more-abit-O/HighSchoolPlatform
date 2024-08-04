@@ -67,6 +67,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(STUDENT_REPORT, REPORTS_API).hasAnyAuthority("USER","STAFF")
                                 .requestMatchers(CHAT_API).hasAnyAuthority("STAFF", "USER", "CONSULTANT")
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(HttpMethod.GET ,"/api/v1/university").permitAll()
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.GET,MAJOR_API).permitAll()
