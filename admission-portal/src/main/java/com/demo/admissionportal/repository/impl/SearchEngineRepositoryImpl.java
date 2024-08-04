@@ -52,10 +52,10 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                 LEFT JOIN [user] u ON u.id = si.staff_id  OR u.id = ui.university_id
                 LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
                 WHERE p.status = 'ACTIVE'
-                        AND (p.title LIKE :content
-                            OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :content
-                            OR t.name LIKE :content
-                            OR ui.code LIKE :content)
+                        AND ( (p.title IS NULL OR p.title LIKE :content)
+                            OR ((CONCAT(ui.name, ' ', uc.campus_name) IS NULL OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :content)
+                            OR (t.name IS NULL OR t.name LIKE :content))
+                            OR (ui.code IS NULL OR ui.code LIKE :content))
                 """;
         Query query = entityManager.createNativeQuery(sql, "PostSearchDTOResult");
         query.setParameter("content", content != null ? "%" + content + "%" : null);
@@ -65,18 +65,18 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
     @Override
     public List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId) {
         StringBuilder sql = new StringBuilder("""
-                    SELECT DISTINCT p.id AS id,
+                    SELECT p.id AS id,
                         p.title AS title,
                         p.create_time AS createTime,
                         p.quote AS quote,
                         p.thumnail AS thumnail,
                         p.url AS url,
-                        CASE
-                            WHEN COALESCE(si.first_name, si.middle_name, si.last_name) IS NOT NULL THEN 
-                                TRIM(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, '')))
-                            WHEN ui.name IS NOT NULL THEN TRIM(ui.name)
-                        END AS createBy,
-                        u.avatar AS avatar
+                        u.avatar AS avatar,
+                        p.create_by AS createBy,
+                        p.title AS orderByTitle,
+                        CONCAT(ui.name, ' ', uc.campus_name) AS orderByName,
+                        t.name AS orderByTypeName,
+                        ui.code AS orderByCode
                     FROM [post] p
                     JOIN [post_type] pt ON p.id = pt.post_id
                     JOIN [type] t ON t.id = pt.type_id
@@ -91,13 +91,20 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
 
         boolean hasPreviousCondition = false;
 
+
+        if (content != null && !content.trim().isEmpty()) {
+            sql.append(" AND (p.title LIKE :content OR ui.name LIKE :content OR t.name LIKE :content OR ui.code LIKE :content)");
+            hasPreviousCondition = true;
+        }
+
         if (typeId != null && !typeId.isEmpty()) {
-            sql.append(" AND t.id IN (:typeId)");
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
+            sql.append(" t.id IN (:typeId)");
             hasPreviousCondition = true;
         }
 
         if (authorId != null && !authorId.isEmpty()) {
-            sql.append(hasPreviousCondition ? " AND " : " AND ");
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
             sql.append(" ui.university_id IN (:authorId)");
             hasPreviousCondition = true;
         }
@@ -117,14 +124,9 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
         if (endDate != null) {
             sql.append(hasPreviousCondition ? " OR " : " AND ");
             sql.append(" p.create_time <= :endDate");
-            hasPreviousCondition = true;
         }
 
-        if (content != null && !content.trim().isEmpty()) {
-            sql.append(hasPreviousCondition ? " OR " : " AND ");
-            sql.append("(p.title LIKE :content OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :content OR t.name LIKE :content OR ui.code LIKE :content)");
-        }
-
+        sql.append(" ORDER BY CASE WHEN p.title LIKE :content OR ui.name LIKE :content OR t.name LIKE :content OR ui.code LIKE :content THEN 0 ELSE 1 END, p.create_time DESC");
         Query query = entityManager.createNativeQuery(sql.toString(), "PostSearchDTOResult");
 
         if (typeId != null && !typeId.isEmpty()) {
@@ -149,6 +151,8 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
 
         if (content != null && !content.trim().isEmpty()) {
             query.setParameter("content", "%" + content + "%");
+        } else {
+            query.setParameter("content", null);
         }
 
         return query.getResultList();
