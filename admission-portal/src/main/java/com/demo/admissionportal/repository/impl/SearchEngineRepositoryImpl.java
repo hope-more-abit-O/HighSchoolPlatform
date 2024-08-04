@@ -63,48 +63,94 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
     }
 
     @Override
-    public List<PostSearchDTO> searchPostByFilter(String content, Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId) {
-        String sql = """
-                         SELECT DISTINCT p.id AS id,
-                         p.title AS title,
-                         p.create_time AS createTime,
-                         p.quote AS quote,
-                         p.thumnail AS thumnail,
-                         p.url AS url,
+    public List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId) {
+        StringBuilder sql = new StringBuilder("""
+                    SELECT DISTINCT p.id AS id,
+                        p.title AS title,
+                        p.create_time AS createTime,
+                        p.quote AS quote,
+                        p.thumnail AS thumnail,
+                        p.url AS url,
                         CASE
-                            WHEN COALESCE(si.first_name, si.middle_name, si.last_name) IS NOT NULL THEN\s
-                                 TRIM(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, '')))
+                            WHEN COALESCE(si.first_name, si.middle_name, si.last_name) IS NOT NULL THEN 
+                                TRIM(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, '')))
                             WHEN ui.name IS NOT NULL THEN TRIM(ui.name)
                         END AS createBy,
                         u.avatar AS avatar
-                        FROM [post] p
-                        JOIN [post_type] pt ON p.id = pt.post_id
-                        JOIN [type] t ON t.id = pt.type_id
-                        LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
-                        LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
-                        LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
-                        LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
-                        LEFT JOIN [user] u ON u.id = si.staff_id  OR u.id = ui.university_id
-                        LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
-                        WHERE p.status = 'ACTIVE'
-                               AND (
-                               (:typeId IS NULL OR t.id = :typeId) AND
-                               (:authorId IS NULL OR ui.university_id = :authorId) AND
-                               (:locationId IS NULL OR pr.id = :locationId) AND
-                               (:startDate IS NULL OR p.create_time >= :startDate) AND
-                               (:endDate IS NULL OR p.create_time <= :endDate) AND
-                               (:content IS NULL OR p.title LIKE :content
-                                    OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :content
-                                    OR t.name LIKE :content
-                                    OR ui.code LIKE :content))
-                """;
-        Query query = entityManager.createNativeQuery(sql, "PostSearchDTOResult");
-        query.setParameter("typeId", typeId);
-        query.setParameter("locationId", locationId);
-        query.setParameter("startDate", startDate);
-        query.setParameter("endDate", endDate);
-        query.setParameter("authorId", authorId);
-        query.setParameter("content", content != null ? "%" + content + "%" : null);
+                    FROM [post] p
+                    JOIN [post_type] pt ON p.id = pt.post_id
+                    JOIN [type] t ON t.id = pt.type_id
+                    LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id
+                    LEFT JOIN [staff_info] si ON p.create_by = si.staff_id
+                    LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id
+                    LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id
+                    LEFT JOIN [user] u ON u.id = p.create_by
+                    LEFT JOIN [province] pr ON uc.province_id = pr.id OR si.province_id = pr.id
+                    WHERE p.status = 'ACTIVE'
+                """);
+
+        boolean hasPreviousCondition = false;
+
+        if (typeId != null && !typeId.isEmpty()) {
+            sql.append(" AND t.id IN (:typeId)");
+            hasPreviousCondition = true;
+        }
+
+        if (authorId != null && !authorId.isEmpty()) {
+            sql.append(hasPreviousCondition ? " AND " : " AND ");
+            sql.append(" ui.university_id IN (:authorId)");
+            hasPreviousCondition = true;
+        }
+
+        if (locationId != null && !locationId.isEmpty()) {
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
+            sql.append(" pr.id IN (:locationId)");
+            hasPreviousCondition = true;
+        }
+
+        if (startDate != null) {
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
+            sql.append(" p.create_time >= :startDate");
+            hasPreviousCondition = true;
+        }
+
+        if (endDate != null) {
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
+            sql.append(" p.create_time <= :endDate");
+            hasPreviousCondition = true;
+        }
+
+        if (content != null && !content.trim().isEmpty()) {
+            sql.append(hasPreviousCondition ? " OR " : " AND ");
+            sql.append("(p.title LIKE :content OR CONCAT(ui.name, ' ', uc.campus_name) LIKE :content OR t.name LIKE :content OR ui.code LIKE :content)");
+        }
+
+        Query query = entityManager.createNativeQuery(sql.toString(), "PostSearchDTOResult");
+
+        if (typeId != null && !typeId.isEmpty()) {
+            query.setParameter("typeId", typeId);
+        }
+
+        if (authorId != null && !authorId.isEmpty()) {
+            query.setParameter("authorId", authorId);
+        }
+
+        if (locationId != null && !locationId.isEmpty()) {
+            query.setParameter("locationId", locationId);
+        }
+
+        if (startDate != null) {
+            query.setParameter("startDate", startDate);
+        }
+
+        if (endDate != null) {
+            query.setParameter("endDate", endDate);
+        }
+
+        if (content != null && !content.trim().isEmpty()) {
+            query.setParameter("content", "%" + content + "%");
+        }
+
         return query.getResultList();
     }
 }
