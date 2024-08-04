@@ -168,16 +168,19 @@ public class ReportController {
     }
 
     /**
-     * Find all reports response entity.
+     * <h2>Find All Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
+     * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
+     * </p>
      *
-     * @param pageable       the pageable
-     * @param authentication the authentication
-     * @param reportId       the report id
-     * @param ticketId       the ticket id
-     * @param createBy       the create by
-     * @param content        the content
-     * @param status         the status
-     * @return the response entity
+     * @param pageable       Pagination details.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @param reportId       Optional filter for the report ID.
+     * @param ticketId       Optional filter for the ticket ID.
+     * @param createBy       Optional filter for the creator ID.
+     * @return A {@link ResponseData} object containing a paginated list of completed post reports.
+     * @since 1.0
      */
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
@@ -185,9 +188,9 @@ public class ReportController {
                                                                                      @RequestParam(required = false) Integer reportId,
                                                                                      @RequestParam(required = false) String ticketId,
                                                                                      @RequestParam(required = false) Integer createBy,
-                                                                                     @RequestParam(required = false) String content,
+                                                                                     @RequestParam(required = false) ReportType reportType,
                                                                                      @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, content, status);
+        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, reportType, status);
         if (reportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(reportsResponse);
         } else if (reportsResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -198,7 +201,7 @@ public class ReportController {
 
 
     /**
-     * <h2>Find All Completed Post Reports</h2>
+     * <h2>Find All Completed Reports</h2>
      * <p>
      * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
      * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.

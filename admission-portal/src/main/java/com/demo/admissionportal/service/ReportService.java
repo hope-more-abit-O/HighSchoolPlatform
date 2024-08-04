@@ -264,7 +264,7 @@ public interface ReportService {
     ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedReports(Pageable pageable, Authentication authentication,
                                                                                 Integer reportId, String ticketId, Integer createBy,
                                                                                 ReportType reportType);
-    ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
+    ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, ReportType reportType, ReportStatus status);
 
 
 }

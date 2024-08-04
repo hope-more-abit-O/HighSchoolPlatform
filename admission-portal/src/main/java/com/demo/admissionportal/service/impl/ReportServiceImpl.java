@@ -279,7 +279,7 @@ public class ReportServiceImpl implements ReportService {
         }
     }
     @Override
-    public ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status) {
+    public ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, ReportType reportType, ReportStatus status) {
         try {
             String username = authentication.getName();
             Optional<User> existUser = userRepository.findByUsername(username);
@@ -292,9 +292,9 @@ public class ReportServiceImpl implements ReportService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được phép !");
             }
 
-            Page<FindAllReportsWithPostDTO> postReports = reportRepository.findAllReportsWithPost(pageable, reportId, ticketId, createBy, content, status);
-            Page<FindAllCommentReportsByStatusDTO> commentReports = reportRepository.findAllCommentReport(pageable, reportId, ticketId, createBy, content, status);
-            Page<FindAllFuntionReportDTO> functionReports = reportRepository.findAllFunctionReports(pageable, reportId, ticketId, createBy, status);
+            Page<FindAllReportsWithPostDTO> postReports = reportRepository.findAllReportsWithPosts(pageable, reportId, ticketId, createBy, reportType, status);
+            Page<FindAllCommentReportsByStatusDTO> commentReports = reportRepository.findAllCommentReport(pageable, reportId, ticketId, createBy, reportType, status);
+            Page<FindAllFuntionReportDTO> functionReports = reportRepository.findAllFunctionReport(pageable, reportId, ticketId, createBy, reportType, status);
 
             List<FindAllReportsResponse> allReports = new ArrayList<>();
 
