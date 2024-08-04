@@ -2,9 +2,7 @@ package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.admission.AdmissionQuotaDTO;
-import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramMethodQuotaDTO;
-import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
+import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
@@ -16,7 +14,6 @@ import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionTrainingProgramSubjectGroupResponse;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
-import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
@@ -209,9 +206,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAdmissionTrainingProgram(admission.getId(), request.getQuotas(), majors);
 
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = setAdmissionTrainingProgramMethod(majors, methods, admissionTrainingPrograms, admissionMethods, request.getQuotas());
-
-        admissionTrainingProgramMethodService.saveAll(admissionTrainingProgramMethods);
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethod = setAdmissionTrainingProgramMethod(majors, methods, admissionTrainingPrograms, admissionMethods, request.getQuotas());
 
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = createAdmissionTrainingProgramSubjectGroup(request.getQuotas(), admissionTrainingPrograms, majors) ;
 
@@ -343,11 +338,14 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                       AdmissionStatus status) {
         Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
 
+        if (admissions.isEmpty()) {
+            ResponseData.ok("Không tìm thấy đề án thành công.");
+        }
         List<ActionerDTO> actionerDTOs = this.getActioners(admissions.getContent());
 
         List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.getContent().stream().map(Admission::getUniversityId).toList());
 
-        return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mapping(element, actionerDTOs, universityInfos)));
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mappingInfo(element, actionerDTOs, universityInfos)));
     }
 
     protected List<ActionerDTO> getActioners(List<Admission> admissions) {
@@ -358,7 +356,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return userService.getActioners(actionerIds.stream().toList());
     }
 
-    protected FullAdmissionDTO mapping(Admission admission, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
+    protected FullAdmissionDTO mappingInfo(Admission admission, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
 
         if (admission.getUpdateBy() != null){
@@ -379,6 +377,18 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         UniversityInfo universityInfo =  universityInfos.stream().filter(uni -> uni.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University id not found"));
         result.setUniversity(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class));
+
+        return result;
+    }
+
+    protected FullAdmissionDTO mappingFull(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
+        FullAdmissionDTO result = this.mappingInfo(admission, actionerDTOs, universityInfos);
+
+        List<AdmissionMethodDTO> admissionMethodDTOS = admissionMethods.stream().map((element) -> modelMapper.map(element, AdmissionMethodDTO.class)).toList();
+
+        List<AdmissionTrainingProgramDTO> admissionTrainingProgramDTOS = admissionTrainingPrograms.stream().map((element) -> modelMapper.map(element, AdmissionTrainingProgramDTO.class)).toList();
+
+//        List<AdmissionTrainingProgramSubjectGroupDTO> ad = admissionTrainingPrograms.stream().map((element) -> modelMapper.map(element, AdmissionTrainingProgramDTO.class)).toList();
 
         return result;
     }

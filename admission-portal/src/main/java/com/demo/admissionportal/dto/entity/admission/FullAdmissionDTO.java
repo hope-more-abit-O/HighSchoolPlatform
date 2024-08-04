@@ -17,12 +17,22 @@ import java.util.List;
 public class FullAdmissionDTO {
     private Integer admissionId;
     private Integer year;
+    private String name;
     private InfoUniversityResponseDTO university;
     private ActionerDTO createBy;
     private Date createTime;
     private ActionerDTO updateBy;
     private Date updateTime;
     private String status;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<AdmissionMethodDTO> admissionMethods;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<AdmissionTrainingProgramDTO> admissionTrainingPrograms;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<AdmissionTrainingProgramSubjectGroupDTO> admissionTrainingProgramSubjectGroups;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<FullAdmissionQuotaDTO> details;
