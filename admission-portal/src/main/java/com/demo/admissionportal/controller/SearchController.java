@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -36,7 +38,7 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = true, name = "content") String content,
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = false, name = "content") String content,
                                                                         @PageableDefault(size = 10) Pageable pageable) {
         ResponseData<Page<PostSearchDTO>> response = searchPostService.searchPost(content, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -65,6 +67,12 @@ public class SearchController {
                                                                               @RequestParam(required = false, name = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                                               @RequestParam(required = false, name = "authorId") List<Integer> authorId,
                                                                               @PageableDefault(size = 10) Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            LocalDateTime startDateTime = startDate.atTime(LocalTime.MIN).plusHours(7);
+            LocalDateTime endDateTime = startDate.atTime(LocalTime.MIN).plusHours(7);
+            startDate = startDateTime.toLocalDate();
+            endDate = endDateTime.toLocalDate();
+        }
         ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(content, typeId, locationId, startDate, endDate, authorId, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

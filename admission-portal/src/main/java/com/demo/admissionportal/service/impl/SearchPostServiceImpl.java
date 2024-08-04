@@ -65,31 +65,22 @@ public class SearchPostServiceImpl implements SearchPostService {
             log.info("Start retrieve search post by filter");
             List<PostSearchDTO> resultOfSearch = new ArrayList<>();
             List<PostSearchDTO> postRequestDTOS;
-            // Set default Newsiest has type id = 999
+
             if (typeId != null && typeId.contains(999)) {
-                List<Post> post = postRepository.findPost();
-                Set<String> filter = new HashSet<>();
-                postRequestDTOS = post.stream()
-                        .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
-                        .sorted(Comparator.comparing(Post::getCreateTime).reversed())
-                        .map(this::mapToPostResponseDTO)
-                        .collect(Collectors.toList());
+                postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
                 resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
-            }
-            // Set default General has type id = 1000
-            else if (typeId != null && typeId.contains(1000)) {
-                List<Post> post = postRepository.findPost();
-                Set<String> filter = new HashSet<>();
-                postRequestDTOS = post.stream()
-                        .filter(p -> filter.add(p.getId() + p.getTitle() + p.getContent()))
-                        .map(this::mapToPostResponseDTO)
-                        .collect(Collectors.toList());
+            } else if (typeId != null && typeId.contains(1000)) {
+                postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
                 Collections.shuffle(postRequestDTOS, new Random());
                 resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             } else {
                 postRequestDTOS = searchEngineRepository.searchPostByFilter(content, typeId, locationId, startDate, endDate, authorId);
-                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
+                resultOfSearch.addAll(postRequestDTOS.stream()
+                        .map(this::enhancePostSearchDTO)
+                        .distinct()
+                        .collect(Collectors.toList()));
             }
+
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
             if (order != null) {
                 Comparator<PostSearchDTO> comparator = Comparator.comparing(PostSearchDTO::getCreateTime);
@@ -100,6 +91,7 @@ public class SearchPostServiceImpl implements SearchPostService {
                         .sorted(comparator)
                         .collect(Collectors.toList());
             }
+
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), resultOfSearch.size());
             Page<PostSearchDTO> page = new PageImpl<>(resultOfSearch.subList(start, end), pageable, resultOfSearch.size());
@@ -110,39 +102,44 @@ public class SearchPostServiceImpl implements SearchPostService {
         }
     }
 
-    private PostSearchDTO mapToPostResponseDTO(Post post) {
-        String avatar = getAvatarUserDTO(post.getCreateBy());
-        String name = getNameUserDTO(post.getCreateBy());
-        PostSearchDTO postSearchDTO = modelMapper.map(post, PostSearchDTO.class);
-        postSearchDTO.setCreateBy(name);
-        postSearchDTO.setAvatar(avatar);
-        return postSearchDTO;
+    private List<PostSearchDTO> mapToPostResponseDTO(List<Post> posts) {
+        return posts.stream()
+                .map(post -> {
+                    PostSearchDTO postSearchDTO = modelMapper.map(post, PostSearchDTO.class);
+                    String avatar = getAvatarUserDTO(post.getCreateBy());
+                    String name = getNameUserDTO(post.getCreateBy());
+                    postSearchDTO.setFullName(name);
+                    postSearchDTO.setAvatar(avatar);
+                    return postSearchDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private PostSearchDTO enhancePostSearchDTO(PostSearchDTO postSearchDTO) {
+        return Optional.ofNullable(postSearchDTO)
+                .map(dto -> {
+                    String avatar = getAvatarUserDTO(dto.getCreateBy());
+                    String name = getNameUserDTO(dto.getCreateBy());
+                    dto.setFullName(name);
+                    dto.setAvatar(avatar);
+                    return dto;
+                })
+                .orElse(null);
     }
 
     private String getAvatarUserDTO(Integer createBy) {
-        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
-        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
-        String avatar = null;
-        if (staffInfo != null) {
-            User user = userRepository.findUserById(staffInfo.getId());
-            avatar = user.getAvatar();
-        } else if (consultantInfo != null) {
-            User user = userRepository.findUserById(consultantInfo.getUniversityId());
-            avatar = user.getAvatar();
-        }
-        return avatar;
+        return Optional.ofNullable(staffInfoRepository.findStaffInfoById(createBy))
+                .map(staffInfo -> userRepository.findUserById(staffInfo.getId()).getAvatar())
+                .orElseGet(() -> Optional.ofNullable(consultantInfoRepository.findConsultantInfoById(createBy))
+                        .map(consultantInfo -> userRepository.findUserById(consultantInfo.getUniversityId()).getAvatar())
+                        .orElse(null));
     }
 
     private String getNameUserDTO(Integer createBy) {
-        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
-        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
-        String fullName = null;
-        if (staffInfo != null) {
-            fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
-        } else if (consultantInfo != null) {
-            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
-            fullName = universityInfo.getName();
-        }
-        return fullName;
+        return Optional.ofNullable(staffInfoRepository.findStaffInfoById(createBy))
+                .map(staffInfo -> staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName())
+                .orElseGet(() -> Optional.ofNullable(consultantInfoRepository.findConsultantInfoById(createBy))
+                        .map(consultantInfo -> universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId()).getName())
+                        .orElse(null));
     }
 }
