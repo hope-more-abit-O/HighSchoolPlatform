@@ -161,6 +161,7 @@ public class CommentServiceImpl implements CommentService {
                 .id(user.getId())
                 .fullName(fullName)
                 .avatar(user.getAvatar())
+                .role(user.getRole().name())
                 .build();
     }
 

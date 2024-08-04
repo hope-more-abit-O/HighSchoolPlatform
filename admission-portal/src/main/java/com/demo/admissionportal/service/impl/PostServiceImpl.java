@@ -458,11 +458,13 @@ public class PostServiceImpl implements PostService {
         List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         String info = getUserInfoPostDTO(post.getCreateBy());
+        String role = getRoleUser(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .create_by(info)
+                .role(role)
                 .comments(commentResponseDTO)
                 .build();
     }
@@ -1165,5 +1167,10 @@ public class PostServiceImpl implements PostService {
             log.error("Error when get posts with url {}:", url);
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
         }
+    }
+
+    private String getRoleUser(Integer createBy) {
+        User user = userRepository.findUserById(createBy);
+        return user.getRole().name();
     }
 }
