@@ -72,6 +72,8 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                          p.thumnail AS thumnail,
                          p.url AS url,
                         CASE
+                            WHEN COALESCE(si.first_name, si.middle_name, si.last_name) IS NOT NULL THEN\s
+                                 TRIM(CONCAT(COALESCE(si.first_name, ''), ' ', COALESCE(si.middle_name, ''), ' ', COALESCE(si.last_name, '')))
                             WHEN ui.name IS NOT NULL THEN TRIM(ui.name)
                         END AS createBy,
                         u.avatar AS avatar

@@ -4,10 +4,7 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.post.PostResponseDTO;
-import com.demo.admissionportal.entity.ConsultantInfo;
-import com.demo.admissionportal.entity.Post;
-import com.demo.admissionportal.entity.StaffInfo;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.SearchPostService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +33,7 @@ public class SearchPostServiceImpl implements SearchPostService {
     private final StaffInfoRepository staffInfoRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
     private final UserRepository userRepository;
+    private final UniversityInfoRepository universityInfoRepository;
 
     @Override
     public ResponseData<Page<PostSearchDTO>> searchPost(String content, Pageable pageable) {
@@ -111,18 +109,14 @@ public class SearchPostServiceImpl implements SearchPostService {
 
     private PostSearchDTO mapToPostResponseDTO(Post post) {
         String avatar = getAvatarUserDTO(post.getCreateBy());
+        String name = getNameUserDTO(post.getCreateBy());
         PostSearchDTO postSearchDTO = modelMapper.map(post, PostSearchDTO.class);
+        postSearchDTO.setCreateBy(name);
         postSearchDTO.setAvatar(avatar);
         return postSearchDTO;
     }
 
-    /**
-     * Gets avatar user dto.
-     *
-     * @param createBy the create by
-     * @return the avatar user dto
-     */
-    public String getAvatarUserDTO(Integer createBy) {
+    private String getAvatarUserDTO(Integer createBy) {
         StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
         ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
         String avatar = null;
@@ -134,5 +128,18 @@ public class SearchPostServiceImpl implements SearchPostService {
             avatar = user.getAvatar();
         }
         return avatar;
+    }
+
+    private String getNameUserDTO(Integer createBy) {
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(createBy);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(createBy);
+        String fullName = null;
+        if (staffInfo != null) {
+            fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
+        } else if (consultantInfo != null) {
+            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
+            fullName = universityInfo.getName();
+        }
+        return fullName;
     }
 }
