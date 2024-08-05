@@ -53,4 +53,10 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
                                @Param("statusString") String statusString,
                                Pageable pageable);
 
+    @Query(value = """
+    SELECT sg.*
+    FROM [subject_group] sg
+    RIGHT JOIN [admission_training_program_subject_group] atpsg ON sg.id = atpsg.subject_group_id
+    WHERE (atpsg.admission_training_program_id IN (:admissionTrainingProgramIds))""", nativeQuery = true)
+    List<SubjectGroup> findByAdmissionTrainingProgramId(@Param("admissionTrainingProgramIds") List<Integer> admissionTrainingProgramIds);
 }

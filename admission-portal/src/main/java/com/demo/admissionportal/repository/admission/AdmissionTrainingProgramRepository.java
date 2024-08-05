@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface AdmissionTrainingProgramRepository extends JpaRepository<AdmissionTrainingProgram, Integer> {
 
+
+    List<AdmissionTrainingProgram> findByAdmissionId(Integer admissionId);
 }

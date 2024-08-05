@@ -18,6 +18,7 @@ public class FullAdmissionDTO {
     private Integer admissionId;
     private Integer year;
     private String name;
+    private List<String> sources;
     private InfoUniversityResponseDTO university;
     private ActionerDTO createBy;
     private Date createTime;

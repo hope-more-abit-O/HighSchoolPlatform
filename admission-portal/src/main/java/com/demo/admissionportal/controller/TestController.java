@@ -1,10 +1,14 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.service.AddressService;
 import com.demo.admissionportal.service.ConsultantService;
+import com.demo.admissionportal.service.impl.AddressServiceImpl;
+import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +32,7 @@ public class TestController {
     private final UniversityServiceImpl universityServiceImpl;
     private final CreateUniversityService createUniversityService;
     private final ValidationServiceImpl validationServiceImpl;
+    private final AdmissionServiceImpl admissionService;
 
     @GetMapping("/")
     public String home(){
@@ -63,5 +68,11 @@ public class TestController {
     @GetMapping("/validate-email/{email}")
     public Boolean validateEmail(@PathVariable String email){
         return validationServiceImpl.validateEmail(email);
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
+        return ResponseEntity.ok(admissionService.getById(id));
     }
 }

@@ -14,5 +14,5 @@ import java.util.List;
 @Builder
 public class AdmissionTrainingProgramSubjectGroupDTO {
     private Integer admissionTrainingProgramId;
-    private List<SubjectGroupResponseDTO2> subjectGroupIds;
+    private List<SubjectGroupResponseDTO2> subjectGroups;
 }

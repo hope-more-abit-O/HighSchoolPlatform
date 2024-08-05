@@ -106,4 +106,8 @@ public class AdmissionMethodServiceImpl {
 
         return saveAllAdmissionMethodWithListMethods(admissionId, methods);
     }
+
+    public List<AdmissionMethod> findByAdmissionId(Integer id) {
+        return admissionMethodRepository.findByAdmissionId(id);
+    }
 }

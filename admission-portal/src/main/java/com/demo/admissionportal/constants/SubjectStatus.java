@@ -8,9 +8,14 @@ public enum SubjectStatus {
     /**
      * Active subject status.
      */
-    ACTIVE,
+    ACTIVE("Hoạt động"),
     /**
      * Inactive subject status.
      */
-    INACTIVE
+    INACTIVE("Không hoạt động");
+    public final String name;
+
+    SubjectStatus(String name) {
+        this.name = name;
+    }
 }

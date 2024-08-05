@@ -75,4 +75,9 @@ public class AdmissionController {
                 pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status
         ));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
+        return ResponseEntity.ok(admissionService.getById(id));
+    }
 }

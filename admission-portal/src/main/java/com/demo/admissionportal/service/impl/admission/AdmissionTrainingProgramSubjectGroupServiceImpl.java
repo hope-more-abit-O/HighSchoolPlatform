@@ -21,4 +21,8 @@ public class AdmissionTrainingProgramSubjectGroupServiceImpl {
     public List<AdmissionTrainingProgramSubjectGroup> saveAll(List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups) {
         return admissionTrainingProgramSubjectGroupRepository.saveAll(admissionTrainingProgramSubjectGroups);
     }
+
+    public List<AdmissionTrainingProgramSubjectGroup> findByAdmissionTrainingProgramId(List<Integer> admissionTrainingProgramIds) {
+        return admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
+    }
 }

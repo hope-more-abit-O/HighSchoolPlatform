@@ -1,5 +1,7 @@
 package com.demo.admissionportal.entity.admission.sub_entity;
 
+import com.demo.admissionportal.dto.entity.admission.AdmissionScoreDTO;
+import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
@@ -39,5 +41,10 @@ public class AdmissionTrainingProgramMethodId implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(admissionTrainingProgramId, admissionMethodId);
+    }
+
+    public AdmissionTrainingProgramMethodId(AdmissionScoreDTO admissionScoreDTO) {
+        this.admissionTrainingProgramId = admissionScoreDTO.getAdmissionTrainingProgramId();
+        this.admissionMethodId = admissionScoreDTO.getAdmissionMethodId();
     }
 }
