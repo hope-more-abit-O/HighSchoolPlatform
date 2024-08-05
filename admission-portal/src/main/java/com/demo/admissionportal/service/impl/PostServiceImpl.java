@@ -243,7 +243,7 @@ public class PostServiceImpl implements PostService {
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
-            post.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
+            post.setUrl(convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -457,16 +457,14 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
         List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
-        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        if (postPropertiesResponseDTO.getCreate_time() != null) {
-//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
-        }
         String info = getUserInfoPostDTO(post.getCreateBy());
+        String role = getRoleUser(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .create_by(info)
+                .role(role)
                 .comments(commentResponseDTO)
                 .build();
     }
@@ -489,7 +487,7 @@ public class PostServiceImpl implements PostService {
             existingPost.setUpdateTime(new Date());
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
-            existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
+            existingPost.setUrl(convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             existingPost.setUpdateBy(updateBy);
             postRepository.save(existingPost);
 
@@ -1151,5 +1149,28 @@ public class PostServiceImpl implements PostService {
     private String mapperConsultantInfoResponseDTOV2(ConsultantInfo consultantInfo) {
         ConsultantInfo info = consultantInfoRepository.findConsultantInfoById(consultantInfo.getId());
         return info.getFirstName().trim() + " " + info.getMiddleName().trim() + " " + info.getLastName();
+    }
+
+
+    @Override
+    public ResponseData<PostDetailResponseDTO> getPostsByURL(String url) {
+        try {
+            log.info("Received request for URL: {}", url); // Add logging here
+            Post posts = postRepository.findFirstByUrl(url);
+            PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
+            if (result != null) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với url: " + url, result);
+            }
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url:" + url);
+
+        } catch (Exception ex) {
+            log.error("Error when get posts with url {}:", url);
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    private String getRoleUser(Integer createBy) {
+        User user = userRepository.findUserById(createBy);
+        return user.getRole().name();
     }
 }

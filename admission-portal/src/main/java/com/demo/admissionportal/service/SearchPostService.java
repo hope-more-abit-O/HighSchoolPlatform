@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * The interface Search post service.
@@ -24,6 +25,7 @@ public interface SearchPostService {
     /**
      * Search filter post response data.
      *
+     * @param content    the content
      * @param typeId     the type id
      * @param locationId the location id
      * @param startDate  the start date
@@ -32,5 +34,5 @@ public interface SearchPostService {
      * @param pageable   the pageable
      * @return the response data
      */
-    ResponseData<Page<PostSearchDTO>> searchFilterPost(Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId, Pageable pageable);
+    ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId, Pageable pageable);
 }

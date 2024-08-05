@@ -38,9 +38,17 @@ public interface UniversityCampusService {
     /**
      * Update university campus response data.
      *
-     * @param id         the id
+     * @param campusId   the campus id
      * @param requestDTO the request dto
      * @return the response data
      */
     ResponseData<UniversityCampusProperties> updateUniversityCampus(Integer campusId, UpdateCampusRequestDTO requestDTO);
+
+    /**
+     * Change type university campus response data.
+     *
+     * @param campusID the campus id
+     * @return the response data
+     */
+    ResponseData<String> changeTypeUniversityCampus(Integer campusID);
 }

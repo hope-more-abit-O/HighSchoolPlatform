@@ -124,4 +124,15 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT p.* FROM post p " +
             "WHERE p.status = 'ACTIVE'", nativeQuery = true)
     List<Post> findAllWithStatus();
+
+    /**
+     * Find first by url post.
+     *
+     * @param url the url
+     * @return the post
+     */
+    @Query(value = "SELECT * " +
+                   "FROM [post] p " +
+                   "WHERE p.url = :url", nativeQuery = true)
+    Post findFirstByUrl(String url);
 }

@@ -24,6 +24,7 @@ public interface SearchEngineRepository extends JpaRepository<Post, Integer> {
     /**
      * Search post by filter list.
      *
+     * @param content    the content
      * @param typeId     the type id
      * @param locationId the location id
      * @param startDate  the start date
@@ -31,5 +32,5 @@ public interface SearchEngineRepository extends JpaRepository<Post, Integer> {
      * @param authorId   the author id
      * @return the list
      */
-    List<PostSearchDTO> searchPostByFilter(Integer typeId, Integer locationId, LocalDate startDate, LocalDate endDate, Integer authorId);
+    List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId);
 }
