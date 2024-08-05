@@ -62,20 +62,33 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         req -> req
                                 .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
+
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
+
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
+
                                 .requestMatchers(STUDENT_REPORT, REPORTS_API).hasAnyAuthority("USER","STAFF")
+
                                 .requestMatchers(CHAT_API).hasAnyAuthority("STAFF", "USER", "CONSULTANT")
+
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university/info/{id}").permitAll()
                                 .requestMatchers(HttpMethod.GET ,"/api/v1/university").permitAll()
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
+
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+
                                 .requestMatchers(HttpMethod.GET,MAJOR_API).permitAll()
                                 .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
+
                                 .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
                                 .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
+
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
+
                                 .requestMatchers(ADMISSION_API).hasAnyAuthority("ADMIN", "STAFF", "UNIVERSITY", "CONSULTANT")
+
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,

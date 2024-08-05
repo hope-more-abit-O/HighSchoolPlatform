@@ -99,7 +99,6 @@ public class UniversityController {
     }
 
     @GetMapping("/{id}")
-    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
