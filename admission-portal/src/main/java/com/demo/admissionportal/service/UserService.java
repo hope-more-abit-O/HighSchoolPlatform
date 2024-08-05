@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
@@ -7,15 +8,15 @@ import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
-import com.demo.admissionportal.exception.exceptions.NotAllowedException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 
@@ -115,7 +116,7 @@ public interface UserService extends UserDetailsService {
      * @return the full user response dto
      * @throws ResourceNotFoundException the resource not found exception
      */
-    FullUserResponseDTO mappingResponse(User user) throws ResourceNotFoundException;
+    FullUserResponseDTO mappingFullResponse(User user) throws ResourceNotFoundException;
 
     /**
      * Mapping response full user response dto.
@@ -125,7 +126,9 @@ public interface UserService extends UserDetailsService {
      * @return the full user response dto
      * @throws ResourceNotFoundException the resource not found exception
      */
-    FullUserResponseDTO mappingResponse(User user, List<ActionerDTO> actionerDTOS) throws ResourceNotFoundException;
+    FullUserResponseDTO mappingFullResponse(User user, List<ActionerDTO> actionerDTOS) throws ResourceNotFoundException;
+
+    InfoUserResponseDTO mappingInfoResponse(User user) throws ResourceNotFoundException;
 
     /**
      * Save user.
@@ -161,7 +164,8 @@ public interface UserService extends UserDetailsService {
      * @throws StoreDataFailedException  the store data failed exception
      * @throws ResourceNotFoundException the resource not found exception
      */
-    User changeStatus(Integer id, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+    User changeConsultantStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
 
     /**
      * Change consultant status user.
@@ -211,4 +215,6 @@ public interface UserService extends UserDetailsService {
      * @return the page
      */
     Page<User> findByRoleAndPageable(Role role, Pageable pageable);
+
+    Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
 }

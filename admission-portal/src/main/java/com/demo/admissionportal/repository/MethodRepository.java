@@ -39,6 +39,30 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
             AND (:code IS NULL OR LOWER(m.code) LIKE LOWER(CONCAT('%', :code, '%')))
             AND (:name IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :name, '%')))
             AND (:createTime IS NULL OR m.create_time = :createTime)
+            AND (m.status IN (:status))
+            AND (:createBy IS NULL OR m.create_by = :createBy)
+            AND (:updateTime IS NULL OR m.update_time = :updateTime)
+            AND (:updateBy IS NULL OR m.update_by = :updateBy)
+    """, nativeQuery = true)
+    Page<Method> findMethodBy(
+            Pageable pageable,
+            @Param("id") Integer id,
+            @Param("code") String code,
+            @Param("name") String name,
+            @Param("status") List<String> status,
+            @Param("createBy") Integer createBy,
+            @Param("updateBy") Integer updateBy,
+            @Param("createTime") Date createTime,
+            @Param("updateTime") Date updateTime
+    );
+
+    @Query(value = """
+        SELECT m.*
+        FROM [method] m
+        WHERE (:id IS NULL OR m.id = :id)
+            AND (:code IS NULL OR LOWER(m.code) LIKE LOWER(CONCAT('%', :code, '%')))
+            AND (:name IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            AND (:createTime IS NULL OR m.create_time = :createTime)
             AND (:createBy IS NULL OR m.create_by = :createBy)
             AND (:updateTime IS NULL OR m.update_time = :updateTime)
             AND (:updateBy IS NULL OR m.update_by = :updateBy)
@@ -49,11 +73,10 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
             @Param("id") Integer id,
             @Param("code") String code,
             @Param("name") String name,
-            @Param("createTime") Date createTime,
             @Param("createBy") Integer createBy,
-            @Param("updateTime") Date updateTime,
             @Param("updateBy") Integer updateBy,
-            @Param("status") MethodStatus status
+            @Param("createTime") Date createTime,
+            @Param("updateTime") Date updateTime
     );
 
     boolean existsByNameAndCode(String name, String code);

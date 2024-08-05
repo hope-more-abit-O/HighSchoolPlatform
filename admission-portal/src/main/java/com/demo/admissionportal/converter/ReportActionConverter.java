@@ -9,7 +9,7 @@ public class ReportActionConverter extends AbstractConverter<PostReportActionTyp
     @Override
     protected String convert(PostReportActionType actionType) {
         if (actionType == null) {
-            return null;
+            return "KHÔNG";
         }
         switch (actionType) {
             case NONE:

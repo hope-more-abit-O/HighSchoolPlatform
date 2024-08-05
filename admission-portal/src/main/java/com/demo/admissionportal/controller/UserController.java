@@ -62,7 +62,7 @@ public class UserController {
      * @param requestDTO the request dto
      * @return the response entity
      */
-    @PatchMapping("/profile/{id}")
+    @PutMapping("/profile/{id}")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<UpdateUserResponseDTO>> updateUser(@PathVariable("id") Integer id, @RequestBody @Valid UpdateUserRequestDTO requestDTO) {
         if (id == null || id < 0 || requestDTO == null) {
@@ -86,4 +86,6 @@ public class UserController {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
+
+
 }

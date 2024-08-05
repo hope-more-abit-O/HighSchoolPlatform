@@ -114,20 +114,21 @@ public class StaffServiceImpl implements StaffService {
 
 
     @Override
-    public ResponseData<Page<FindAllStaffResponse>> findAll(String username, String firstName, String middleName, String lastName, String email, String phone, AccountStatus status, Pageable pageable) {
-        String statusString = status != null ? status.name() : null;
-        Page<FindAllStaffDTO> staffPage = staffInfoRepository.findAllWithUserFields(username, firstName, middleName, lastName, email, phone, AccountStatus.valueOf(statusString), pageable);
+    public ResponseData<Page<FindAllStaffResponse>> findAll(String username, String name, String email, String phone, AccountStatus status, Pageable pageable) {
+        Page<FindAllStaffDTO> staffPage = staffInfoRepository.findAllWithUserFields(username, name, email, phone, status, pageable);
 
         Page<FindAllStaffResponse> staffResponsePage = staffPage.map(staffInfo -> {
             FindAllStaffResponse staffResponseDTO = modelMapper.map(staffInfo, FindAllStaffResponse.class);
             staffResponseDTO.setName(staffInfo.getName());
-
             return staffResponseDTO;
         });
 
         log.info("Successfully get list of staffs: {}", staffPage);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponsePage);
     }
+
+
+
 
 
     @Override
@@ -140,14 +141,19 @@ public class StaffServiceImpl implements StaffService {
         StaffInfo existStaff = staffOpt.get();
         StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
         User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
+
         staffResponseDTO.setUsername(userStaff.getUsername());
+        staffResponseDTO.setName(existStaff.getFirstName() + " " + existStaff.getMiddleName() + " " + existStaff.getLastName());
         staffResponseDTO.setEmail(userStaff.getEmail());
         staffResponseDTO.setAvatar(userStaff.getAvatar());
         staffResponseDTO.setStatus(modelMapper.map(userStaff.getStatus(), String.class));
 
+        Optional<Province> provinceOpt = provinceRepository.findById(existStaff.getProvinceId());
+        provinceOpt.ifPresent(province -> staffResponseDTO.setProvinceName(province.getName()));
         log.info("Staff details retrieved successfully for ID: {}", id);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponseDTO);
     }
+
 
 
 

@@ -143,7 +143,20 @@ public class User implements UserDetails, ResetPassword {
         this.updateBy = null;
         this.createTime = new Date();
         this.updateTime = null;
-        this.avatar = "default.png";
+        if (role == Role.STAFF) {
+            this.avatar = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Fstaff.png?alt=media&token=a69428ef-365a-46fc-8d6b-8b8769e6c96b";
+        } else if (role == Role.USER) {
+            this.avatar = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Fstudent.png?alt=media&token=c13af7ac-f8c3-4eac-b98a-6e9dd9a191fd";
+        } else if (role == Role.CONSULTANT) {
+            this.avatar = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Fconsultant.png?alt=media&token=861173d6-24a9-4dc9-b572-87f987b5f1b6";
+        } else if (role == Role.UNIVERSITY) {
+            this.avatar = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Funiversity.png?alt=media&token=d80d250a-c6c5-406b-9314-cbf9b7da9c2d";
+        }
         this.status = AccountStatus.ACTIVE;
+    }
+
+    public void update(Integer id){
+        this.updateBy = id;
+        this.updateTime = new Date();
     }
 }

@@ -1,31 +1,33 @@
 package com.demo.admissionportal.controller;
 
-import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
-import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
-import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.repository.UserRepository;
-import com.demo.admissionportal.service.CreateUniversityService;
-import com.demo.admissionportal.service.impl.UniversityServiceImpl;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.demo.admissionportal.service.CreateUniversityService;
+import com.demo.admissionportal.service.impl.UniversityServiceImpl;
+import com.demo.admissionportal.service.impl.ValidationServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class TestController {
+    private final ConsultantService consultantService;
     private final UniversityServiceImpl universityServiceImpl;
     private final CreateUniversityService createUniversityService;
+    private final ValidationServiceImpl validationServiceImpl;
 
     @GetMapping("/")
     public String home(){
@@ -37,22 +39,29 @@ public class TestController {
         return "Hello, Secured";
     }
 
-    @GetMapping("/create-university-request")
-    public ResponseEntity<ResponseData<Page<CreateUniversityRequestDTO>>> getCreateUniversityRequests(
+    @GetMapping("/consultants")
+    public ResponseEntity<ResponseData> getConsultants(
             Pageable pageable,
             @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String universityName,
-            @RequestParam(required = false) String universityCode,
-            @RequestParam(required = false) String universityEmail,
-            @RequestParam(required = false) String universityUsername,
-            @RequestParam(required = false) CreateUniversityRequestStatus status,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) List<AccountStatus> statuses,
             @RequestParam(required = false) Integer createBy,
-            @RequestParam(required = false) String createByName,
-            @RequestParam(required = false) Integer confirmBy
-    ) {
-        return ResponseEntity.ok(createUniversityService.getBy(
-                pageable, id, universityName, universityCode, universityEmail,
-                universityUsername, status, createBy, createByName, confirmBy
-        ));
+            @RequestParam(required = false) Integer updateBy
+    ) throws NotAllowedException, ResourceNotFoundException {
+
+        return ResponseEntity.ok(
+                ResponseData.ok("Tìm mọi tư vấn viên dưới quyền thành công.",
+                        consultantService.getFullConsultants(
+                                pageable, id, name, username, universityName, universityId, statuses, createBy, updateBy
+                        )
+                )
+        );
+    }
+    @GetMapping("/validate-email/{email}")
+    public Boolean validateEmail(@PathVariable String email){
+        return validationServiceImpl.validateEmail(email);
     }
 }

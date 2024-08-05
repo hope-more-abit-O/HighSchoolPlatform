@@ -8,9 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataExistedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleDataExistedExceptions(DataExistedException ex) {
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Dữ liệu đã tồn tại", ex.getErrors());
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), ex.getErrors());
     }
 
     /**
@@ -61,7 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseData<Object> handleResourceNotFountExceptions(ResourceNotFoundException ex) {
-        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Dữ liệu không tồn tại.", ex.getMessage());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Dữ liệu không tồn tại": ex.getMessage(), ex.getErrors());
     }
 
     /**
@@ -85,7 +87,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotAllowedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
-        return new ResponseData<>(HttpStatus.UNAUTHORIZED.value(), "Không có quyền thực hiện.", ex.getMessage());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Không có quyền thực hiện.": ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(QueryException.class)
@@ -129,5 +131,12 @@ public class GlobalExceptionHandler {
             errors.put("error", message);
         }
         return new ResponseData<>(ResponseCode.C205.getCode(), "Sai format", errors);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingParams(MissingServletRequestParameterException ex, WebRequest request) {
+        String name = ex.getParameterName();
+        String message = String.format("Request param %s không tìm thấy", name);
+        return new ResponseEntity<>(new ResponseData<>(ResponseCode.C205.getCode(), message), HttpStatus.BAD_REQUEST);
     }
 }

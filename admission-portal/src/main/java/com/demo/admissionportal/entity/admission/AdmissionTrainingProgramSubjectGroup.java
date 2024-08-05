@@ -3,10 +3,7 @@ package com.demo.admissionportal.entity.admission;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -14,6 +11,7 @@ import lombok.Setter;
 @Table(name = "admission_training_program_subject_group")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AdmissionTrainingProgramSubjectGroup {
     @EmbeddedId
     private AdmissionTrainingProgramSubjectGroupId id;

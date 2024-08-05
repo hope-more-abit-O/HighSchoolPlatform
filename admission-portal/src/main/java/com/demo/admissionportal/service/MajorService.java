@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
+import java.util.List;
 
 public interface MajorService {
     InfoMajorDTO createMajor(CreateMajorRequest request);
@@ -21,7 +22,7 @@ public interface MajorService {
             String code,
             String name,
             String note,
-            MajorStatus status,
+            List<MajorStatus> status,
             Integer createBy,
             Integer updateBy,
             Date createTime,

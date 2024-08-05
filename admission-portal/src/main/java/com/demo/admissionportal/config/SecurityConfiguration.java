@@ -4,6 +4,7 @@ import com.demo.admissionportal.config.authentication.filter.JwtAuthenticationFi
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,7 +48,9 @@ public class SecurityConfiguration {
     private static final String REPORTS_API = "/api/v1/reports/**";
     private static final String MAJOR_API = "/api/v1/major/**";
     private static final String METHOD_API = "/api/v1/method/**";
-
+    private static final String SEARCH_API = "/api/v1/search/**";
+    private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
+    private static final String ADMISSION_API = "/api/v1/admission/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -63,6 +66,12 @@ public class SecurityConfiguration {
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.GET,MAJOR_API).permitAll()
+                                .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
+                                .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
+                                .requestMatchers(ADMISSION_API).hasAnyAuthority("ADMIN", "STAFF", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,
@@ -71,6 +80,7 @@ public class SecurityConfiguration {
                                         FILE_API,
                                         MAJOR_API,
                                         METHOD_API,
+                                        SEARCH_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -102,7 +112,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://main--uap-portal.netlify.app")); // Change to your front-end origin
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true); // Allow credentials
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

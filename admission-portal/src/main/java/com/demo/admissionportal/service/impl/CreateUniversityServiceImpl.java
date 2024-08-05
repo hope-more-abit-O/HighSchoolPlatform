@@ -200,7 +200,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
 
             if (uni != null){
                 emailUtil.sendAccountPasswordRegister(uni, password);
-                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingResponse(uni));
+                return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingFullResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
         } catch (DataExistedException e){
@@ -283,7 +283,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         if (createUniversityRequest.getConfirmBy() != null)
             actionerIds.add(createUniversityRequest.getConfirmBy());
 
-        List<ActionerDTO> actioners = userServiceImpl.getActionerDTOsByIds(actionerIds);
+        List<ActionerDTO> actioners = userServiceImpl.getActioners(actionerIds);
 
         for (ActionerDTO actioner : actioners) {
             if (actioner.getId().equals(createUniversityRequest.getCreateBy())) {
@@ -332,22 +332,40 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 String universityCode,
                                                                 String universityEmail,
                                                                 String universityUsername,
-                                                                CreateUniversityRequestStatus status,
+                                                                List<CreateUniversityRequestStatus> status,
                                                                 Integer createBy,
                                                                 String createByName,
                                                                 Integer confirmBy){
 
         try {
-            Page<CreateUniversityRequest>  createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
-                    id,
-                    universityName,
-                    universityCode,
-                    universityEmail,
-                    universityUsername,
-                    (status == null) ? null : status.name(),
-                    createBy,
-                    createByName,
-                    confirmBy);
+            List<String> statusStrings = (status == null || status.isEmpty())
+                    ? null
+                    : status.stream().map(CreateUniversityRequestStatus::name).toList();
+
+            Page<CreateUniversityRequest>  createUniversityRequests;
+
+            if (statusStrings != null){
+                createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                        id,
+                        universityName,
+                        universityCode,
+                        universityEmail,
+                        universityUsername,
+                        statusStrings,
+                        createBy,
+                        createByName,
+                        confirmBy);
+            } else {
+                createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
+                        id,
+                        universityName,
+                        universityCode,
+                        universityEmail,
+                        universityUsername,
+                        createBy,
+                        createByName,
+                        confirmBy);
+            }
 
             if (createUniversityRequests.getContent().isEmpty())
                 return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.");

@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.SelfUpdateConsultantInfoRequest;
 import com.demo.admissionportal.dto.request.consultant.UpdateConsultantAddressRequest;
+import com.demo.admissionportal.dto.request.consultant.UpdateConsultantInfoByIdRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
@@ -43,17 +44,10 @@ public class ConsultantController {
         return ResponseEntity.ok(consultantService.getSelfInfo());
     }
 
-    //TODO: JAVADOC
-    @PutMapping("/update/info")
-    public ResponseEntity<?> seftUpdateConsultantInfo(@RequestBody @Valid SelfUpdateConsultantInfoRequest request)
+    @PutMapping()
+    public ResponseEntity<?> seftUpdateConsultantAddress(@RequestBody @Valid UpdateConsultantInfoByIdRequest request)
             throws ResourceNotFoundException, StoreDataFailedException{
-        return ResponseEntity.ok(consultantService.selfUpdateConsultantInfo(request));
-    }
-
-    @PutMapping("/update/address")
-    public ResponseEntity<?> seftUpdateConsultantAddress(@RequestBody @Valid UpdateConsultantAddressRequest request)
-            throws ResourceNotFoundException, StoreDataFailedException{
-        return ResponseEntity.ok(consultantService.selfUpdateConsultantAddress(request));
+        return ResponseEntity.ok(consultantService.updateConsultantInfoById(request));
     }
 
     @GetMapping("/university/{id}")
