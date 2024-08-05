@@ -61,8 +61,8 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE ((LOWER(ui."code") LIKE CONCAT('%', :search, '%') OR LOWER(ui."name") LIKE CONCAT('%', :search, '%')))
+    WHERE LOWER(ui."code") = LOWER(:universityCode)
     AND (year = :year)
     """, nativeQuery = true)
-    Optional<Admission> findByYearAndSearch(Integer year, String search);
+    Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
 }

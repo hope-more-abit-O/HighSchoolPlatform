@@ -367,4 +367,7 @@ public class MajorServiceImpl implements MajorService {
         }
     }
 
+    public InfoMajorDTO mapInfo(Major major) {
+        return modelMapper.map(major, InfoMajorDTO.class);
+    }
 }

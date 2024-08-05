@@ -14,8 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.firewall.DefaultHttpFirewall;
-import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -89,6 +87,8 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/source").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/score").permitAll()
                                 .requestMatchers(ADMISSION_API).authenticated()
 
                                 .requestMatchers(AUTHENTICATION_API,
