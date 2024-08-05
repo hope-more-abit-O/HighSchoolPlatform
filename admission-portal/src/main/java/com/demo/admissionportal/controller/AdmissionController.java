@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admission")
@@ -62,13 +63,27 @@ public class AdmissionController {
     @GetMapping()
     public ResponseEntity<ResponseData<Page<FullAdmissionDTO>>> getCreateAdmissionRequests(
             Pageable pageable,
+            @RequestParam(required = false) Integer id,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String source,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) Date createTime,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer updateBy,
+            @RequestParam(required = false) Date updateTime,
             @RequestParam(required = false) AdmissionStatus status
     ) {
         return ResponseEntity.ok(admissionService.getBy(
-                pageable, year, search, status
+                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status
         ));
+    }
+
+    @GetMapping("/source")
+    public ResponseEntity<ResponseData<List<String>>> getAdmissionSource(
+            @RequestParam(required = true) Integer year,
+            @RequestParam(required = true) String search
+    ) {
+        return ResponseEntity.ok(admissionService.getSourceBy(year, search));
     }
 
     @GetMapping("/{id}")

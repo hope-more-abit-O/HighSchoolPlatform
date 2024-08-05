@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Repository
 public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
@@ -56,4 +57,13 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("status") String status
     );
 
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE ((LOWER(ui."code") LIKE CONCAT('%', :search, '%') OR LOWER(ui."name") LIKE CONCAT('%', :search, '%')))
+    AND (year = :year)
+    """, nativeQuery = true)
+    Optional<Admission> findByYearAndSearch(Integer year, String search);
 }

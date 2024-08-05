@@ -87,6 +87,8 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
 
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/source").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission").permitAll()
                                 .requestMatchers(ADMISSION_API).authenticated()
 
                                 .requestMatchers(AUTHENTICATION_API,

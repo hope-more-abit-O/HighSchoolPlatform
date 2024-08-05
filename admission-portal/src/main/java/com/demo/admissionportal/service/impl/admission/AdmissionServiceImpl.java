@@ -327,10 +327,16 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public ResponseData<Page<FullAdmissionDTO>> getBy(Pageable pageable,
+                                                      Integer id,
                                                       Integer year,
-                                                      String search,
+                                                      String source,
+                                                      Integer universityId,
+                                                      Date createTime,
+                                                      Integer createBy,
+                                                      Integer updateBy,
+                                                      Date updateTime,
                                                       AdmissionStatus status) {
-        Page<Admission> admissions = admissionRepository.findAllBy(pageable, year, search, (status != null) ? status.name() : null);
+        Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
 
         if (admissions.isEmpty()) {
             ResponseData.ok("Không tìm thấy đề án thành công.");
@@ -340,6 +346,12 @@ public class AdmissionServiceImpl implements AdmissionService {
         List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.getContent().stream().map(Admission::getUniversityId).toList());
 
         return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mappingInfo(element, actionerDTOs, universityInfos)));
+    }
+
+    public ResponseData<List<String>> getSourceBy(Integer year, String search) {
+        Admission admissions = admissionRepository.findByYearAndSearch(year, search).orElseThrow(() -> new ResourceNotFoundException("Admission"));
+
+        return ResponseData.ok("Lấy tài liệu của đề án thành công.", Arrays.stream(admissions.getSource().split(";")).toList());
     }
 
     protected List<ActionerDTO> getActioners(List<Admission> admissions) {
