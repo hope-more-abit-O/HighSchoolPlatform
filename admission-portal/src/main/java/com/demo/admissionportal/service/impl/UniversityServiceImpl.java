@@ -51,6 +51,7 @@ public class UniversityServiceImpl implements UniversityService {
     private final UniversityInfoRepository universityInfoRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
+    private final UniversityCampusServiceImpl universityCampusServiceImpl;
 
     /**
      * Retrieves detailed information about a university, combining account
@@ -91,7 +92,8 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityFullResponseDTO getUniversityFullResponseById(Integer id) throws ResourceNotFoundException {
         return new UniversityFullResponseDTO(
                 userService.mappingFullResponse(userRepository.findUserById(id)),
-                modelMapper.map(this.findById(id), FullUniversityResponseDTO.class));
+                modelMapper.map(this.findById(id), FullUniversityResponseDTO.class),
+                universityCampusServiceImpl.mapToListCampusV2(id));
     }
 
     @Override
@@ -99,7 +101,8 @@ public class UniversityServiceImpl implements UniversityService {
         Integer uniId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return new UniversityFullResponseDTO(
                 userService.mappingFullResponse(userRepository.findUserById(uniId)),
-                modelMapper.map(this.findById(uniId), FullUniversityResponseDTO.class));
+                modelMapper.map(this.findById(uniId), FullUniversityResponseDTO.class),
+                universityCampusServiceImpl.mapToListCampusV2(uniId));
     }
 
     /**
@@ -144,8 +147,8 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityInfoResponseDTO getUniversityInfoResponseById(Integer id) throws ResourceNotFoundException{
         return new UniversityInfoResponseDTO(
                 modelMapper.map(userService.findById(id), InfoUserResponseDTO.class),
-                modelMapper.map(this.findById(id), InfoUniversityResponseDTO.class)
-        );
+                modelMapper.map(this.findById(id), InfoUniversityResponseDTO.class),
+                universityCampusServiceImpl.mapToListCampusV2(id));
     }
 
     public List<UniversityFullResponseDTO> getUniversityFullResponseList(List<Integer> ids) throws ResourceNotFoundException {
@@ -238,7 +241,7 @@ public class UniversityServiceImpl implements UniversityService {
         UniversityInfo info = findById(account.getId());
 
         FullUniversityResponseDTO fullInfo = modelMapper.map(info, FullUniversityResponseDTO.class);
-        return new UniversityFullResponseDTO(userService.mappingFullResponse(account), fullInfo);
+        return new UniversityFullResponseDTO(userService.mappingFullResponse(account), fullInfo, universityCampusServiceImpl.mapToListCampusV2(account.getId()));
     }
 
     @Transactional

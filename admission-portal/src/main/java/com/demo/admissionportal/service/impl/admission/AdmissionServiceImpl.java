@@ -364,7 +364,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     protected FullAdmissionDTO mappingInfo(Admission admission, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
-
+        UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University info not found"));
+        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
         result.setSources(sources);
         if (admission.getUpdateBy() != null){
@@ -383,7 +384,6 @@ public class AdmissionServiceImpl implements AdmissionService {
             result.setCreateBy(getCreateBy(admission, actionerDTOs));
         }
 
-        UniversityInfo universityInfo =  universityInfos.stream().filter(uni -> uni.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University id not found"));
         result.setUniversity(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class));
 
         return result;
@@ -499,6 +499,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         admission.setStatus(request.getStatus());
         admission.setNote(request.getNote());
+        admission.setUpdateBy(uniId);
+        admission.setUpdateTime(new Date());
 
         try {
             Admission admission1 = admissionRepository.save(admission);

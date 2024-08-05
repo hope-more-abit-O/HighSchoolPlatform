@@ -10,6 +10,7 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,5 +80,10 @@ public class AdmissionController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
         return ResponseEntity.ok(admissionService.getById(id));
+    }
+
+    @PatchMapping
+    public ResponseEntity universityAction(@RequestBody @Valid UpdateAdmissionStatusRequest request){
+        return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
     }
 }

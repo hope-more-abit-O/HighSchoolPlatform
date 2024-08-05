@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -98,9 +99,16 @@ public class UniversityController {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công.", universityService.getSelfProfile()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/full/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/info/{id}")
+    public ResponseEntity<ResponseData<UniversityInfoResponseDTO>> findInfoUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityInfoResponseById(id));
         return ResponseEntity.ok(result);
     }
 

@@ -13,6 +13,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UniversityCampusService;
 import com.demo.admissionportal.service.ValidationService;
@@ -22,10 +23,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type University campus service.
@@ -83,6 +83,18 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .collect(Collectors.toList());
     }
 
+    public List<UniversityCampusProperties> mapToListCampusV2(Integer universityId) {
+        log.info("Start mapToListCampus");
+        List<UniversityCampus> universityCampus = universityCampusRepository.findByUniversityId(universityId);
+        List<Integer> provincesIds = universityCampus.stream().map(UniversityCampus::getProvinceId).distinct().toList();
+        List<Integer> districtIds = universityCampus.stream().map(UniversityCampus::getDistrictId).distinct().toList();
+        List<Integer> wardIds = universityCampus.stream().map(UniversityCampus::getWardId).distinct().toList();
+        List<Province> provinces = provinceRepository.findAllById(provincesIds);
+        List<District> districts = districtRepository.findAllById(districtIds);
+        List<Ward> wards = wardRepository.findAllById(wardIds);
+        return mapToCampus(universityCampus, provinces, districts, wards);
+    }
+
     private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus) {
         Ward wardCampus = wardRepository.findWardById(universityCampus.getWardId());
         Province provinceCampus = provinceRepository.findProvinceById(universityCampus.getProvinceId());
@@ -97,6 +109,42 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .type(universityCampus.getType().name)
                 .status(universityCampus.getStatus().name)
                 .build();
+    }
+    private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus, Province province, District district, Ward ward) {
+        return UniversityCampusProperties.builder()
+                .id(universityCampus.getId())
+                .phone(universityCampus.getPhone())
+                .campusName(universityCampus.getCampusName())
+                .email(universityCampus.getEmail())
+                .picture(mapToListPicture(universityCampus.getPicture()))
+                .address(universityCampus.getSpecificAddress() + ", " + ward.getName() + ", " + district.getName() + ", " + province.getName())
+                .type(universityCampus.getType().name)
+                .status(universityCampus.getStatus().name)
+                .build();
+    }
+
+    private List<UniversityCampusProperties> mapToCampus(List<UniversityCampus> universityCampus, List<Province> provinces, List<District> districts, List<Ward> wards) {
+        List<UniversityCampusProperties> result = new ArrayList<>();
+        for (UniversityCampus uniCam: universityCampus) {
+            Province province = provinces
+                    .stream()
+                    .filter( (pr) -> pr.getId().equals(uniCam.getProvinceId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 1.", Map.of("provinceId", uniCam.getProvinceId().toString())));
+            District district = districts
+                    .stream()
+                    .filter( (ds) -> ds.getId().equals(uniCam.getDistrictId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 2.", Map.of("districtId", uniCam.getDistrictId().toString())));
+            Ward ward = wards
+                    .stream()
+                    .filter( (wr) -> wr.getId().equals(uniCam.getWardId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 3.", Map.of("wardId", uniCam.getWardId().toString())));
+
+            result.add(mapToCampus(uniCam, province, district, ward));
+        }
+        return result;
     }
 
     private List<String> mapToListPicture(String picture) {
