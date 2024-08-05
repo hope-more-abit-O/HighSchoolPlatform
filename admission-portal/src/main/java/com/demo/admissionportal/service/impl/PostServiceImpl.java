@@ -457,14 +457,24 @@ public class PostServiceImpl implements PostService {
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
         String info = getUserInfoPostDTO(post.getCreateBy());
         String role = getRoleUser(post.getCreateBy());
+        Integer universityId = getUniversityId(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .create_by(info)
+                .universityId(universityId)
                 .role(role)
                 .comments(commentResponseDTO)
                 .build();
+    }
+
+    private Integer getUniversityId(Integer createBy) {
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(createBy);
+        if (universityInfo == null) {
+            return null;
+        }
+        return universityInfo.getId();
     }
 
     @Override
@@ -1190,7 +1200,7 @@ public class PostServiceImpl implements PostService {
 
     private PostDetailResponseDTO findPostByConsultant(ConsultantInfo consultantInfo) {
         Post posts = postRepository.findFirstByCreateBy(consultantInfo.getId());
-        if(posts == null){
+        if (posts == null) {
             return null;
         }
         return mapToPostDetailResponseDTO(posts);
