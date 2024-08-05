@@ -64,4 +64,5 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      */
     UniversityCampus findUniversityCampusById(Integer id);
 
+    List<UniversityCampus> findByUniversityId(Integer universityId);
 }

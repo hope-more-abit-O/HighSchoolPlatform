@@ -1,10 +1,13 @@
 package com.demo.admissionportal.dto.entity.university;
 
+import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusProperties;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * UniversityInfoResponseDTO is a data transfer object that encapsulates the response data
@@ -40,4 +43,5 @@ import lombok.NoArgsConstructor;
 public class UniversityInfoResponseDTO {
     private InfoUserResponseDTO account;
     private InfoUniversityResponseDTO info;
+    private List<UniversityCampusProperties> campuses;
 }

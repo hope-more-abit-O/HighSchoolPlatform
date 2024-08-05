@@ -29,9 +29,14 @@ public class Admission {
     @Column(name = "\"year\"", nullable = false, length = 4)
     private Integer year;
 
+    @Size(max = 500)
+    @Nationalized
+    @Column(name = "note", length = 500)
+    private String note;
+
     @Size(max = 400)
     @Nationalized
-    @Column(name = "source", length = 200)
+    @Column(name = "source", length = 400)
     private String source;
 
     @NotNull

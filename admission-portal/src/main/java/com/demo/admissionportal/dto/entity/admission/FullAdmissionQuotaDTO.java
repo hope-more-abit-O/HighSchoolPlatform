@@ -1,8 +1,13 @@
 package com.demo.admissionportal.dto.entity.admission;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Data
 public class FullAdmissionQuotaDTO {
-    private AdmissionTrainingProgramDTO admissionTrainingProgram;
-    private AdmissionMethodDTO admissionMethod;
+    private Integer admissionTrainingProgram;
+    private Integer admissionMethod;
     private Integer quota;
     private Float admissionScore;
 }

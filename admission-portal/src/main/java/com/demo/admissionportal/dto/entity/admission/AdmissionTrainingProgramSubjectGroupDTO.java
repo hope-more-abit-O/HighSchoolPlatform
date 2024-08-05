@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.entity.admission;
 
+import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AdmissionTrainingProgramSubjectGroupIdDTO {
+public class AdmissionTrainingProgramSubjectGroupDTO {
     private Integer admissionTrainingProgramId;
-    private List<Integer> subjectGroupIds;
+    private List<SubjectGroupResponseDTO2> subjectGroups;
 }

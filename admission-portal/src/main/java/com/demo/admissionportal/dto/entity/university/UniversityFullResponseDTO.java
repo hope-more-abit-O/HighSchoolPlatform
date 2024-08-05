@@ -1,10 +1,14 @@
 package com.demo.admissionportal.dto.entity.university;
 
+import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusDTO;
+import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusProperties;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * UniversityFullResponseDTO is a data transfer object that encapsulates the response data
@@ -40,4 +44,5 @@ import lombok.NoArgsConstructor;
 public class UniversityFullResponseDTO {
     private FullUserResponseDTO account;
     private FullUniversityResponseDTO info;
+    private List<UniversityCampusProperties> campuses;
 }
