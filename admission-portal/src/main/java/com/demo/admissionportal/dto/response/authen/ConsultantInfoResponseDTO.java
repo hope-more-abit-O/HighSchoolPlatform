@@ -28,4 +28,5 @@ public class ConsultantInfoResponseDTO implements Serializable {
     private District district;
     private Ward ward;
     private String avatarUniversity;
+    private String fullNameUniversity;
 }
