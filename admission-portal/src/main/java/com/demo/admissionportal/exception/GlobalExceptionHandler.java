@@ -139,4 +139,11 @@ public class GlobalExceptionHandler {
         String message = String.format("Request param %s không tìm thấy", name);
         return new ResponseEntity<>(new ResponseData<>(ResponseCode.C205.getCode(), message), HttpStatus.BAD_REQUEST);
     }
+
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseData<Object> handleBadRequestExceptions(BadRequestException ex) {
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Map.of("error", ex.getCause().getMessage()));
+    }
 }

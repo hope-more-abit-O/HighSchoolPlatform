@@ -327,16 +327,10 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public ResponseData<Page<FullAdmissionDTO>> getBy(Pageable pageable,
-                                                      Integer id,
                                                       Integer year,
-                                                      String source,
-                                                      Integer universityId,
-                                                      Date createTime,
-                                                      Integer createBy,
-                                                      Integer updateBy,
-                                                      Date updateTime,
+                                                      String search,
                                                       AdmissionStatus status) {
-        Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
+        Page<Admission> admissions = admissionRepository.findAllBy(pageable, year, search, (status != null) ? status.name() : null);
 
         if (admissions.isEmpty()) {
             ResponseData.ok("Không tìm thấy đề án thành công.");
@@ -464,7 +458,19 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     @Transactional
     public ResponseData updateAdmissionScore(UpdateAdmissionScoreRequest request){
+        //TODO: need complete
+        List<Integer> admissionTrainingProgramIds = request.getAdmissionScores().stream().map(AdmissionScoreDTO::getAdmissionTrainingProgramId).distinct().toList();
+        List<Integer> admissionMethodIds = request.getAdmissionScores().stream().map(AdmissionScoreDTO::getAdmissionMethodId).distinct().toList();
+
+//        admissionTrainingProgramService.allExisted(admissionTrainingProgramIds);
+
+        List<Integer> admissionId = admissionMethodService.getAdmissionId(admissionMethodIds);
+        admissionId.addAll(admissionTrainingProgramService.getAdmissionId(admissionTrainingProgramIds));
+        admissionId.stream().distinct();
+        if ((admissionId.size() != 1))
+            throw new BadRequestException("Các giá trị thuộc các đề án khác nhau");
         List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getAdmissionScores().stream().map(AdmissionTrainingProgramMethodId::new).toList();
+
 
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionId(admissionTrainingProgramMethodIds, true);
 

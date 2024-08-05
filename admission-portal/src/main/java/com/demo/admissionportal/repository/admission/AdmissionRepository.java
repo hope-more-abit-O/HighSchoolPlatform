@@ -18,6 +18,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     FROM admission
     WHERE (:id IS NULL OR id = :id)
       AND (:year IS NULL OR year = :year)
+      AND (:search IS NULL OR source LIKE %:source%)
       AND (:source IS NULL OR source LIKE %:source%)
       AND (:universityId IS NULL OR university_id = :universityId)
       AND (:createTime IS NULL OR create_time = :createTime)
@@ -38,4 +39,21 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("updateTime") Date updateTime,
             @Param("status") String status
     );
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE (:search IS NULL OR (LOWER(ui."code") LIKE CONCAT('%', :search, '%') OR LOWER(ui."name") LIKE CONCAT('%', :search, '%')))
+    AND (:year IS NULL OR year = :year)
+    AND (:status IS NULL OR ad.status = :status)
+    """, nativeQuery = true)
+    Page<Admission> findAllBy(
+            Pageable pageable,
+            @Param("year") Integer year,
+            @Param("search") String search,
+            @Param("status") String status
+    );
+
 }

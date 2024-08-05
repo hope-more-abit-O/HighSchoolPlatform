@@ -62,18 +62,12 @@ public class AdmissionController {
     @GetMapping()
     public ResponseEntity<ResponseData<Page<FullAdmissionDTO>>> getCreateAdmissionRequests(
             Pageable pageable,
-            @RequestParam(required = false) Integer id,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String source,
-            @RequestParam(required = false) Integer universityId,
-            @RequestParam(required = false) Date createTime,
-            @RequestParam(required = false) Integer createBy,
-            @RequestParam(required = false) Integer updateBy,
-            @RequestParam(required = false) Date updateTime,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) AdmissionStatus status
     ) {
         return ResponseEntity.ok(admissionService.getBy(
-                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status
+                pageable, year, search, status
         ));
     }
 
@@ -86,4 +80,5 @@ public class AdmissionController {
     public ResponseEntity universityAction(@RequestBody @Valid UpdateAdmissionStatusRequest request){
         return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
     }
+
 }

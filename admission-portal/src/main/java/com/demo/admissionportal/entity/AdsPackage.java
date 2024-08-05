@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -47,10 +47,10 @@ public class AdsPackage {
 
     @NotNull
     @Column(name = "create_time")
-    private Instant createTime;
+    private Date createTime;
 
     @Column(name = "update_time")
-    private Instant updateTime;
+    private Date updateTime;
 
     @Column(name = "update_by")
     private Integer updateBy;
