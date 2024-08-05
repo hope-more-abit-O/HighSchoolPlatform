@@ -6,8 +6,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class FullAdmissionQuotaDTO {
-    private Integer admissionTrainingProgram;
-    private Integer admissionMethod;
+    private Integer admissionTrainingProgramId;
+    private Integer admissionMethodId;
     private Integer quota;
     private Float admissionScore;
 }

@@ -7,15 +7,13 @@ import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramReques
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
-import com.demo.admissionportal.dto.response.admission.CreateAdmissionMethodResponse;
-import com.demo.admissionportal.dto.response.admission.CreateAdmissionTrainingProgramResponse;
+import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
-import com.demo.admissionportal.dto.response.admission.CreateAdmissionTrainingProgramSubjectGroupResponse;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
+import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.admission.*;
@@ -348,8 +346,8 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mappingInfo(element, actionerDTOs, universityInfos)));
     }
 
-    public ResponseData<List<String>> getSourceBy(Integer year, String search) {
-        Optional<Admission> admissions = admissionRepository.findByYearAndSearch(year, search);
+    public ResponseData<List<String>> getSource(Integer year, String universityCode) {
+        Optional<Admission> admissions = admissionRepository.findByYearAndUniversityCode(year, universityCode);
 
         if (admissions.isEmpty()) {
             return ResponseData.ok("Không tìm thấy tài liệu nào");
@@ -474,24 +472,29 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     @Transactional
     public ResponseData updateAdmissionScore(UpdateAdmissionScoreRequest request){
-        //TODO: need complete
         List<Integer> admissionTrainingProgramIds = request.getAdmissionScores().stream().map(AdmissionScoreDTO::getAdmissionTrainingProgramId).distinct().toList();
         List<Integer> admissionMethodIds = request.getAdmissionScores().stream().map(AdmissionScoreDTO::getAdmissionMethodId).distinct().toList();
 
-//        admissionTrainingProgramService.allExisted(admissionTrainingProgramIds);
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(admissionMethodIds);
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByIds(admissionTrainingProgramIds);
 
-        List<Integer> admissionId = admissionMethodService.getAdmissionId(admissionMethodIds);
-        admissionId.addAll(admissionTrainingProgramService.getAdmissionId(admissionTrainingProgramIds));
-        admissionId.stream().distinct();
-        if ((admissionId.size() != 1))
+        Set<Integer> admissionIds = new HashSet<>();
+        admissionIds.addAll(admissionMethods.stream().map(AdmissionMethod::getAdmissionId).toList());
+        admissionIds.addAll(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getAdmissionId).toList());
+
+        if ((admissionIds.size() != 1))
             throw new BadRequestException("Các giá trị thuộc các đề án khác nhau");
-        List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getAdmissionScores().stream().map(AdmissionTrainingProgramMethodId::new).toList();
 
+        Admission admission = findById(admissionIds.iterator().next());
+        if (!admission.getUniversityId().equals(ServiceUtils.getUser().getCreateBy()))
+            throw new NotAllowedException("Bạn không có quyền thực hiện chức năng này");
+
+        List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getAdmissionScores().stream().map(AdmissionTrainingProgramMethodId::new).toList();
 
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionId(admissionTrainingProgramMethodIds, true);
 
         for (AdmissionTrainingProgramMethod admissionTrainingProgramMethod : admissionTrainingProgramMethods) {
-//            AdmissionScoreDTO admissionScoreDTO = request.getAdmissionScores().stream().filter((element) -> element.getAdmissionMethodId().equals(admissionTrainingProgramMethod.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Admission score not found"));
+
             AdmissionScoreDTO admissionScoreDTO = null;
             for (AdmissionScoreDTO admissionScore : request.getAdmissionScores()) {
                 if (admissionScore.getAdmissionMethodId().equals(admissionTrainingProgramMethod.getId().getAdmissionMethodId()) && admissionScore.getAdmissionTrainingProgramId().equals(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId())) {
@@ -500,7 +503,6 @@ public class AdmissionServiceImpl implements AdmissionService {
             }
 
             if (admissionScoreDTO == null) {
-                //TODO: WRITE EXCEPTION
                 throw new ResourceNotFoundException("Admission score not found");
             }
 
@@ -537,5 +539,51 @@ public class AdmissionServiceImpl implements AdmissionService {
     public ResponseData updateAdmission(UpdateAdmissionRequest request){
 
         return null;
+    }
+
+    public ResponseData getAdmissionScore(Integer year, String universityCode, Integer methodId){
+        Optional<Admission> admission = admissionRepository.findByYearAndUniversityCode(year, universityCode);
+
+        if (admission.isEmpty()) {
+            return ResponseData.ok("Không tìm thấy tài liệu nào");
+        }
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admission.get().getId());
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+
+        List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(
+                admissionTrainingProgramSubjectGroups
+                        .stream()
+                        .map(AdmissionTrainingProgramSubjectGroup::getId)
+                        .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                        .distinct()
+                        .toList());
+
+        List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).toList());
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByMethodIdAndAdmissionTrainingProgramIds(methodId, admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+
+        List<AdmissionScoreWithSubjectGroupDTO> admissionScores = new ArrayList<>();
+
+        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms) {
+            List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups.stream()
+                    .map(AdmissionTrainingProgramSubjectGroup::getId).filter(id -> admissionTrainingProgram.getId().equals(id.getAdmissionTrainingProgramId()))
+                    .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId).distinct()
+                    .toList();
+            AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
+                    .stream()
+                    .filter((element) -> element.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chương trình đào tạo với phương thức đào tạo."));
+            Major major = majors.stream().filter( (element) -> element.getId().equals(admissionTrainingProgram.getMajorId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Major not found"));
+            List<SubjectGroup> subjectGroupForMap = subjectGroups.stream().filter((element) -> subjectGroupIds.contains(element.getId())).toList();
+
+            admissionScores.add(new AdmissionScoreWithSubjectGroupDTO(majorService.mapInfo(major), subjectGroupService.mapInfo(subjectGroupForMap), admissionTrainingProgramMethod.getAdmissionScore()));
+        }
+
+        return ResponseData.ok("", new GetAdmissionScoreResponse(admissionScores));
     }
 }

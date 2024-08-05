@@ -56,4 +56,12 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
         return admissionTrainingProgramMethods;
     }
+
+    public List<AdmissionTrainingProgramMethod> findByAdmissionId(Integer id) {
+        return admissionTrainingProgramMethodRepository.findByAdmissionId(id);
+    }
+
+    public List<AdmissionTrainingProgramMethod> findByMethodIdAndAdmissionTrainingProgramIds(Integer methodId, List<Integer> admissionTrainingProgramIds) {
+        return admissionTrainingProgramMethodRepository.findByMethodIdAndAdmissionTrainingProgramIdIn(methodId, admissionTrainingProgramIds);
+    }
 }
