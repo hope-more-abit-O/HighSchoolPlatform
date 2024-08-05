@@ -236,4 +236,18 @@ public class PostController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @GetMapping("/list/uni={universityId}")
+    public ResponseEntity<ResponseData<List<PostDetailResponseDTO>>> getPostsByIdV2(@PathVariable("universityId") Integer universityId) {
+        if (universityId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Không có id"));
+        }
+        ResponseData<List<PostDetailResponseDTO>> response = postService.getPostsByIdV2(universityId);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
