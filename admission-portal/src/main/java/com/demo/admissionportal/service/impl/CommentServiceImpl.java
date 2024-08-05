@@ -121,7 +121,7 @@ public class CommentServiceImpl implements CommentService {
         List<CommentResponseDTO> responseDTOS = new ArrayList<>();
         List<Comment> commentsWithNoParentId = comments.stream()
                 .filter(comment -> comment.getCommentParentId() == null)
-//                .sorted(Comparator.comparing(Comment::getCreate_time).reversed())
+                .sorted(Comparator.comparing(Comment::getCreate_time).reversed())
                 .toList();
         // Get root comments
         for (Comment comment : commentsWithNoParentId) {
@@ -132,11 +132,7 @@ public class CommentServiceImpl implements CommentService {
             commentResponseDTO.setComment(mapToCommentDetailResponse(comment, commentChildren));
             responseDTOS.add(commentResponseDTO);
         }
-        return responseDTOS.stream().sorted(this::sortByReply).collect(Collectors.toList());
-    }
-
-    private int sortByReply(CommentResponseDTO commentResponseDTO, CommentResponseDTO commentResponseDTO1) {
-        return commentResponseDTO.getComment().getCreate_time().compareTo(commentResponseDTO1.getComment().getCreate_time());
+        return responseDTOS;
     }
 
     private CommentDetailResponseDTO mapToCommentDetailResponse(Comment comment, List<Comment> commentChildren) {
@@ -164,6 +160,7 @@ public class CommentServiceImpl implements CommentService {
     private List<ReplyCommentDetailResponseDTO> mapToReplyCommentDetailResponseList(List<Comment> comments) {
         return comments.stream()
                 .map(this::mapToReplyCommentDetailResponse)
+                .sorted(Comparator.comparing(ReplyCommentDetailResponseDTO::getCreate_time).reversed())
                 .collect(Collectors.toList());
     }
 
