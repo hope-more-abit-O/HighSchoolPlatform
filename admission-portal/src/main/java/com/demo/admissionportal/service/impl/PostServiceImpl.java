@@ -1179,6 +1179,7 @@ public class PostServiceImpl implements PostService {
             List<ConsultantInfo> consultantInfo = consultantInfoRepository.findAllConsultantInfosByUniversityId(universityId);
             List<PostDetailResponseDTO> postDetailResponseDTOList = consultantInfo.stream()
                     .map(this::findPostByConsultant)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với universityId: " + universityId, postDetailResponseDTOList);
         } catch (Exception ex) {
@@ -1189,6 +1190,9 @@ public class PostServiceImpl implements PostService {
 
     private PostDetailResponseDTO findPostByConsultant(ConsultantInfo consultantInfo) {
         Post posts = postRepository.findFirstByCreateBy(consultantInfo.getId());
+        if(posts == null){
+            return null;
+        }
         return mapToPostDetailResponseDTO(posts);
     }
 }
