@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -29,6 +30,7 @@ public class FavoriteController {
      */
     @PostMapping("/{universityID}")
     @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<FavoriteResponseDTO>> createFavorite(@PathVariable(name = "universityID") Integer universityID) {
         if (universityID == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
@@ -64,6 +66,12 @@ public class FavoriteController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }
 
+    /**
+     * Gets total.
+     *
+     * @param universityID the university id
+     * @return the total
+     */
     @GetMapping("/total/{universityID}")
     public ResponseEntity<ResponseData<TotalCountResponseDTO>> getTotal(@PathVariable(name = "universityID") Integer universityID) {
         if (universityID == null) {
