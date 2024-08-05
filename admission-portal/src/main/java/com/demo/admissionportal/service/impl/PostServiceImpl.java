@@ -1184,12 +1184,11 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public ResponseData<List<PostDetailResponseDTO>> getPostsByIdV2(Integer universityId) {
+    public ResponseData<List<PostDetailResponseDTOV3>> getPostsByIdV2(Integer universityId) {
         try {
-            List<ConsultantInfo> consultantInfo = consultantInfoRepository.findAllConsultantInfosByUniversityId(universityId);
-            List<PostDetailResponseDTO> postDetailResponseDTOList = consultantInfo.stream()
-                    .map(this::findPostByConsultant)
-                    .filter(Objects::nonNull)
+            List<Post> posts = postRepository.findAllByCreateByIn(universityId);
+            List<PostDetailResponseDTOV3> postDetailResponseDTOList = posts.stream()
+                    .map(this::mapToListPostDetailV3)
                     .collect(Collectors.toList());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với universityId: " + universityId, postDetailResponseDTOList);
         } catch (Exception ex) {
@@ -1198,11 +1197,26 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private PostDetailResponseDTO findPostByConsultant(ConsultantInfo consultantInfo) {
-        Post posts = postRepository.findFirstByCreateBy(consultantInfo.getId());
-        if (posts == null) {
-            return null;
+    public PostDetailResponseDTOV3 mapToListPostDetailV3(Post post) {
+        String info = getUserInfoPostDTO(post.getCreateBy());
+        User user = getUser(post.getCreateBy());
+        PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        return PostDetailResponseDTOV3.builder()
+                .postProperties(postPropertiesResponseDTO)
+                .create_by(info)
+                .avatar(user.getAvatar())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    private User getUser(Integer userId) {
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
+        if (consultantInfo != null) {
+            User universityUser = userRepository.findUserById(consultantInfo.getUniversityId());
+            if (universityUser != null) {
+                return universityUser;
+            }
         }
-        return mapToPostDetailResponseDTO(posts);
+        return userRepository.findUserById(userId);
     }
 }
