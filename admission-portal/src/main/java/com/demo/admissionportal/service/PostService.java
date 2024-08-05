@@ -117,8 +117,8 @@ public interface PostService {
      * Gets posts by id v 2.
      *
      * @param universityId the university id
-     * @return the posts by id v 2
+     * @return the posts by id v2
      */
-    ResponseData<List<PostDetailResponseDTO>> getPostsByIdV2(Integer universityId);
+    ResponseData<List<PostDetailResponseDTOV3>> getPostsByIdV2(Integer universityId);
 
 }

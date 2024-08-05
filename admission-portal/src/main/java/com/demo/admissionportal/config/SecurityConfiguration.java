@@ -91,6 +91,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/score").permitAll()
                                 .requestMatchers(ADMISSION_API).authenticated()
 
+                                .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,
