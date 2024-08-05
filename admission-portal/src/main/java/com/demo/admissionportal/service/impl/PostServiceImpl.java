@@ -35,9 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
 import java.text.Normalizer;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -1172,5 +1170,29 @@ public class PostServiceImpl implements PostService {
     private String getRoleUser(Integer createBy) {
         User user = userRepository.findUserById(createBy);
         return user.getRole().name();
+    }
+
+
+    @Override
+    public ResponseData<List<PostDetailResponseDTO>> getPostsByIdV2(Integer universityId) {
+        try {
+            List<ConsultantInfo> consultantInfo = consultantInfoRepository.findAllConsultantInfosByUniversityId(universityId);
+            List<PostDetailResponseDTO> postDetailResponseDTOList = consultantInfo.stream()
+                    .map(this::findPostByConsultant)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với universityId: " + universityId, postDetailResponseDTOList);
+        } catch (Exception ex) {
+            log.error("Error when get posts with universityId {}:", universityId);
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    private PostDetailResponseDTO findPostByConsultant(ConsultantInfo consultantInfo) {
+        Post posts = postRepository.findFirstByCreateBy(consultantInfo.getId());
+        if(posts == null){
+            return null;
+        }
+        return mapToPostDetailResponseDTO(posts);
     }
 }

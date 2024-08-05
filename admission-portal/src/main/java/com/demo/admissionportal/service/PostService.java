@@ -112,4 +112,13 @@ public interface PostService {
      * @return the posts by url
      */
     ResponseData<PostDetailResponseDTO> getPostsByURL(String url);
+
+    /**
+     * Gets posts by id v 2.
+     *
+     * @param universityId the university id
+     * @return the posts by id v 2
+     */
+    ResponseData<List<PostDetailResponseDTO>> getPostsByIdV2(Integer universityId);
+
 }

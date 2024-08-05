@@ -22,7 +22,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/comment")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class CommentController {
 
     private final CommentService commentService;
@@ -35,6 +34,7 @@ public class CommentController {
      */
     @PostMapping()
     @PreAuthorize("hasAnyAuthority('USER','CONSULTANT','STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<?>> createComment(@RequestBody @Valid CommentRequestDTO requestDTO) {
         if (requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Sai request"));
@@ -54,6 +54,7 @@ public class CommentController {
      */
     @PostMapping("/reply")
     @PreAuthorize("hasAnyAuthority('USER','CONSULTANT','STAFF')")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<?>> createReplyComment(@RequestBody @Valid ReplyCommentRequestDTO requestDTO) {
         if (requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Sai request"));

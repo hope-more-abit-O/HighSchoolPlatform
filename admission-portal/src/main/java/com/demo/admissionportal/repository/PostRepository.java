@@ -135,4 +135,12 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
                    "FROM [post] p " +
                    "WHERE p.url = :url", nativeQuery = true)
     Post findFirstByUrl(String url);
+
+    /**
+     * Find first by create by post.
+     *
+     * @param id the id
+     * @return the post
+     */
+    Post findFirstByCreateBy(Integer id);
 }
