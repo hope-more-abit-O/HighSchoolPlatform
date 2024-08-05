@@ -14,4 +14,12 @@ public class ServiceUtils {
             throw new ResolutionException("Could not get id from user");
         }
     }
+
+    public static User getUser(){
+        try {
+            return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        } catch (Exception e){
+            throw new ResolutionException("Could not get id from user");
+        }
+    }
 }

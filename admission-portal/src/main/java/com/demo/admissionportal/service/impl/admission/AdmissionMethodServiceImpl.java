@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -113,5 +114,25 @@ public class AdmissionMethodServiceImpl {
 
     public List<Integer> getAdmissionId(List<Integer> admissionMethodIds){
         return admissionMethodRepository.findAdmissionIdByAdmissionMethodIds(admissionMethodIds);
+    }
+
+    public List<AdmissionMethod> findByIds(List<Integer> admissionMethodIds)
+            throws ResourceNotFoundException{
+        List<AdmissionMethod> methods = admissionMethodRepository.findAllById(admissionMethodIds);
+
+        // Check for IDs that were not found
+        List<Integer> foundIds = methods.stream().map(AdmissionMethod::getId).toList();
+        List<Integer> notFoundIds = admissionMethodIds.stream().filter(id -> !foundIds.contains(id)).toList();
+
+        Map<String, String> error = new HashMap<>();
+        error.put("error", notFoundIds
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(",")));
+        if (!notFoundIds.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy ngành.", error);
+        }
+
+        return methods;
     }
 }

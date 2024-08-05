@@ -86,9 +86,9 @@ public class AdmissionController {
     @GetMapping("/source")
     public ResponseEntity<ResponseData<List<String>>> getAdmissionSource(
             @RequestParam(required = true) Integer year,
-            @RequestParam(required = true) String search
+            @RequestParam(required = true) String universityCode
     ) {
-        return ResponseEntity.ok(admissionService.getSourceBy(year, search));
+        return ResponseEntity.ok(admissionService.getSource(year, universityCode));
     }
 
     @GetMapping("/{id}")
@@ -102,4 +102,14 @@ public class AdmissionController {
         return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
     }
 
+    @PutMapping("/score")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity updateAdmissionScore(@RequestBody UpdateAdmissionScoreRequest request){
+        return ResponseEntity.ok(admissionService.updateAdmissionScore(request));
+    }
+
+    @GetMapping("/score")
+    public ResponseEntity getAdmissionScoreByYearAndUniversityCode(@RequestParam Integer year, @RequestParam String universityCode){
+        return ResponseEntity.ok(admissionService.getAdmissionScore(year, universityCode, 1));
+    }
 }
