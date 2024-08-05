@@ -23,37 +23,42 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admission")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
 
     @PostMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<CreateAdmissionResponse>> createAdmission(@RequestBody CreateAdmissionAndMethodsAndMajorsRequest request)
             throws ResourceNotFoundException, DataExistedException, StoreDataFailedException {
         return ResponseEntity.ok(admissionService.createAdmission(request));
     }
 
     @PostMapping("/training-program")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmissionTrainingProgram(@RequestBody CreateAdmissionTrainingProgramRequest request){
         return ResponseEntity.ok(admissionService.createAdmissionTrainingProgram(request));
     }
 
     @PostMapping("/major")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmissionMajor(@RequestBody CreateAdmissionMethodRequest request){
         return ResponseEntity.ok(admissionService.createAdmissionMethod(request));
     }
 
     @PostMapping("/quota")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmissionQuotas(@RequestBody CreateAdmissionTrainingProgramMethodRequest request){
         return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramMethodQuota(request));
     }
 
     @PostMapping("/training-program/subject-group")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmissionTrainingProgramSubjectGroup(@RequestBody CreateAdmissionTrainingProgramSubjectGroupRequest request){
         return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
     }
 
     @PostMapping("/create")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request)
         throws DataExistedException{
         admissionService.createAdmission(request);
@@ -92,6 +97,7 @@ public class AdmissionController {
     }
 
     @PatchMapping
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity universityAction(@RequestBody @Valid UpdateAdmissionStatusRequest request){
         return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
     }

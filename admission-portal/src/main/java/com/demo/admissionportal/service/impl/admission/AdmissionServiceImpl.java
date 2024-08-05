@@ -349,9 +349,13 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public ResponseData<List<String>> getSourceBy(Integer year, String search) {
-        Admission admissions = admissionRepository.findByYearAndSearch(year, search).orElseThrow(() -> new ResourceNotFoundException("Admission"));
+        Optional<Admission> admissions = admissionRepository.findByYearAndSearch(year, search);
 
-        return ResponseData.ok("Lấy tài liệu của đề án thành công.", Arrays.stream(admissions.getSource().split(";")).toList());
+        if (admissions.isEmpty()) {
+            return ResponseData.ok("Không tìm thấy tài liệu nào");
+        }
+
+        return ResponseData.ok("Lấy tài liệu thành công.", Arrays.stream(admissions.get().getSource().split(";")).toList());
     }
 
     protected List<ActionerDTO> getActioners(List<Admission> admissions) {

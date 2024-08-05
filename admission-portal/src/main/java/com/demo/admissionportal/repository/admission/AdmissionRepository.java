@@ -19,7 +19,6 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     FROM admission
     WHERE (:id IS NULL OR id = :id)
       AND (:year IS NULL OR year = :year)
-      AND (:search IS NULL OR source LIKE %:source%)
       AND (:source IS NULL OR source LIKE %:source%)
       AND (:universityId IS NULL OR university_id = :universityId)
       AND (:createTime IS NULL OR create_time = :createTime)
@@ -58,7 +57,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     );
 
     @Query(value = """
-    SELECT ad.*
+    SELECT TOP(1) ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
