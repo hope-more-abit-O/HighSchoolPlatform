@@ -132,8 +132,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * @return the post
      */
     @Query(value = "SELECT * " +
-                   "FROM [post] p " +
-                   "WHERE p.url = :url", nativeQuery = true)
+            "FROM [post] p " +
+            "WHERE p.url = :url", nativeQuery = true)
     Post findFirstByUrl(String url);
 
     /**
@@ -142,5 +142,18 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * @param id the id
      * @return the post
      */
-    Post findFirstByCreateBy(Integer id);
+    List<Post> findPostByCreateBy(Integer id);
+
+    /**
+     * Find all by create by in list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM [post] p " +
+            "LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id " +
+            "WHERE ci.university_id = :universityId", nativeQuery = true)
+    List<Post> findAllByCreateByIn(Integer universityId);
+
 }

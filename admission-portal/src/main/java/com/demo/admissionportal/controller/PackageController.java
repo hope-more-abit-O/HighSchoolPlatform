@@ -76,7 +76,7 @@ public class PackageController {
      */
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('ADMIN','UNIVERSITY')")
-    public ResponseEntity<ResponseData<List<AdsPackage>>> listPackage(){
+    public ResponseEntity<ResponseData<List<AdsPackage>>> listPackage() {
         ResponseData<List<AdsPackage>> resultOfList = packageService.getPackages();
         if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(resultOfList);
