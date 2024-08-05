@@ -89,6 +89,7 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(ADMISSION_API).hasAnyAuthority("ADMIN", "STAFF", "UNIVERSITY", "CONSULTANT")
 
+                                .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,
