@@ -115,6 +115,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                 }
                 if (consultantInfo != null) {
                     consultantInfoResponseDTO = modelMapper.map(consultantInfo, ConsultantInfoResponseDTO.class);
+                    User university = userRepository.findUserById(consultantInfoResponseDTO.getUniversityId());
+                    consultantInfoResponseDTO.setAvatarUniversity(university.getAvatar());
                 }
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
                         .accessToken(jwtToken)
