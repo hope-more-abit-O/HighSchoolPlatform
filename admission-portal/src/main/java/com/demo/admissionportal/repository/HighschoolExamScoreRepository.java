@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolExamScore, Integer> {
@@ -25,9 +26,18 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findByExaminer(String examiner);
     List<HighschoolExamScore> findByIdentificationNumber(Integer identificationNumber);
     List<HighschoolExamScore> findByIdentificationNumberAndYear(Integer identificationNumber, Integer year);
+    @Query("SELECT h FROM HighschoolExamScore h WHERE h.local = :local")
+    List<HighschoolExamScore> findByLocal(@Param("local") String local);
 
-    @Query(value = "SELECT h.identification_number, h.subject_id, h.score FROM highschool_exam_score h " +
-            "WHERE h.year = 2024 AND h.subject_id IN (:subjectIds)", nativeQuery = true)
-    List<Object[]> findScoresForSubjects(@Param("subjectIds") List<Integer> subjectIds);
 
+    @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.local FROM highschool_exam_score h " +
+            "WHERE h.year = 2024 AND " +
+            "(:local IS NULL OR h.local = :local) AND " +
+            "h.subject_id IN (:subjectIds)", nativeQuery = true)
+    List<Object[]> findScoresForSubjects(@Param("subjectIds") List<Integer> subjectIds, @Param("local") String local);
+
+    @Query(value = "SELECT h.examiner, h.subject_id FROM highschool_exam_score h WHERE " +
+            "h.year = 2024 AND (:local IS NULL OR h.local LIKE %:local%)", nativeQuery = true)
+    List<Object[]> findExaminerAndSubjects(@Param("local") String local);
 }
+
