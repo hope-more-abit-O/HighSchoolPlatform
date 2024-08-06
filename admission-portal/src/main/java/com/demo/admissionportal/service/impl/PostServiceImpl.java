@@ -35,9 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
 import java.text.Normalizer;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -243,7 +241,7 @@ public class PostServiceImpl implements PostService {
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
             post.setView(0);
-            post.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
+            post.setUrl(convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
             log.error("Error when save post: {}", ex.getMessage());
@@ -457,18 +455,26 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
         List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
-        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        if (postPropertiesResponseDTO.getCreate_time() != null) {
-//            postPropertiesResponseDTO.setCreate_time(formatter.format(post.getCreateTime()));
-        }
         String info = getUserInfoPostDTO(post.getCreateBy());
+        String role = getRoleUser(post.getCreateBy());
+        Integer universityId = getUniversityId(post.getCreateBy());
         return PostDetailResponseDTO.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .listType(typeResponseDTOList)
                 .listTag(tagResponseDTOList)
                 .create_by(info)
+                .universityId(universityId)
+                .role(role)
                 .comments(commentResponseDTO)
                 .build();
+    }
+
+    private Integer getUniversityId(Integer createBy) {
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(createBy);
+        if (universityInfo == null) {
+            return null;
+        }
+        return universityInfo.getId();
     }
 
     @Override
@@ -489,7 +495,7 @@ public class PostServiceImpl implements PostService {
             existingPost.setUpdateTime(new Date());
             existingPost.setThumnail(requestDTO.getThumnail());
             existingPost.setQuote(requestDTO.getQuote());
-            existingPost.setUrl("/" + convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
+            existingPost.setUrl(convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             existingPost.setUpdateBy(updateBy);
             postRepository.save(existingPost);
 
@@ -963,10 +969,11 @@ public class PostServiceImpl implements PostService {
                 // Case 2 : if consultant is existed and find it
                 User user = userRepository.findUserById(consultantInfo.getUniversityId());
                 UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
-                UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
+                UniversityCampus universityCampus = universityCampusRepository.findFirstUniversityCampusByUniversityId(universityInfo.getId());
+                Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
                 id = universityInfo.getId();
-                fullName = universityInfo.getName() + " " + universityCampus.getCampusName();
-                location = universityCampus.getSpecificAddress();
+                fullName = universityInfo.getName();
+                location = province.getName();
             }
 
             PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
@@ -1105,14 +1112,13 @@ public class PostServiceImpl implements PostService {
 
     private PostRandomResponseDTO mapperConsultantInfoRandomPost(Post post, ConsultantInfo consultantInfo) {
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(consultantInfo.getUniversityId());
-        UniversityCampus universityCampus = universityCampusRepository.findUniversityCampusByUniversityId(universityInfo.getId());
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
-        postRandomResponseDTO.setCreateBy(universityInfo.getName() + " " + universityCampus.getCampusName());
+        postRandomResponseDTO.setCreateBy(universityInfo.getName());
         postRandomResponseDTO.setComment(comment);
         postRandomResponseDTO.setListType(typeResponseDTOList);
         return postRandomResponseDTO;
@@ -1151,5 +1157,68 @@ public class PostServiceImpl implements PostService {
     private String mapperConsultantInfoResponseDTOV2(ConsultantInfo consultantInfo) {
         ConsultantInfo info = consultantInfoRepository.findConsultantInfoById(consultantInfo.getId());
         return info.getFirstName().trim() + " " + info.getMiddleName().trim() + " " + info.getLastName();
+    }
+
+
+    @Override
+    public ResponseData<PostDetailResponseDTO> getPostsByURL(String url) {
+        try {
+            log.info("Received request for URL: {}", url); // Add logging here
+            Post posts = postRepository.findFirstByUrl(url);
+            PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
+            if (result != null) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với url: " + url, result);
+            }
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url:" + url);
+
+        } catch (Exception ex) {
+            log.error("Error when get posts with url {}:", url);
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    private String getRoleUser(Integer createBy) {
+        User user = userRepository.findUserById(createBy);
+        return user.getRole().name();
+    }
+
+
+    @Override
+    public ResponseData<List<PostDetailResponseDTOV3>> getPostsByIdV2(Integer universityId) {
+        try {
+            List<Post> posts = postRepository.findAllByCreateByIn(universityId);
+            List<PostDetailResponseDTOV3> postDetailResponseDTOList = posts.stream()
+                    .map(this::mapToListPostDetailV3)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với universityId: " + universityId, postDetailResponseDTOList);
+        } catch (Exception ex) {
+            log.error("Error when get posts with universityId {}:", universityId);
+            return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
+        }
+    }
+
+    public PostDetailResponseDTOV3 mapToListPostDetailV3(Post post) {
+        String info = getUserInfoPostDTO(post.getCreateBy());
+        User user = getUser(post.getCreateBy());
+        Integer comment = commentRepository.countByPostId(post.getId());
+        PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        postPropertiesResponseDTO.setComment(comment);
+        return PostDetailResponseDTOV3.builder()
+                .postProperties(postPropertiesResponseDTO)
+                .create_by(info)
+                .avatar(user.getAvatar())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    private User getUser(Integer userId) {
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
+        if (consultantInfo != null) {
+            User universityUser = userRepository.findUserById(consultantInfo.getUniversityId());
+            if (universityUser != null) {
+                return universityUser;
+            }
+        }
+        return userRepository.findUserById(userId);
     }
 }

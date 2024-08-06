@@ -130,4 +130,14 @@ public interface MajorRepository extends JpaRepository<Major, Integer> {
 
     List<Major> findByNameOrCode(String name, String code);
     Optional<Major> findByCode(String code);
+
+    @Query(value = """
+    SELECT m.*
+    FROM [admission_training_program] atp
+    INNER JOIN [major] m ON m.id = atp.major_id
+    WHERE atp.admission_id = :admissionId
+""",nativeQuery = true)
+    List<Major> findMajorsByAdmissionId(@Param("admissionId") Integer admissionId);
+
+
 }

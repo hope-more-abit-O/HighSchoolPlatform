@@ -5,7 +5,8 @@ import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -136,5 +138,29 @@ public class AdmissionTrainingProgramServiceImpl {
             }
         }
         throw new ResourceNotFoundException("Không tìm thấy admission training program");
+    }
+
+    public List<AdmissionTrainingProgram> findByAdmissionId(Integer id) {
+        return admissionTrainingProgramRepository.findByAdmissionId(id);
+    }
+    
+    public List<AdmissionTrainingProgram> findByIds(List<Integer> admissionMethodIds)
+            throws ResourceNotFoundException{
+        List<AdmissionTrainingProgram> methods = admissionTrainingProgramRepository.findAllById(admissionMethodIds);
+
+        // Check for IDs that were not found
+        List<Integer> foundIds = methods.stream().map(AdmissionTrainingProgram::getId).toList();
+        List<Integer> notFoundIds = admissionMethodIds.stream().filter(id -> !foundIds.contains(id)).toList();
+
+        Map<String, String> error = new HashMap<>();
+        error.put("error", notFoundIds
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(",")));
+        if (!notFoundIds.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy ngành.", error);
+        }
+
+        return methods;
     }
 }

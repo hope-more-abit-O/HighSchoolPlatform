@@ -103,13 +103,15 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * @param locationId the location id
      * @return the list
      */
-    @Query(value = "SELECT p.*, pr2.name " +
+    @Query(value = "SELECT p.*, pr2.name, pr1.name " +
             "FROM post p " +
             "LEFT JOIN [user] u ON p.create_by = u.id " +
-            "LEFT JOIN consultant_info ci ON u.id = ci.consultant_id " +
-            "LEFT JOIN province pr1 ON ci.province_id = pr1.id " +
-            "LEFT JOIN staff_info si ON u.id = si.staff_id " +
-            "LEFT JOIN province pr2 ON si.province_id = pr2.id " +
+            "LEFT JOIN [staff_info] si ON u.id = si.staff_id " +
+            "LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id " +
+            "LEFT JOIN [university_info] ui ON ci.university_id = ui.university_id " +
+            "LEFT JOIN [university_campus] uc ON ui.university_id = uc.university_id " +
+            "LEFT JOIN [province] pr1 ON uc.province_id = pr1.id " +
+            "LEFT JOIN [province] pr2 ON si.province_id = pr2.id " +
             "WHERE (pr1.id = :locationId OR pr2.id = :locationId) " +
             "AND p.status = 'ACTIVE'", nativeQuery = true)
     List<Post> findPostWithLocationId(@Param("locationId") Integer locationId);
@@ -122,4 +124,36 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT p.* FROM post p " +
             "WHERE p.status = 'ACTIVE'", nativeQuery = true)
     List<Post> findAllWithStatus();
+
+    /**
+     * Find first by url post.
+     *
+     * @param url the url
+     * @return the post
+     */
+    @Query(value = "SELECT * " +
+            "FROM [post] p " +
+            "WHERE p.url = :url", nativeQuery = true)
+    Post findFirstByUrl(String url);
+
+    /**
+     * Find first by create by post.
+     *
+     * @param id the id
+     * @return the post
+     */
+    List<Post> findPostByCreateBy(Integer id);
+
+    /**
+     * Find all by create by in list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM [post] p " +
+            "LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id " +
+            "WHERE ci.university_id = :universityId", nativeQuery = true)
+    List<Post> findAllByCreateByIn(Integer universityId);
+
 }

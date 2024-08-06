@@ -29,7 +29,7 @@ import java.util.List;
                         @ColumnResult(name = "quote", type = String.class),
                         @ColumnResult(name = "thumnail", type = String.class),
                         @ColumnResult(name = "url", type = String.class),
-                        @ColumnResult(name = "createBy", type = String.class),
+                        @ColumnResult(name = "createBy", type = Integer.class),
                         @ColumnResult(name = "avatar", type = String.class),
                 }
         )

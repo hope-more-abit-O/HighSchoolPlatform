@@ -52,6 +52,10 @@ public class SecurityConfiguration {
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
     private static final String EXAM_SCORE_API = "/api/v1/exam-scores/**";
+    private static final String PACKAGE_API = "/api/v1/package/**";
+    private static final String FAVORITE_API = "/api/v1/favorite/**";
+    private static final String ORDER_API ="/api/v1/order/**";
+    private static final String LIKE_API = "/api/v1/like/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -60,19 +64,41 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         req -> req
                                 .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
+
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")
+
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
+
                                 .requestMatchers(STUDENT_REPORT, REPORTS_API).hasAnyAuthority("USER","STAFF")
+
                                 .requestMatchers(CHAT_API).hasAnyAuthority("STAFF", "USER", "CONSULTANT")
+
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university/info/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET ,"/api/v1/university").permitAll()
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY")
+
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+
                                 .requestMatchers(HttpMethod.GET,MAJOR_API).permitAll()
                                 .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
+
                                 .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
                                 .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
+
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
-                                .requestMatchers(ADMISSION_API).hasAnyAuthority("ADMIN", "STAFF", "UNIVERSITY", "CONSULTANT")
+
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/source").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/university/{id}/latest-training-program").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/score").permitAll()
+                                .requestMatchers(ADMISSION_API).authenticated()
+
+                                .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY")
+                                .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
+                                .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(AUTHENTICATION_API,
                                         EXAM_SCORE_API,
                                         COMMENT_API,
@@ -83,6 +109,7 @@ public class SecurityConfiguration {
                                         MAJOR_API,
                                         METHOD_API,
                                         SEARCH_API,
+                                        FAVORITE_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

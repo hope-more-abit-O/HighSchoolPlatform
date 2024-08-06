@@ -5,11 +5,8 @@ import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.request.CreateSubjectGroupRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateSubjectGroupRequestDTO;
-import com.demo.admissionportal.dto.response.sub_entity.CreateSubjectGroupResponseDTO;
-import com.demo.admissionportal.dto.response.sub_entity.CreateSubjectResponseDTO;
+import com.demo.admissionportal.dto.response.sub_entity.*;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
-import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO2;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGroup;
@@ -335,5 +332,19 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                     actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
                     return actionerDTO;
                 }).orElse(null);
+    }
+
+    public List<SubjectGroup> findByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
+        return subjectGroupRepository.findByAdmissionTrainingProgramId(admissionTrainingProgramIds);
+    }
+
+    public List<SubjectGroupResponseDTO2> getByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
+        List<SubjectGroup> list = findByAdmissionTrainingProgramIds(admissionTrainingProgramIds);
+        List<SubjectGroupResponseDTO2> result = list.stream().map(SubjectGroupResponseDTO2::new).collect(Collectors.toList());
+        return result;
+    }
+
+    public List<SubjectGroupResponseDTO2> mapInfo(List<SubjectGroup> subjectGroupForMap) {
+        return subjectGroupForMap.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).toList();
     }
 }

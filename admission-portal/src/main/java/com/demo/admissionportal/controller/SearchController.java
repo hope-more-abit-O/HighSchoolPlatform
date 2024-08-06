@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
 /**
  * The type Search controller.
@@ -35,7 +38,7 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = true, name = "content") String content,
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = false, name = "content") String content,
                                                                         @PageableDefault(size = 10) Pageable pageable) {
         ResponseData<Page<PostSearchDTO>> response = searchPostService.searchPost(content, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
@@ -47,6 +50,7 @@ public class SearchController {
     /**
      * Search filter post response entity.
      *
+     * @param content    the content
      * @param typeId     the type name
      * @param locationId the location id
      * @param startDate  the start date
@@ -56,13 +60,20 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post/filter")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchFilterPost(@RequestParam(required = false, name = "typeId") Integer typeId,
-                                                                              @RequestParam(required = false, name = "locationId") Integer locationId,
+    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchFilterPost(@RequestParam(required = false, name = "content") String content,
+                                                                              @RequestParam(required = false, name = "typeId") List<Integer> typeId,
+                                                                              @RequestParam(required = false, name = "locationId") List<Integer> locationId,
                                                                               @RequestParam(required = false, name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                               @RequestParam(required = false, name = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                                                              @RequestParam(required = false, name = "authorId") Integer authorId,
+                                                                              @RequestParam(required = false, name = "authorId") List<Integer> authorId,
                                                                               @PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(typeId, locationId, startDate, endDate, authorId, pageable);
+        if (startDate != null && endDate != null) {
+            LocalDateTime startDateTime = startDate.atTime(LocalTime.MIN).plusHours(7);
+            LocalDateTime endDateTime = startDate.atTime(LocalTime.MIN).plusHours(7);
+            startDate = startDateTime.toLocalDate();
+            endDate = endDateTime.toLocalDate();
+        }
+        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(content, typeId, locationId, startDate, endDate, authorId, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }

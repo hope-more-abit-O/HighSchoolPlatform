@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,8 +29,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/university")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
-@PreAuthorize("hasAuthority('UNIVERSITY')")
 public class UniversityController {
     private final UniversityService universityService;
     private final ConsultantService consultantService;
@@ -48,6 +48,7 @@ public class UniversityController {
      *                                 with existing records.
      */
     @PostMapping("/consultant")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
             throws DataExistedException,StoreDataFailedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.createConsultant(request));
@@ -65,11 +66,13 @@ public class UniversityController {
      *             if the consultant is not found).
      */
     @GetMapping("/consultant/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.",consultantService.getFullConsultantByIdByUniversity(id)));
     }
 
     @GetMapping("/consultants")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> getConsultants(
             Pageable pageable,
             @RequestParam(required = false) Integer id,
@@ -91,18 +94,46 @@ public class UniversityController {
     }
 
     @GetMapping("/info")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> getSelfProfile() {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công.", universityService.getSelfProfile()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/full/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/info/{id}")
+    public ResponseEntity<ResponseData<UniversityInfoResponseDTO>> findInfoUniversityById(@PathVariable Integer id) throws Exception {
+        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityInfoResponseById(id));
+        return ResponseEntity.ok(result);
+    }
+
     @PatchMapping("/consultant")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request){
         return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
+    }
+
+
+    @GetMapping()
+    public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) AccountStatus status,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) String createByName) {
+        return ResponseEntity.ok(
+                universityService.getAllUniversityFullResponses(pageable,
+                        id, code, username, name, phone,
+                        email, status, createBy, createByName));
     }
 }

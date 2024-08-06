@@ -104,4 +104,21 @@ public interface PostService {
      * @return the response data
      */
     ResponseData<Page<PostRandomResponseDTO>> listPostRandom(Integer locationId, Pageable pageable);
+
+    /**
+     * Gets posts by url.
+     *
+     * @param url the url
+     * @return the posts by url
+     */
+    ResponseData<PostDetailResponseDTO> getPostsByURL(String url);
+
+    /**
+     * Gets posts by id v 2.
+     *
+     * @param universityId the university id
+     * @return the posts by id v2
+     */
+    ResponseData<List<PostDetailResponseDTOV3>> getPostsByIdV2(Integer universityId);
+
 }

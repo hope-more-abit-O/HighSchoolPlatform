@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.response.sub_entity;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.entity.SubjectGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,10 @@ public class SubjectGroupResponseDTO2 {
         this.id = id;
         this.name = name;
         this.status = status;
+    }
+    public SubjectGroupResponseDTO2(SubjectGroup subjectGroup) {
+        this.id = subjectGroup.getId();
+        this.name = subjectGroup.getName();
+        this.status = subjectGroup.getStatus().name;
     }
 }

@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CommentStatus;
 import com.demo.admissionportal.constants.CommentType;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.comment.CommentRequestDTO;
 import com.demo.admissionportal.dto.request.comment.ReplyCommentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -10,21 +11,17 @@ import com.demo.admissionportal.dto.response.comment.CommentDetailResponseDTO;
 import com.demo.admissionportal.dto.response.comment.CommentResponseDTO;
 import com.demo.admissionportal.dto.response.comment.ReplyCommentDetailResponseDTO;
 import com.demo.admissionportal.dto.response.comment.UserDetailCommentResponseDTO;
-import com.demo.admissionportal.entity.Comment;
-import com.demo.admissionportal.entity.StaffInfo;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserInfo;
-import com.demo.admissionportal.repository.CommentRepository;
-import com.demo.admissionportal.repository.StaffInfoRepository;
-import com.demo.admissionportal.repository.UserInfoRepository;
-import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.CommentService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,10 +33,12 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Slf4j
 public class CommentServiceImpl implements CommentService {
+    private final UniversityInfoRepository universityInfoRepository;
     private final CommentRepository commentRepository;
     private final UserInfoRepository userInfoRepository;
     private final UserRepository userRepository;
     private final StaffInfoRepository staffInfoRepository;
+    private final ConsultantInfoRepository consultantInfoRepository;
 
     @Override
     public ResponseData<?> createComment(CommentRequestDTO requestDTO) {
@@ -122,6 +121,7 @@ public class CommentServiceImpl implements CommentService {
         List<CommentResponseDTO> responseDTOS = new ArrayList<>();
         List<Comment> commentsWithNoParentId = comments.stream()
                 .filter(comment -> comment.getCommentParentId() == null)
+                .sorted(Comparator.comparing(Comment::getCreate_time).reversed())
                 .toList();
         // Get root comments
         for (Comment comment : commentsWithNoParentId) {
@@ -141,32 +141,26 @@ public class CommentServiceImpl implements CommentService {
                 .content(comment.getContent())
                 .postId(comment.getPostId())
                 .user_id(mapToUserDetailResponse(comment.getCommenter_id()))
-                .create_time(comment.getCreate_time())
+                .create_time(DateUtils.addHours(comment.getCreate_time(), 7))
                 .comment_type(comment.getComment_type())
                 .replyComment(mapToReplyCommentDetailResponseList(commentChildren))
                 .build();
     }
 
     private UserDetailCommentResponseDTO mapToUserDetailResponse(Integer commenterId) {
-        UserInfo userInfo = userInfoRepository.findUserInfoById(commenterId);
         User user = userRepository.findUserById(commenterId);
-        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(commenterId);
-        String fullName = null;
-        if (userInfo != null) {
-            fullName = userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName();
-        } else if (staffInfo != null) {
-            fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
-        }
         return UserDetailCommentResponseDTO.builder()
                 .id(user.getId())
-                .fullName(fullName)
-                .avatar(user.getAvatar())
+                .fullName(getFullName(commenterId))
+                .avatar(getAvatar(commenterId))
+                .role(user.getRole().name())
                 .build();
     }
 
     private List<ReplyCommentDetailResponseDTO> mapToReplyCommentDetailResponseList(List<Comment> comments) {
         return comments.stream()
                 .map(this::mapToReplyCommentDetailResponse)
+                .sorted(Comparator.comparing(ReplyCommentDetailResponseDTO::getCreate_time).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -174,9 +168,46 @@ public class CommentServiceImpl implements CommentService {
         return ReplyCommentDetailResponseDTO.builder()
                 .replayComment_id(comment.getId())
                 .content(comment.getContent())
-                .create_time(comment.getCreate_time())
+                .create_time(DateUtils.addHours(comment.getCreate_time(), 7))
                 .user_id(mapToUserDetailResponse(comment.getCommenter_id()))
                 .comment_type(comment.getComment_type())
                 .build();
+    }
+
+    private String getFullName(Integer userId) {
+
+        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(userId);
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
+        String fullName;
+        if (consultantInfo != null) {
+            User university = userRepository.findUserById(consultantInfo.getUniversityId());
+            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(university.getId());
+            fullName = universityInfo.getName();
+
+        } else if (staffInfo != null) {
+            fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
+        } else {
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            fullName = userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName();
+        }
+        return fullName;
+    }
+
+    private String getAvatar(Integer userId) {
+        ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
+        String avatar = null;
+
+        if (consultantInfo != null) {
+            User university = userRepository.findUserById(consultantInfo.getUniversityId());
+            if (university != null) {
+                avatar = university.getAvatar();
+            }
+        } else {
+            User user = userRepository.findUserById(userId);
+            if (user != null) {
+                avatar = user.getAvatar();
+            }
+        }
+        return avatar;
     }
 }

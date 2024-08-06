@@ -41,7 +41,4 @@ public class UpdateCampusRequestDTO implements Serializable {
     @Nullable
     private Integer provinceId;
 
-    @Enumerated(EnumType.STRING)
-    @Nullable
-    private CampusType type;
 }

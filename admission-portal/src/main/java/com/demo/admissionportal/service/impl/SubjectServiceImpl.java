@@ -7,10 +7,7 @@ import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
-import com.demo.admissionportal.entity.StaffInfo;
-import com.demo.admissionportal.entity.Subject;
-import com.demo.admissionportal.entity.SubjectGroup;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -185,5 +182,27 @@ public class SubjectServiceImpl implements SubjectService {
                     actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
                     return actionerDTO;
                 }).orElse(null);
+    }
+
+    public List<Subject> findByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty() || ids.get(0) == null) {
+            return new ArrayList<>();
+        }
+        List<Subject> subjects = subjectRepository.findAllById(ids);
+
+        // Check for IDs that were not found
+        List<Integer> foundIds = subjects.stream().map(Subject::getId).toList();
+        List<Integer> notFoundIds = ids.stream().filter(id -> !foundIds.contains(id)).toList();
+
+        Map<String, String> error = new HashMap<>();
+        error.put("error", notFoundIds
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(",")));
+        if (!notFoundIds.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy môn học.", error);
+        }
+
+        return subjects;
     }
 }

@@ -3,30 +3,29 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.CampusType;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.UniversityCampusStatus;
+import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusDTO;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusProperties;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityProperties;
 import com.demo.admissionportal.dto.request.university_campus.CreateCampusRequestDTO;
 import com.demo.admissionportal.dto.request.university_campus.UpdateCampusRequestDTO;
-import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UniversityCampusService;
 import com.demo.admissionportal.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type University campus service.
@@ -84,6 +83,18 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .collect(Collectors.toList());
     }
 
+    public List<UniversityCampusProperties> mapToListCampusV2(Integer universityId) {
+        log.info("Start mapToListCampus");
+        List<UniversityCampus> universityCampus = universityCampusRepository.findByUniversityId(universityId);
+        List<Integer> provincesIds = universityCampus.stream().map(UniversityCampus::getProvinceId).distinct().toList();
+        List<Integer> districtIds = universityCampus.stream().map(UniversityCampus::getDistrictId).distinct().toList();
+        List<Integer> wardIds = universityCampus.stream().map(UniversityCampus::getWardId).distinct().toList();
+        List<Province> provinces = provinceRepository.findAllById(provincesIds);
+        List<District> districts = districtRepository.findAllById(districtIds);
+        List<Ward> wards = wardRepository.findAllById(wardIds);
+        return mapToCampus(universityCampus, provinces, districts, wards);
+    }
+
     private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus) {
         Ward wardCampus = wardRepository.findWardById(universityCampus.getWardId());
         Province provinceCampus = provinceRepository.findProvinceById(universityCampus.getProvinceId());
@@ -98,6 +109,42 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .type(universityCampus.getType().name)
                 .status(universityCampus.getStatus().name)
                 .build();
+    }
+    private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus, Province province, District district, Ward ward) {
+        return UniversityCampusProperties.builder()
+                .id(universityCampus.getId())
+                .phone(universityCampus.getPhone())
+                .campusName(universityCampus.getCampusName())
+                .email(universityCampus.getEmail())
+                .picture(mapToListPicture(universityCampus.getPicture()))
+                .address(universityCampus.getSpecificAddress() + ", " + ward.getName() + ", " + district.getName() + ", " + province.getName())
+                .type(universityCampus.getType().name)
+                .status(universityCampus.getStatus().name)
+                .build();
+    }
+
+    private List<UniversityCampusProperties> mapToCampus(List<UniversityCampus> universityCampus, List<Province> provinces, List<District> districts, List<Ward> wards) {
+        List<UniversityCampusProperties> result = new ArrayList<>();
+        for (UniversityCampus uniCam: universityCampus) {
+            Province province = provinces
+                    .stream()
+                    .filter( (pr) -> pr.getId().equals(uniCam.getProvinceId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 1.", Map.of("provinceId", uniCam.getProvinceId().toString())));
+            District district = districts
+                    .stream()
+                    .filter( (ds) -> ds.getId().equals(uniCam.getDistrictId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 2.", Map.of("districtId", uniCam.getDistrictId().toString())));
+            Ward ward = wards
+                    .stream()
+                    .filter( (wr) -> wr.getId().equals(uniCam.getWardId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 3.", Map.of("wardId", uniCam.getWardId().toString())));
+
+            result.add(mapToCampus(uniCam, province, district, ward));
+        }
+        return result;
     }
 
     private List<String> mapToListPicture(String picture) {
@@ -117,7 +164,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
             validationService.validateRegisterUniversityCampus(requestDTO.getEmail(), requestDTO.getPhone());
             UniversityCampus universityCampus = getUniversityCampus(requestDTO, universityId, picture);
             if (getUniversityCampus(requestDTO, universityId, picture) == null) {
-                return new ResponseData<>(ResponseCode.C205.getCode(), "Cơ sở chính đã được đăng ký trước đó. Vui lòng cập nhật lại");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Cơ sở chính đã được đăng ký trước đó.");
             }
             UniversityCampus resultOfCreate = universityCampusRepository.save(universityCampus);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo campus thành công", resultOfCreate);
@@ -227,20 +274,6 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
         universityCampus.setUpdateBy(universityId);
         universityCampus.setUpdateTime(new Date());
         universityCampus.setPicture(picture != null ? picture.trim() : universityCampus.getPicture());
-        if (requestDTO.getType() == null) {
-            universityCampus.setType(universityCampus.getType());
-        } else {
-            if (requestDTO.getType().equals(CampusType.HEADQUARTERS)) {
-                UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
-                if (validateHeadQuarters != null) {
-                    return null;
-                } else {
-                    universityCampus.setType(requestDTO.getType());
-                }
-            } else {
-                universityCampus.setType(requestDTO.getType());
-            }
-        }
         return universityCampus;
     }
 
@@ -257,17 +290,52 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
         universityCampus.setCreateBy(universityId);
         universityCampus.setCreateTime(new Date());
         universityCampus.setPicture(picture.trim());
-        if (requestDTO.getType().equals(CampusType.HEADQUARTERS)) {
-            UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
-            if (validateHeadQuarters != null) {
-                return null;
-            } else {
-                universityCampus.setType(requestDTO.getType());
-            }
+        boolean isExisted = checkHeadQuartersExisted(universityId);
+        if (!isExisted) {
+            universityCampus.setType(CampusType.HEADQUARTERS);
         } else {
-            universityCampus.setType(requestDTO.getType());
+            universityCampus.setType(CampusType.SUB_HEADQUARTERS);
         }
         universityCampus.setStatus(UniversityCampusStatus.ACTIVE);
         return universityCampus;
+    }
+
+    private boolean checkHeadQuartersExisted(Integer universityId) {
+        boolean isExisted = false;
+        UniversityCampus validateHeadQuarters = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
+        return validateHeadQuarters == null ? isExisted : true;
+    }
+
+
+    @Override
+    public ResponseData<String> changeTypeUniversityCampus(Integer campusID) {
+        try {
+            Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityId);
+            if (universityCampus.getId().equals(campusID)) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Campus hiện tại là cơ sở chính");
+            } else {
+                UniversityCampus campus = universityCampusRepository.findUniversityCampusById(campusID);
+                if (campus == null) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Campus Id không tồn tại");
+                }
+                // Update type to SUB_HEADQUARTERS
+                universityCampus.setType(CampusType.SUB_HEADQUARTERS);
+                universityCampus.setUpdateTime(new Date());
+                universityCampus.setUpdateBy(universityId);
+                universityCampusRepository.save(universityCampus);
+
+                // Update type to HEADQUARTERS
+                campus.setType(CampusType.HEADQUARTERS);
+                campus.setUpdateTime(new Date());
+                campus.setUpdateBy(universityId);
+                universityCampusRepository.save(campus);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái thành công");
+            }
+
+        } catch (Exception ex) {
+            log.error("Failed to updates type university campus: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật trạng thái thất bại", null);
+        }
     }
 }
