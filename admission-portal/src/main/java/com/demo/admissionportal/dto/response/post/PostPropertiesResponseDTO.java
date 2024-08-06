@@ -27,4 +27,5 @@ public class PostPropertiesResponseDTO implements Serializable {
     private String content;
     private Integer like;
     private Integer view;
+    private Integer comment;
 }

@@ -53,6 +53,7 @@ public class SecurityConfiguration {
     private static final String ADMISSION_API = "/api/v1/admission/**";
     private static final String PACKAGE_API = "/api/v1/package/**";
     private static final String FAVORITE_API = "/api/v1/favorite/**";
+    private static final String ORDER_API ="/api/v1/order/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -93,6 +94,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(ADMISSION_API).authenticated()
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY")
+                                .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(AUTHENTICATION_API,
                                         COMMENT_API,
                                         TEST_API,

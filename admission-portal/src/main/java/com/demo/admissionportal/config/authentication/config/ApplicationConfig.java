@@ -3,8 +3,10 @@ package com.demo.admissionportal.config.authentication.config;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -14,6 +16,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import vn.payos.PayOS;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +30,7 @@ import java.util.function.Function;
  */
 @Configuration
 @RequiredArgsConstructor
-public class ApplicationConfig implements UserDetailsService {
+public class ApplicationConfig implements UserDetailsService , WebMvcConfigurer {
     private final UserRepository userRepository;
 
     /**
@@ -86,4 +91,28 @@ public class ApplicationConfig implements UserDetailsService {
                 .or(() -> userRepository.findByEmail(username));
         return userDetails.orElse(null);
     }
+//    @Value("${PAYOS_CLIENT_ID}")
+//    private String clientId;
+//
+//    @Value("${PAYOS_API_KEY}")
+//    private String apiKey;
+//
+//    @Value("${PAYOS_CHECKSUM_KEY}")
+//    private String checksumKey;
+//
+//    @Override
+//    public void addCorsMappings(@NonNull CorsRegistry registry) {
+//        registry.addMapping("/**")
+//                .allowedOrigins("*")
+//                .allowedMethods("*")
+//                .allowedHeaders("*")
+//                .exposedHeaders("*")
+//                .allowCredentials(false)
+//                .maxAge(3600); // Max age of the CORS pre-flight request
+//    }
+//
+//    @Bean
+//    public PayOS payOS() {
+//        return new PayOS(clientId, apiKey, checksumKey);
+//    }
 }
