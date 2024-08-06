@@ -7,6 +7,8 @@ import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentR
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
+import com.demo.admissionportal.dto.response.report.FindAllReportsCompletedResponse;
+import com.demo.admissionportal.dto.response.report.FindAllReportsResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
@@ -166,7 +168,40 @@ public class ReportController {
     }
 
     /**
-     * <h2>Find All Completed Post Reports</h2>
+     * <h2>Find All Reports</h2>
+     * <p>
+     * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
+     * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
+     * </p>
+     *
+     * @param pageable       Pagination details.
+     * @param authentication The {@link Authentication} object representing the authenticated user.
+     * @param reportId       Optional filter for the report ID.
+     * @param ticketId       Optional filter for the ticket ID.
+     * @param createBy       Optional filter for the creator ID.
+     * @return A {@link ResponseData} object containing a paginated list of completed post reports.
+     * @since 1.0
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<Page<FindAllReportsResponse>>> findAllReports(Pageable pageable, Authentication authentication,
+                                                                                     @RequestParam(required = false) Integer reportId,
+                                                                                     @RequestParam(required = false) String ticketId,
+                                                                                     @RequestParam(required = false) Integer createBy,
+                                                                                     @RequestParam(required = false) ReportType reportType,
+                                                                                     @RequestParam(required = false) ReportStatus status) {
+        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, reportType, status);
+        if (reportsResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(reportsResponse);
+        } else if (reportsResponse.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reportsResponse);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(reportsResponse);
+    }
+
+
+    /**
+     * <h2>Find All Completed Reports</h2>
      * <p>
      * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
      * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
@@ -431,4 +466,5 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(functionReportsResponse);
     }
+
 }

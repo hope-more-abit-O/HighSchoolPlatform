@@ -339,7 +339,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
 
         if (admissions.isEmpty()) {
-            ResponseData.ok("Không tìm thấy đề án thành công.");
+            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
         }
         List<ActionerDTO> actionerDTOs = this.getActioners(admissions.getContent());
 
@@ -352,7 +352,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         Optional<Admission> admissions = admissionRepository.findByYearAndUniversityCode(year, universityCode);
 
         if (admissions.isEmpty()) {
-            return ResponseData.ok("Không tìm thấy tài liệu nào");
+            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
         }
 
         return ResponseData.ok("Lấy tài liệu thành công.", Arrays.stream(admissions.get().getSource().split(";")).toList());
@@ -547,7 +547,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         Optional<Admission> admission = admissionRepository.findByYearAndUniversityCode(year, universityCode);
 
         if (admission.isEmpty()) {
-            return ResponseData.ok("Không tìm thấy tài liệu nào");
+            throw new ResourceNotFoundException("Không tìm thấy tài liệu nào");
         }
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admission.get().getId());
