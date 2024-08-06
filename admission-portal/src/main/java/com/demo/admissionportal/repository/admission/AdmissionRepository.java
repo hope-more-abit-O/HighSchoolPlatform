@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository.admission;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.entity.admission.Admission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,9 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     LEFT JOIN [user] usr ON usr.id = ad.university_id
     WHERE LOWER(ui."code") = LOWER(:universityCode)
     AND (year = :year)
+    AND (status = 'ACTIVE')
     """, nativeQuery = true)
     Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
+
+    Optional<Admission> findFirstByUniversityIdAndStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
 }

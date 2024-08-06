@@ -20,6 +20,7 @@ public class PostPropertiesResponseDTO implements Serializable {
     private Integer id;
     private String title;
     private String thumnail;
+    private Integer comment;
     private String quote;
     private PostStatus status;
     private Date create_time;
