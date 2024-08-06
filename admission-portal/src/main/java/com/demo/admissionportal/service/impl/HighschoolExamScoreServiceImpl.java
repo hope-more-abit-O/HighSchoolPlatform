@@ -39,14 +39,14 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private ModelMapper modelMapper;
 
     @Override
-    public ResponseData<Page<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber, Pageable pageable) {
+    public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber) {
         try {
-            Page<HighschoolExamScore> examScoresPage = highschoolExamScoreRepository.findAll(identificationNumber, pageable);
+            List<HighschoolExamScore> examScoresPage = highschoolExamScoreRepository.findAll(identificationNumber);
             if (identificationNumber == null || highschoolExamScoreRepository.countByIdentificationNumber(identificationNumber) == 0) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy số báo danh này !");
             }
 
-            Map<Integer, List<HighschoolExamScore>> groupedById = examScoresPage.getContent().stream()
+            Map<Integer, List<HighschoolExamScore>> groupedById = examScoresPage.stream()
                     .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
 
             List<HighschoolExamScoreResponse> responseList = new ArrayList<>();
@@ -85,8 +85,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 ));
             }
 
-            Page<HighschoolExamScoreResponse> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tra cứu điểm thành công !", responsePage);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tra cứu điểm thành công !", responseList);
         } catch (Exception e) {
             log.error("Error fetching exam scores", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình tra cứu điểm, vui lòng thử lại sau.");
@@ -236,119 +235,48 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForA00Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(27, 36, 16);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    // Round to 2 decimal places
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A00 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for A00 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForA01Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(27, 36, 38);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    // Round to 2 decimal places
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A01 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for A01 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForA02Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(16, 36, 23);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    // Round to 2 decimal places
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A02 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for A02 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForAGroup() {
+    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForAGroup(String subjectGroup) {
         try {
             Map<String, List<Integer>> groupSubjectIds = new HashMap<>();
             groupSubjectIds.put("A00", List.of(27, 36, 16));
             groupSubjectIds.put("A01", List.of(27, 36, 38));
             groupSubjectIds.put("A02", List.of(16, 36, 23));
 
-            Map<Float, Integer> combinedScoreDistribution = new HashMap<>();
+            Map<String, Map<Float, Integer>> combinedScoreDistribution = new HashMap<>();
 
-            for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
-                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+            if (subjectGroup == null) {
+                for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
+                    String groupName = entry.getKey();
+                    List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+
+                    Map<Integer, Float> totalScoresByStudent = new HashMap<>();
+
+                    for (Object[] data : scoresData) {
+                        if (data[0] != null && data[2] != null) {
+                            Integer identificationNumber = (Integer) data[0];
+                            Float score = ((Number) data[2]).floatValue();
+
+                            BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
+
+                            totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                        }
+                    }
+
+                    Map<Float, Integer> scoreDistribution = new HashMap<>();
+                    for (Float totalScore : totalScoresByStudent.values()) {
+                        BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
+                        scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    }
+
+                    combinedScoreDistribution.put(groupName, scoreDistribution);
+                }
+            } else {
+                List<Integer> subjectIds = groupSubjectIds.get(subjectGroup);
+                if (subjectIds == null) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhóm môn học này !");
+                }
+
+                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds);
 
                 Map<Integer, Float> totalScoresByStudent = new HashMap<>();
 
@@ -363,130 +291,65 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                 }
 
+                Map<Float, Integer> scoreDistribution = new HashMap<>();
                 for (Float totalScore : totalScoresByStudent.values()) {
                     BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                    combinedScoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
                 }
+
+                combinedScoreDistribution.put(subjectGroup, scoreDistribution);
             }
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A thành công", combinedScoreDistribution);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", combinedScoreDistribution);
         } catch (Exception e) {
-            log.error("Error fetching score distribution for A group", e);
+            log.error("Error fetching score distribution for group " + subjectGroup, e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
         }
     }
 
     @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForB00Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(16, 36, 23);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối B00 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for B00 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForB03Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(23, 28, 36);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối B03 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for B03 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForB08Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(23, 36, 38);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối B08 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for B08 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForBGroup() {
+    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForBGroup(String subjectGroup) {
         try {
             Map<String, List<Integer>> groupSubjectIds = new HashMap<>();
             groupSubjectIds.put("B00", List.of(16, 36, 23));
             groupSubjectIds.put("B03", List.of(23, 28, 36));
             groupSubjectIds.put("B08", List.of(23, 36, 38));
 
-            Map<Float, Integer> combinedScoreDistribution = new HashMap<>();
+            Map<String, Map<Float, Integer>> combinedScoreDistribution = new HashMap<>();
 
-            for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
-                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+            if (subjectGroup == null) {
+                for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
+                    String groupName = entry.getKey();
+                    List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+
+                    Map<Integer, Float> totalScoresByStudent = new HashMap<>();
+
+                    for (Object[] data : scoresData) {
+                        if (data[0] != null && data[2] != null) {
+                            Integer identificationNumber = (Integer) data[0];
+                            Float score = ((Number) data[2]).floatValue();
+
+                            BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
+
+                            totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                        }
+                    }
+
+                    Map<Float, Integer> scoreDistribution = new HashMap<>();
+                    for (Float totalScore : totalScoresByStudent.values()) {
+                        BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
+                        scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    }
+
+                    combinedScoreDistribution.put(groupName, scoreDistribution);
+                }
+            } else {
+                List<Integer> subjectIds = groupSubjectIds.get(subjectGroup);
+                if (subjectIds == null) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhóm môn học này !");
+                }
+
+                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds);
 
                 Map<Integer, Float> totalScoresByStudent = new HashMap<>();
 
@@ -501,130 +364,65 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                 }
 
+                Map<Float, Integer> scoreDistribution = new HashMap<>();
                 for (Float totalScore : totalScoresByStudent.values()) {
                     BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                    combinedScoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
                 }
+
+                combinedScoreDistribution.put(subjectGroup, scoreDistribution);
             }
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A thành công", combinedScoreDistribution);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", combinedScoreDistribution);
         } catch (Exception e) {
-            log.error("Error fetching score distribution for A group", e);
+            log.error("Error fetching score distribution for group " + subjectGroup, e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
         }
     }
 
     @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForC00Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(9, 28, 34);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối C00 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for C00 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForC03Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(28, 36, 34);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối C00 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for C00 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForC04Group() {
-        try {
-            List<Integer> aGroupSubjectIds = List.of(9, 28, 36);
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(aGroupSubjectIds);
-
-            Map<Integer, Float> totalScoresByStudent = new HashMap<>();
-
-            for (Object[] data : scoresData) {
-                if (data[0] != null && data[2] != null) {
-                    Integer identificationNumber = (Integer) data[0];
-                    Float score = ((Number) data[2]).floatValue();
-
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
-                }
-            }
-
-            Map<Float, Integer> scoreDistribution = new HashMap<>();
-
-            for (Float totalScore : totalScoresByStudent.values()) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
-            }
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối C04 thành công", scoreDistribution);
-        } catch (Exception e) {
-            log.error("Error fetching score distribution for C04 group", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
-        }
-    }
-
-    @Override
-    public ResponseData<Map<Float, Integer>> getScoreDistributionForCGroup() {
+    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForCGroup(String subjectGroup) {
         try {
             Map<String, List<Integer>> groupSubjectIds = new HashMap<>();
             groupSubjectIds.put("C00", List.of(9, 28, 34));
             groupSubjectIds.put("C03", List.of(28, 36, 34));
             groupSubjectIds.put("C04", List.of(9, 28, 36));
 
-            Map<Float, Integer> combinedScoreDistribution = new HashMap<>();
+            Map<String, Map<Float, Integer>> combinedScoreDistribution = new HashMap<>();
 
-            for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
-                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+            if (subjectGroup == null) {
+                for (Map.Entry<String, List<Integer>> entry : groupSubjectIds.entrySet()) {
+                    String groupName = entry.getKey();
+                    List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(entry.getValue());
+
+                    Map<Integer, Float> totalScoresByStudent = new HashMap<>();
+
+                    for (Object[] data : scoresData) {
+                        if (data[0] != null && data[2] != null) {
+                            Integer identificationNumber = (Integer) data[0];
+                            Float score = ((Number) data[2]).floatValue();
+
+                            BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
+
+                            totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                        }
+                    }
+
+                    Map<Float, Integer> scoreDistribution = new HashMap<>();
+                    for (Float totalScore : totalScoresByStudent.values()) {
+                        BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
+                        scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    }
+
+                    combinedScoreDistribution.put(groupName, scoreDistribution);
+                }
+            } else {
+                List<Integer> subjectIds = groupSubjectIds.get(subjectGroup);
+                if (subjectIds == null) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhóm môn học này !");
+                }
+
+                List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds);
 
                 Map<Integer, Float> totalScoresByStudent = new HashMap<>();
 
@@ -639,15 +437,18 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                 }
 
+                Map<Float, Integer> scoreDistribution = new HashMap<>();
                 for (Float totalScore : totalScoresByStudent.values()) {
                     BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-                    combinedScoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+                    scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
                 }
+
+                combinedScoreDistribution.put(subjectGroup, scoreDistribution);
             }
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm khối A thành công", combinedScoreDistribution);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", combinedScoreDistribution);
         } catch (Exception e) {
-            log.error("Error fetching score distribution for A group", e);
+            log.error("Error fetching score distribution for group " + subjectGroup, e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
         }
     }

@@ -11,24 +11,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface HighschoolExamScoreService {
-    ResponseData<Page<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber, Pageable pageable);
+    ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber);
 
     ResponseData<HighschoolExamScoreResponse> createExamScore(CreateHighschoolExamScoreRequest request);
 
     ResponseData<HighschoolExamScoreResponse> updateExamScore(Integer identificationNumber, UpdateHighschoolExamScoreRequest request);
-    ResponseData<Map<Float, Integer>> getScoreDistributionForA00Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForA01Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForA02Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForAGroup();
 
-    ResponseData<Map<Float, Integer>> getScoreDistributionForB00Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForB03Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForB08Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForBGroup();
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForAGroup(String subjectGroup);
 
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForBGroup(String subjectGroup);
 
-    ResponseData<Map<Float, Integer>> getScoreDistributionForC00Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForC03Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForC04Group();
-    ResponseData<Map<Float, Integer>> getScoreDistributionForCGroup();
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForCGroup(String subjectGroup);
 }

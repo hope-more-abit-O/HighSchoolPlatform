@@ -17,7 +17,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "(:identificationNumber IS NULL OR h.identification_number = :identificationNumber) " +
             "AND h.year = 2024",
             nativeQuery = true)
-    Page<HighschoolExamScore> findAll(@Param("identificationNumber") Integer identificationNumber, Pageable pageable);
+    List<HighschoolExamScore> findAll(@Param("identificationNumber") Integer identificationNumber);
 
     @Query("SELECT COUNT(h) FROM HighschoolExamScore h WHERE h.identificationNumber = :identificationNumber AND h.year = 2024")
     int countByIdentificationNumber(@Param("identificationNumber") Integer identificationNumber);
