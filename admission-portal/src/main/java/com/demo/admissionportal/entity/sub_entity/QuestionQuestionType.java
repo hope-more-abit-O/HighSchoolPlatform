@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.entity.sub_entity.id.QuestionQuestionTypeId;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionnaireQuestionId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +18,7 @@ import java.util.Date;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@IdClass(QuestionnaireQuestionId.class)
+@IdClass(QuestionQuestionTypeId.class)
 public class QuestionQuestionType {
     @Id
     @Column(name = "question_id")

@@ -29,6 +29,7 @@ public class Question {
     private Integer updateBy;
     @Column(name = "update_time")
     private Date updateTime;
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "type")
     private HollandCharacteristicType type;
 }

@@ -34,6 +34,7 @@ public class Questionnaire {
     private Integer updateBy;
     @Column(name = "update_time")
     private Date updateTime;
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "status")
     private QuestionStatus status;
 }
