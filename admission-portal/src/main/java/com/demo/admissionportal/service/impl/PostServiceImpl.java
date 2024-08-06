@@ -1200,7 +1200,9 @@ public class PostServiceImpl implements PostService {
     public PostDetailResponseDTOV3 mapToListPostDetailV3(Post post) {
         String info = getUserInfoPostDTO(post.getCreateBy());
         User user = getUser(post.getCreateBy());
+        Integer comment = commentRepository.countByPostId(post.getId());
         PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+        postPropertiesResponseDTO.setComment(comment);
         return PostDetailResponseDTOV3.builder()
                 .postProperties(postPropertiesResponseDTO)
                 .create_by(info)
