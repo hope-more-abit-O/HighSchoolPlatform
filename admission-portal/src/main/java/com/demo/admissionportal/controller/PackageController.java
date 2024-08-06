@@ -44,6 +44,8 @@ public class PackageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfCreate);
         } else if (resultOfCreate.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(resultOfCreate);
+        } else if (resultOfCreate.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfCreate);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfCreate);
     }

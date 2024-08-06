@@ -30,12 +30,6 @@ public class UniversityPackage {
     @Column(name = "post_id")
     private Integer postId;
 
-    @Column(name = "start_view")
-    private Integer startView;
-
-    @Column(name = "end_view")
-    private Integer endView;
-
     @Column(name = "create_time")
     private Date createTime;
 

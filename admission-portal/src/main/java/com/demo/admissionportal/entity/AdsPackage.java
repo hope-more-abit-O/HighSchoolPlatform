@@ -39,7 +39,7 @@ public class AdsPackage {
 
     @NotNull
     @Column(name = "price")
-    private Double price;
+    private int price;
 
     @NotNull
     @Column(name = "create_by")
