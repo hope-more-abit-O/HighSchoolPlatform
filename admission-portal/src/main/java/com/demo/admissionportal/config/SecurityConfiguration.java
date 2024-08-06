@@ -52,6 +52,7 @@ public class SecurityConfiguration {
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
     private static final String PACKAGE_API = "/api/v1/package/**";
+    private static final String FAVORITE_API = "/api/v1/favorite/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -102,6 +103,7 @@ public class SecurityConfiguration {
                                         MAJOR_API,
                                         METHOD_API,
                                         SEARCH_API,
+                                        FAVORITE_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
