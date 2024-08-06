@@ -17,9 +17,11 @@ public interface HighschoolExamScoreService {
 
     ResponseData<HighschoolExamScoreResponse> updateExamScore(Integer identificationNumber, UpdateHighschoolExamScoreRequest request);
 
-    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForAGroup(String subjectGroup);
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForAGroup(String local, String subjectGroup);
 
-    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForBGroup(String subjectGroup);
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForBGroup(String local, String subjectGroup);
 
-    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForCGroup(String subjectGroup);
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForCGroup(String local, String subjectGroup);
+
+    ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForDGroup(String local, String subjectGroup);
 }
