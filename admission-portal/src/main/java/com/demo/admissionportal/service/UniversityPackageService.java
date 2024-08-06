@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.entity.AdsPackage;
+import com.demo.admissionportal.entity.UniversityPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
 
 /**
@@ -10,8 +11,18 @@ public interface UniversityPackageService {
     /**
      * Create uni package.
      *
+     * @param adsPackage            the ads package
      * @param universityTransaction the university transaction
      * @param postId                the post id
+     * @return the university package
      */
-    void createUniPackage(AdsPackage adsPackage, UniversityTransaction universityTransaction, Integer postId);
+    UniversityPackage createUniPackage(AdsPackage adsPackage, UniversityTransaction universityTransaction, Integer postId);
+
+    /**
+     * Update package university package.
+     *
+     * @param transactionId the transaction id
+     * @return the university package
+     */
+    UniversityPackage updatePackage(Integer transactionId);
 }

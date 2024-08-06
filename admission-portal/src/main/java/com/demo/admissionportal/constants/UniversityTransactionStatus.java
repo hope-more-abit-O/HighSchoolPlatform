@@ -15,7 +15,7 @@ public enum UniversityTransactionStatus {
     /**
      * The Failed.
      */
-    FAILED("Thanh toa thất bại"),
+    FAILED("Thanh toán thất bại"),
     /**
      * The Pending.
      */
