@@ -1,9 +1,11 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
@@ -586,4 +588,16 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         return ResponseData.ok("", new GetAdmissionScoreResponse(admissionScores));
     }
+
+    public GetLatestTrainingProgramResponse getLatestTrainingProgramByUniversityId(Integer universityId) {
+        User user = userService.findById(universityId);
+        if (!user.getRole().equals(Role.UNIVERSITY)){
+            throw new ResourceNotFoundException("Không có trường học.", Map.of("universityId", universityId.toString()));
+        }
+        Admission admission = admissionRepository.findFirstByUniversityIdAndStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Trường bạn tìm hiện tại chưa có đề án nào."));
+        List<Major> majors = majorService.findByAdmissionId(admission.getId());
+        return new GetLatestTrainingProgramResponse(admission.getYear(), majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList());
+    }
+
 }
