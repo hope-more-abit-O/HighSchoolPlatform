@@ -64,7 +64,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     LEFT JOIN [user] usr ON usr.id = ad.university_id
     WHERE LOWER(ui."code") = LOWER(:universityCode)
     AND (year = :year)
-    AND (status = 'ACTIVE')
+    AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
     Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
 
