@@ -35,12 +35,17 @@ public class PackageServiceImpl implements PackageService {
             if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Request null");
             }
-            AdsPackage mapPackage = modelMapper.map(requestDTO, AdsPackage.class);
-            mapPackage.setCreateBy(adminId);
-            mapPackage.setCreateTime(new Date());
-            mapPackage.setStatus(PackageStatus.ACTIVE);
-            AdsPackage adsPackage = packageRepository.save(mapPackage);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo gói quảng cáo thành công", adsPackage);
+            AdsPackage checkValidate = packageRepository.findByName(requestDTO.getName().trim());
+            if (checkValidate == null) {
+                AdsPackage mapPackage = modelMapper.map(requestDTO, AdsPackage.class);
+                mapPackage.setCreateBy(adminId);
+                mapPackage.setCreateTime(new Date());
+                mapPackage.setStatus(PackageStatus.ACTIVE);
+                AdsPackage adsPackage = packageRepository.save(mapPackage);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo gói quảng cáo thành công", adsPackage);
+            }
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Gói quảng cáo đã tồn tại");
+
         } catch (Exception ex) {
             log.error("Error when occurring create package: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Lỗi khi tạo gói quảng cáo");

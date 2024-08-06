@@ -2,10 +2,8 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.UniversityTransactionStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Nationalized;
 
 import java.util.Date;
 
@@ -22,6 +20,12 @@ public class UniversityTransaction {
     @Column(name = "id")
     private Integer id;
 
+    @Column(name = "university_id")
+    private Integer universityId;
+
+    @Column(name = "ads_package_id")
+    private Integer packageId;
+
     @Column(name = "create_by")
     private Integer createBy;
 
@@ -33,9 +37,6 @@ public class UniversityTransaction {
 
     @Column(name = "update_by")
     private Integer updateBy;
-
-    @Column(name = "complete_time")
-    private Date completeTime;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
