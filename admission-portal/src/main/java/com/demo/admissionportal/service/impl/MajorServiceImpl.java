@@ -370,4 +370,8 @@ public class MajorServiceImpl implements MajorService {
     public InfoMajorDTO mapInfo(Major major) {
         return modelMapper.map(major, InfoMajorDTO.class);
     }
+
+    public List<Major> findByAdmissionId(Integer id) {
+        return majorRepository.findMajorsByAdmissionId(id);
+    }
 }
