@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto.response.report.post_report;
+package com.demo.admissionportal.dto.response.report;
 
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import lombok.AllArgsConstructor;

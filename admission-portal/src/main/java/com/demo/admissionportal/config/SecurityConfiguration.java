@@ -51,6 +51,7 @@ public class SecurityConfiguration {
     private static final String SEARCH_API = "/api/v1/search/**";
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
+    private static final String EXAM_SCORE_API = "/api/v1/exam-scores/**";
     private static final String PACKAGE_API = "/api/v1/package/**";
     private static final String FAVORITE_API = "/api/v1/favorite/**";
     private static final String ORDER_API ="/api/v1/order/**";
@@ -99,6 +100,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        EXAM_SCORE_API,
                                         COMMENT_API,
                                         TEST_API,
                                         ADDRESS_API,
