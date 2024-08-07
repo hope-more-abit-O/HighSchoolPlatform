@@ -31,4 +31,5 @@ public interface MajorService {
     InfoMajorDTO updateMajor(UpdateMajorRequest request);
 
     ResponseData<InfoMajorDTO> updateMajorStatus(UpdateMajorStatusRequest request);
+    List<InfoMajorDTO> findAll();
 }

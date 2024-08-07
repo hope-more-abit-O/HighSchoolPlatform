@@ -374,4 +374,9 @@ public class MajorServiceImpl implements MajorService {
     public List<Major> findByAdmissionId(Integer id) {
         return majorRepository.findMajorsByAdmissionId(id);
     }
+
+    public List<InfoMajorDTO> findAll(){
+        List<Major> majors = majorRepository.findAll();
+        return majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).collect(Collectors.toList());
+    }
 }

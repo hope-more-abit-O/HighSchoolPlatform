@@ -347,4 +347,9 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     public List<SubjectGroupResponseDTO2> mapInfo(List<SubjectGroup> subjectGroupForMap) {
         return subjectGroupForMap.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).toList();
     }
+
+    public List<SubjectGroupResponseDTO2> getAll(){
+        List<SubjectGroup> subjectGroupList = subjectGroupRepository.findAll();
+        return subjectGroupList.stream().map(SubjectGroupResponseDTO2::new).collect(Collectors.toList());
+    }
 }
