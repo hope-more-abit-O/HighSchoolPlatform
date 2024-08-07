@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/favorite")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "BearerAuth")
 public class FavoriteController {
     private final FavoriteService favoriteService;
 
@@ -46,25 +45,6 @@ public class FavoriteController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }
 
-    /**
-     * Gets favorite.
-     *
-     * @param universityID the university id
-     * @return the favorite
-     */
-    @GetMapping("/{universityID}")
-    public ResponseEntity<ResponseData<FavoriteResponseDTO>> getFavorite(@PathVariable(name = "universityID") Integer universityID) {
-        if (universityID == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
-        }
-        ResponseData<FavoriteResponseDTO> favorite = favoriteService.getFavorite(universityID);
-        if (favorite.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK.value()).body(favorite);
-        } else if (favorite.getStatus() == ResponseCode.C205.getCode()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(favorite);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
-    }
 
     /**
      * Gets total.

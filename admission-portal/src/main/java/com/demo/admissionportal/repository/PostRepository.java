@@ -156,4 +156,23 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "WHERE ci.university_id = :universityId", nativeQuery = true)
     List<Post> findAllByCreateByIn(Integer universityId);
 
+    /**
+     * Find post has package list.
+     *
+     * @return the list
+     */
+    @Query(value = "SELECT p.* " +
+            "FROM post p " +
+            "LEFT JOIN ( " +
+            "    SELECT post_id, MAX(complete_time) AS max_complete_time " +
+            "    FROM university_package " +
+            "    WHERE status = 'ACTIVE' " +
+            "    GROUP BY post_id " +
+            ") max_up " +
+            "ON p.id = max_up.post_id " +
+            "LEFT JOIN university_package up " +
+            "ON up.post_id = p.id " +
+            "AND up.complete_time = max_up.max_complete_time " +
+            "WHERE up.status = 'ACTIVE'; ", nativeQuery = true)
+    List<Post> findPostHasPackage();
 }
