@@ -56,6 +56,7 @@ public class SecurityConfiguration {
     private static final String FAVORITE_API = "/api/v1/favorite/**";
     private static final String ORDER_API ="/api/v1/order/**";
     private static final String LIKE_API = "/api/v1/like/**";
+    private static final String SUBJECT_GROUP_API = "/api/v1/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -101,6 +102,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY")
                                 .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(LIKE_API).hasAuthority("USER")
+                                .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/all").permitAll()
+                                .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(AUTHENTICATION_API,
                                         EXAM_SCORE_API,
                                         COMMENT_API,
