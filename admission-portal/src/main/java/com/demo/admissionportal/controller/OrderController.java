@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.payment.CreatePaymentLinkRequestBody;
+import com.demo.admissionportal.dto.request.payment.PaymentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.CreateQrResponseDTO;
 import com.demo.admissionportal.dto.response.payment.PaymentResponseDTO;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,32 +61,38 @@ public class OrderController {
         ObjectNode result = createPaymentLink(adsPackage);
         CreateQrResponseDTO responseDTO = new CreateQrResponseDTO();
         int error = result.findValue("error").asInt();
-        String message = result.findValue("message").asText();
         if (error != 0) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(new ResponseData<>(ResponseCode.C201.getCode(), "Lấy QR thất bại"));
         }
-        responseDTO.setMessage(message);
         JsonNode dataNode = result.get("data");
-        responseDTO.setInfo(dataNode);
+        String statusPayment = dataNode.get("status").asText();
+        long orderCode = dataNode.get("orderCode").asLong();
+        String checkoutUrl = dataNode.get("checkoutUrl").asText();
+
+        responseDTO.setOrderCode(orderCode);
+        responseDTO.setCheckoutURL(checkoutUrl);
         responseDTO.setUniversityTransactionId(universityPackage.getUniversityTransactionId());
+        responseDTO.setStatusPayment(statusPayment);
+        responseDTO.setPostId(postId);
+        responseDTO.setPackageId(adsPackage.getId());
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
 
     @GetMapping("/")
     @Transactional
-    public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestParam(name = "orderCode") long orderCode, @RequestParam(name = "transactionId") Integer transactionId) {
-        ObjectNode resultOfPayment = getOrderById(orderCode);
+    public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestBody @Valid PaymentRequestDTO requestDTO) {
+        ObjectNode resultOfPayment = getOrderById(requestDTO.getOrderCode());
         JsonNode dataNode = resultOfPayment.get("data");
-        UniversityTransaction universityTransaction = new UniversityTransaction();
+        UniversityTransaction universityTransaction;
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
         if (status.equals("PAID")) {
-            universityTransaction = universityTransactionService.updateTransaction(transactionId, status);
-            universityPackageService.updatePackage(transactionId);
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityIdTransactionId(), status);
+            universityPackageService.updateUniversityPackage(requestDTO.getUniversityIdTransactionId(), requestDTO.getPostId(), requestDTO.getPackageId());
         } else if (status.equals("CANCELLED")) {
-            universityTransaction = universityTransactionService.updateTransaction(transactionId, status);
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityIdTransactionId(), status);
         } else {
-            universityTransaction = universityTransactionService.findTransaction(transactionId);
+            universityTransaction = universityTransactionService.findTransaction(requestDTO.getUniversityIdTransactionId());
         }
         paymentResponseDTO.setPayment(universityTransaction.getStatus().name);
 
