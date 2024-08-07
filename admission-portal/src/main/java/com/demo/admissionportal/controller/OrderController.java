@@ -78,7 +78,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
 
-    @GetMapping("/")
+    @PostMapping("/")
     @Transactional
     public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestBody @Valid PaymentRequestDTO requestDTO) {
         ObjectNode resultOfPayment = getOrderById(requestDTO.getOrderCode());
@@ -87,12 +87,12 @@ public class OrderController {
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
         if (status.equals("PAID")) {
-            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityIdTransactionId(), status);
-            universityPackageService.updateUniversityPackage(requestDTO.getUniversityIdTransactionId(), requestDTO.getPostId(), requestDTO.getPackageId());
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
+            universityPackageService.updateUniversityPackage(requestDTO.getUniversityTransactionId(), requestDTO.getPostId(), requestDTO.getPackageId());
         } else if (status.equals("CANCELLED")) {
-            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityIdTransactionId(), status);
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
         } else {
-            universityTransaction = universityTransactionService.findTransaction(requestDTO.getUniversityIdTransactionId());
+            universityTransaction = universityTransactionService.findTransaction(requestDTO.getUniversityTransactionId());
         }
         paymentResponseDTO.setPayment(universityTransaction.getStatus().name);
 
