@@ -1,9 +1,9 @@
 package com.demo.admissionportal.dto.response.payment;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 /**
  * The type Payment response dto.
@@ -12,7 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class CreateQrResponseDTO {
-    private String message;
-    private JsonNode info;
+    private long orderCode;
+    private String statusPayment;
+    private String checkoutURL;
     private Integer universityTransactionId;
+    private Integer postId;
+    private Integer packageId;
 }
