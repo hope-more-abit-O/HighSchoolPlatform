@@ -56,7 +56,7 @@ public class SecurityConfiguration {
     private static final String FAVORITE_API = "/api/v1/favorite/**";
     private static final String ORDER_API ="/api/v1/order/**";
     private static final String LIKE_API = "/api/v1/like/**";
-    private static final String SUBJECT_GROUP_API = "/api/v1/**";
+    private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

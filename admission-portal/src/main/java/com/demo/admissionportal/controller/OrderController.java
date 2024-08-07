@@ -158,7 +158,6 @@ public class OrderController {
      * @param orderId the order id
      * @return the order by id
      */
-    @PostMapping("/{orderId}")
     public ObjectNode getOrderById(@PathVariable("orderId") long orderId) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
@@ -170,25 +169,6 @@ public class OrderController {
             response.put("error", 0);
             response.put("message", "ok");
 
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", e.getMessage());
-            response.set("data", null);
-            return response;
-        }
-    }
-
-    @PutMapping(path = "/{orderId}")
-    public ObjectNode cancelOrder(@PathVariable("orderId") int orderId) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode response = objectMapper.createObjectNode();
-        try {
-            PaymentLinkData order = payOS.cancelPaymentLink(orderId, null);
-            response.set("data", objectMapper.valueToTree(order));
-            response.put("error", 0);
-            response.put("message", "ok");
             return response;
         } catch (Exception e) {
             e.printStackTrace();
