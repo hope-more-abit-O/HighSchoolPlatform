@@ -30,4 +30,26 @@ public interface AdmissionTrainingProgramMethodRepository extends JpaRepository<
 """,nativeQuery = true)
     List<AdmissionTrainingProgramMethod> findByMethodIdAndAdmissionTrainingProgramIdIn(@Param("methodId") Integer methodId, @Param("admissionTrainingProgramIds") List<Integer> admissionTrainingProgramIds);
 
+    @Query(value = """
+SELECT distinct atpm.*
+FROM admission_training_program_subject_group atpsg
+INNER JOIN dbo.admission_training_program atp on atp.id = atpsg.admission_training_program_id
+INNER JOIN admission_training_program_method atpm on atpm.admission_training_program_id = atp.id
+INNER JOIN admission_method am on am.id = atpm.admission_method_id
+INNER JOIN dbo.admission a on a.id = atp.admission_id
+INNER JOIN [user] u on u.id = a.university_id
+INNER JOIN university_campus uc on uc.university_id = u.id
+WHERE atpsg.subject_group_id = :subjectGroupId 
+AND (am.method_id = 1)
+AND (atpm.addmission_score >= (:score - :offset) AND atpm.addmission_score <= (:score + :offset))
+AND (atp.major_id = :majorId)
+AND (uc.province_id = :provinceId)
+AND (a.year = (:year - 2) OR a.year = (:year - 1) OR a.year = (2024));
+""",nativeQuery = true)
+    List<AdmissionTrainingProgramMethod> findBySubjectGroupIdAndScoreWithOffset(@Param("subjectGroupId") Integer subjectGroupId,
+                                                                                @Param("score") Float score,
+                                                                                @Param("offset") Float offset,
+                                                                                @Param("majorId") Integer majorId,
+                                                                                @Param("provinceId") Integer provinceId,
+                                                                                @Param("year") Integer year);
 }
