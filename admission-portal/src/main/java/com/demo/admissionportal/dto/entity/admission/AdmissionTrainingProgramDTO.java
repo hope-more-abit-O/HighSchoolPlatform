@@ -20,7 +20,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AdmissionTrainingProgramDTO {
+public class  AdmissionTrainingProgramDTO {
     private Integer id;
     private Integer admissionId;
     private InfoMajorDTO major;
