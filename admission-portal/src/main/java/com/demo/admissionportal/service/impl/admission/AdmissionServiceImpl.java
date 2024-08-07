@@ -678,7 +678,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                     admissionTrainingProgramMethods1,
                     subjectGroups1);
 
-            schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s));
+            Admission admission = admissions1.stream().filter((element) -> element.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề án năm mới nhất"));
+            schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s, admission.getSource()));
         }
 
         return ResponseData.ok("", schoolAdviceDTOs);
