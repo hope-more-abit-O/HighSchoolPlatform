@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.SubjectScoreDTO;
 import com.demo.admissionportal.entity.HighschoolExamScore;
+import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
@@ -187,134 +188,338 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     @Override
     @Transactional
-    public ResponseData<HighschoolExamScoreResponse> updateExamScore(Integer identificationNumber, UpdateHighschoolExamScoreRequest request) {
+    public ResponseData<List<HighschoolExamScoreResponse>> updateExamScores(List<UpdateHighschoolExamScoreRequest> requests) {
+        List<HighschoolExamScoreResponse> responses = new ArrayList<>();
+
         try {
-            if (request != null && identificationNumber != null) {
-                List<HighschoolExamScore> existingScores = highschoolExamScoreRepository.findByIdentificationNumberAndYear(
-                        identificationNumber, 2024);
-                if (existingScores.isEmpty()) {
-                    log.error("No exam scores found for identification number {} in year {}", identificationNumber, 2024);
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy điểm thi cho số báo danh và năm này");
-                }
-
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                Object principal = authentication.getPrincipal();
-                if (!(principal instanceof User)) {
-                    return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
-                }
-                User staff = (User) principal;
-                Integer staffId = staff.getId();
-
-                Map<Integer, HighschoolExamScore> existingScoresMap = existingScores.stream()
-                        .collect(Collectors.toMap(HighschoolExamScore::getSubjectId, score -> score));
-
-                for (SubjectScoreDTO score : request.getSubjectScores()) {
-                    if (!ALLOWED_SUBJECT_IDS.contains(score.getSubjectId())) {
-                        return new ResponseData<>(ResponseCode.C201.getCode(), "Mã môn học không hợp lệ: " + score.getSubjectId());
-                    }
-                    if (score.getScore() != null && (score.getScore() < 0 || score.getScore() > 10)) {
-                        return new ResponseData<>(ResponseCode.C201.getCode(), "Điểm không hợp lệ: " + score.getScore());
+            for (UpdateHighschoolExamScoreRequest request : requests) {
+                Integer identificationNumber = request.getIdentificationNumber();
+                if (request != null && identificationNumber != null) {
+                    List<HighschoolExamScore> existingScores = highschoolExamScoreRepository.findByIdentificationNumberAndYear(
+                            identificationNumber, 2024);
+                    if (existingScores.isEmpty()) {
+                        log.error("Not found for identification number {} in year {}", identificationNumber, 2024);
+                        return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm số báo danh này !");
                     }
 
-                    HighschoolExamScore existingScore = existingScoresMap.get(score.getSubjectId());
-                    if (existingScore != null) {
-                        existingScore.setScore(score.getScore());
-                        existingScore.setUpdateTime(new Date());
-                        existingScore.setUpdateBy(staffId);
-                    } else {
-                        HighschoolExamScore newScore = new HighschoolExamScore();
-                        newScore.setIdentificationNumber(identificationNumber);
-                        newScore.setSubjectId(score.getSubjectId());
-                        newScore.setYear(2024);
-                        newScore.setScore(score.getScore());
-                        newScore.setCreateTime(new Date());
-                        newScore.setCreateBy(staffId);
-                        existingScores.add(newScore);
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    Object principal = authentication.getPrincipal();
+                    if (!(principal instanceof User)) {
+                        return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
                     }
+                    User staff = (User) principal;
+                    Integer staffId = staff.getId();
+
+                    Map<Integer, HighschoolExamScore> existingScoresMap = existingScores.stream()
+                            .collect(Collectors.toMap(HighschoolExamScore::getSubjectId, score -> score));
+
+                    for (SubjectScoreDTO score : request.getSubjectScores()) {
+                        if (!ALLOWED_SUBJECT_IDS.contains(score.getSubjectId())) {
+                            return new ResponseData<>(ResponseCode.C201.getCode(), "Mã môn học không hợp lệ: " + score.getSubjectId());
+                        }
+                        if (score.getScore() != null && (score.getScore() < 0 || score.getScore() > 10)) {
+                            return new ResponseData<>(ResponseCode.C201.getCode(), "Điểm không hợp lệ: " + score.getScore());
+                        }
+
+                        HighschoolExamScore existingScore = existingScoresMap.get(score.getSubjectId());
+                        if (existingScore != null) {
+                            existingScore.setScore(score.getScore());
+                            existingScore.setUpdateTime(new Date());
+                            existingScore.setUpdateBy(staffId);
+                        } else {
+                            HighschoolExamScore newScore = new HighschoolExamScore();
+                            newScore.setIdentificationNumber(identificationNumber);
+                            newScore.setSubjectId(score.getSubjectId());
+                            newScore.setYear(2024);
+                            newScore.setScore(score.getScore());
+                            newScore.setCreateTime(new Date());
+                            newScore.setCreateBy(staffId);
+                            existingScores.add(newScore);
+                        }
+                    }
+                    highschoolExamScoreRepository.saveAll(existingScores);
+
+                    Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
+                            .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+
+                    List<SubjectScoreDTO> allSubjectScores = ALLOWED_SUBJECT_IDS.stream()
+                            .map(subjectId -> {
+                                SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
+                                String subjectName = subjectRepository.findById(subjectId)
+                                        .map(subject -> subject.getName())
+                                        .orElse(null);
+                                subjectScore.setSubjectName(subjectName);
+                                return subjectScore;
+                            })
+                            .collect(Collectors.toList());
+
+                    HighschoolExamScoreResponse response = modelMapper.map(existingScores.get(0), HighschoolExamScoreResponse.class);
+                    response.setSubjectScores(allSubjectScores);
+                    responses.add(response);
+
+                } else {
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Yêu cầu không hợp lệ!");
                 }
-                highschoolExamScoreRepository.saveAll(existingScores);
-                
-                Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
-                        .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
-
-                List<SubjectScoreDTO> allSubjectScores = ALLOWED_SUBJECT_IDS.stream()
-                        .map(subjectId -> {
-                            SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
-                            String subjectName = subjectRepository.findById(subjectId)
-                                    .map(subject -> subject.getName())
-                                    .orElse(null);
-                            subjectScore.setSubjectName(subjectName);
-                            return subjectScore;
-                        })
-                        .collect(Collectors.toList());
-
-                HighschoolExamScoreResponse response = modelMapper.map(existingScores.get(0), HighschoolExamScoreResponse.class);
-                response.setSubjectScores(allSubjectScores);
-
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật điểm thi thành công!", response);
-
-            } else {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Yêu cầu không hợp lệ!");
             }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật điểm thi thành công!", responses);
+
         } catch (Exception e) {
             log.error("Error updating exam scores", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình cập nhật điểm, vui lòng thử lại sau. Lỗi: " + e.getMessage());
         }
     }
-
     @Override
-    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForAGroup(String local, String subjectGroup) {
-        return getScoreDistribution(local, subjectGroup, List.of("A00", "A01", "A02"), "A");
-    }
-
-    @Override
-    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForBGroup(String local, String subjectGroup) {
-        return getScoreDistribution(local, subjectGroup, List.of("B00", "B03", "B08"), "B");
-    }
-
-    @Override
-    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForCGroup(String local, String subjectGroup) {
-        return getScoreDistribution(local, subjectGroup, List.of("C00", "C03", "C04"), "C");
-    }
-
-    @Override
-    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionForDGroup(String local, String subjectGroup) {
-        return getScoreDistribution(local, subjectGroup, List.of("D01", "D09", "D10", "D14"), "D");
-    }
-
-    private ResponseData<Map<String, Map<Float, Integer>>> getScoreDistribution(String local, String subjectGroup, List<String> groupNames, String combinedGroupName) {
+    public ResponseData<Map<String, Map<String, Float>>> getScoreDistributionByLocal(String subjectName) {
         try {
-            Map<String, Map<Float, Integer>> combinedScoreDistribution = new HashMap<>();
-            Map<Float, Integer> aggregatedScoreDistribution = new HashMap<>();
+            Map<String, Map<String, Float>> scoreDistribution = new LinkedHashMap<>();
+            List<Integer> subjectIds = new ArrayList<>();
 
-            if (subjectGroup != null && !subjectGroup.isEmpty() && groupNames.contains(subjectGroup)) {
-                List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(subjectGroup);
-                for (SubjectGroup sg : subjectGroups) {
-                    List<Integer> subjectIds = getSubjectIdsForGroup(sg.getId());
-                    Map<Float, Integer> scoreDistribution = calculateScoreDistribution(local, subjectIds);
-
-                    combinedScoreDistribution.put(subjectGroup, scoreDistribution);
-                }
-            } else {
-                for (String group : groupNames) {
-                    List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(group);
-                    for (SubjectGroup sg : subjectGroups) {
-                        List<Integer> subjectIds = getSubjectIdsForGroup(sg.getId());
-                        Map<Float, Integer> scoreDistribution = calculateScoreDistribution(local, subjectIds);
-
-                        scoreDistribution.forEach((score, count) ->
-                                aggregatedScoreDistribution.merge(score, count, Integer::sum));
+            if (subjectName != null && !subjectName.isEmpty()) {
+                if (subjectName.equals("KHTN")) {
+                    subjectIds = List.of(27, 16, 23);
+                    Map<String, Float> khtnScoresByLocal = calculateScoresByLocal(subjectIds);
+                    scoreDistribution.put("KHTN", khtnScoresByLocal);
+                } else if (subjectName.equals("KHXH")) {
+                    subjectIds = List.of(34, 9, 54);
+                    Map<String, Float> khxhScoresByLocal = calculateScoresByLocal(subjectIds);
+                    scoreDistribution.put("KHXH", khxhScoresByLocal);
+                } else {
+                    Optional<Subject> subjectOpt = subjectRepository.findByName(subjectName);
+                    if (subjectOpt.isPresent()) {
+                        Integer subjectId = subjectOpt.get().getId();
+                        if (!ALLOWED_SUBJECT_IDS.contains(subjectId)) {
+                            return new ResponseData<>(ResponseCode.C201.getCode(), "Mã môn học không hợp lệ: " + subjectName);
+                        }
+                        subjectIds = List.of(subjectId);
+                        Map<String, Float> subjectScoresByLocal = calculateScoresByLocal(subjectIds);
+                        scoreDistribution.put(subjectName, subjectScoresByLocal);
+                    } else {
+                        return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này !");
                     }
                 }
-
-                combinedScoreDistribution.put(combinedGroupName, aggregatedScoreDistribution);
+            } else {
+                subjectIds = ALLOWED_SUBJECT_IDS;
+                for (Integer subjectId : subjectIds) {
+                    Optional<Subject> subjectOpt = subjectRepository.findById(subjectId);
+                    if (subjectOpt.isPresent()) {
+                        String subjectNameKey = subjectOpt.get().getName();
+                        Map<String, Float> subjectScoresByLocal = calculateScoresByLocal(List.of(subjectId));
+                        scoreDistribution.put(subjectNameKey, subjectScoresByLocal);
+                    }
+                }
+                Map<String, Float> khtnScoresByLocal = calculateScoresByLocal(List.of(27, 16, 23));
+                Map<String, Float> khxhScoresByLocal = calculateScoresByLocal(List.of(34, 9, 54));
+                scoreDistribution.put("KHTN", khtnScoresByLocal);
+                scoreDistribution.put("KHXH", khxhScoresByLocal);
             }
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", combinedScoreDistribution);
+            Map<String, Map<String, Float>> orderedScoreDistribution = new LinkedHashMap<>();
+            String[] subjectsOrder = {"Toán", "Văn", "Tiếng Anh", "Vật lý", "Hóa học", "Sinh học", "Lịch Sử", "Địa Lí", "Giáo dục công dân", "KHTN", "KHXH"};
+
+            for (String subject : subjectsOrder) {
+                if (scoreDistribution.containsKey(subject)) {
+                    orderedScoreDistribution.put(subject, scoreDistribution.get(subject));
+                }
+            }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", orderedScoreDistribution);
         } catch (Exception e) {
-            log.error("Error fetching score distribution for group " + subjectGroup, e);
+            log.error("Error fetching score distribution by local", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
         }
+    }
+
+    private Map<String, Float> calculateScoresByLocal(List<Integer> subjectIds) {
+        Map<String, Map<Integer, List<Float>>> scoresByLocalAndSubject = new HashMap<>();
+
+        for (Integer subjectId : subjectIds) {
+            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresBySubjectId(subjectId);
+            for (Object[] data : scoresData) {
+                if (data[0] != null && data[1] != null) {
+                    String local = (String) data[0];
+                    Float score = ((Number) data[1]).floatValue();
+
+                    scoresByLocalAndSubject.computeIfAbsent(local, k -> new HashMap<>())
+                            .computeIfAbsent(subjectId, k -> new ArrayList<>())
+                            .add(score);
+                }
+            }
+        }
+
+        Map<String, Float> scoreByLocal = new HashMap<>();
+        for (Map.Entry<String, Map<Integer, List<Float>>> entry : scoresByLocalAndSubject.entrySet()) {
+            String local = entry.getKey();
+            Map<Integer, List<Float>> scoresBySubject = entry.getValue();
+
+            float totalAverageScore = 0;
+            int count = 0;
+            for (List<Float> scores : scoresBySubject.values()) {
+                float subjectAverageScore = (float) scores.stream().mapToDouble(Float::doubleValue).average().orElse(0.0);
+                totalAverageScore += subjectAverageScore;
+                count++;
+            }
+
+            float averageScore = totalAverageScore / count;
+            scoreByLocal.put(local, averageScore);
+        }
+        return scoreByLocal;
+    }
+
+
+
+    @Override
+    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubject(String local, String subjectName) {
+        try {
+            Map<String, Map<Float, Integer>> scoreDistribution = new LinkedHashMap<>();
+
+            if (subjectName != null && !subjectName.isEmpty()) {
+                log.debug("Fetching scores for subject: {}", subjectName);
+
+                if (subjectName.equalsIgnoreCase("KHTN")) {
+                    scoreDistribution.put("KHTN", fetchScoresForSubjectGroup(List.of(27, 16, 23), local));
+                } else if (subjectName.equalsIgnoreCase("KHXH")) {
+                    scoreDistribution.put("KHXH", fetchScoresForSubjectGroup(List.of(34, 9, 54), local));
+                } else {
+                    Optional<Subject> subjectOpt = subjectRepository.findByName(subjectName);
+
+                    if (subjectOpt.isPresent()) {
+                        Integer subjectId = subjectOpt.get().getId();
+
+                        if (ALLOWED_SUBJECT_IDS.contains(subjectId)) {
+                            Map<Float, Integer> scores = fetchAllScoresBySubject(subjectId, local);
+                            scoreDistribution.put(subjectName, scores);
+                        } else {
+                            return new ResponseData<>(ResponseCode.C201.getCode(), "Mã môn học không hợp lệ: " + subjectName);
+                        }
+                    } else {
+                        return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này !");
+                    }
+                }
+            } else {
+                List<Subject> allSubjects = subjectRepository.findAllById(ALLOWED_SUBJECT_IDS);
+                for (Subject subject : allSubjects) {
+                    Integer subjectId = subject.getId();
+                    Map<Float, Integer> scores = fetchAllScoresBySubject(subjectId, local);
+                    scoreDistribution.put(subject.getName(), scores);
+                }
+
+                scoreDistribution.put("KHTN", fetchScoresForSubjectGroup(List.of(27, 16, 23), local));
+                scoreDistribution.put("KHXH", fetchScoresForSubjectGroup(List.of(34, 9, 54), local));
+            }
+
+            Map<String, Map<Float, Integer>> orderedScoreDistribution = new LinkedHashMap<>();
+            String[] subjectsOrder = {"Toán", "Văn", "Tiếng Anh", "Vật lý", "Hóa học", "Sinh học", "Lịch Sử", "Địa Lí", "Giáo dục công dân", "KHTN", "KHXH"};
+
+            for (String subject : subjectsOrder) {
+                if (scoreDistribution.containsKey(subject)) {
+                    orderedScoreDistribution.put(subject, scoreDistribution.get(subject));
+                }
+            }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", orderedScoreDistribution);
+        } catch (Exception e) {
+            log.error("Error fetching score distribution", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
+        }
+    }
+
+    private Map<Float, Integer> fetchAllScoresBySubject(Integer subjectId, String local) {
+        List<Object[]> scoresData;
+        if (local != null && !local.isEmpty()) {
+            scoresData = highschoolExamScoreRepository.findScoresBySubjectIdAndLocal(subjectId, local);
+        } else {
+            scoresData = highschoolExamScoreRepository.findScoresBySubjectId(subjectId);
+        }
+
+        Map<Float, Integer> scoreCountMap = new HashMap<>();
+
+        for (Object[] row : scoresData) {
+            if (row.length > 1) {
+                Float score = (Float) row[1];
+                if (score != null) {
+                    scoreCountMap.put(score, scoreCountMap.getOrDefault(score, 0) + 1);
+                }
+            }
+        }
+
+        return scoreCountMap;
+    }
+
+    private Map<Float, Integer> fetchScoresForSubjectGroup(List<Integer> subjectIds, String local) {
+        Map<Float, Integer> scoreCountMap = new HashMap<>();
+
+        for (Integer subjectId : subjectIds) {
+            List<Object[]> scoresData;
+            if (local != null && !local.isEmpty()) {
+                scoresData = highschoolExamScoreRepository.findScoresBySubjectIdAndLocal(subjectId, local);
+            } else {
+                scoresData = highschoolExamScoreRepository.findScoresBySubjectId(subjectId);
+            }
+
+            for (Object[] row : scoresData) {
+                if (row.length > 1) {
+                    Float score = (Float) row[1];
+                    if (score != null) {
+                        scoreCountMap.put(score, scoreCountMap.getOrDefault(score, 0) + 1);
+                    }
+                }
+            }
+        }
+
+        return scoreCountMap;
+    }
+    
+    @Override
+    public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubjectGroup(String local, String subjectGroup) {
+        try {
+            Map<String, List<String>> subjectGroupsMap = Map.of(
+                    "A", List.of("A00", "A01", "A02"),
+                    "B", List.of("B00", "B03", "B08"),
+                    "C", List.of("C00", "C03", "C04"),
+                    "D", List.of("D01", "D09", "D10", "D14")
+            );
+
+            Map<String, Map<Float, Integer>> getGroupScoreDistribution = new HashMap<>();
+
+            if (subjectGroup != null) {
+                boolean found = false;
+                for (Map.Entry<String, List<String>> entry : subjectGroupsMap.entrySet()) {
+                    if (entry.getValue().contains(subjectGroup)) {
+                        getAndGroupScores(local, List.of(subjectGroup), getGroupScoreDistribution, subjectGroup);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhóm môn học này !");
+                }
+            } else {
+                for (Map.Entry<String, List<String>> entry : subjectGroupsMap.entrySet()) {
+                    getAndGroupScores(local, entry.getValue(), getGroupScoreDistribution, entry.getKey());
+                }
+            }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy phổ điểm thành công", getGroupScoreDistribution);
+        } catch (Exception e) {
+            log.error("Error fetching score distribution", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy phổ điểm, vui lòng thử lại sau.");
+        }
+    }
+
+    private void getAndGroupScores(String local, List<String> groupCodes, Map<String, Map<Float, Integer>> groupScoreDistribution, String groupName) {
+        Map<Float, Integer> aggregatedScoreDistribution = new HashMap<>();
+        for (String groupCode : groupCodes) {
+            List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(groupCode);
+            for (SubjectGroup sg : subjectGroups) {
+                List<Integer> subjectIds = getSubjectIdsForGroup(sg.getId());
+                Map<Float, Integer> scoreDistribution = calculateScoresDistribution(local, subjectIds);
+
+                scoreDistribution.forEach((score, count) ->
+                        aggregatedScoreDistribution.merge(score, count, Integer::sum));
+            }
+        }
+        groupScoreDistribution.put(groupName, aggregatedScoreDistribution);
     }
 
     private List<Integer> getSubjectIdsForGroup(Integer subjectGroupId) {
@@ -324,7 +529,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 .collect(Collectors.toList());
     }
 
-    private Map<Float, Integer> calculateScoreDistribution(String local, List<Integer> subjectIds) {
+    private Map<Float, Integer> calculateScoresDistribution(String local, List<Integer> subjectIds) {
         List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
 
         Map<Integer, Float> totalScoresByStudent = new HashMap<>();

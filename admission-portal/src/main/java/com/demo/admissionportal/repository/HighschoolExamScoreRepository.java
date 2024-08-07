@@ -39,5 +39,14 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     @Query(value = "SELECT h.examiner, h.subject_id FROM highschool_exam_score h WHERE " +
             "h.year = 2024 AND (:local IS NULL OR h.local LIKE %:local%)", nativeQuery = true)
     List<Object[]> findExaminerAndSubjects(@Param("local") String local);
+
+    @Query("SELECT s.local, s.score FROM HighschoolExamScore s WHERE s.subjectId = :subjectId AND s.local = :local")
+    List<Object[]> findScoresBySubjectIdAndLocal(@Param("subjectId") Integer subjectId, @Param("local") String local);
+
+    @Query("SELECT s.local, s.score FROM HighschoolExamScore s WHERE s.subjectId = :subjectId")
+    List<Object[]> findScoresBySubjectId(@Param("subjectId") Integer subjectId);
+
+
+
 }
 

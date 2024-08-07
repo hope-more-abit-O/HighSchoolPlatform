@@ -2,6 +2,7 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.entity.Subject;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Subject repository.
@@ -43,4 +45,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
             "(:name IS NULL OR s.name LIKE %:#{#name}%) AND " +
             "(:statusString IS NULL OR s.status = :statusString) ", nativeQuery = true)
     Page<Subject> findAll(String name, String statusString, Pageable pageable);
+
+    Optional<Subject> findByName(String name);
+
 }
