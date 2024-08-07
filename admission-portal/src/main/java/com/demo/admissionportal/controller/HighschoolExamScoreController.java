@@ -46,46 +46,45 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    @PutMapping("/{identificationNumber}")
+    @PutMapping
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<HighschoolExamScoreResponse>> updateExamScore(
-            @PathVariable Integer identificationNumber,
-            @RequestBody UpdateHighschoolExamScoreRequest request) {
-        ResponseData<HighschoolExamScoreResponse> response = highschoolExamScoreService.updateExamScore(identificationNumber, request);
+    public ResponseEntity<ResponseData<List<HighschoolExamScoreResponse>>> updateExamScores(
+            @RequestBody List<UpdateHighschoolExamScoreRequest> requests) {
+        ResponseData<List<HighschoolExamScoreResponse>> response = highschoolExamScoreService.updateExamScores(requests);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    //Subject local Distribution
+    @GetMapping("/distribution-by-local")
+    public ResponseEntity<ResponseData<Map<String, Map<String, Float>>>> getScoreDistributionByLocal(
+            @RequestParam(required = false) String subjectName) {
+        ResponseData<Map<String, Map<String, Float>>> response = highschoolExamScoreService.getScoreDistributionByLocal(subjectName);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
     //Subject Distribution
+    @GetMapping("/distribution-by-subject")
+    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionBySubject(
+            @RequestParam(required = false) String local,
+            @RequestParam(required = false) String subjectName) {
+        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubject(local, subjectName);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
     //Subject Group distribution
-    @GetMapping("/A-distribution")
-    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionForAGroup(
+    @GetMapping("/distribution")
+    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionBySubjectGroup(
+            @RequestParam(required = false) String local,
             @RequestParam(required = false) String subjectGroup) {
-        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionForAGroup(subjectGroup);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
-    @GetMapping("/B-distribution")
-    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionForBGroup(
-            @RequestParam(required = false) String subjectGroup
-    ) {
-        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionForBGroup(subjectGroup);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
-    @GetMapping("/C-distribution")
-    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionForCGroup(
-            @RequestParam(required = false) String subjectGroup
-    ) {
-        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionForCGroup(subjectGroup);
+        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubjectGroup(local, subjectGroup);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         }

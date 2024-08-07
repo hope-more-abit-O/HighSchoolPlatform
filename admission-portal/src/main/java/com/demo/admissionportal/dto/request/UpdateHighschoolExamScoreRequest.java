@@ -11,5 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateHighschoolExamScoreRequest {
+    private Integer identificationNumber;
     private List<SubjectScoreDTO> subjectScores;
 }
