@@ -121,4 +121,10 @@ public interface PostService {
      */
     ResponseData<List<PostDetailResponseDTOV3>> getPostsByIdV2(Integer universityId);
 
+    /**
+     * Gets post has package.
+     *
+     * @return the post has package
+     */
+    ResponseData<List<PostPackageResponseDTO>> getPostHasPackage();
 }

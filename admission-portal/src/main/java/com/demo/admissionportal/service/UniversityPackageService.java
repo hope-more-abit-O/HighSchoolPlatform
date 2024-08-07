@@ -22,7 +22,9 @@ public interface UniversityPackageService {
      * Update package university package.
      *
      * @param transactionId the transaction id
+     * @param postId        the post id
+     * @param packageId     the package id
      * @return the university package
      */
-    UniversityPackage updatePackage(Integer transactionId);
+    UniversityPackage updateUniversityPackage(Integer transactionId, Integer postId, Integer packageId);
 }
