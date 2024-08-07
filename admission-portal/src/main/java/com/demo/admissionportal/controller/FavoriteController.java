@@ -72,6 +72,7 @@ public class FavoriteController {
      * @return the favorite
      */
     @GetMapping("/{universityID}")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<FavoriteResponseDTO>> getFavorite(@PathVariable(name = "universityID") Integer universityID) {
         if (universityID == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
