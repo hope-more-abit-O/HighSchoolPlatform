@@ -39,6 +39,11 @@ public class MajorController {
         return ResponseEntity.ok(majorService.getAllMajorsInfo(pageable, id, code, name, note, status, createBy, updateBy, createTime, updateTime));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity getAll(){
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin các ngành thành công.",majorService.findAll()));
+    }
+
     @PostMapping
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> createMajor(@RequestBody @Valid CreateMajorRequest request) {
