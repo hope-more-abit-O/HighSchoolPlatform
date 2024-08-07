@@ -1230,7 +1230,7 @@ public class PostServiceImpl implements PostService {
 
             LocalDateTime today = LocalDateTime.now();
             // Case 1 : If not pass 30 minutes get old result
-            if (lastPackageDate != null && ChronoUnit.MINUTES.between(lastPackageDate, today) >= 30) {
+            if (lastPackageDate != null && !(ChronoUnit.MINUTES.between(lastPackageDate, today) >= 30)) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post có package: ", lastPostPackageResponseDTOS);
             }
             // Case 2 : If pass 30 minutes when random it.
