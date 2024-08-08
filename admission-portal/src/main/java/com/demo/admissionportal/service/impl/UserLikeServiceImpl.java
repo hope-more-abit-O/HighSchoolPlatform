@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type User like service.
@@ -80,11 +82,20 @@ public class UserLikeServiceImpl implements UserLikeService {
     }
 
     @Override
-    public ResponseData<LikeResponseDTO> getLike(Integer universityID) {
+    public ResponseData<List<LikeResponseDTO>> getLike(Integer universityID) {
         Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        UserLike like = userLikeRepository.findByUserIdAndUniversityId(userId, universityID);
+        List<UserLike> like = userLikeRepository.findByUserIdAndUniversityId(userId, universityID);
+        List<LikeResponseDTO> likeResponseDTOS = like.stream()
+                .map(this::mapToLike)
+                .collect(Collectors.toList());
+
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTOS);
+    }
+
+    private LikeResponseDTO mapToLike(UserLike userLike) {
         LikeResponseDTO likeResponseDTO = new LikeResponseDTO();
-        likeResponseDTO.setCurrentStatus(like.getStatus().name);
-        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTO);
+        likeResponseDTO.setPostId(userLike.getPost().getId());
+        likeResponseDTO.setCurrentStatus(userLike.getStatus().name);
+        return likeResponseDTO;
     }
 }
