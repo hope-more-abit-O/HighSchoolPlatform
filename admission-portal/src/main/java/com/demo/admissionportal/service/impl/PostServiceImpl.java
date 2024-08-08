@@ -449,11 +449,13 @@ public class PostServiceImpl implements PostService {
     private PostDetailResponseDTO mapToPostDetailResponseDTO(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(type -> type.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
 
         List<TagResponseDTO> tagResponseDTOList = post.getPostTags()
                 .stream()
+                .filter(tag -> tag.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
                 .collect(Collectors.toList());
         List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
@@ -604,6 +606,7 @@ public class PostServiceImpl implements PostService {
     private PostResponseDTO mapToPostResponseDTO(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(p -> p.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         String info = getUserInfoPostDTO(post.getCreateBy());
@@ -1132,6 +1135,7 @@ public class PostServiceImpl implements PostService {
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(p -> p.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
