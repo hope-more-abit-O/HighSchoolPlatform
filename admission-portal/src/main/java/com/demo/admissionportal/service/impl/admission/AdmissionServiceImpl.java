@@ -700,8 +700,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                         .stream()
                         .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
                         .findAny()
-                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin đề án", Map.of("error", "Not found AdmissionTrainingProgram.")));
-
+                        .orElse(null);
+                if (admissionTrainingProgram == null) break;
                 AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
                         .stream()
                         .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))

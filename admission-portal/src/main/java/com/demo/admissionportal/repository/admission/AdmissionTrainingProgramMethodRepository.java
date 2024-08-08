@@ -39,6 +39,7 @@ INNER JOIN admission_method am on am.id = atpm.admission_method_id
 INNER JOIN dbo.admission a on a.id = atp.admission_id
 INNER JOIN [user] u on u.id = a.university_id
 INNER JOIN university_campus uc on uc.university_id = u.id
+INNER JOIN dbo.[major] m ON m.id = atp.major_id
 WHERE atpsg.subject_group_id = :subjectGroupId 
 AND (am.method_id = 1)
 AND (atpm.addmission_score >= (:score - :offset) AND atpm.addmission_score <= (:score + :offset))
