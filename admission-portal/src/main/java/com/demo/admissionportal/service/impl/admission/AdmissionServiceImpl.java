@@ -604,7 +604,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     public ResponseData adviceSchool(SchoolAdviceRequest request) {
         Integer year = 2024;
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findBySubjectGroupIdAndScoreWithOffset(request.getSubjectGroupId(), request.getScore(), request.getOffset(), request.getMajorId(), request.getProvinceId());
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findBySubjectGroupIdAndScoreWithOffset(request.getSubjectGroupId(), request.getScore(), request.getOffset(), request.getMajorCode(), request.getProvinceId());
         log.info(request.toString());
         List<Integer> admissionTrainingProgramIds = admissionTrainingProgramMethods
                 .stream()
@@ -650,7 +650,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             List<Integer> admissionTrainingProgramIds1 = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
 
-            List<Major> majors1 = majors.stream().filter((ele) -> admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).toList().contains(ele.getId())).toList();
+            List<Major> majors1 = majors.stream().filter((ele) -> admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList().contains(ele.getId())).distinct().toList();
 
             List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
                     .stream()
@@ -734,7 +734,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                         List<AdmissionTrainingProgramScoreDTO> list = admissionTrainingProgramDTOV2.getScore();
                         list.add(admissionTrainingProgramScoreDTO);
                         admissionTrainingProgramDTOV2.setScore(list);
-                        admissionTrainingProgramDTOV2s.add(admissionTrainingProgramDTOV2);
+                        admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
                     }
                 }
             }
