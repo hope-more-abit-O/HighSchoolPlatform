@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -56,6 +57,10 @@ public class AdmissionController {
 //    public ResponseEntity createAdmissionTrainingProgramSubjectGroup(@RequestBody CreateAdmissionTrainingProgramSubjectGroupRequest request){
 //        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
 //    }
+    @GetMapping("/score-advice")
+    public ResponseEntity advice(@RequestParam String majorId, @RequestParam Float offset, @RequestParam Float score, @RequestParam Integer subjectGroupId, @RequestParam Integer methodId, @RequestParam Integer provinceId){
+        return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorId, offset, score, subjectGroupId, methodId, provinceId)));
+    }
 
     @PostMapping("/create")
     @SecurityRequirement(name = "BearerAuth")

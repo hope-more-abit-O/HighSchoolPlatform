@@ -31,6 +31,7 @@ import java.util.List;
                         @ColumnResult(name = "url", type = String.class),
                         @ColumnResult(name = "createBy", type = Integer.class),
                         @ColumnResult(name = "avatar", type = String.class),
+                        @ColumnResult(name = "status", type = PostStatus.class)
                 }
         )
 )

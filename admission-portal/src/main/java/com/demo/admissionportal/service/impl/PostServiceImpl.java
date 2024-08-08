@@ -72,6 +72,9 @@ public class PostServiceImpl implements PostService {
     private LocalDate lastRandomDate;
     private Integer lastSearch;
 
+    private List<PostPackageResponseDTO> lastPostPackageResponseDTOS;
+    private LocalDateTime lastPackageDate;
+
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
@@ -1220,5 +1223,66 @@ public class PostServiceImpl implements PostService {
             }
         }
         return userRepository.findUserById(userId);
+    }
+
+    public ResponseData<List<PostPackageResponseDTO>> getPostHasPackage() {
+        try {
+
+            LocalDateTime today = LocalDateTime.now();
+            // Case 1 : If not pass 30 minutes get old result
+            if (lastPackageDate != null && !(ChronoUnit.MINUTES.between(lastPackageDate, today) >= 30)) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post có package: ", lastPostPackageResponseDTOS);
+            }
+            // Case 2 : If pass 30 minutes when random it.
+            List<Post> posts = postRepository.findPostHasPackage();
+            List<PostPackageResponseDTO> postPackageResponseDTOS = posts.stream()
+                    .map(this::mapToPostPackageResponseDTO)
+                    .collect(Collectors.toList());
+            Collections.shuffle(postPackageResponseDTOS, new Random());
+            lastPostPackageResponseDTOS = postPackageResponseDTOS;
+            lastPackageDate = today;
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post có package", postPackageResponseDTOS);
+        } catch (Exception ex) {
+            log.info("Error when get post has package: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post có package");
+        }
+    }
+
+    private PostPackageResponseDTO mapToPostPackageResponseDTO(Post post) {
+        try {
+            ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(post.getCreateBy());
+            StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(post.getCreateBy());
+            String fullName = null;
+            String location = null;
+            Integer id = 0;
+            // Case 1 : find post by staff
+            if (staffInfo != null && consultantInfo == null) {
+                Province province = provinceRepository.findProvinceById(staffInfo.getProvinceId());
+                id = staffInfo.getId();
+                fullName = staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName();
+                location = province.getName();
+            } else if (consultantInfo != null && staffInfo == null) {
+                // Case 2 : if consultant is existed and find it
+                User user = userRepository.findUserById(consultantInfo.getUniversityId());
+                UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(user.getId());
+                UniversityCampus universityCampus = universityCampusRepository.findFirstUniversityCampusByUniversityId(universityInfo.getId());
+                Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
+                id = universityInfo.getId();
+                fullName = universityInfo.getName();
+                location = province.getName();
+            }
+            PostPropertiesResponseDTO postPropertiesResponseDTO = modelMapper.map(post, PostPropertiesResponseDTO.class);
+            return PostPackageResponseDTO.builder()
+                    .postProperties(postPropertiesResponseDTO)
+                    .info(InfoPostResponseDTO.builder()
+                            .id(id)
+                            .name(fullName)
+                            .location(location)
+                            .build())
+                    .build();
+        } catch (Exception ex) {
+            log.info("Error when map post has package: {}", ex.getMessage());
+            return null;
+        }
     }
 }

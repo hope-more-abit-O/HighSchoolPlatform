@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.payment.CreatePaymentLinkRequestBody;
+import com.demo.admissionportal.dto.request.payment.PaymentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.CreateQrResponseDTO;
 import com.demo.admissionportal.dto.response.payment.PaymentResponseDTO;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,32 +61,38 @@ public class OrderController {
         ObjectNode result = createPaymentLink(adsPackage);
         CreateQrResponseDTO responseDTO = new CreateQrResponseDTO();
         int error = result.findValue("error").asInt();
-        String message = result.findValue("message").asText();
         if (error != 0) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(new ResponseData<>(ResponseCode.C201.getCode(), "Lấy QR thất bại"));
         }
-        responseDTO.setMessage(message);
         JsonNode dataNode = result.get("data");
-        responseDTO.setInfo(dataNode);
+        String statusPayment = dataNode.get("status").asText();
+        long orderCode = dataNode.get("orderCode").asLong();
+        String checkoutUrl = dataNode.get("checkoutUrl").asText();
+
+        responseDTO.setOrderCode(orderCode);
+        responseDTO.setCheckoutURL(checkoutUrl);
         responseDTO.setUniversityTransactionId(universityPackage.getUniversityTransactionId());
+        responseDTO.setStatusPayment(statusPayment);
+        responseDTO.setPostId(postId);
+        responseDTO.setPackageId(adsPackage.getId());
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
 
-    @GetMapping("/")
+    @PostMapping("/")
     @Transactional
-    public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestParam(name = "orderCode") long orderCode, @RequestParam(name = "transactionId") Integer transactionId) {
-        ObjectNode resultOfPayment = getOrderById(orderCode);
+    public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestBody @Valid PaymentRequestDTO requestDTO) {
+        ObjectNode resultOfPayment = getOrderById(requestDTO.getOrderCode());
         JsonNode dataNode = resultOfPayment.get("data");
-        UniversityTransaction universityTransaction = new UniversityTransaction();
+        UniversityTransaction universityTransaction;
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
         if (status.equals("PAID")) {
-            universityTransaction = universityTransactionService.updateTransaction(transactionId, status);
-            universityPackageService.updatePackage(transactionId);
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
+            universityPackageService.updateUniversityPackage(requestDTO.getUniversityTransactionId(), requestDTO.getPostId(), requestDTO.getPackageId());
         } else if (status.equals("CANCELLED")) {
-            universityTransaction = universityTransactionService.updateTransaction(transactionId, status);
+            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
         } else {
-            universityTransaction = universityTransactionService.findTransaction(transactionId);
+            universityTransaction = universityTransactionService.findTransaction(requestDTO.getUniversityTransactionId());
         }
         paymentResponseDTO.setPayment(universityTransaction.getStatus().name);
 
@@ -150,7 +158,6 @@ public class OrderController {
      * @param orderId the order id
      * @return the order by id
      */
-    @PostMapping("/{orderId}")
     public ObjectNode getOrderById(@PathVariable("orderId") long orderId) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
@@ -162,25 +169,6 @@ public class OrderController {
             response.put("error", 0);
             response.put("message", "ok");
 
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", e.getMessage());
-            response.set("data", null);
-            return response;
-        }
-    }
-
-    @PutMapping(path = "/{orderId}")
-    public ObjectNode cancelOrder(@PathVariable("orderId") int orderId) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode response = objectMapper.createObjectNode();
-        try {
-            PaymentLinkData order = payOS.cancelPaymentLink(orderId, null);
-            response.set("data", objectMapper.valueToTree(order));
-            response.put("error", 0);
-            response.put("message", "ok");
             return response;
         } catch (Exception e) {
             e.printStackTrace();
