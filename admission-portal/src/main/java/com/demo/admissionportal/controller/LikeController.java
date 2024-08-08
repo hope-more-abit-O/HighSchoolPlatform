@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * The type Like controller.
@@ -44,5 +41,19 @@ public class LikeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfLike);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfLike);
+    }
+
+    @GetMapping("/{universityID}")
+    public ResponseEntity<ResponseData<LikeResponseDTO>> getLike(@PathVariable(name = "universityID") Integer universityID) {
+        if (universityID == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
+        }
+        ResponseData<LikeResponseDTO> favorite = userLikeService.getLike(universityID);
+        if (favorite.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(favorite);
+        } else if (favorite.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(favorite);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }
 }
