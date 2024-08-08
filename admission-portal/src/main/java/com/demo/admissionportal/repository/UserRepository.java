@@ -135,7 +135,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @Param("createBy") Integer createBy
     );
     @Query(value = """
-        SELECT usr.*
+        SELECT distinct usr.*
         FROM [user] usr
         INNER JOIN university_info u ON usr.id = u.university_id
         INNER JOIN staff_info si ON si.staff_id = usr.create_by 

@@ -15,4 +15,5 @@ public class SchoolAdviceDTO {
     private InfoUniversityResponseDTO universityInfo;
     private Integer majorCount;
     private List<AdmissionTrainingProgramDTOV2> detail;
+    private String source;
 }

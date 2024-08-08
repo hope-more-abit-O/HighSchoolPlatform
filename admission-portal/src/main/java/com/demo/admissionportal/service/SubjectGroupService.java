@@ -5,8 +5,11 @@ import com.demo.admissionportal.dto.request.UpdateSubjectGroupRequestDTO;
 import com.demo.admissionportal.dto.request.CreateSubjectGroupRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * <h1>Subject Group Service Interface</h1>
@@ -118,4 +121,6 @@ public interface SubjectGroupService {
      * @since 1.0
      */
     ResponseData<?> activateSubjectGroup(Integer id);
+
+    List<SubjectGroupResponseDTO2> getAll();
 }
