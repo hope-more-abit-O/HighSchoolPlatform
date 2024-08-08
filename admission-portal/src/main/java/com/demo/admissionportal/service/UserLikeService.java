@@ -14,4 +14,12 @@ public interface UserLikeService {
      * @return the response data
      */
     ResponseData<LikeResponseDTO> createLike(Integer postID);
+
+    /**
+     * Gets like.
+     *
+     * @param universityID the university id
+     * @return the like
+     */
+    ResponseData<LikeResponseDTO> getLike(Integer universityID);
 }

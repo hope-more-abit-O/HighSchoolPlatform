@@ -3,9 +3,11 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.LikeStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.like.LikeResponseDTO;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.UserFavorite;
 import com.demo.admissionportal.entity.UserLike;
 import com.demo.admissionportal.entity.sub_entity.id.UserLikeId;
 import com.demo.admissionportal.repository.PostRepository;
@@ -75,5 +77,14 @@ public class UserLikeServiceImpl implements UserLikeService {
             log.error("Error while create favorite : {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tạo like");
         }
+    }
+
+    @Override
+    public ResponseData<LikeResponseDTO> getLike(Integer universityID) {
+        Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        UserLike like = userLikeRepository.findByUserIdAndUniversityId(userId, universityID);
+        LikeResponseDTO likeResponseDTO = new LikeResponseDTO();
+        likeResponseDTO.setCurrentStatus(like.getStatus().name);
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTO);
     }
 }
