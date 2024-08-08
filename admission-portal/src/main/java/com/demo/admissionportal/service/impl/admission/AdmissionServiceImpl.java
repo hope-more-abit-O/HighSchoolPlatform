@@ -697,18 +697,18 @@ public class AdmissionServiceImpl implements AdmissionService {
             mapping.setMajor(modelMapper.map(major, InfoMajorDTO.class));
 
             for (Admission admission : admissions) {
-                if (admission.getYear() != (Calendar.getInstance().get(Calendar.YEAR))) {
-                    AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms
-                            .stream()
-                            .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
-                            .findAny()
-                            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin đề án", Map.of("error", "Not found AdmissionTrainingProgram.")));
-
-                    AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
-                            .stream()
-                            .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
-                            .findFirst()
-                            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
+                AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms
+                        .stream()
+                        .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
+                        .findAny()
+                        .orElse(null);
+                if (admissionTrainingProgram == null) break;
+                
+                AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
+                        .stream()
+                        .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
 
                     List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
                             .stream()
@@ -738,8 +738,6 @@ public class AdmissionServiceImpl implements AdmissionService {
                     }
                 }
             }
-        }
-
 
         return admissionTrainingProgramDTOV2s;
     }
