@@ -17,7 +17,7 @@ public class PaymentRequestDTO implements Serializable {
     @NotNull(message = "Nhập mã orderCode PayOS")
     private long orderCode;
     @NotNull(message = "Nhập mã giao dịch")
-    private Integer universityIdTransactionId;
+    private Integer universityTransactionId;
     @NotNull(message = "Nhập postId")
     private Integer postId;
     @NotNull(message = "Nhập packageId")
