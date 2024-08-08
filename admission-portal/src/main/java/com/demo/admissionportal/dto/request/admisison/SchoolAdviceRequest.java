@@ -10,7 +10,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchoolAdviceRequest implements Serializable {
-    private Integer majorId;
+    private String majorCode;
     private Float offset;
     private Float score;
     private Integer subjectGroupId;
