@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.entity.search_engine;
 
+import com.demo.admissionportal.constants.PostStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.ColumnResult;
@@ -27,6 +28,7 @@ import java.util.Date;
                         @ColumnResult(name = "url", type = String.class),
                         @ColumnResult(name = "createBy", type = Integer.class),
                         @ColumnResult(name = "avatar", type = String.class),
+                        @ColumnResult(name = "status", type = PostStatus.class)
                 }
         )
 )
@@ -46,4 +48,5 @@ public class PostSearchDTO implements Serializable {
     private Integer createBy;
     private String fullName;
     private String avatar;
+    private PostStatus status;
 }

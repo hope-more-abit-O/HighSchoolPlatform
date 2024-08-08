@@ -604,7 +604,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     public ResponseData adviceSchool(SchoolAdviceRequest request) {
         Integer year = 2024;
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findBySubjectGroupIdAndScoreWithOffset(request.getSubjectGroupId(), request.getScore(), request.getOffset(), request.getMajorId(), request.getProvinceId());
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findBySubjectGroupIdAndScoreWithOffset(request.getSubjectGroupId(), request.getScore(), request.getOffset(), request.getMajorCode(), request.getProvinceId());
+        log.info(request.toString());
         List<Integer> admissionTrainingProgramIds = admissionTrainingProgramMethods
                 .stream()
                 .map(AdmissionTrainingProgramMethod::getId)
@@ -649,7 +650,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             List<Integer> admissionTrainingProgramIds1 = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
 
-            List<Major> majors1 = majors.stream().filter((ele) -> admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).toList().contains(ele.getId())).toList();
+            List<Major> majors1 = majors.stream().filter((ele) -> admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList().contains(ele.getId())).distinct().toList();
 
             List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
                     .stream()
@@ -709,31 +710,32 @@ public class AdmissionServiceImpl implements AdmissionService {
                         .findFirst()
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
 
-                List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
-                        .stream()
-                        .map(AdmissionTrainingProgramSubjectGroup::getId)
-                        .filter(id -> id.getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
-                        .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
-                        .toList();
+                    List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
+                            .stream()
+                            .map(AdmissionTrainingProgramSubjectGroup::getId)
+                            .filter(id -> id.getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                            .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                            .toList();
 
-                List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((a) -> subjectGroupIds.contains(a.getId())).toList();
+                    List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((a) -> subjectGroupIds.contains(a.getId())).toList();
 
-                AdmissionTrainingProgramScoreDTO admissionTrainingProgramScoreDTO = new AdmissionTrainingProgramScoreDTO(admission.getYear(), subjectGroups1.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).collect(Collectors.toList()), admissionTrainingProgramMethod.getAdmissionScore());
+                    AdmissionTrainingProgramScoreDTO admissionTrainingProgramScoreDTO = new AdmissionTrainingProgramScoreDTO(admission.getYear(), subjectGroups1.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).collect(Collectors.toList()), admissionTrainingProgramMethod.getAdmissionScore());
 
-                AdmissionTrainingProgramDTOV2 admissionTrainingProgramDTOV2 = admissionTrainingProgramDTOV2s
-                        .stream()
-                        .filter((element) -> element.getUniversityId().equals(admission.getUniversityId()) && element.getMajor().equals(majorDTO))
-                        .findFirst()
-                        .orElse(null);
+                    AdmissionTrainingProgramDTOV2 admissionTrainingProgramDTOV2 = admissionTrainingProgramDTOV2s
+                            .stream()
+                            .filter((element) -> element.getUniversityId().equals(admission.getUniversityId()) && element.getMajor().equals(majorDTO))
+                            .findFirst()
+                            .orElse(null);
 
-                if (admissionTrainingProgramDTOV2 == null) {
-                    admissionTrainingProgramDTOV2s.add(new AdmissionTrainingProgramDTOV2(admission, modelMapper.map(majorDTO, InfoMajorDTO.class), new ArrayList<>(List.of(admissionTrainingProgramScoreDTO))));
-                } else {
-                    Integer index = admissionTrainingProgramDTOV2s.indexOf(admissionTrainingProgramDTOV2);
-                    List<AdmissionTrainingProgramScoreDTO> list = admissionTrainingProgramDTOV2.getScore();
-                    list.add(admissionTrainingProgramScoreDTO);
-                    admissionTrainingProgramDTOV2.setScore(list);
-                    admissionTrainingProgramDTOV2s.add(admissionTrainingProgramDTOV2);
+                    if (admissionTrainingProgramDTOV2 == null) {
+                        admissionTrainingProgramDTOV2s.add(new AdmissionTrainingProgramDTOV2(admission, modelMapper.map(majorDTO, InfoMajorDTO.class), new ArrayList<>(List.of(admissionTrainingProgramScoreDTO))));
+                    } else {
+                        Integer index = admissionTrainingProgramDTOV2s.indexOf(admissionTrainingProgramDTOV2);
+                        List<AdmissionTrainingProgramScoreDTO> list = admissionTrainingProgramDTOV2.getScore();
+                        list.add(admissionTrainingProgramScoreDTO);
+                        admissionTrainingProgramDTOV2.setScore(list);
+                        admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
+                    }
                 }
             }
         }

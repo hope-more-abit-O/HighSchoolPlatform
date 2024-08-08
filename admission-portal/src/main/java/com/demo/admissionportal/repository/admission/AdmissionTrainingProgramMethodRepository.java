@@ -42,15 +42,15 @@ INNER JOIN university_campus uc on uc.university_id = u.id
 INNER JOIN dbo.[major] m ON m.id = atp.major_id
 WHERE atpsg.subject_group_id = :subjectGroupId 
 AND (am.method_id = 1)
-AND (atpm.addmission_score >= (:score - :offset) AND atpm.addmission_score <= (:score + :offset))
-AND (atp.major_id = :majorId)
+AND (atpm.addmission_score <= (:score + :offset))
+AND (m.code like :majorCode)
 AND (uc.province_id = :provinceId)
 AND (a.year = (:year - 2) OR a.year = (:year - 1) OR a.year = (2024));
 """,nativeQuery = true)
     List<AdmissionTrainingProgramMethod> findBySubjectGroupIdAndScoreWithOffset(@Param("subjectGroupId") Integer subjectGroupId,
                                                                                 @Param("score") Float score,
                                                                                 @Param("offset") Float offset,
-                                                                                @Param("majorId") Integer majorId,
+                                                                                @Param("majorCode") String majorCode,
                                                                                 @Param("provinceId") Integer provinceId,
                                                                                 @Param("year") Integer year);
 }
