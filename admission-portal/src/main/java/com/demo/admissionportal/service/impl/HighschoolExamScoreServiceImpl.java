@@ -119,7 +119,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
     }
 
-
     private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(9, 27, 28, 34, 36, 38, 16, 23, 54);
 
     @Override
@@ -269,6 +268,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình cập nhật điểm, vui lòng thử lại sau. Lỗi: " + e.getMessage());
         }
     }
+
     @Override
     public ResponseData<Map<String, Map<String, Float>>> getScoreDistributionByLocal(String subjectName) {
         try {
@@ -365,8 +365,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
         return scoreByLocal;
     }
-
-
 
     @Override
     public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubject(String local, String subjectName) {
@@ -469,7 +467,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         return scoreCountMap;
     }
-    
+
     @Override
     public ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubjectGroup(String local, String subjectGroup) {
         try {
@@ -538,16 +536,19 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 Integer identificationNumber = (Integer) data[0];
                 Float score = ((Number) data[2]).floatValue();
 
-                BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-
-                totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                if (score != null) {
+                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
+                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                }
             }
         }
 
         Map<Float, Integer> scoreDistribution = new HashMap<>();
         for (Float totalScore : totalScoresByStudent.values()) {
-            BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
-            scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+            if (totalScore <= 30) {
+                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
+                scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
+            }
         }
 
         return scoreDistribution;
@@ -555,8 +556,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     private SubjectDTO getSubjectDetails(Integer subjectId) {
         return subjectRepository.findById(subjectId)
-                .map(subject -> {
-                    return new SubjectDTO(subject.getId(), subject.getName());
-                }).orElse(null);
+                .map(subject -> new SubjectDTO(subject.getId(), subject.getName()))
+                .orElse(null);
     }
 }
