@@ -72,6 +72,7 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                     p.thumnail AS thumnail,
                     p.url AS url,
                     u.avatar AS avatar,
+                    p.status AS status,
                     p.create_by AS createBy,
                     p.title AS orderByTitle,
                     CONCAT(ui.name, ' ', uc.campus_name) AS orderByName,
