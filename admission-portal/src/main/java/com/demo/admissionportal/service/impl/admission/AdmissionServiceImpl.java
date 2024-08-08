@@ -677,7 +677,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                     admissionTrainingPrograms1,
                     admissionTrainingProgramSubjectGroups1,
                     admissionTrainingProgramMethods1,
-                    subjectGroups1);
+                    subjectGroups1,
+                    year);
 
             Admission admission = admissions1.stream().filter((element) -> element.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề án năm mới nhất"));
             schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s, admission.getSource()));
@@ -686,7 +687,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("", schoolAdviceDTOs);
     }
 
-    public List<AdmissionTrainingProgramDTOV2> getSchoolAdviceMajorDetails(Integer universityId, List<Major> majors, List<Admission> admissions, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<SubjectGroup> subjectGroups) {
+    public List<AdmissionTrainingProgramDTOV2> getSchoolAdviceMajorDetails(Integer universityId, List<Major> majors, List<Admission> admissions, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<SubjectGroup> subjectGroups, Integer year) {
 
         List<AdmissionTrainingProgramDTOV2> admissionTrainingProgramDTOV2s = new ArrayList<>();
 
@@ -697,18 +698,19 @@ public class AdmissionServiceImpl implements AdmissionService {
             mapping.setMajor(modelMapper.map(major, InfoMajorDTO.class));
 
             for (Admission admission : admissions) {
-                AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms
-                        .stream()
-                        .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
-                        .findAny()
-                        .orElse(null);
-                if (admissionTrainingProgram == null) break;
-                
-                AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
-                        .stream()
-                        .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
-                        .findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
+                if (!admission.getYear().equals(year)) {
+                    AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms
+                            .stream()
+                            .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
+                            .findAny()
+                            .orElse(null);
+                    if (admissionTrainingProgram == null) break;
+
+                    AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
+                            .stream()
+                            .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
 
                     List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
                             .stream()
@@ -736,6 +738,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                         admissionTrainingProgramDTOV2.setScore(list);
                         admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
                     }
+                }
                 }
             }
 
