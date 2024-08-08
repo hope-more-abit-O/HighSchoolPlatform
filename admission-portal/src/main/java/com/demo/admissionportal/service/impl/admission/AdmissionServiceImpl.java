@@ -738,8 +738,6 @@ public class AdmissionServiceImpl implements AdmissionService {
                     }
                 }
             }
-        }
-
 
         return admissionTrainingProgramDTOV2s;
     }
