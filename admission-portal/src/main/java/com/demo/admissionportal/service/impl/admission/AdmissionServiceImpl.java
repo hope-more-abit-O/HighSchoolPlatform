@@ -702,6 +702,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                         .findAny()
                         .orElse(null);
                 if (admissionTrainingProgram == null) break;
+                
                 AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
                         .stream()
                         .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
