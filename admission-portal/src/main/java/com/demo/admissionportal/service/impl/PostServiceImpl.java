@@ -435,11 +435,10 @@ public class PostServiceImpl implements PostService {
         try {
             Post posts = postRepository.findFirstById(id);
             PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
-            if (result != null) {
+            if (posts != null && result != null) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với Id: " + id, result);
             }
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với Id:" + id);
-
         } catch (Exception ex) {
             log.error("Error when get posts with id {}:", id);
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
