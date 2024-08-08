@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * The type Like controller.
  */
@@ -44,11 +46,11 @@ public class LikeController {
     }
 
     @GetMapping("/{universityID}")
-    public ResponseEntity<ResponseData<LikeResponseDTO>> getLike(@PathVariable(name = "universityID") Integer universityID) {
+    public ResponseEntity<ResponseData<List<LikeResponseDTO>>> getLike(@PathVariable(name = "universityID") Integer universityID) {
         if (universityID == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
         }
-        ResponseData<LikeResponseDTO> favorite = userLikeService.getLike(universityID);
+        ResponseData<List<LikeResponseDTO>> favorite = userLikeService.getLike(universityID);
         if (favorite.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(favorite);
         } else if (favorite.getStatus() == ResponseCode.C205.getCode()) {

@@ -13,5 +13,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 public class LikeResponseDTO implements Serializable {
+    private Integer postId;
     private String currentStatus;
 }

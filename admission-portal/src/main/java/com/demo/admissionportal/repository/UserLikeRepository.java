@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * The interface User like repository.
  */
@@ -35,5 +37,5 @@ public interface UserLikeRepository extends JpaRepository<UserLike, Integer> {
             "JOIN [consultant_info] ci ON p.create_by = ci.consultant_id " +
             "JOIN [user] u ON u.id = ci.university_id " +
             "WHERE ul.user_id = :userId AND u.id = :universityId ", nativeQuery = true)
-    UserLike findByUserIdAndUniversityId(Integer userId, Integer universityId);
+    List<UserLike> findByUserIdAndUniversityId(Integer userId, Integer universityId);
 }
