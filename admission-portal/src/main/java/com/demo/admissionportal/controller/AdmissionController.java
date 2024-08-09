@@ -66,8 +66,12 @@ public class AdmissionController {
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request)
         throws DataExistedException{
-        admissionService.createAdmission(request);
-        return ResponseEntity.ok(ResponseData.ok("Tạo đề án thành công."));
+        try{
+            admissionService.createAdmission(request);
+            return ResponseEntity.ok(ResponseData.ok("Tạo đề án thành công."));
+        }catch (Exception e){
+            throw new DataExistedException(e.getMessage());
+        }
     }
 
     @GetMapping()
