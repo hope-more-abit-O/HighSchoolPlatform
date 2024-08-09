@@ -21,6 +21,9 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      * @param id the id
      * @return the post
      */
+    @Query(value = "SELECT * " +
+            "FROM [post] p " +
+            "WHERE p.status = 'ACTIVE' AND p.id = :id", nativeQuery = true)
     Post findFirstById(Integer id);
 
 
@@ -153,7 +156,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT * " +
             "FROM [post] p " +
             "LEFT JOIN [consultant_info] ci ON p.create_by = ci.consultant_id " +
-            "WHERE ci.university_id = :universityId", nativeQuery = true)
+            "WHERE ci.university_id = :universityId AND p.status = 'ACTIVE'" +
+            "ORDER BY p.create_time DESC", nativeQuery = true)
     List<Post> findAllByCreateByIn(Integer universityId);
 
     /**
@@ -173,6 +177,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "LEFT JOIN university_package up " +
             "ON up.post_id = p.id " +
             "AND up.complete_time = max_up.max_complete_time " +
-            "WHERE up.status = 'ACTIVE'; ", nativeQuery = true)
+            "WHERE up.status = 'ACTIVE' AND p.status = 'ACTIVE'; ", nativeQuery = true)
     List<Post> findPostHasPackage();
 }
