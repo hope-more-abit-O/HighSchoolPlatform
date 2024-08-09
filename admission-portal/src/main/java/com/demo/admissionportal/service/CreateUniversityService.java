@@ -5,6 +5,7 @@ import com.demo.admissionportal.dto.entity.create_university_request.CreateUnive
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.PostCreateUniversityRequestResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,8 @@ import java.util.List;
 //TODO: JAVADOC
 public interface CreateUniversityService {
     ResponseData<PostCreateUniversityRequestResponse> createCreateUniversityRequest(CreateUniversityRequestRequest request);
+    ResponseData createUniversity(CreateUniversityRequestRequest request)
+            throws DataExistedException, StoreDataFailedException;
     ResponseData adminAction(Integer id, CreateUniversityRequestStatus status, String note) throws ResourceNotFoundException, StoreDataFailedException;
     CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException;
 
