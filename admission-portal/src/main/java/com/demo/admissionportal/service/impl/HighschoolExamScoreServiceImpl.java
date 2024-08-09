@@ -55,6 +55,12 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             if (identificationNumber == null || highschoolExamScoreRepository.countByIdentificationNumber(identificationNumber) == 0) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy số báo danh này !");
             }
+            boolean statusScore = examScoresPage.stream()
+                    .allMatch(score -> score.getStatus().equals(HighschoolExamScoreStatus.INACTIVE));
+
+            if (statusScore) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Điểm thi chưa được công bố!");
+            }
 
             Map<Integer, List<HighschoolExamScore>> groupedById = examScoresPage.stream()
                     .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));

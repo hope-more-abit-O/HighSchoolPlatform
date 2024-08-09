@@ -71,6 +71,8 @@ public class StudentReportController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -95,6 +97,8 @@ public class StudentReportController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -126,6 +130,8 @@ public class StudentReportController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -138,6 +144,8 @@ public class StudentReportController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

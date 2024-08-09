@@ -33,6 +33,8 @@ public class HighschoolExamScoreController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -44,6 +46,8 @@ public class HighschoolExamScoreController {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -76,6 +80,10 @@ public class HighschoolExamScoreController {
         ResponseData<Map<String, Map<String, Float>>> response = highschoolExamScoreService.getScoreDistributionByLocal(subjectName);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -88,6 +96,10 @@ public class HighschoolExamScoreController {
         ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubject(local, subjectName);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -99,6 +111,10 @@ public class HighschoolExamScoreController {
         ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubjectGroup(local, subjectGroup);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
@@ -109,8 +125,11 @@ public class HighschoolExamScoreController {
         ResponseData<String> response = highschoolExamScoreService.publishExamScores();
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
