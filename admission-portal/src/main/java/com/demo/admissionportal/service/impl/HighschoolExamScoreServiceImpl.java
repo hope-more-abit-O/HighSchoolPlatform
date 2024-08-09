@@ -554,6 +554,93 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         return scoreDistribution;
     }
 
+    @Override
+    public ResponseData<List<HighschoolExamScoreResponse>> getAllTop100HighestScoreBySubject(String subjectName) {
+        List<HighschoolExamScoreResponse> responseList = new ArrayList<>();
+        try {
+            List<Integer> topStudents = highschoolExamScoreRepository.findTop100StudentsBySubject(subjectName);
+
+            if (topStudents.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Không có dữ liệu", responseList);
+            }
+            List<HighschoolExamScore> allScores = highschoolExamScoreRepository.findScoresByIdentificationNumbers(topStudents);
+
+            List<Integer> subjectOrder = Arrays.asList(36, 28, 38, 27, 16, 23, 34, 9, 54);
+            SubjectDTO mainSubject = getSubjectDetailsByName(subjectName);
+            if (mainSubject != null && !subjectOrder.contains(mainSubject.getSubjectId())) {
+                subjectOrder.add(0, mainSubject.getSubjectId());
+            } else if (mainSubject != null) {
+                subjectOrder = new ArrayList<>(subjectOrder);
+                subjectOrder.remove(mainSubject.getSubjectId());
+                subjectOrder.add(0, mainSubject.getSubjectId());
+            }
+
+            List<Integer> finalSubjectOrder = new ArrayList<>(subjectOrder);
+
+            Map<Integer, List<SubjectScoreDTO>> scoresByStudent = allScores.stream()
+                    .collect(Collectors.groupingBy(
+                            HighschoolExamScore::getIdentificationNumber,
+                            Collectors.mapping(score -> {
+                                SubjectDTO subjectDetails = getSubjectDetails(score.getSubjectId());
+                                return new SubjectScoreDTO(
+                                        score.getSubjectId(),
+                                        subjectDetails != null ? subjectDetails.getSubjectName() : null,
+                                        score.getScore()
+                                );
+                            }, Collectors.toList())
+                    ));
+
+            for (Integer identificationNumber : topStudents) {
+                HighschoolExamScore firstScore = allScores.stream()
+                        .filter(score -> score.getIdentificationNumber().equals(identificationNumber))
+                        .findFirst()
+                        .orElse(null);
+
+                if (firstScore != null) {
+                    List<SubjectScoreDTO> sortedScores = scoresByStudent.get(identificationNumber);
+                    sortedScores.sort(Comparator.comparingInt(
+                            score -> {
+                                int index = finalSubjectOrder.indexOf(score.getSubjectId());
+                                return index == -1 ? Integer.MAX_VALUE : index;
+                            }
+                    ));
+
+                    for (Integer subjectId : finalSubjectOrder) {
+                        boolean exists = sortedScores.stream()
+                                .anyMatch(score -> score.getSubjectId().equals(subjectId));
+                        if (!exists) {
+                            SubjectDTO subjectDetails = getSubjectDetails(subjectId);
+                            sortedScores.add(new SubjectScoreDTO(
+                                    subjectId,
+                                    subjectDetails != null ? subjectDetails.getSubjectName() : null,
+                                    null
+                            ));
+                        }
+                    }
+                    HighschoolExamScoreResponse response = new HighschoolExamScoreResponse(
+                            firstScore.getIdentificationNumber(),
+                            firstScore.getExaminationBoard(),
+                            firstScore.getDateOfBirth(),
+                            firstScore.getExaminer(),
+                            firstScore.getYear(),
+                            sortedScores
+                    );
+                    responseList.add(response);
+                }
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy Top 100 thành công", responseList);
+        } catch (Exception e) {
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy Top 100, vui lòng thử lại sau.");
+        }
+    }
+
+
+    private SubjectDTO getSubjectDetailsByName(String subjectName) {
+        return subjectRepository.findByName(subjectName)
+                .map(subject -> new SubjectDTO(subject.getId(), subject.getName()))
+                .orElse(null);
+    }
+
     private SubjectDTO getSubjectDetails(Integer subjectId) {
         return subjectRepository.findById(subjectId)
                 .map(subject -> new SubjectDTO(subject.getId(), subject.getName()))
