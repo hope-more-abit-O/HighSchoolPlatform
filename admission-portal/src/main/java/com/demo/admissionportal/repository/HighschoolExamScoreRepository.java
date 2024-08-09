@@ -1,15 +1,12 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.HighschoolExamScore;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolExamScore, Integer> {
@@ -46,7 +43,24 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     @Query("SELECT s.local, s.score FROM HighschoolExamScore s WHERE s.subjectId = :subjectId")
     List<Object[]> findScoresBySubjectId(@Param("subjectId") Integer subjectId);
 
+    @Query(value = "SELECT TOP (100) h.identification_number " +
+            "FROM highschool_exam_score h " +
+            "INNER JOIN subject s ON h.subject_id = s.id " +
+            "WHERE s.name = :subjectName AND h.year = 2024 " +
+            "ORDER BY h.score DESC", nativeQuery = true)
+    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName);
+
+    @Query(value = "SELECT h.* " +
+            "FROM highschool_exam_score h " +
+            "WHERE h.identification_number IN :identificationNumbers " +
+            "ORDER BY h.identification_number, h.subject_id", nativeQuery = true)
+    List<HighschoolExamScore> findScoresByIdentificationNumbers(@Param("identificationNumbers") List<Integer> identificationNumbers);
+
 
 
 }
+
+
+
+
 

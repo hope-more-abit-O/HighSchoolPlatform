@@ -18,5 +18,6 @@ public interface HighschoolExamScoreService {
     ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubjectGroup(String local, String subjectGroup);
     ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubject(String local, String subjectName);
     ResponseData<Map<String, Map<String, Float>>> getScoreDistributionByLocal(String subjectName);
+    ResponseData<List<HighschoolExamScoreResponse>> getAllTop100HighestScoreBySubject(String subjectName);
 
 }

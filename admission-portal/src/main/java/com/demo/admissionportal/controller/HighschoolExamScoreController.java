@@ -36,6 +36,18 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    @GetMapping("/top-100")
+    public ResponseEntity<ResponseData<List<HighschoolExamScoreResponse>>> getAllExamScores(
+            @RequestParam(required = false) String subjectName) {
+        ResponseData<List<HighschoolExamScoreResponse>> response = highschoolExamScoreService.getAllTop100HighestScoreBySubject(subjectName);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
     @PostMapping
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
