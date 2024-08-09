@@ -435,11 +435,10 @@ public class PostServiceImpl implements PostService {
         try {
             Post posts = postRepository.findFirstById(id);
             PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
-            if (result != null) {
+            if (posts != null && result != null) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với Id: " + id, result);
             }
             return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với Id:" + id);
-
         } catch (Exception ex) {
             log.error("Error when get posts with id {}:", id);
             return new ResponseData<>(ResponseCode.C207.getCode(), ex.getMessage());
@@ -449,11 +448,13 @@ public class PostServiceImpl implements PostService {
     private PostDetailResponseDTO mapToPostDetailResponseDTO(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(type -> type.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
 
         List<TagResponseDTO> tagResponseDTOList = post.getPostTags()
                 .stream()
+                .filter(tag -> tag.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postTag -> modelMapper.map(postTag, TagResponseDTO.class))
                 .collect(Collectors.toList());
         List<CommentResponseDTO> commentResponseDTO = commentService.getCommentFromPostId(post.getId());
@@ -604,6 +605,7 @@ public class PostServiceImpl implements PostService {
     private PostResponseDTO mapToPostResponseDTO(Post post) {
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(p -> p.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         String info = getUserInfoPostDTO(post.getCreateBy());
@@ -1132,6 +1134,7 @@ public class PostServiceImpl implements PostService {
         PostRandomResponseDTO postRandomResponseDTO = modelMapper.map(post, PostRandomResponseDTO.class);
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
+                .filter(p -> p.getStatus().equals(PostPropertiesStatus.ACTIVE))
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
                 .collect(Collectors.toList());
         int comment = commentRepository.countByPostId(post.getId());
