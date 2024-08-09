@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.entity.HighschoolExamScore;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -57,7 +58,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findScoresByIdentificationNumbers(@Param("identificationNumbers") List<Integer> identificationNumbers);
 
 
-
+    List<HighschoolExamScore> findAllByStatus(HighschoolExamScoreStatus status);
 }
 
 

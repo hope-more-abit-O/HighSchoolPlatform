@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,4 +43,7 @@ public class HighschoolExamScore {
     private Date updateTime;
     @Column(name = "update_by")
     private Integer updateBy;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private HighschoolExamScoreStatus status;
 }
