@@ -34,6 +34,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Staff controller.
@@ -67,10 +68,14 @@ public class StaffController {
     @PostMapping("/create-university")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<?> sendCreateUniversityRequest(@RequestBody @Valid CreateUniversityRequestRequest request) {
-        ResponseData<PostCreateUniversityRequestResponse> response = createUniversityService.createCreateUniversityRequest(request);
-        if (response.getStatus() != ResponseCode.C200.getCode())
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
-        return ResponseEntity.ok(response);
+        try {
+            ResponseData response = createUniversityService.createUniversity(request);
+            if (response.getStatus() != ResponseCode.C200.getCode())
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
+            return ResponseEntity.ok(response);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getCause().getMessage()));
+        }
     }
 
     /**

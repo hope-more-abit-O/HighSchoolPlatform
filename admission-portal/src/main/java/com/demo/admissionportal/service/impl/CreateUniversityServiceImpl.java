@@ -19,6 +19,7 @@ import com.demo.admissionportal.repository.CreateUniversityRequestRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.CreateUniversityService;
+import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.ValidationService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
@@ -50,6 +51,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
     private final EmailUtil emailUtil;
     private final UserServiceImpl userServiceImpl;
     private final CreateUniversityController createUniversityController;
+    private final UniversityService universityService;
 
     /**
      * Handles the creation of a university creation request.
@@ -113,6 +115,25 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", mapping(result));
         } catch (Exception e){
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
+        }
+    }
+
+    @Transactional
+    public ResponseData createUniversity(CreateUniversityRequestRequest request)
+            throws DataExistedException, StoreDataFailedException{
+        //Get staff's principal
+        Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        log.info("Get Staff ID: {}", staffId);
+
+        validationService.validateCreateUniversityRequest(request.getUniversityUsername(), request.getUniversityEmail(), request.getUniversityCode());
+
+        try{
+            universityService.createUniversity( request);
+            return ResponseData.ok("Tạo yêu cầu tạo trường thành công.");
+        } catch (StoreDataFailedException e){
+            throw e;
+        } catch (Exception e){
+            throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getCause().getMessage()));
         }
     }
 
