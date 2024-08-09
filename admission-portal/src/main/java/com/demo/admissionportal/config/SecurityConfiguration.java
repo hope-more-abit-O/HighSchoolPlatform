@@ -104,6 +104,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/all").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(AUTHENTICATION_API,
                                         EXAM_SCORE_API,

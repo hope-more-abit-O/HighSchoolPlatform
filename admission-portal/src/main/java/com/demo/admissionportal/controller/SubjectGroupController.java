@@ -27,4 +27,13 @@ public class SubjectGroupController {
     public ResponseEntity<ResponseData> findAllSubjectGroups() {
         return ResponseEntity.ok(ResponseData.ok("Lấy tất cả các khối học thành công.", subjectGroupService.getAll()));
     }
+
+    @GetMapping("/list-all-subject-groups")
+    public ResponseEntity<ResponseData<Page<SubjectGroupResponseDTO>>> findAllSubjectGroups(@RequestParam(required = false) String groupName, @RequestParam(required = false) String subjectName, @RequestParam(required = false) SubjectStatus status, Pageable pageable) {
+        ResponseData<Page<SubjectGroupResponseDTO>> result = subjectGroupService.findAll(groupName, subjectName, status, pageable);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
 }
