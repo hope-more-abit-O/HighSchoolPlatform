@@ -545,7 +545,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         Map<Float, Integer> scoreDistribution = new HashMap<>();
         for (Float totalScore : totalScoresByStudent.values()) {
-            if (totalScore <= 30) {
+            if (totalScore <= 30 && totalScore > 10) {
                 BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
                 scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
             }
