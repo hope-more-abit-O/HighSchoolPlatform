@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
+import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -24,19 +25,25 @@ import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
+import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.sql.SQLException;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -52,6 +59,8 @@ public class UniversityServiceImpl implements UniversityService {
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     private final UniversityCampusServiceImpl universityCampusServiceImpl;
+    private final ValidationService validationService;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Retrieves detailed information about a university, combining account
@@ -355,4 +364,34 @@ public class UniversityServiceImpl implements UniversityService {
                         .build();
     }
 
+    public boolean createUniversity(CreateUniversityRequestRequest createUniversityRequest){
+        try {
+            Integer staffId = ServiceUtils.getId();
+            validationService.validateCreateUniversity(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail(), createUniversityRequest.getUniversityCode());
+
+            String password = RandomStringUtils.randomAlphanumeric(9);
+            log.info("Checking username: {}, email: {} available.", createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail());
+            log.info("Check username, email available succeed.");
+
+            log.info("Creating and storing University Account");
+            User uni = userRepository.save(
+                    new User(createUniversityRequest.getUniversityUsername(),
+                            createUniversityRequest.getUniversityEmail(),
+                            passwordEncoder.encode(password),
+                            Role.UNIVERSITY,
+                            staffId
+                    )
+            );
+            log.info("Creating and storing University Account succeed");
+
+            log.info("Creating and storing University Information");
+            UniversityInfo universityInfo = new UniversityInfo(uni.getId(), createUniversityRequest);
+            universityInfoRepository.save(universityInfo);
+            log.info("Creating and storing University Information succeed");
+            log.info("Password: {}", password);
+            return true;
+        } catch (Exception e){
+            throw new StoreDataFailedException("Tạo trường học thất bại", Map.of("error", e.getCause().getMessage()));
+        }
+    }
 }
