@@ -102,5 +102,15 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
+    @PostMapping("/publish")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<String>> publishExamScores() {
+        ResponseData<String> response = highschoolExamScoreService.publishExamScores();
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

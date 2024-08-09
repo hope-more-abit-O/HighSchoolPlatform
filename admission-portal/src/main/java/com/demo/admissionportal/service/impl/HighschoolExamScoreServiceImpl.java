@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
@@ -7,16 +8,15 @@ import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.SubjectScoreDTO;
-import com.demo.admissionportal.entity.HighschoolExamScore;
-import com.demo.admissionportal.entity.Subject;
-import com.demo.admissionportal.entity.SubjectGroup;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.HighschoolExamScoreRepository;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.SubjectRepository;
+import com.demo.admissionportal.repository.UserInfoRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -43,6 +43,10 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private SubjectGroupRepository subjectGroupRepository;
     @Autowired
     private SubjectGroupSubjectRepository subjectGroupSubjectRepository;
+    @Autowired
+    private EmailUtil emailUtil;
+    @Autowired
+    private UserInfoRepository userInfoRepository;
 
     @Override
     public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber) {
@@ -156,6 +160,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 examScore.setScore(subjectScore.getScore());
                 examScore.setCreateTime(new Date());
                 examScore.setCreateBy(staffId);
+                examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
                 return examScore;
             }).collect(Collectors.toList());
 
@@ -633,7 +638,60 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy Top 100, vui lòng thử lại sau.");
         }
     }
+    @Override
+    @Transactional
+    public ResponseData<String> publishExamScores() {
+        try {
+            List<HighschoolExamScore> examScoresStatus = highschoolExamScoreRepository.findAllByStatus(HighschoolExamScoreStatus.INACTIVE);
+            if (examScoresStatus.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Điểm thi đã được công bố từ trước đó.");
+            }
+            List<HighschoolExamScore> examScores = highschoolExamScoreRepository.findAll();
 
+            examScores.forEach(score -> score.setStatus(HighschoolExamScoreStatus.ACTIVE));
+            highschoolExamScoreRepository.saveAll(examScores);
+
+            Map<Integer, List<HighschoolExamScore>> scoresByIdentificationNumber = examScores.stream()
+                    .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
+
+            Map<Integer, String> subjectIdToNameMap = subjectRepository.findAll().stream()
+                    .collect(Collectors.toMap(Subject::getId, Subject::getName));
+
+            List<Integer> identificationNumbers = new ArrayList<>(scoresByIdentificationNumber.keySet());
+            List<UserInfo> matchingUserInfos = userInfoRepository.findAllByIdentificationNumberIn(identificationNumbers);
+
+            for (UserInfo userInfo : matchingUserInfos) {
+                Integer identificationNumber = userInfo.getIdentificationNumber();
+                List<HighschoolExamScore> userScores = scoresByIdentificationNumber.get(identificationNumber);
+
+                String email = userInfo.getUser().getEmail();
+                String subject = "Kết quả thi tốt nghiệp THPT 2024";
+                StringBuilder message = new StringBuilder();
+                message.append("<h1> Cổng thông tin tuyển sinh trường đại học - UAP</h1>");
+                message.append("<h3>Xin trân trọng thông báo kết quả thi tốt nghiệp THPT 2024 của bạn:</h2>");
+                for (HighschoolExamScore score : userScores) {
+                    if (score.getScore() != null) {
+                        String subjectName = subjectIdToNameMap.get(score.getSubjectId());
+                        message.append("<p>Môn: ").append(subjectName)
+                                .append(" - Điểm: ").append(score.getScore())
+                                .append("</p>");
+                    }
+                }
+                if (message.length() > "<h2>Kết quả thi của bạn:</h2>".length()) {
+                    boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
+                    if (!emailSent) {
+                        log.error("Failed to send email to {}", email);
+                    } else {
+                        log.info("Successfully sent email to {}", email);
+                    }
+                }
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Công bố điểm thi THPT 2024 và gửi email thành công");
+        } catch (Exception e) {
+            log.error("Error publishing exam scores", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Có lỗi xảy ra khi công bố điểm thi THPT 2024");
+        }
+    }
 
     private SubjectDTO getSubjectDetailsByName(String subjectName) {
         return subjectRepository.findByName(subjectName)
