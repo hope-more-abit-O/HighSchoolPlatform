@@ -1,7 +1,11 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.ads_package.PackageResponseDTO;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.AdsPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
+
+import java.util.List;
 
 /**
  * The interface University transaction service.
@@ -32,4 +36,11 @@ public interface UniversityTransactionService {
      * @return the university transaction
      */
     UniversityTransaction findTransaction(Integer transactionId);
+
+    /**
+     * Gets list package.
+     *
+     * @return the list package
+     */
+    ResponseData<List<PackageResponseDTO>> getListPackage();
 }

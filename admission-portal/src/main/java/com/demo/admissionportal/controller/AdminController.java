@@ -8,18 +8,15 @@ import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.ActiveStaffRequest;
 import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
+import com.demo.admissionportal.dto.request.ads_package.PackageResponseDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestAdminActionRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.RegisterStaffResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.dto.response.staff.FindAllStaffResponse;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
-import com.demo.admissionportal.service.AdminService;
-import com.demo.admissionportal.service.CreateUniversityService;
-import com.demo.admissionportal.service.StaffService;
-import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +44,7 @@ public class AdminController {
     private final StaffService staffService;
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
+    private final UniversityTransactionService universityTransactionService;
 
     /**
      * Register staff response entity.
@@ -194,7 +192,7 @@ public class AdminController {
      */
     @PutMapping("/create-university/accept/{id}")
     public ResponseEntity<?> acceptCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
-            throws ResourceNotFoundException, StoreDataFailedException{
+            throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.ACCEPTED, request.adminNote()));
     }
 
@@ -209,7 +207,7 @@ public class AdminController {
      */
     @PutMapping("/create-university/reject/{id}")
     public ResponseEntity<?> rejectCreateUniversityRequest(@PathVariable("id") Integer id, @RequestBody CreateUniversityRequestAdminActionRequest request)
-            throws ResourceNotFoundException, StoreDataFailedException{
+            throws ResourceNotFoundException, StoreDataFailedException {
         return ResponseEntity.ok(createUniversityService.adminAction(id, CreateUniversityRequestStatus.REJECTED, request.adminNote()));
     }
 
@@ -259,7 +257,7 @@ public class AdminController {
                 createUniversityService.getBy(
                         pageable, id, universityName, universityCode, universityEmail,
                         universityUsername, status, createBy, createByName, confirmBy
-        ));
+                ));
     }
 
     /**
@@ -305,7 +303,17 @@ public class AdminController {
      */
     @GetMapping("/university/{id}")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
-        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        var result = ResponseData.ok("Lấy thông tin trường thành công", universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/package/list")
+    public ResponseEntity<ResponseData<List<PackageResponseDTO>>> getListPackageHistory() {
+        ResponseData<List<PackageResponseDTO>> result = universityTransactionService.getListPackage();
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
 }
