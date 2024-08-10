@@ -73,6 +73,9 @@ public class UserInfo implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date birthday;
 
+    @Column(name = "identification_number")
+    private Integer identificationNumber;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;

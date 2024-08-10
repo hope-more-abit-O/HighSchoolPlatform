@@ -72,7 +72,8 @@ public class MethodServiceImpl implements MethodService {
         try {
             return methodRepository.saveAll(methods);
         } catch (Exception e){
-            throw new StoreDataFailedException("Lưu thông tin ngành học thất bại.");
+            e.getCause();
+            throw new StoreDataFailedException("Lưu thông tin ngành học thất bại.", Map.of("error", e.getCause().getMessage()));
         }
     }
 
