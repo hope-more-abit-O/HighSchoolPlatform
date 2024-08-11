@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -44,9 +45,9 @@ public class UserInfo implements Serializable {
     private String phone;
 
     @NotNull
-    @Nationalized
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
-    private String gender;
+    private Gender gender;
 
     @Nationalized
     @Column(name = "specific_address")

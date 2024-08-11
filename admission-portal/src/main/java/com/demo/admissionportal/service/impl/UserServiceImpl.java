@@ -90,17 +90,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseData<UserProfileResponseDTO> getUserById(Integer id) {
+    public ResponseData<UserProfileResponseDTO> getUserById() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            if (!Objects.equals(id, userId)) {
-                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
-            }
-            if (id == null || id < 0) {
-                new ResponseEntity<ResponseData<User>>(HttpStatus.BAD_REQUEST);
-            }
-            UserInfo userInfo = userInfoRepository.findUserInfoById(id);
-            User user = userRepository.findUserById(id);
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            User user = userRepository.findUserById(userId);
             if (userInfo == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
@@ -115,7 +109,7 @@ public class UserServiceImpl implements UserService {
             userProfileResponseDTO.setFirstname(userInfo.getFirstName());
             userProfileResponseDTO.setMiddle_name(userInfo.getMiddleName());
             userProfileResponseDTO.setLastname(userInfo.getLastName());
-            userProfileResponseDTO.setGender(userInfo.getGender());
+            userProfileResponseDTO.setGender(userInfo.getGender().name);
 
             // Convert dd-MM-YYYY
             Date date = new Date();
