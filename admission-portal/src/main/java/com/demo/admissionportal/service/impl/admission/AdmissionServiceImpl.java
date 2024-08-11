@@ -502,7 +502,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         if ((admissionIds.size() != 1))
             throw new BadRequestException("Các giá trị thuộc các đề án khác nhau");
 
-        Admission admission = findById(admissionIds.iterator().next());
+        Integer admissionId = admissionIds.iterator().next();
+
+        Admission admission = findById(admissionId);
         if (!admission.getUniversityId().equals(ServiceUtils.getUser().getCreateBy()))
             throw new NotAllowedException("Bạn không có quyền thực hiện chức năng này");
 
@@ -525,8 +527,9 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             admissionTrainingProgramMethod.setAdmissionScore(admissionScoreDTO.getAdmissionScore());
         }
-
-        return ResponseData.ok("Cập nhập điểm thành công.", admissionTrainingProgramMethodService.saveAll(admissionTrainingProgramMethods));
+        admissionTrainingProgramMethodService.saveAll(admissionTrainingProgramMethods);
+        updateAdmissionScoreStatuses(admissionId);
+        return ResponseData.ok("Cập nhập điểm thành công.");
     }
 
     @Transactional
@@ -779,6 +782,13 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
 
         admissionRepository.saveAll(admissions);
+    }
+    public void updateAdmissionScoreStatuses(Integer id) {
+        Admission admission = this.findById(id);
+
+        updateScoreStatus(admission);
+
+        admissionRepository.save(admission);
     }
 
     private void updateScoreStatus(Admission admission) {
