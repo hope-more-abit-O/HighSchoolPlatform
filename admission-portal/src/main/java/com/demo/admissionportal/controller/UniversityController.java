@@ -115,7 +115,7 @@ public class UniversityController {
     @PatchMapping("/consultant")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request){
-        return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
+        return ResponseEntity.ok(ResponseData.ok("Cập nhật trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
     }
 
 

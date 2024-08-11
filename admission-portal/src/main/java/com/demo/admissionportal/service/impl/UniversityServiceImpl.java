@@ -239,10 +239,10 @@ public class UniversityServiceImpl implements UniversityService {
         try {
             userRepository.save(uniAccount);
         } catch (Exception e){
-            throw new StoreDataFailedException("Cập nhập trạng thái trường đại học thất bại.");
+            throw new StoreDataFailedException("Cập nhật trạng thái trường đại học thất bại.");
         }
 
-        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
+        return ResponseData.ok("Cập nhật trạng thái trường đại học thành công");
     }
 
     public UniversityFullResponseDTO getUniversityFullResponse() {
@@ -264,7 +264,7 @@ public class UniversityServiceImpl implements UniversityService {
         universityInfo.setCode(request.getCode());
 
         saveUniversityInfo(universityInfo);
-        return ResponseData.ok("Cập nhập thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
+        return ResponseData.ok("Cập nhật thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
     }
 
     @Override
@@ -278,7 +278,7 @@ public class UniversityServiceImpl implements UniversityService {
 
         userService.changeStatus(id, status, Role.UNIVERSITY, note, "trường học");
 
-        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
+        return ResponseData.ok("Cập nhật trạng thái trường đại học thành công");
     }
 
     public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable,

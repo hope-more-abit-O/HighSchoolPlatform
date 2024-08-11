@@ -342,7 +342,7 @@ public class MethodServiceImpl implements MethodService {
             Method savedMethod = methodRepository.save(method);
             log.info("Successfully saved updated method with ID: {}", savedMethod.getId());
 
-            return ResponseData.ok("Cập nhập phương thức xét tuyển thành công.", savedMethod);
+            return ResponseData.ok("Cập nhật phương thức xét tuyển thành công.", savedMethod);
         } catch (Exception e) {
             log.error(e.getMessage());
             for (StackTraceElement stackTraceElement : e.getCause().getCause().getStackTrace()) {
@@ -373,7 +373,7 @@ public class MethodServiceImpl implements MethodService {
         Method savedMethod = methodRepository.save(method);
         log.info("Successfully saved updated method with ID: {}", savedMethod.getId());
 
-        return ResponseData.ok("Cập nhập trạng thái thành công.",method);
+        return ResponseData.ok("Cập nhật trạng thái thành công.",method);
     }
 
 

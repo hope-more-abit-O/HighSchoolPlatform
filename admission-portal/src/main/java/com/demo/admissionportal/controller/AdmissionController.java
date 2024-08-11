@@ -148,7 +148,7 @@ public class AdmissionController {
     public ResponseEntity autoUpdateAdmissionScoreStatus(){
         try {
             admissionService.updateAdmissionScoreStatuses();
-            return ResponseEntity.ok(ResponseData.ok("Cập nhập thông tin điểm của tất cả đề án thành công."));
+            return ResponseEntity.ok(ResponseData.ok("Cập nhật thông tin điểm của tất cả đề án thành công."));
         } catch (Exception e){
             throw e;
         }
