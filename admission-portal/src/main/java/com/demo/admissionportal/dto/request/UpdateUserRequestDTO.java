@@ -61,4 +61,5 @@ public class UpdateUserRequestDTO implements Serializable {
 
     @NotNull(message = "Avatar không được để trống")
     private String avatar;
+
 }

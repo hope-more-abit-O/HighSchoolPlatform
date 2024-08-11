@@ -71,6 +71,6 @@ public class Admission {
         this.universityId = universityId;
         this.createBy = createBy;
         this.createTime = new Date();
-        this.status = AdmissionStatus.PENDING;
+        this.status = AdmissionStatus.ACTIVE;
     }
 }

@@ -71,7 +71,8 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
             var user = userRepository.findByUsername(request.getUsername())
                     .or(() -> userRepository.findByEmail(request.getUsername()))
-                    .orElseThrow(null);
+                    .orElseThrow(() -> new RuntimeException("Người dùng không được tìm thấy !"));
+
             if (user == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bad request");
             } else if (user.getStatus().equals(AccountStatus.INACTIVE)) {
@@ -139,7 +140,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
         }
     }
 
-    private void revokeAllUserTokens(User user) {
+    public void revokeAllUserTokens(User user) {
         var validUserTokens = userTokenRepository.findAllValidTokenByUser(user.getId());
         if (validUserTokens.isEmpty()) return;
         validUserTokens.forEach(token -> {
@@ -168,7 +169,6 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
             validationService.validateRegister(request.getUsername(), request.getEmail(), request.getPhone());
             if (request.getProvider().equals(ProviderType.SYSTEM.name())) {
                 // Sending OTP to Email
-
                 if (!emailUtil.sendOtpEmail(request.getEmail(), otp)) {
                     throw new RuntimeException("Không thể gửi OTP xin vui lòng thử lại");
                 }

@@ -14,6 +14,7 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -217,4 +218,5 @@ public interface UserService extends UserDetailsService {
     Page<User> findByRoleAndPageable(Role role, Pageable pageable);
 
     Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
+    ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
 }

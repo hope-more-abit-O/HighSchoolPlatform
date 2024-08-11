@@ -57,6 +57,7 @@ public class SecurityConfiguration {
     private static final String ORDER_API ="/api/v1/order/**";
     private static final String LIKE_API = "/api/v1/like/**";
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
+    private static final String CHATBOT_API = "/api/v1/chatbot/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -104,8 +105,10 @@ public class SecurityConfiguration {
                                 .requestMatchers(ORDER_API).hasAuthority("UNIVERSITY")
                                 .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/all").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        CHATBOT_API,
                                         EXAM_SCORE_API,
                                         COMMENT_API,
                                         TEST_API,
