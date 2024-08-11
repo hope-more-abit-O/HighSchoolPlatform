@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
+import com.demo.admissionportal.dto.response.post.PostPackageResponseDTO;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -136,7 +137,4 @@ public class UniversityController {
                         id, code, username, name, phone,
                         email, status, createBy, createByName));
     }
-//
-//    @GetMapping("/package/")
-//    public ResponseEntity
 }
