@@ -8,7 +8,9 @@ import com.demo.admissionportal.dto.entity.university.FullUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -154,4 +156,5 @@ public interface UniversityService {
                                                                                 Integer createBy,
                                                                                 String createByName);
     boolean createUniversity(CreateUniversityRequestRequest createUniversityRequest);
+    ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException;
 }

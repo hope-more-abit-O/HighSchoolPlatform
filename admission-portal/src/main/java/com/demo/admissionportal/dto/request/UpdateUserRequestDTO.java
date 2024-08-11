@@ -46,7 +46,7 @@ public class UpdateUserRequestDTO implements Serializable {
 
     @NotNull(message = "Giới tính không thể để trống")
     @EnumValue(name = "type", enumClass = Gender.class, message = "Giới tính phải đúng format")
-    private String gender;
+    private Gender gender;
 
     @NotNull(message = "Trình độ học vấn không được trống")
     @EnumValue(name = "type", enumClass = EducationLevel.class, message = "Trình độ học vấn phải đúng format")

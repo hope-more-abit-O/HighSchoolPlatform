@@ -2,6 +2,8 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 
+import java.util.function.Consumer;
+
 public interface ValidationService {
     /**
      * Checks if a username is already taken.
@@ -181,4 +183,12 @@ public interface ValidationService {
     boolean validateCreateUniversity(String username, String email, String code) throws DataExistedException;
     boolean validateAddress(Integer provinceId) throws ClassNotFoundException;
     boolean validateRegisterUniversityCampus(String email, String phone) throws DataExistedException;
+
+    static <T> boolean updateIfChanged(T newValue, T oldValue, Consumer<T> setter) {
+        if (newValue != null && !newValue.equals(oldValue)) {
+            setter.accept(newValue);
+            return true;
+        }
+        return false;
+    }
 }

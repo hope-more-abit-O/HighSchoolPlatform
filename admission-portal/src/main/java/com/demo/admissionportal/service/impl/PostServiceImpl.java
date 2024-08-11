@@ -75,6 +75,10 @@ public class PostServiceImpl implements PostService {
     private List<PostPackageResponseDTO> lastPostPackageResponseDTOS;
     private LocalDateTime lastPackageDate;
 
+    private final UniversityTransactionRepository universityTransactionRepository;
+    private final UniversityPackageRepository universityPackageRepository;
+    private final PackageRepository packageRepository;
+
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseData<PostDetailResponseDTO> createPost(PostRequestDTO requestDTO) {
@@ -1025,6 +1029,9 @@ public class PostServiceImpl implements PostService {
      * @return the post detail response dtov 2
      */
     public PostDetailResponseDTOV2 mapToListPostDetailV2(Post post) {
+        UniversityTransaction universityTransaction = universityTransactionRepository.findCampaignByUniId(post.getId());
+        UniversityPackage universityPackage = universityPackageRepository.findCampaignByUniId(post.getId());
+        AdsPackage adsPackage = universityTransaction != null ? packageRepository.findPackageById(universityTransaction.getPackageId()) : null;
         List<TypeResponseDTO> typeResponseDTOList = post.getPostTypes()
                 .stream()
                 .map(postType -> modelMapper.map(postType, TypeResponseDTO.class))
@@ -1045,6 +1052,9 @@ public class PostServiceImpl implements PostService {
                 .type(listType)
                 .url(postPropertiesResponseDTO.getUrl())
                 .note(postPropertiesResponseDTO.getNote())
+                .packageName(adsPackage != null ? adsPackage.getName() : null)
+                .startCampaignDate(universityPackage != null ? universityPackage.getCreateTime() : null)
+                .endCampaignDate(universityPackage != null ? universityPackage.getCompleteTime() : null)
                 .build();
     }
 

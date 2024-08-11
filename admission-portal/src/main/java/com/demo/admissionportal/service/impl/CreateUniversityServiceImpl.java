@@ -150,7 +150,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      *
      * @param id The unique identifier (ID) of the university creation request.
      * @param status The new status of the request (`CreateUniversityRequestStatus`).
-     * @return A {@link ResponseData} object indicating success message ("Cập nhập yêu cầu tạo trường thành công.").
+     * @return A {@link ResponseData} object indicating success message ("Cập nhật yêu cầu tạo trường thành công.").
      * @throws ResourceNotFoundException If the request with the provided ID is not found.
      * @throws StoreDataFailedException If data persistence fails during the operation.
      *

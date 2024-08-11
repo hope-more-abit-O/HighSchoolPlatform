@@ -322,7 +322,7 @@ public class MajorServiceImpl implements MajorService {
         InfoMajorDTO infoMajorDTO = modelMapper.map(savedMajor, InfoMajorDTO.class);
         log.info("Mapped updated major to InfoMajorDTO: {}", infoMajorDTO);
 
-        return ResponseData.ok("Cập nhập trạng thái thành công.", infoMajorDTO);
+        return ResponseData.ok("Cập nhật trạng thái thành công.", infoMajorDTO);
     }
 
     @Override

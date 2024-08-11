@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -239,10 +240,10 @@ public class UniversityServiceImpl implements UniversityService {
         try {
             userRepository.save(uniAccount);
         } catch (Exception e){
-            throw new StoreDataFailedException("Cập nhập trạng thái trường đại học thất bại.");
+            throw new StoreDataFailedException("Cập nhật trạng thái trường đại học thất bại.");
         }
 
-        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
+        return ResponseData.ok("Cập nhật trạng thái trường đại học thành công");
     }
 
     public UniversityFullResponseDTO getUniversityFullResponse() {
@@ -255,16 +256,19 @@ public class UniversityServiceImpl implements UniversityService {
 
     @Transactional
     public ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException{
-        UniversityInfo universityInfo = findById(request.getId());
+        UniversityInfo universityInfo = findById(ServiceUtils.getId());
 
-        universityInfo.setName(request.getName());
-        universityInfo.setDescription(request.getDescription());
-        universityInfo.setCoverImage(request.getCoverImage());
-        universityInfo.setType(UniversityType.valueOf(request.getType()));
-        universityInfo.setCode(request.getCode());
+        boolean isChanged = false; // Reset the flag at the beginning
 
-        saveUniversityInfo(universityInfo);
-        return ResponseData.ok("Cập nhập thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
+        ValidationService.updateIfChanged(request.getName(), universityInfo.getName(), universityInfo::setName);
+        ValidationService.updateIfChanged(request.getDescription(), universityInfo.getDescription(), universityInfo::setDescription);
+        ValidationService.updateIfChanged(request.getCoverImage(), universityInfo.getCoverImage(), universityInfo::setCoverImage);
+        ValidationService.updateIfChanged(request.getType() != null ? UniversityType.valueOf(request.getType()) : null, universityInfo.getType(), universityInfo::setType);
+        ValidationService.updateIfChanged(request.getCode(), universityInfo.getCode(), universityInfo::setCode);
+
+        if (isChanged)
+            saveUniversityInfo(universityInfo);
+        return ResponseData.ok("Cập nhật thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
     }
 
     @Override
@@ -278,7 +282,7 @@ public class UniversityServiceImpl implements UniversityService {
 
         userService.changeStatus(id, status, Role.UNIVERSITY, note, "trường học");
 
-        return ResponseData.ok("Cập nhập trạng thái trường đại học thành công");
+        return ResponseData.ok("Cập nhật trạng thái trường đại học thành công");
     }
 
     public ResponseData<Page<UniversityFullResponseDTO>> getUniversityFullResponseByStaffId(Pageable pageable,

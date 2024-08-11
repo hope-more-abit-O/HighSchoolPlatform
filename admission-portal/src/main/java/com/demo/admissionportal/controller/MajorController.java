@@ -56,7 +56,7 @@ public class MajorController {
         return ResponseEntity.ok(ResponseData.ok("Chỉnh sửa ngành thành công.", majorService.updateMajor(request)));
     }
 
-    @PatchMapping
+    @PutMapping("/status")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateMajorStatus(@RequestBody @Valid UpdateMajorStatusRequest request){
         return ResponseEntity.ok(majorService.updateMajorStatus(request));

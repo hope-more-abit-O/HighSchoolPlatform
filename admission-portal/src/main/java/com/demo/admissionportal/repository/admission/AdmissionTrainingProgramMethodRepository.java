@@ -17,7 +17,7 @@ public interface AdmissionTrainingProgramMethodRepository extends JpaRepository<
     @Query(value = """
     SELECT atpm.*
     FROM [admission_training_program_method] atpm
-    RIGHT JOIN [admission_method] am ON am.id = atpm.admission_method_id
+    INNER JOIN [admission_method] am ON am.id = atpm.admission_method_id
     WHERE am.admission_id = :id
 """, nativeQuery = true)
     List<AdmissionTrainingProgramMethod> findByAdmissionId(@Param("id") Integer id);

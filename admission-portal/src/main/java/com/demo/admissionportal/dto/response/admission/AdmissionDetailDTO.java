@@ -1,29 +1,24 @@
-package com.demo.admissionportal.dto.entity.admission;
+package com.demo.admissionportal.dto.response.admission;
 
-import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.admission.AdmissionMethodDTO;
+import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramDTO;
+import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramSubjectGroupDTO;
+import com.demo.admissionportal.dto.entity.admission.FullAdmissionQuotaDTO;
 import com.demo.admissionportal.entity.admission.Admission;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class FullAdmissionDTO {
+public class AdmissionDetailDTO {
     private Integer admissionId;
     private Integer year;
     private String name;
-    private List<String> sources;
-    private InfoUniversityResponseDTO university;
-    private ActionerDTO createBy;
-    private Date createTime;
-    private ActionerDTO updateBy;
-    private Date updateTime;
     private String status;
     private String scoreStatus;
 
@@ -39,13 +34,9 @@ public class FullAdmissionDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<FullAdmissionQuotaDTO> details;
 
-    public FullAdmissionDTO(Admission admission) {
+    public AdmissionDetailDTO(Admission admission) {
         this.admissionId = admission.getId();
         this.year = admission.getYear();
-        this.createBy =  null;
-        this.createTime = admission.getCreateTime();
-        this.updateBy =  null;
-        this.updateTime = admission.getUpdateTime();
         this.status = admission.getSource();
     }
 }
