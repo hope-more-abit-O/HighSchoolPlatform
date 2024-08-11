@@ -127,10 +127,6 @@ public class StaffServiceImpl implements StaffService {
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponsePage);
     }
 
-
-
-
-
     @Override
     public ResponseData<?> getStaffById(int id) {
         Optional<StaffInfo> staffOpt = staffInfoRepository.findById(id);
@@ -143,7 +139,9 @@ public class StaffServiceImpl implements StaffService {
         User userStaff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
 
         staffResponseDTO.setUsername(userStaff.getUsername());
-        staffResponseDTO.setName(existStaff.getFirstName() + " " + existStaff.getMiddleName() + " " + existStaff.getLastName());
+        staffResponseDTO.setFirstName(existStaff.getFirstName());
+        staffResponseDTO.setMiddleName(existStaff.getMiddleName());
+        staffResponseDTO.setLastName(existStaff.getLastName());
         staffResponseDTO.setEmail(userStaff.getEmail());
         staffResponseDTO.setAvatar(userStaff.getAvatar());
         staffResponseDTO.setStatus(modelMapper.map(userStaff.getStatus(), String.class));

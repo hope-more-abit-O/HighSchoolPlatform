@@ -1,11 +1,9 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionQuestionTypeId;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionnaireQuestionId;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,4 +32,7 @@ public class QuestionQuestionType {
     private Integer updateBy;
     @Column(name = "update_time")
     private Date updateTime;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private AccountStatus status;
 }

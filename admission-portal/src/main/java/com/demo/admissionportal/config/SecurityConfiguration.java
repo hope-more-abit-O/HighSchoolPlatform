@@ -58,6 +58,7 @@ public class SecurityConfiguration {
     private static final String LIKE_API = "/api/v1/like/**";
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
+    private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -108,6 +109,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        HOLLAND_TEST_API,
                                         CHATBOT_API,
                                         EXAM_SCORE_API,
                                         COMMENT_API,
