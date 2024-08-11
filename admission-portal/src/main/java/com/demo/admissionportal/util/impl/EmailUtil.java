@@ -102,6 +102,21 @@ EmailUtil {
         }
     }
 
+    public boolean sendExamScoreEmail(String to, String subject, String htmlMessage) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlMessage, true);
+            mailSender.send(message);
+            return true; // Return true if the email is sent successfully
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return false; // Return false if there is an exception
+        }
+    }
+
     public void sendAccountPasswordRegister(User account, String password) {
         String emailContent = "<html><body>"
                 + "<h2>Chào mừng bạn đến với High School VN!</h2>"

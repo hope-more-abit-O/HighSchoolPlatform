@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.entity.IdAndName;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterIdentificationNumberRequest;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
@@ -28,10 +29,12 @@ import org.springframework.data.domain.Pageable;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -87,17 +90,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseData<UserProfileResponseDTO> getUserById(Integer id) {
+    public ResponseData<UserProfileResponseDTO> getUserById() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            if (!Objects.equals(id, userId)) {
-                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
-            }
-            if (id == null || id < 0) {
-                new ResponseEntity<ResponseData<User>>(HttpStatus.BAD_REQUEST);
-            }
-            UserInfo userInfo = userInfoRepository.findUserInfoById(id);
-            User user = userRepository.findUserById(id);
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            User user = userRepository.findUserById(userId);
             if (userInfo == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
@@ -112,7 +109,7 @@ public class UserServiceImpl implements UserService {
             userProfileResponseDTO.setFirstname(userInfo.getFirstName());
             userProfileResponseDTO.setMiddle_name(userInfo.getMiddleName());
             userProfileResponseDTO.setLastname(userInfo.getLastName());
-            userProfileResponseDTO.setGender(userInfo.getGender());
+            userProfileResponseDTO.setGender(userInfo.getGender().name);
 
             // Convert dd-MM-YYYY
             Date date = new Date();
@@ -578,4 +575,34 @@ public class UserServiceImpl implements UserService {
         else
             return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, statusesString, createBy, updateBy);
     }
+
+
+    @Override
+    @Transactional
+    public ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            Optional<User> authenticatedUserOpt = userRepository.findByUsername(username);
+            if (authenticatedUserOpt.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy");
+            }
+            User authenticatedUser = authenticatedUserOpt.get();
+
+            if (!authenticatedUser.getId().equals(userId)) {
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Người dùng không có quyền thực hiện điều này");
+            }
+            Optional<UserInfo> userInfoOpt = userInfoRepository.findById(userId);
+            if (userInfoOpt.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy");
+            }
+            UserInfo userInfo = userInfoOpt.get();
+            userInfo.setIdentificationNumber(identificationNumber);
+            userInfoRepository.save(userInfo);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh đã được đăng kí thành công");
+        } catch (Exception e) {
+            log.error("Error occurred while updating identification number", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi đăng kí số báo danh");
+        }
+    }
+
 }

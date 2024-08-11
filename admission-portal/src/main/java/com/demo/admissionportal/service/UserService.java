@@ -14,6 +14,7 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -50,7 +51,7 @@ public interface UserService extends UserDetailsService {
      * @param id the id
      * @return the user by id
      */
-    ResponseData<UserProfileResponseDTO> getUserById(Integer id);
+    ResponseData<UserProfileResponseDTO> getUserById();
 
     UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 
@@ -128,6 +129,13 @@ public interface UserService extends UserDetailsService {
      */
     FullUserResponseDTO mappingFullResponse(User user, List<ActionerDTO> actionerDTOS) throws ResourceNotFoundException;
 
+    /**
+     * Mapping info response info user response dto.
+     *
+     * @param user the user
+     * @return the info user response dto
+     * @throws ResourceNotFoundException the resource not found exception
+     */
     InfoUserResponseDTO mappingInfoResponse(User user) throws ResourceNotFoundException;
 
     /**
@@ -157,14 +165,29 @@ public interface UserService extends UserDetailsService {
     /**
      * Change status user.
      *
-     * @param id   the id
-     * @param note the note
-     * @param name the name
+     * @param id     the id
+     * @param status the status
+     * @param role   the role
+     * @param note   the note
+     * @param name   the name
      * @return the user
      * @throws StoreDataFailedException  the store data failed exception
      * @throws ResourceNotFoundException the resource not found exception
      */
     User changeStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
+
+    /**
+     * Change consultant status user.
+     *
+     * @param id     the id
+     * @param status the status
+     * @param role   the role
+     * @param note   the note
+     * @param name   the name
+     * @return the user
+     * @throws StoreDataFailedException  the store data failed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     */
     User changeConsultantStatus(Integer id, AccountStatus status, Role role, String note, String name) throws StoreDataFailedException, ResourceNotFoundException;
 
     /**
@@ -216,5 +239,29 @@ public interface UserService extends UserDetailsService {
      */
     Page<User> findByRoleAndPageable(Role role, Pageable pageable);
 
+    /**
+     * Gets consultant accounts.
+     *
+     * @param pageable       the pageable
+     * @param id             the id
+     * @param name           the name
+     * @param username       the username
+     * @param universityName the university name
+     * @param universityId   the university id
+     * @param statuses       the statuses
+     * @param createBy       the create by
+     * @param updateBy       the update by
+     * @return the consultant accounts
+     */
     Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> statuses, Integer createBy, Integer updateBy);
+
+    /**
+     * Update identification number response data.
+     *
+     * @param userId               the user id
+     * @param identificationNumber the identification number
+     * @param authentication       the authentication
+     * @return the response data
+     */
+    ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
 }

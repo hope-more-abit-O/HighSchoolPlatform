@@ -7,13 +7,18 @@ public enum Gender {
     /**
      * Male gender.
      */
-    MALE,
+    MALE("NAM"),
     /**
      * Female gender.
      */
-    FEMALE,
+    FEMALE("NỮ"),
     /**
      * Other gender.
      */
-    OTHER
+    OTHER("KHÁC");
+    public String name;
+
+    Gender(String name) {
+        this.name = name;
+    }
 }
