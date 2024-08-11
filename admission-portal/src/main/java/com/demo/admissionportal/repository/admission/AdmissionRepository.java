@@ -27,6 +27,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
       AND (:updateBy IS NULL OR update_by = :updateBy)
       AND (:updateTime IS NULL OR update_time = :updateTime)
       AND (:status IS NULL OR status = :status)
+      AND (:scoreStatus IS NULL OR score_status = :scoreStatus)
     """, nativeQuery = true)
     Page<Admission> findAllBy(
             Pageable pageable,
@@ -38,7 +39,8 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("createBy") Integer createBy,
             @Param("updateBy") Integer updateBy,
             @Param("updateTime") Date updateTime,
-            @Param("status") String status
+            @Param("status") String status,
+            @Param("scoreStatus") String scoreStatus
     );
 
     @Query(value = """
