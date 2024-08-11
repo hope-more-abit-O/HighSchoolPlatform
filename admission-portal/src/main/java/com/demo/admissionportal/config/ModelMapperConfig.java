@@ -37,6 +37,7 @@ public class ModelMapperConfig {
         modelMapper.addConverter(new StudentReportStatusConverter());
         modelMapper.addConverter(new SubjectStatusConverter());
         modelMapper.addConverter(new EducationLevelConverter());
+        modelMapper.addConverter(new AdmissionScoreStatusConverter());
         return modelMapper;
     }
 

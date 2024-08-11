@@ -25,6 +25,7 @@ public class FullAdmissionDTO {
     private ActionerDTO updateBy;
     private Date updateTime;
     private String status;
+    private String scoreStatus;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<AdmissionMethodDTO> admissionMethods;

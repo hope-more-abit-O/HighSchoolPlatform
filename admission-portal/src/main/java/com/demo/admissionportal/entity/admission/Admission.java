@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.admission;
 
+import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -65,6 +66,13 @@ public class Admission {
     @Column(name = "status", nullable = false)
     private AdmissionStatus status;
 
+    @NotNull
+    @Nationalized
+    @ColumnDefault("'EMPTY'")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "score_status", nullable = false)
+    private AdmissionScoreStatus scoreStatus;
+
     public Admission(Integer year, String source, Integer universityId, Integer createBy) {
         this.year = year;
         this.source = source;
@@ -72,5 +80,6 @@ public class Admission {
         this.createBy = createBy;
         this.createTime = new Date();
         this.status = AdmissionStatus.ACTIVE;
+        this.scoreStatus = AdmissionScoreStatus.EMPTY;
     }
 }
