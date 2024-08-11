@@ -34,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -414,8 +415,8 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
-    protected GetAdmissionScoreResponse mappingInfoGetAdmissionScoreResponse(Admission admission, UniversityInfo universityInfo) {
-        GetAdmissionScoreResponse result = modelMapper.map(admission, GetAdmissionScoreResponse.class);
+    protected AdmissionDetailDTO mappingInfoAdmissionDetail(Admission admission, UniversityInfo universityInfo) {
+        AdmissionDetailDTO result = modelMapper.map(admission, AdmissionDetailDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
@@ -464,9 +465,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
-    protected GetAdmissionScoreResponse mappingFullGetAdmissionScoreResponse(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, UniversityInfo universityInfo, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods)
+    protected AdmissionDetailDTO mappingFullAdmissionDetail(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, UniversityInfo universityInfo, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods)
             throws ResourceNotFoundException {
-        GetAdmissionScoreResponse result = this.mappingInfoGetAdmissionScoreResponse(admission, universityInfo);
+        AdmissionDetailDTO result = this.mappingInfoAdmissionDetail(admission, universityInfo);
 
         List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).toList());
         List<AdmissionMethodDTO> admissionMethodDTOS = admissionMethods.stream().map((element) -> new AdmissionMethodDTO(element, methods)).toList();
@@ -611,7 +612,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return null;
     }
 
-    public ResponseData getAdmissionScore(Integer year, String universityCode) {
+    public AdmissionDetailDTO getAdmissionScoreDetail(Integer year, String universityCode) {
         Admission admission = admissionRepository.findByYearAndUniversityCode(year, universityCode).orElseThrow(() -> new ResourceNotFoundException("Hiện không có đề án phù hợp."));
 
         List<AdmissionMethod> admissionMethods = admissionMethodService.findByAdmissionId(admission.getId());
@@ -624,7 +625,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         UniversityInfo universityInfos = universityInfoServiceImpl.findById(admission.getUniversityId());
 
-        return ResponseData.ok("Lấy thông tin các đề án thành công.", this.mappingFullGetAdmissionScoreResponse(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, universityInfos, admissionTrainingProgramMethods));
+        return this.mappingFullAdmissionDetail(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, universityInfos, admissionTrainingProgramMethods);
     }
 
     public GetLatestTrainingProgramResponse getLatestTrainingProgramByUniversityId(Integer universityId) {
@@ -831,5 +832,54 @@ public class AdmissionServiceImpl implements AdmissionService {
         } else {
             admission.setScoreStatus(AdmissionScoreStatus.PARTIAL);
         }
+    }
+
+    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable ,Integer year, String universityCode) throws SQLException {
+        if (year == null && universityCode == null) {
+            List<Admission> admissions = null;
+            try {
+                admissions = admissionRepository.find(pageable);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            if (admissions.isEmpty())
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào");
+
+            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+
+            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
+        }
+
+        if (universityCode == null) {
+            List<Admission> admissions = null;
+            try {
+                admissions = admissionRepository.findByYear(pageable, year);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            if (admissions.isEmpty())
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho năm " + year.toString());
+
+            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
+
+            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
+        }
+
+        if (year == null) {
+            List<Admission> admissions = null;
+            try {
+                admissions = admissionRepository.findByUniversityCode(pageable, universityCode);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            if (admissions.isEmpty())
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho trường với mã " + universityCode);
+
+            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+
+            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
+        }
+
+        return new GetAdmissionScoreResponse(getAdmissionScoreDetail(year, universityCode));
     }
 }

@@ -90,4 +90,25 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
 
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
+
+    @Query(value = """
+SELECT * 
+FROM admission ad
+WHERE ad.year = :year
+""", nativeQuery = true)
+    List<Admission> findByYear(Pageable pageable,Integer year);
+
+    @Query(value = """
+select a.*
+from admission a
+inner join university_info ui on ui.university_id = a.university_id
+where ui.code = :universityCode
+""", nativeQuery = true)
+    List<Admission> findByUniversityCode(Pageable pageable,String universityCode);
+
+    @Query(value = """
+select a.*
+from admission a
+""", nativeQuery = true)
+    List<Admission> find(Pageable pageable);
 }
