@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.response.post;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostDetailResponseDTOV2 implements Serializable {
     private Integer id;
     private String title;
@@ -21,4 +23,7 @@ public class PostDetailResponseDTOV2 implements Serializable {
     private String status;
     private String note;
     private String url;
+    private Date startCampaignDate;
+    private Date endCampaignDate;
+    private String packageName;
 }
