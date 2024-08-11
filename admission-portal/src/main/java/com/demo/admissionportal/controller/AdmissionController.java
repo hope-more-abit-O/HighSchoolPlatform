@@ -95,11 +95,16 @@ public class AdmissionController {
     }
 
     @GetMapping("/source")
-    public ResponseEntity<ResponseData<List<String>>> getAdmissionSource(
-            @RequestParam(required = true) Integer year,
-            @RequestParam(required = true) String universityCode
+    public ResponseEntity getAdmissionSourceV2(
+            @RequestParam(required = false) Pageable pageable,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String universityCode
     ) {
-        return ResponseEntity.ok(admissionService.getSource(year, universityCode));
+        try {
+            return ResponseEntity.ok(admissionService.getSourceV2(pageable, year, universityCode));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")

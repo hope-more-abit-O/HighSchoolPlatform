@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,32 +44,28 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("scoreStatus") String scoreStatus
     );
 
+
     @Query(value = """
     SELECT ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE (:search IS NULL OR (LOWER(ui."code") LIKE CONCAT('%', :search, '%') OR LOWER(ui."name") LIKE CONCAT('%', :search, '%')))
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
     AND (:year IS NULL OR year = :year)
-    AND (:status IS NULL OR ad.status = :status)
+    AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    Page<Admission> findAllBy(
-            Pageable pageable,
-            @Param("year") Integer year,
-            @Param("search") String search,
-            @Param("status") String status
-    );
+    List<Admission> findAllByYearAndUniversityCode(Pageable pageable ,Integer year, String universityCode);
 
     @Query(value = """
     SELECT TOP(1) ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE LOWER(ui."code") = LOWER(:universityCode)
-    AND (year = :year)
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
     Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
 
-    Optional<Admission> findFirstByUniversityIdAndStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
 }

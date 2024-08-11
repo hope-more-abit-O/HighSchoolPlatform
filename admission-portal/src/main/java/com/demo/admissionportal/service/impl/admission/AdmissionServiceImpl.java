@@ -360,6 +360,19 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Lấy tài liệu thành công.", Arrays.stream(admissions.get().getSource().split(";")).toList());
     }
 
+    public ResponseData<List<AdmissionSourceDTO>> getSourceV2(Pageable pageable, Integer year, String universityCode) {
+        List<Admission> admissions = admissionRepository.findAllByYearAndUniversityCode(pageable, year, universityCode);
+
+        if (admissions.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
+        }
+
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
+
+
+        return ResponseData.ok("Lấy tài liệu thành công.", admissions.stream().map(element -> new AdmissionSourceDTO(element, universityInfos)).toList());
+    }
+
     protected List<ActionerDTO> getActioners(List<Admission> admissions) {
         Set<Integer> actionerIds = admissions.stream()
                 .flatMap(ad -> Stream.of(ad.getCreateBy(), ad.getUpdateBy()).filter(Objects::nonNull))
@@ -376,6 +389,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     protected FullAdmissionDTO mappingInfo(Admission admission, List<ActionerDTO> actionerDTOs, List<UniversityInfo> universityInfos) {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
+        result.setStatus(admission.getAdmissionStatus().name);
+        result.setScoreStatus(admission.getScoreStatus().name);
         UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University info not found"));
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
@@ -523,7 +538,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (!admission.getUniversityId().equals(uniId))
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
 
-        admission.setStatus(request.getStatus());
+        admission.setAdmissionStatus(request.getStatus());
         admission.setNote(request.getNote());
         admission.setUpdateBy(uniId);
         admission.setUpdateTime(new Date());
@@ -594,7 +609,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (!user.getRole().equals(Role.UNIVERSITY)) {
             throw new ResourceNotFoundException("Không có trường học.", Map.of("universityId", universityId.toString()));
         }
-        Admission admission = admissionRepository.findFirstByUniversityIdAndStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE)
+        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("Trường bạn tìm hiện tại chưa có đề án nào."));
         List<Major> majors = majorService.findByAdmissionId(admission.getId());
         return new GetLatestTrainingProgramResponse(admission.getYear(), majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList());
