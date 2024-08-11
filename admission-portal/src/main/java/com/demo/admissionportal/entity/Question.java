@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.HollandCharacteristicType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,9 @@ public class Question {
     private Integer updateBy;
     @Column(name = "update_time")
     private Date updateTime;
-    @Enumerated(value = EnumType.STRING)
     @Column(name = "type")
-    private HollandCharacteristicType type;
+    private Integer type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private AccountStatus status;
 }
