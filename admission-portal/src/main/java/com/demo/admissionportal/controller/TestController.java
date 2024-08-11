@@ -22,6 +22,8 @@ import com.demo.admissionportal.service.impl.ValidationServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 
 @RestController
@@ -74,5 +76,28 @@ public class TestController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
         return ResponseEntity.ok(admissionService.getById(id));
+    }
+    @PostMapping("/run-node")
+    public String runNodeScript() {
+        try {
+            String scriptPath = "src/main/node/hello.js";
+
+            ProcessBuilder processBuilder = new ProcessBuilder("node", scriptPath);
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line);
+            }
+            process.waitFor();
+            return output.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error running Node.js script: " + e.getMessage();
+        }
     }
 }
