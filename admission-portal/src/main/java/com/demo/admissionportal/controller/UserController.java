@@ -34,7 +34,6 @@ public class UserController {
     /**
      * Gets user by id.
      *
-     * @param id the id
      * @return the user by id
      */
     @GetMapping("/profile")

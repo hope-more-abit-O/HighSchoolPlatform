@@ -45,7 +45,7 @@ public class UserInfo implements Serializable {
     private String phone;
 
     @NotNull
-    @Nationalized
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
 
