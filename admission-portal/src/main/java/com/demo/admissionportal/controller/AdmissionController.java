@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
@@ -85,10 +86,11 @@ public class AdmissionController {
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date updateTime,
-            @RequestParam(required = false) AdmissionStatus status
+            @RequestParam(required = false) AdmissionStatus status,
+            @RequestParam(required = false) AdmissionScoreStatus scoreStatus
     ) {
         return ResponseEntity.ok(admissionService.getBy(
-                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status
+                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus
         ));
     }
 
@@ -126,4 +128,15 @@ public class AdmissionController {
     public ResponseEntity getLatestTrainingProgram(@PathVariable Integer id){
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chuyên ngành giảng dạy mới nhất thành công.",admissionService.getLatestTrainingProgramByUniversityId(id)));
     }
+
+    @PatchMapping("/auto/update-score-status")
+    public ResponseEntity autoUpdateAdmissionScoreStatus(){
+        try {
+            admissionService.updateAdmissionScoreStatuses();
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập thông tin điểm của tất cả đề án thành công."));
+        } catch (Exception e){
+            throw e;
+        }
+    }
+
 }

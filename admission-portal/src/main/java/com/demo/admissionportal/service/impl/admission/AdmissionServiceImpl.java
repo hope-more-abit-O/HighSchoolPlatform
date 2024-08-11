@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
@@ -19,13 +20,11 @@ import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
-import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.admission.*;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.*;
 import com.demo.admissionportal.util.impl.ServiceUtils;
-import jakarta.servlet.MultipartConfigElement;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ import java.util.stream.Stream;
 @Slf4j
 @RequiredArgsConstructor
 public class AdmissionServiceImpl implements AdmissionService {
-    private final SubjectGroupRepository subjectGroupRepository;
     private final AdmissionRepository admissionRepository;
     private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
     private final AdmissionTrainingProgramServiceImpl admissionTrainingProgramService;
@@ -57,7 +55,6 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UniversityInfoServiceImpl universityInfoServiceImpl;
     private final SubjectGroupServiceImpl subjectGroupServiceImpl;
     private final SubjectServiceImpl subjectServiceImpl;
-    private final MultipartConfigElement multipartConfigElement;
 
     public Admission save(Admission admission) {
         try {
@@ -339,11 +336,12 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                       Integer createBy,
                                                       Integer updateBy,
                                                       Date updateTime,
-                                                      AdmissionStatus status) {
-        Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null);
+                                                      AdmissionStatus status,
+                                                      AdmissionScoreStatus scoreStatus) {
+        Page<Admission> admissions = admissionRepository.findAllBy(pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null);
 
         if (admissions.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
+            throw new ResourceNotFoundException("Không tìm thấy đề án nào.");
         }
         List<ActionerDTO> actionerDTOs = this.getActioners(admissions.getContent());
 
@@ -756,5 +754,37 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     protected Integer getAdmissionYearPlace(List<Admission> admissions, Admission admission) {
         return (int) admissions.stream().takeWhile((ele) -> !ele.getYear().equals(admission.getYear())).count();
+    }
+
+    public void updateAdmissionScoreStatuses() {
+        List<Admission> admissions = admissionRepository.findAll();
+
+        for (Admission admission : admissions) {
+            updateScoreStatus(admission);
+        }
+
+        admissionRepository.saveAll(admissions);
+    }
+
+    private void updateScoreStatus(Admission admission) {
+        List<AdmissionTrainingProgramMethod> trainingProgramMethods =
+                admissionTrainingProgramMethodService.findByAdmissionId(admission.getId());
+
+        if (trainingProgramMethods.isEmpty()) {
+            admission.setScoreStatus(AdmissionScoreStatus.EMPTY);
+            return; // Exit early for efficiency
+        }
+
+        long incomplete = trainingProgramMethods.stream()
+                .filter(element -> element.getAdmissionScore() == null)
+                .count();
+
+        if (incomplete == 0) {
+            admission.setScoreStatus(AdmissionScoreStatus.COMPLETE);
+        } else if (incomplete == trainingProgramMethods.size()) {
+            admission.setScoreStatus(AdmissionScoreStatus.EMPTY);
+        } else {
+            admission.setScoreStatus(AdmissionScoreStatus.PARTIAL);
+        }
     }
 }

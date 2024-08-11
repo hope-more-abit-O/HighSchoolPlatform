@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Data
 public class ConsultantInfoRequest {
-    @NotNull
+    @NotNull(message = "Username không thể để trống!")
     private String username;
 
     @NotNull(message = "Số điện thoại không thể để trống!")

@@ -18,6 +18,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateConsultantInfoByIdRequest extends ConsultantInfoRequest{
+    @NotNull(message = "Id nhân viên không được để trống.")
     private Integer id;
 
 }
