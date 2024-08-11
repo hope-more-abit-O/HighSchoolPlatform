@@ -1,6 +1,5 @@
 package com.demo.admissionportal.controller;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.request.RegisterIdentificationNumberRequest;
@@ -8,16 +7,11 @@ import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
-import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
-import com.demo.admissionportal.service.impl.UniversityServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,13 +37,10 @@ public class UserController {
      * @param id the id
      * @return the user by id
      */
-    @GetMapping("/profile/{id}")
+    @GetMapping("/profile")
     @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<UserProfileResponseDTO>> getUserById(@PathVariable("id") Integer id) {
-        if (id == null || id < 0) {
-            new ResponseEntity<ResponseData<UserProfileResponseDTO>>(HttpStatus.BAD_REQUEST);
-        }
-        ResponseData<UserProfileResponseDTO> user = userService.getUserById(id);
+    public ResponseEntity<ResponseData<UserProfileResponseDTO>> getUserById() {
+        ResponseData<UserProfileResponseDTO> user = userService.getUserById();
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
@@ -84,12 +75,27 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }
 
+    /**
+     * Find full university by id response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     * @throws Exception the exception
+     */
     @GetMapping("/university/{id}")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công", universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Update identification number response entity.
+     *
+     * @param id             the id
+     * @param request        the request
+     * @param authentication the authentication
+     * @return the response entity
+     */
     @PutMapping("/register-identification-number/{id}")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<String>> updateIdentificationNumber(
