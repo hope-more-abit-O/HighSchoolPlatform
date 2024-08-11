@@ -64,7 +64,7 @@ public class Admission {
     @ColumnDefault("'PENDING'")
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AdmissionStatus status;
+    private AdmissionStatus admissionStatus;
 
     @NotNull
     @Nationalized
@@ -79,7 +79,7 @@ public class Admission {
         this.universityId = universityId;
         this.createBy = createBy;
         this.createTime = new Date();
-        this.status = AdmissionStatus.ACTIVE;
+        this.admissionStatus = AdmissionStatus.ACTIVE;
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
     }
 }

@@ -18,9 +18,9 @@ public class AdmissionScoreStatusConverter  extends AbstractConverter<AdmissionS
             case COMPLETE:
                 return "Hoàn thành";
             case EMPTY:
-                return "Chưa cập nhập";
+                return "Chưa cập nhật";
             case PARTIAL:
-                return "Đang cập nhập";
+                return "Đang cập nhật";
             default:
                 return "Không biết";
         }

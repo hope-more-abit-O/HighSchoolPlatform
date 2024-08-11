@@ -51,7 +51,7 @@ public class MethodController {
         return ResponseEntity.ok(methodService.updateMethod(request));
     }
 
-    @PatchMapping
+    @PutMapping("/status")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity updateMethodStatus(@RequestBody @Valid UpdateMethodStatusRequest request) {
         return ResponseEntity.ok(methodService.updateMethodStatus(request));

@@ -326,7 +326,7 @@ public class ConsultantServiceImpl implements ConsultantService {
                 return save(consultantInfo);
             else return  consultantInfo;
         } catch (Exception e){
-            throw new StoreDataFailedException("Cập nhập thông tin nhân viên thất bại", Map.of("error", e.getMessage()));
+            throw new StoreDataFailedException("Cập nhật thông tin nhân viên thất bại", Map.of("error", e.getMessage()));
         }
 
     }
@@ -353,7 +353,7 @@ public class ConsultantServiceImpl implements ConsultantService {
 
     public ResponseData updateConsultantStatus(Integer id, ChangeConsultantStatusRequest request) throws NotAllowedException, ResourceNotFoundException, BadRequestException, StoreDataFailedException {
         User consultantAccount = userService.changeConsultantStatus(id, request.getNote());
-        return ResponseData.ok("Cập nhập tư vấn viên thành công", userService.mappingFullResponse(consultantAccount));
+        return ResponseData.ok("Cập nhật tư vấn viên thành công", userService.mappingFullResponse(consultantAccount));
     }
 
     public InfoConsultantResponseDTO getById(Integer id) throws ResourceNotFoundException {
