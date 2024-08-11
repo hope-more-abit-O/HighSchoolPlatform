@@ -57,6 +57,28 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     List<Admission> findAllByYearAndUniversityCode(Pageable pageable ,Integer year, String universityCode);
 
     @Query(value = """
+    SELECT TOP(:top) ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode, Integer top);
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode);
+
+    @Query(value = """
     SELECT TOP(1) ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id

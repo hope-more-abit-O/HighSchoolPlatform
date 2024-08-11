@@ -96,7 +96,7 @@ public class AdmissionController {
 
     @GetMapping("/source")
     public ResponseEntity getAdmissionSourceV2(
-            @RequestParam(required = false) Pageable pageable,
+            Pageable pageable,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String universityCode
     ) {
@@ -125,8 +125,10 @@ public class AdmissionController {
     }
 
     @GetMapping("/score")
-    public ResponseEntity getAdmissionScoreByYearAndUniversityCode(@RequestParam Integer year, @RequestParam String universityCode){
-        return ResponseEntity.ok(admissionService.getAdmissionScore(year, universityCode, 1));
+    public ResponseEntity getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
+                                                                   @RequestParam(required = false) Integer year,
+                                                                   @RequestParam(required = false) String universityCode){
+        return ResponseEntity.ok(admissionService.getAdmissionScore(year, universityCode));
     }
 
     @GetMapping("/university/{id}/latest-training-program")

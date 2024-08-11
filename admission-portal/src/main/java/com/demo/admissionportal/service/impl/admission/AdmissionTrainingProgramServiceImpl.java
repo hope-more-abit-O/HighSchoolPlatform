@@ -143,6 +143,9 @@ public class AdmissionTrainingProgramServiceImpl {
     public List<AdmissionTrainingProgram> findByAdmissionId(Integer id) {
         return admissionTrainingProgramRepository.findByAdmissionId(id);
     }
+    public List<AdmissionTrainingProgram> findByAdmissionIds(List<Integer> id) {
+        return admissionTrainingProgramRepository.findByAdmissionIdIn(id);
+    }
     
     public List<AdmissionTrainingProgram> findByIds(List<Integer> admissionMethodIds)
             throws ResourceNotFoundException{
