@@ -5,19 +5,17 @@ import com.demo.admissionportal.dto.entity.university.UniversityFullResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
+import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.consultant.ChangeConsultantStatusRequest;
-import com.demo.admissionportal.exception.exceptions.DataExistedException;
-import com.demo.admissionportal.exception.exceptions.NotAllowedException;
-import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
-import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +30,18 @@ import java.util.List;
 public class UniversityController {
     private final UniversityService universityService;
     private final ConsultantService consultantService;
+
+    @PutMapping("/info")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity updateInfo(@RequestBody @Valid UpdateUniversityInfoRequest updateUniversityInfoRequest){
+        try {
+            return ResponseEntity.ok(universityService.updateUniversityInfo(updateUniversityInfoRequest));
+        } catch (ResourceNotFoundException | StoreDataFailedException e) {
+            throw e;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Creates a new consultant.
