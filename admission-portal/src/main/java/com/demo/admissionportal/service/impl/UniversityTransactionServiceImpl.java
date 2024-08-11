@@ -90,6 +90,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
 
     private PackageResponseDTO mapToPackageResponse(UniversityTransaction universityTransaction) {
         PackageResponseDTO responseDTO = modelMapper.map(universityTransaction, PackageResponseDTO.class);
+        responseDTO.setStatus(universityTransaction.getStatus().name);
         var result = modelMapper.map(responseDTO, PackageResponseDTO.class);
         responseDTO.setInfoUniversity(mapToInfoUniversity(universityTransaction.getUniversityId()));
         responseDTO.setInfoPackage(mapToInfoPackage(universityTransaction.getPackageId()));

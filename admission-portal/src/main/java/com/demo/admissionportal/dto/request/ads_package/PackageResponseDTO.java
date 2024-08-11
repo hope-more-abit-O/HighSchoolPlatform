@@ -22,7 +22,7 @@ public class PackageResponseDTO implements Serializable {
     private Integer postId;
     private Date createTime;
     private Date completeTime;
-    private UniversityTransactionStatus status;
+    private String status;
 
     /**
      * The type Info university.
