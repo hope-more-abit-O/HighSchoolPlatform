@@ -580,7 +580,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
         admissionTrainingProgramMethodService.saveAll(admissionTrainingProgramMethods);
         updateAdmissionScoreStatuses(admissionId);
-        return ResponseData.ok("Cập nhập điểm thành công.");
+        return ResponseData.ok("Cập nhật điểm thành công.");
     }
 
     @Transactional
@@ -600,10 +600,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         try {
             Admission admission1 = admissionRepository.save(admission);
         } catch (Exception e) {
-            throw new StoreDataFailedException("Cập nhập thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
+            throw new StoreDataFailedException("Cập nhật thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
         }
 
-        return ResponseData.ok("Cập nhập trạng thái đề án thành công.");
+        return ResponseData.ok("Cập nhật trạng thái đề án thành công.");
     }
 
     @Transactional

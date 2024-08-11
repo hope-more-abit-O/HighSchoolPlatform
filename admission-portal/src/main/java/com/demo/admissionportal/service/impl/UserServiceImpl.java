@@ -389,7 +389,7 @@ public class UserServiceImpl implements UserService {
         try {
             return  userRepository.save(account);
         } catch (Exception e) {
-            throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
+            throw new StoreDataFailedException("Cập nhật trạng thái " + name + " thất bại.");
         }
     }
 
@@ -410,7 +410,7 @@ public class UserServiceImpl implements UserService {
         try {
             return  userRepository.save(account);
         } catch (Exception e) {
-            throw new StoreDataFailedException("Cập nhập trạng thái " + name + " thất bại.");
+            throw new StoreDataFailedException("Cập nhật trạng thái " + name + " thất bại.");
         }
     }
 
@@ -431,7 +431,7 @@ public class UserServiceImpl implements UserService {
         try {
             account = userRepository.save(account);
         } catch (Exception e) {
-            throw new StoreDataFailedException("Cập nhập trạng thái tư vấn viên thất bại.");
+            throw new StoreDataFailedException("Cập nhật trạng thái tư vấn viên thất bại.");
         }
         return account;
     }

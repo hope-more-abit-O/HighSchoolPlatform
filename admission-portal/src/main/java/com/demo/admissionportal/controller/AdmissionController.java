@@ -116,7 +116,7 @@ public class AdmissionController {
         return ResponseEntity.ok(admissionService.getById(id));
     }
 
-    @PatchMapping
+    @PutMapping
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity universityAction(@RequestBody @Valid UpdateAdmissionStatusRequest request){
         return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
@@ -144,11 +144,11 @@ public class AdmissionController {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chuyên ngành giảng dạy mới nhất thành công.",admissionService.getLatestTrainingProgramByUniversityId(id)));
     }
 
-    @PatchMapping("/auto/update-score-status")
+    @PutMapping("/auto/update-score-status")
     public ResponseEntity autoUpdateAdmissionScoreStatus(){
         try {
             admissionService.updateAdmissionScoreStatuses();
-            return ResponseEntity.ok(ResponseData.ok("Cập nhập thông tin điểm của tất cả đề án thành công."));
+            return ResponseEntity.ok(ResponseData.ok("Cập nhật thông tin điểm của tất cả đề án thành công."));
         } catch (Exception e){
             throw e;
         }
