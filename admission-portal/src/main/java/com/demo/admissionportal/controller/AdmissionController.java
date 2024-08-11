@@ -2,11 +2,14 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.dto.entity.admission.AdmissionSourceDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
+import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
+import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
@@ -18,9 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Calendar;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admission")
@@ -95,11 +99,16 @@ public class AdmissionController {
     }
 
     @GetMapping("/source")
-    public ResponseEntity<ResponseData<List<String>>> getAdmissionSource(
-            @RequestParam(required = true) Integer year,
-            @RequestParam(required = true) String universityCode
+    public ResponseEntity<ResponseData<List<AdmissionSourceDTO>>> getAdmissionSourceV2(
+            Pageable pageable,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String universityCode
     ) {
-        return ResponseEntity.ok(admissionService.getSource(year, universityCode));
+        try {
+            return ResponseEntity.ok(admissionService.getSourceV2(pageable, year, universityCode));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")
@@ -120,8 +129,14 @@ public class AdmissionController {
     }
 
     @GetMapping("/score")
-    public ResponseEntity getAdmissionScoreByYearAndUniversityCode(@RequestParam Integer year, @RequestParam String universityCode){
-        return ResponseEntity.ok(admissionService.getAdmissionScore(year, universityCode, 1));
+    public ResponseEntity<ResponseData<GetAdmissionScoreResponse>> getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
+                                                                                                            @RequestParam(required = false) Integer year,
+                                                                                                            @RequestParam(required = false) String universityCode){
+        try {
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable ,year, universityCode)) );
+        } catch (SQLException e){
+            throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/university/{id}/latest-training-program")

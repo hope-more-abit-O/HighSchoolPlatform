@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,32 +44,71 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("scoreStatus") String scoreStatus
     );
 
+
     @Query(value = """
     SELECT ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE (:search IS NULL OR (LOWER(ui."code") LIKE CONCAT('%', :search, '%') OR LOWER(ui."name") LIKE CONCAT('%', :search, '%')))
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
     AND (:year IS NULL OR year = :year)
-    AND (:status IS NULL OR ad.status = :status)
+    AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    Page<Admission> findAllBy(
-            Pageable pageable,
-            @Param("year") Integer year,
-            @Param("search") String search,
-            @Param("status") String status
-    );
+    List<Admission> findAllByYearAndUniversityCode(Pageable pageable ,Integer year, String universityCode);
+
+    @Query(value = """
+    SELECT TOP(:top) ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode, Integer top);
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
+    LEFT JOIN [user] usr ON usr.id = ad.university_id
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode);
 
     @Query(value = """
     SELECT TOP(1) ad.*
     FROM admission ad
     LEFT JOIN university_info ui ON ui.university_id = ad.university_id
     LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE LOWER(ui."code") = LOWER(:universityCode)
-    AND (year = :year)
+    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
+    AND (:year IS NULL OR year = :year)
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
     Optional<Admission> findByYearAndUniversityCode(Integer year, String universityCode);
 
-    Optional<Admission> findFirstByUniversityIdAndStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(Integer universityId, AdmissionStatus status);
+
+    @Query(value = """
+SELECT * 
+FROM admission ad
+WHERE ad.year = :year
+""", nativeQuery = true)
+    List<Admission> findByYear(Pageable pageable,Integer year);
+
+    @Query(value = """
+select a.*
+from admission a
+inner join university_info ui on ui.university_id = a.university_id
+where ui.code = :universityCode
+""", nativeQuery = true)
+    List<Admission> findByUniversityCode(Pageable pageable,String universityCode);
+
+    @Query(value = """
+select a.*
+from admission a
+""", nativeQuery = true)
+    List<Admission> find(Pageable pageable);
 }

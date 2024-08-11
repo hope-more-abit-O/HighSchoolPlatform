@@ -66,6 +66,10 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         return admissionTrainingProgramMethodRepository.findByMethodIdAndAdmissionTrainingProgramIdIn(methodId, admissionTrainingProgramIds);
     }
 
+    public List<AdmissionTrainingProgramMethod> findAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
+        return admissionTrainingProgramMethodRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
+    }
+
     public List<AdmissionTrainingProgramMethod> findBySubjectGroupIdAndScoreWithOffset(Integer subjectGroupId, Float score, Float offset, String majorId, Integer provinceId) {
         return admissionTrainingProgramMethodRepository.findBySubjectGroupIdAndScoreWithOffset(subjectGroupId, score, offset, majorId + "%", provinceId, Calendar.getInstance().get(Calendar.YEAR));
     }
