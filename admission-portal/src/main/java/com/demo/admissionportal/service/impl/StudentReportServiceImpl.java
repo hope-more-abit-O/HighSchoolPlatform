@@ -127,19 +127,21 @@ public class StudentReportServiceImpl implements StudentReportService {
     @Transactional
     public ResponseData<UpdateStudentReportResponseDTO> updateStudentReportById(Integer studentReportId, UpdateStudentReportRequest request, Authentication authentication) {
         try {
-            //check exist user
+            // Check exist user
             String username = authentication.getName();
             Optional<User> user = userRepository.findByUsername(username);
             if (user.isEmpty()) {
                 log.info("User not found");
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
             }
-            //check exist student report
+
+            // Check exist student report
             Optional<StudentReport> optionalStudentReport = studentReportRepository.findById(studentReportId);
             if (optionalStudentReport.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Học bạ không được tìm thấy !");
             }
-            //check authorize user
+
+            // Check authorize user
             StudentReport studentReport = optionalStudentReport.get();
             User authenticatedUser = user.get();
 
@@ -148,16 +150,17 @@ public class StudentReportServiceImpl implements StudentReportService {
                 return new ResponseData<>(ResponseCode.C201.getCode(), "Người dùng không được phép cập nhật học bạ này !");
             }
 
+            // Update student report
             studentReport.setName(request.getStudentReportName());
             studentReport.setUpdateBy(authenticatedUser.getId());
             studentReport.setUpdateTime(new Date());
             studentReportRepository.save(studentReport);
 
-            //check valid grade, semester and subject exist in table subject_grade_semester
+            // Check valid grade, semester and subject exist in table subject_grade_semester
             for (UpdateMarkDTO markDTO : request.getMarks()) {
-                Optional<SubjectGradeSemester> subjectGradeSemester = subjectGradeSemesterRepository.findBySubjectIdAndGradeAndSemester(
+                List<SubjectGradeSemester> subjectGradeSemesters = subjectGradeSemesterRepository.findBySubjectIdAndGradeAndSemester(
                         markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
-                //validate mark > 0
+
                 if (markDTO.getMark() != null) {
                     if (markDTO.getMark() < 0 || markDTO.getMark() > 10) {
                         log.error("Invalid mark {} for Subject {}, Grade {}, Semester {}", markDTO.getMark(), markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
@@ -165,28 +168,33 @@ public class StudentReportServiceImpl implements StudentReportService {
                     }
                 }
 
-                if (subjectGradeSemester.isPresent()) {
-                    StudentReportMarkId markId = new StudentReportMarkId(studentReport.getId(), subjectGradeSemester.get().getId());
-                    StudentReportMark studentReportMark = studentReportMarkRepository.findById(markId).orElse(new StudentReportMark());
-                    studentReportMark.setStudentReportId(studentReport.getId());
-                    studentReportMark.setSubjectGradeSemesterId(subjectGradeSemester.get().getId());
-                    studentReportMark.setMark(markDTO.getMark());
-                    log.info("Subject {}, Grade {}, Semester {} valid", markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
-                    studentReportMarkRepository.save(studentReportMark);
-                } else {
-                    log.error("Subject {}, Grade {}, Semester {} not found", markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
-                    return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy !");
+                if (subjectGradeSemesters.size() != 1) {
+                    log.error("Expected one result but found {} for Subject {}, Grade {}, Semester {}",
+                            subjectGradeSemesters.size(), markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
+                    return new ResponseData<>(ResponseCode.C205.getCode(), "Môn học hoặc học kì hoặc khối lớp học không được tìm thấy hoặc trùng lặp !");
                 }
+
+                SubjectGradeSemester subjectGradeSemester = subjectGradeSemesters.get(0);
+
+                StudentReportMarkId markId = new StudentReportMarkId(studentReport.getId(), subjectGradeSemester.getId());
+                StudentReportMark studentReportMark = studentReportMarkRepository.findById(markId).orElse(new StudentReportMark());
+                studentReportMark.setStudentReportId(studentReport.getId());
+                studentReportMark.setSubjectGradeSemesterId(subjectGradeSemester.getId());
+                studentReportMark.setMark(markDTO.getMark());
+                log.info("Subject {}, Grade {}, Semester {} valid", markDTO.getSubjectId(), markDTO.getGrade(), markDTO.getSemester());
+                studentReportMarkRepository.save(studentReportMark);
             }
-            //find student report need to update
+
+            // Find student report marks to update
             List<StudentReportMark> reportMarks = studentReportMarkRepository.findByStudentReportId(studentReportId);
             List<SubjectReportDTO> subjectReportDTOList = new ArrayList<>();
-            //map mark and grade to response
+
+            // Map mark and grade to response
             for (StudentReportMark mark : reportMarks) {
                 SubjectGradeSemester sgs = subjectGradeSemesterRepository.findById(mark.getSubjectGradeSemesterId()).orElse(null);
                 if (sgs != null) {
                     String subjectName = subjectRepository.findById(sgs.getSubjectId())
-                            .map(Subject::getName)
+                            .map(subject -> subject.getName())
                             .orElse(null);
                     if (subjectName == null){
                         return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này");
@@ -213,7 +221,8 @@ public class StudentReportServiceImpl implements StudentReportService {
                     gradeReportDTO.getSemesterMarks().add(new SemesterMarkDTO(sgs.getSemester(), mark.getMark()));
                 }
             }
-            //create final response and integrate mark and grade for final response
+
+            // Create final response and integrate mark and grade for final response
             UpdateStudentReportResponseDTO responseDTO = new UpdateStudentReportResponseDTO();
             responseDTO.setId(studentReport.getId());
             responseDTO.setStudentId(studentReport.getUserId());
