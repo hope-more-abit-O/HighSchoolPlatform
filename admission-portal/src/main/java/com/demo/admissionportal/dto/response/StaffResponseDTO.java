@@ -22,7 +22,7 @@ public class StaffResponseDTO implements Serializable {
     private String avatar;
     private String phone;
     private String status;
-    private String provinceName;
+    private ProvinceDTO province;
     private String note;
     private Date createTime;
     private String role;
