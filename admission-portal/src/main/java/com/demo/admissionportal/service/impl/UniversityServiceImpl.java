@@ -266,7 +266,7 @@ public class UniversityServiceImpl implements UniversityService {
         ValidationService.updateIfChanged(request.getType() != null ? UniversityType.valueOf(request.getType()) : null, universityInfo.getType(), universityInfo::setType);
         ValidationService.updateIfChanged(request.getCode(), universityInfo.getCode(), universityInfo::setCode);
 
-        if (isChanged)
+        if (!isChanged)
             saveUniversityInfo(universityInfo);
         return ResponseData.ok("Cập nhật thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
     }

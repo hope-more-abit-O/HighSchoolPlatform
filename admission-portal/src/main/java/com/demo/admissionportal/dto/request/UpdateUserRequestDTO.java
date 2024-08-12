@@ -4,6 +4,8 @@ import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
 import com.demo.admissionportal.util.enum_validator.EnumValue;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.Valid;
@@ -45,7 +47,6 @@ public class UpdateUserRequestDTO implements Serializable {
     private String phone;
 
     @NotNull(message = "Giới tính không thể để trống")
-    @EnumValue(name = "type", enumClass = Gender.class, message = "Giới tính phải đúng format")
     private Gender gender;
 
     @NotNull(message = "Trình độ học vấn không được trống")

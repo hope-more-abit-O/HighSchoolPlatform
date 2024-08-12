@@ -184,7 +184,7 @@ public class UserServiceImpl implements UserService {
 
             // Save update time
             user.setUpdateTime(new Date());
-            if (isChanged) {
+            if (!isChanged) {
                 userRepository.save(user);
                 userInfoRepository.save(userInfo);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công");
