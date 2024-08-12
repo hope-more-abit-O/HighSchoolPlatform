@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.dto.entity.admission.dto.AdmissionTrainingProgramMethodDTOV2;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionTrainingProgramMethodRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
 import com.demo.admissionportal.entity.admission.AdmissionMethod;
@@ -7,19 +8,21 @@ import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AdmissionTrainingProgramMethodServiceImpl {
     private final AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
+    private final EntityManager entityManager;
 
 
     public List<AdmissionTrainingProgramMethod> saveAll(List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
@@ -72,5 +75,111 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
     public List<AdmissionTrainingProgramMethod> findBySubjectGroupIdAndScoreWithOffset(Integer subjectGroupId, Float score, Float offset, String majorId, Integer provinceId) {
         return admissionTrainingProgramMethodRepository.findBySubjectGroupIdAndScoreWithOffset(subjectGroupId, score, offset, majorId + "%", provinceId, Calendar.getInstance().get(Calendar.YEAR));
+    }
+
+    public List<AdmissionTrainingProgramMethod> findAdmissionData(List<Integer> subjectGroupId, Float score, Float offset, List<Integer> methodId,
+                                                                       List<Integer> majorId, List<Integer> provinceId, Integer year) {
+
+        // 1. Start building the base query
+        StringBuilder queryBuilder = new StringBuilder(
+                "SELECT DISTINCT atpm.* " +
+                        "FROM admission_training_program_subject_group atpsg " +
+                        "INNER JOIN dbo.admission_training_program atp ON atp.id = atpsg.admission_training_program_id " +
+                        "INNER JOIN admission_training_program_method atpm ON atpm.admission_training_program_id = atp.id " +
+                        "INNER JOIN admission_method am ON am.id = atpm.admission_method_id " +
+                        "INNER JOIN dbo.admission a ON a.id = atp.admission_id " +
+                        "INNER JOIN [user] u ON u.id = a.university_id " +
+                        "INNER JOIN university_campus uc ON uc.university_id = u.id " +
+                        "INNER JOIN dbo.[major] m ON m.id = atp.major_id " +
+                        "WHERE am.method_id = 1 " +
+                        "AND a.status = 'ACTIVE' "
+        );
+
+        // 2. Create a Map to store parameters
+        Map<String, Object> parameters = new HashMap<>();
+
+        if (methodId != null && !methodId.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < methodId.size(); i++) {
+                placeholders.add(":methodId" + i);
+            }
+
+            queryBuilder.append(" AND atpm.method_id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < methodId.size(); i++) {
+                parameters.put("methodId" + i, methodId.get(i));
+            }
+        }
+
+        if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < subjectGroupId.size(); i++) {
+                placeholders.add(":subjectGroupId" + i);
+            }
+
+            queryBuilder.append(" AND atpsg.subject_group_id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < subjectGroupId.size(); i++) {
+                parameters.put("subjectGroupId" + i, subjectGroupId.get(i));
+            }
+        }
+
+        if (score != null) {
+            if (offset != null) offset = Float.parseFloat(String.valueOf("2"));
+            queryBuilder.append(" AND atpm.addmission_score <= (:score) ");
+            parameters.put("score", score + offset);
+        }
+
+        if (majorId != null && !majorId.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < majorId.size(); i++) {
+                placeholders.add(":majorId" + i);
+            }
+
+            queryBuilder.append(" AND atp.major_id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < majorId.size(); i++) {
+                parameters.put("majorId" + i, majorId.get(i));
+            }
+        }
+
+        if (provinceId != null && !provinceId.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < provinceId.size(); i++) {
+                placeholders.add(":provinceId" + i);
+            }
+
+            queryBuilder.append(" AND uc.province_id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < provinceId.size(); i++) {
+                parameters.put("provinceId" + i, provinceId.get(i));
+            }
+        }
+
+        // 4. Add the year filter (seems to be always required)
+        queryBuilder.append(" AND a.year IN (:yearMinus2, :yearMinus1, :currentYear) ");
+        parameters.put("yearMinus2", year - 2);
+        parameters.put("yearMinus1", year - 1);
+        parameters.put("currentYear", 2024);
+
+        // 5. Create and execute the TypedQuery
+        Query a = entityManager.createNativeQuery(queryBuilder.toString(), AdmissionTrainingProgramMethod.class);
+
+        // 6. Set the parameters
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            a.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        // 7. Execute and return the results
+        var b = a.getResultList();
+        return b;
     }
 }

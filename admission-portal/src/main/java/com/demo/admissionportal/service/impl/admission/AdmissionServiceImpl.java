@@ -4,16 +4,16 @@ import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
-import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceDTO;
 import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceMajorDetailDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
-import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
@@ -21,7 +21,7 @@ import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingPro
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.repository.ConsultantInfoRepository;
-import com.demo.admissionportal.repository.admission.*;
+import com.demo.admissionportal.repository.admission.AdmissionRepository;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.*;
@@ -592,11 +592,11 @@ public class AdmissionServiceImpl implements AdmissionService {
         User user = ServiceUtils.getUser();
         Admission admission = findById(id);
 
-        if (user.getRole().equals(Role.UNIVERSITY) || !admission.getUniversityId().equals(user.getId())){
+        if (user.getRole().equals(Role.UNIVERSITY) || !admission.getUniversityId().equals(user.getId())) {
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
         }
 
-        if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(consultantInfoServiceImpl.findById(user.getId()).getUniversityId())){
+        if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(consultantInfoServiceImpl.findById(user.getId()).getUniversityId())) {
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
         }
 
@@ -650,7 +650,17 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     public ResponseData adviceSchool(SchoolAdviceRequest request) {
         Integer year = 2024;
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findBySubjectGroupIdAndScoreWithOffset(request.getSubjectGroupId(), request.getScore(), request.getOffset(), request.getMajorCode(), request.getProvinceId());
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findAdmissionData(
+                request.getSubjectGroupId(),
+                request.getScore(),
+                request.getOffset(),
+                request.getMethodId(),
+                request.getMajorId(),
+                request.getProvinceId(),
+                year);
+
+        if (admissionTrainingProgramMethods.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
         log.info(request.toString());
         List<Integer> admissionTrainingProgramIds = admissionTrainingProgramMethods
                 .stream()
@@ -726,8 +736,10 @@ public class AdmissionServiceImpl implements AdmissionService {
                     subjectGroups1,
                     year);
 
-            Admission admission = admissions1.stream().filter((element) -> element.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề án năm mới nhất"));
-            schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s, admission.getSource()));
+            Admission admission = admissions1.stream().filter((element) -> element.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))).findFirst().orElse(null);
+            if (admission != null) {
+                schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s, admission.getSource()));
+            }
         }
 
         return ResponseData.ok("", schoolAdviceDTOs);
@@ -785,8 +797,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                         admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
                     }
                 }
-                }
             }
+        }
 
         return admissionTrainingProgramDTOV2s;
     }
@@ -813,6 +825,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         admissionRepository.saveAll(admissions);
     }
+
     public void updateAdmissionScoreStatuses(Integer id) {
         Admission admission = this.findById(id);
 
@@ -843,12 +856,12 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable ,Integer year, String universityCode) throws SQLException {
+    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, Integer year, String universityCode) throws SQLException {
         if (year == null && universityCode == null) {
             List<Admission> admissions = null;
             try {
                 admissions = admissionRepository.find(pageable);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             if (admissions.isEmpty())
@@ -863,11 +876,11 @@ public class AdmissionServiceImpl implements AdmissionService {
             List<Admission> admissions = null;
             try {
                 admissions = admissionRepository.findByYear(pageable, year);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             if (admissions.isEmpty())
-                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho năm " + year.toString());
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho năm " + year);
 
             List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
 
@@ -878,7 +891,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             List<Admission> admissions = null;
             try {
                 admissions = admissionRepository.findByUniversityCode(pageable, universityCode);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             if (admissions.isEmpty())

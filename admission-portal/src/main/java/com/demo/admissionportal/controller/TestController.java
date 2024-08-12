@@ -5,10 +5,12 @@ import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
 import com.demo.admissionportal.service.AddressService;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.impl.AddressServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
+import com.demo.admissionportal.service.impl.admission.AdmissionTrainingProgramMethodServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,7 @@ public class TestController {
     private final CreateUniversityService createUniversityService;
     private final ValidationServiceImpl validationServiceImpl;
     private final AdmissionServiceImpl admissionService;
+    private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
 
     @GetMapping("/")
     public String home(){
@@ -99,5 +102,15 @@ public class TestController {
             e.printStackTrace();
             return "Error running Node.js script: " + e.getMessage();
         }
+    }
+
+    @GetMapping("/atpgm")
+    public ResponseEntity atpgm(@RequestParam(required = false) List<Integer> majorId,
+                                @RequestParam(required = false) Float offset,
+                                @RequestParam(required = false) Float score,
+                                @RequestParam(required = false) List<Integer> subjectGroupId,
+                                @RequestParam(required = false) List<Integer> methodId,
+                                @RequestParam(required = false) List<Integer> provinceId){
+        return ResponseEntity.ok(admissionTrainingProgramMethodService.findAdmissionData(subjectGroupId, score, offset, methodId, majorId, provinceId, 2024));
     }
 }
