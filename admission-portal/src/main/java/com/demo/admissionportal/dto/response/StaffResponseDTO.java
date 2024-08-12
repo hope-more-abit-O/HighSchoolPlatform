@@ -16,12 +16,15 @@ public class StaffResponseDTO implements Serializable {
     private Integer id;
     private String username;
     private String email;
-    private String name;
+    private String firstName;
+    private String middleName;
+    private String lastName;
     private String avatar;
     private String phone;
     private String status;
     private String provinceName;
     private String note;
     private Date createTime;
+    private String role;
 }
 
