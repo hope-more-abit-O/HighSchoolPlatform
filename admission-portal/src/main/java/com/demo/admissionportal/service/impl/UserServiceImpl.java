@@ -142,50 +142,54 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO) {
+    public ResponseData<UpdateUserResponseDTO> updateUser(UpdateUserRequestDTO requestDTO) {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            if (id == null || id < 0 || requestDTO == null) {
+            if (requestDTO == null) {
                 new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
             }
-            if (!Objects.equals(id, userId)) {
-                return new ResponseData<>(ResponseCode.C209.getCode(), "Không đúng user");
-            }
-            UserInfo userInfo = userInfoRepository.findUserInfoById(id);
-            User user = userRepository.findUserById(id);
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            User user = userRepository.findUserById(userId);
             // Get user profile
             if (userInfo == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
             }
             // Update profile
-            userInfo.setFirstName(requestDTO.getFirstName());
-            userInfo.setMiddleName(requestDTO.getMiddleName());
-            userInfo.setLastName(requestDTO.getLastName());
-            userInfo.setGender(requestDTO.getGender());
+            boolean isChanged = false;
             validationService.validatePhoneNumber(requestDTO.getPhone());
-            userInfo.setPhone(requestDTO.getPhone());
+            ValidationService.updateIfChanged(requestDTO.getFirstName(), userInfo.getFirstName(), userInfo::setFirstName);
+            ValidationService.updateIfChanged(requestDTO.getMiddleName(), userInfo.getMiddleName(), userInfo::setMiddleName);
+            ValidationService.updateIfChanged(requestDTO.getLastName(), userInfo.getLastName(), userInfo::setLastName);
+            ValidationService.updateIfChanged(requestDTO.getGender(), userInfo.getGender(), userInfo::setGender);
+            ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);
+            ValidationService.updateIfChanged(requestDTO.getBirthday(), userInfo.getBirthday(), userInfo::setBirthday);
+            ValidationService.updateIfChanged(requestDTO.getEducation_level(), userInfo.getEducationLevel(), userInfo::setEducationLevel);
+            ValidationService.updateIfChanged(requestDTO.getSpecific_address(), userInfo.getSpecificAddress(), userInfo::setSpecificAddress);
+            ValidationService.updateIfChanged(requestDTO.getAvatar(), user.getAvatar(), user::setAvatar);
 
-            userInfo.setBirthday(requestDTO.getBirthday());
-
-            Ward ward = wardRepository.findWardById(requestDTO.getWard());
-            District district = districtRepository.findDistrictById(requestDTO.getDistrict());
-            Province province = provinceRepository.findProvinceById(requestDTO.getProvince());
-
+            Province province = requestDTO.getProvince() != null ?
+                    provinceRepository.findProvinceById(requestDTO.getProvince()) :
+                    userInfo.getProvince();
             userInfo.setProvince(province);
+
+            District district = requestDTO.getDistrict() != null ?
+                    districtRepository.findDistrictById(requestDTO.getDistrict()) :
+                    userInfo.getDistrict();
             userInfo.setDistrict(district);
+
+            Ward ward = requestDTO.getWard() != null ?
+                    wardRepository.findWardById(requestDTO.getWard()) :
+                    userInfo.getWard();
             userInfo.setWard(ward);
-            userInfo.setEducationLevel(requestDTO.getEducation_level());
-            userInfo.setPhone(requestDTO.getPhone());
-            userInfo.setSpecificAddress(requestDTO.getSpecific_address());
-            user.setAvatar(requestDTO.getAvatar());
 
             // Save update time
             user.setUpdateTime(new Date());
-
-            userRepository.save(user);
-            userInfoRepository.save(userInfo);
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công");
+            if (isChanged) {
+                userRepository.save(user);
+                userInfoRepository.save(userInfo);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công");
+            }
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Cập nhật thất bại");
         } catch (DataExistedException de) {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoai đã tồn tại");
 
@@ -387,7 +391,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateTime(new Date());
         account.setUpdateBy(actionerId);
         try {
-            return  userRepository.save(account);
+            return userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhật trạng thái " + name + " thất bại.");
         }
@@ -408,7 +412,7 @@ public class UserServiceImpl implements UserService {
         account.setUpdateTime(new Date());
         account.setUpdateBy(actionerId);
         try {
-            return  userRepository.save(account);
+            return userRepository.save(account);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhật trạng thái " + name + " thất bại.");
         }
@@ -568,9 +572,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> status, Integer createBy, Integer updateBy){
-        List<String> statusesString = (status == null || status.isEmpty()) ? null : status.stream().map( (s) -> s.name()).toList();
-        if (statusesString ==null)
+    public Page<User> getConsultantAccounts(Pageable pageable, Integer id, String name, String username, String universityName, Integer universityId, List<AccountStatus> status, Integer createBy, Integer updateBy) {
+        List<String> statusesString = (status == null || status.isEmpty()) ? null : status.stream().map((s) -> s.name()).toList();
+        if (statusesString == null)
             return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, createBy, updateBy);
         else
             return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, statusesString, createBy, updateBy);

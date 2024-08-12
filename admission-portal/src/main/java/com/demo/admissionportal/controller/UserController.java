@@ -51,17 +51,16 @@ public class UserController {
     /**
      * Update user response entity.
      *
-     * @param id         the id
      * @param requestDTO the request dto
      * @return the response entity
      */
-    @PutMapping("/profile/{id}")
+    @PutMapping("/profile")
     @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<UpdateUserResponseDTO>> updateUser(@PathVariable("id") Integer id, @RequestBody @Valid UpdateUserRequestDTO requestDTO) {
-        if (id == null || id < 0 || requestDTO == null) {
+    public ResponseEntity<ResponseData<UpdateUserResponseDTO>> updateUser(@RequestBody @Valid UpdateUserRequestDTO requestDTO) {
+        if (requestDTO == null) {
             new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
         }
-        ResponseData<UpdateUserResponseDTO> user = userService.updateUser(id, requestDTO);
+        ResponseData<UpdateUserResponseDTO> user = userService.updateUser(requestDTO);
         if (user.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
