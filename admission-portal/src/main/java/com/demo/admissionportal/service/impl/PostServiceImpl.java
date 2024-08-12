@@ -1053,6 +1053,7 @@ public class PostServiceImpl implements PostService {
                 .packageName(adsPackage != null ? adsPackage.getName() : null)
                 .startCampaignDate(universityPackage != null ? universityPackage.getCreateTime() : null)
                 .endCampaignDate(universityPackage != null ? universityPackage.getCompleteTime() : null)
+                .orderCode(universityTransaction != null ? universityTransaction.getOrderCode() : null)
                 .build();
     }
 
