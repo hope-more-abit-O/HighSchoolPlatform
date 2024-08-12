@@ -11,6 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateHighschoolExamScoreRequest {
+    private String title;
+    private Integer year;
     private Integer identificationNumber;
     private List<SubjectScoreDTO> subjectScores;
 }
+

@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.response.student_report.ListStudentReportRes
 import com.demo.admissionportal.dto.response.student_report.StudentReportResponseDTO;
 import com.demo.admissionportal.dto.response.student_report.UpdateStudentReportResponseDTO;
 import com.demo.admissionportal.entity.StudentReport;
+import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGradeSemester;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.sub_entity.StudentReportMark;
@@ -40,6 +41,7 @@ public class StudentReportServiceImpl implements StudentReportService {
     private final StudentReportRepository studentReportRepository;
     private final SubjectGradeSemesterRepository subjectGradeSemesterRepository;
     private final StudentReportMarkRepository studentReportMarkRepository;
+    private final SubjectRepository subjectRepository;
 
     @Override
     @Transactional
@@ -77,15 +79,22 @@ public class StudentReportServiceImpl implements StudentReportService {
                 studentReportMarkRepository.save(mark);
                 log.info("Saved null mark for SubjectGradeSemester ID: {}, StudentReport ID: {}", sgs.getId(), studentReport.getId());
                 //map mark and grade to response
+
+                String subjectName = subjectRepository.findById(sgs.getSubjectId())
+                        .map(Subject::getName)
+                        .orElse(null);
+                if (subjectName == null){
+                    return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này");
+                }
+
                 SubjectReportDTO subjectReportDTO = subjectReportDTOList.stream()
                         .filter(sr -> sr.getSubjectId().equals(sgs.getSubjectId()))
                         .findFirst()
                         .orElseGet(() -> {
-                            SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), new ArrayList<>());
+                            SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), subjectName, new ArrayList<>());
                             subjectReportDTOList.add(newSubjectReportDTO);
                             return newSubjectReportDTO;
                         });
-
 
                 GradeReportDTO gradeReportDTO = subjectReportDTO.getGrades().stream()
                         .filter(gr -> gr.getGrade().equals(sgs.getGrade()))
@@ -176,11 +185,18 @@ public class StudentReportServiceImpl implements StudentReportService {
             for (StudentReportMark mark : reportMarks) {
                 SubjectGradeSemester sgs = subjectGradeSemesterRepository.findById(mark.getSubjectGradeSemesterId()).orElse(null);
                 if (sgs != null) {
+                    String subjectName = subjectRepository.findById(sgs.getSubjectId())
+                            .map(Subject::getName)
+                            .orElse(null);
+                    if (subjectName == null){
+                        return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này");
+                    }
+
                     SubjectReportDTO subjectReportDTO = subjectReportDTOList.stream()
                             .filter(sr -> sr.getSubjectId().equals(sgs.getSubjectId()))
                             .findFirst()
                             .orElseGet(() -> {
-                                SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), new ArrayList<>());
+                                SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), subjectName, new ArrayList<>());
                                 subjectReportDTOList.add(newSubjectReportDTO);
                                 return newSubjectReportDTO;
                             });
@@ -245,11 +261,18 @@ public class StudentReportServiceImpl implements StudentReportService {
             for (StudentReportMark mark : reportMarks) {
                 SubjectGradeSemester sgs = subjectGradeSemesterRepository.findById(mark.getSubjectGradeSemesterId()).orElse(null);
                 if (sgs != null) {
+                    String subjectName = subjectRepository.findById(sgs.getSubjectId())
+                            .map(Subject::getName)
+                            .orElse(null);
+                    if (subjectName == null){
+                        return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy môn học này");
+                    }
+
                     SubjectReportDTO subjectReportDTO = subjectReportDTOList.stream()
                             .filter(sr -> sr.getSubjectId().equals(sgs.getSubjectId()))
                             .findFirst()
                             .orElseGet(() -> {
-                                SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), new ArrayList<>());
+                                SubjectReportDTO newSubjectReportDTO = new SubjectReportDTO(sgs.getSubjectId(), subjectName, new ArrayList<>());
                                 subjectReportDTOList.add(newSubjectReportDTO);
                                 return newSubjectReportDTO;
                             });
