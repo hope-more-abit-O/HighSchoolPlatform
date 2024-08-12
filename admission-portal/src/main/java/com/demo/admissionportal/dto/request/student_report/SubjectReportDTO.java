@@ -17,5 +17,7 @@ public class SubjectReportDTO {
     @NotNull
     private Integer subjectId;
     @NotNull
+    private String subjectName;
+    @NotNull
     private List<GradeReportDTO> grades;
 }
