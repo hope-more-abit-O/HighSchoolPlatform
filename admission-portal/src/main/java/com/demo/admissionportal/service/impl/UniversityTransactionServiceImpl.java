@@ -90,19 +90,16 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
 
     private PackageResponseDTO mapToPackageResponse(UniversityTransaction universityTransaction) {
         PackageResponseDTO responseDTO = modelMapper.map(universityTransaction, PackageResponseDTO.class);
-        responseDTO.setStatus(universityTransaction.getStatus().name);
         var result = modelMapper.map(responseDTO, PackageResponseDTO.class);
         responseDTO.setInfoUniversity(mapToInfoUniversity(universityTransaction.getUniversityId()));
-        responseDTO.setInfoPackage(mapToInfoPackage(universityTransaction.getPackageId()));
+        AdsPackage infoPackage = mapToInfoPackage(universityTransaction.getPackageId());
+        responseDTO.setInfoPackage(modelMapper.map(infoPackage, PackageResponseDTO.InfoPackage.class));
+        responseDTO.setStatus(infoPackage.getStatus().name);
         return result;
     }
 
-    private PackageResponseDTO.InfoPackage mapToInfoPackage(Integer packageId) {
-        AdsPackage adsPackage = packageRepository.findPackageById(packageId);
-        return PackageResponseDTO.InfoPackage.builder()
-                .packageId(adsPackage.getId())
-                .packageName(adsPackage.getName())
-                .build();
+    private AdsPackage mapToInfoPackage(Integer packageId) {
+         return  packageRepository.findPackageById(packageId);
     }
 
     private PackageResponseDTO.InfoUniversity mapToInfoUniversity(Integer universityId) {
