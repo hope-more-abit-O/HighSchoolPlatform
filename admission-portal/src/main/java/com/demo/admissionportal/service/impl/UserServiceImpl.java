@@ -119,7 +119,7 @@ public class UserServiceImpl implements UserService {
 
             userProfileResponseDTO.setPhone(userInfo.getPhone());
             userProfileResponseDTO.setSpecificAddress(userInfo.getSpecificAddress());
-            userProfileResponseDTO.setEducation_level(userInfo.getEducationLevel());
+            userProfileResponseDTO.setEducation_level(userInfo.getEducationLevel().name);
             userProfileResponseDTO.setWard(ward);
             userProfileResponseDTO.setDistrict(district);
             userProfileResponseDTO.setProvince(province);

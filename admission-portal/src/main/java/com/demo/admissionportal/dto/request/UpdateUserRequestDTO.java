@@ -1,8 +1,11 @@
 package com.demo.admissionportal.dto.request;
 
+import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
 import com.demo.admissionportal.util.enum_validator.EnumName;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
@@ -33,7 +36,8 @@ public class UpdateUserRequestDTO implements Serializable {
     @EnumPhone(message = "Số điện thoại từ 10 - 11")
     private String phone;
     private Gender gender;
-    private String education_level;
+    @Enumerated(EnumType.STRING)
+    private EducationLevel education_level;
     private String specific_address;
     private Integer province;
     private Integer district;
