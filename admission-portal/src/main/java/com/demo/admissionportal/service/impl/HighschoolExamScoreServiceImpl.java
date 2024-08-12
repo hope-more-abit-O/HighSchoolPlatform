@@ -768,18 +768,33 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     @Override
     @Transactional
-    public ResponseData<String> publishExamScores() {
+    public ResponseData<String> publishExamScores(Integer listExamScoreByYearId) {
         try {
-            List<HighschoolExamScore> examScoresStatus = highschoolExamScoreRepository.findAllByStatus(HighschoolExamScoreStatus.INACTIVE);
+            ListExamScoreByYear listExamScoreByYear = listExamScoreByYearRepository.findById(listExamScoreByYearId)
+                    .orElseThrow(() -> new IllegalStateException("ListExamScoreByYear ID không tồn tại"));
+
+            List<ListExamScoreByYear> activeScores = listExamScoreByYearRepository.findAllByStatus("ACTIVE");
+            if (!activeScores.isEmpty()) {
+                activeScores.forEach(activeScore -> {
+                    activeScore.setStatus("INACTIVE");
+                    listExamScoreByYearRepository.save(activeScore);
+                });
+            }
+
+            List<HighschoolExamScore> examScoresStatus = highschoolExamScoreRepository.findAllByYearAndStatus(
+                    listExamScoreByYear.getYear(), HighschoolExamScoreStatus.INACTIVE);
+
             if (examScoresStatus.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Điểm thi đã được công bố từ trước đó.");
             }
-            List<HighschoolExamScore> examScores = highschoolExamScoreRepository.findAll();
 
-            examScores.forEach(score -> score.setStatus(HighschoolExamScoreStatus.ACTIVE));
-            highschoolExamScoreRepository.saveAll(examScores);
+            examScoresStatus.forEach(score -> score.setStatus(HighschoolExamScoreStatus.ACTIVE));
+            highschoolExamScoreRepository.saveAll(examScoresStatus);
 
-            Map<Integer, List<HighschoolExamScore>> scoresByIdentificationNumber = examScores.stream()
+            listExamScoreByYear.setStatus("ACTIVE");
+            listExamScoreByYearRepository.save(listExamScoreByYear);
+
+            Map<Integer, List<HighschoolExamScore>> scoresByIdentificationNumber = examScoresStatus.stream()
                     .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
 
             Map<Integer, String> subjectIdToNameMap = subjectRepository.findAll().stream()
@@ -792,18 +807,46 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 Integer identificationNumber = userInfo.getIdentificationNumber();
                 List<HighschoolExamScore> userScores = scoresByIdentificationNumber.get(identificationNumber);
 
+                BigDecimal khtnTotalScore = BigDecimal.ZERO;
+                BigDecimal khxhTotalScore = BigDecimal.ZERO;
+                boolean hasKHTN = false;
+                boolean hasKHXH = false;
+
                 String email = userInfo.getUser().getEmail();
-                String subject = "Kết quả thi tốt nghiệp THPT 2024";
+                String subject = "Kết quả thi tốt nghiệp THPT " + listExamScoreByYear.getYear();
                 StringBuilder message = new StringBuilder();
-                message.append("<h1> Cổng thông tin tuyển sinh trường đại học - UAP</h1>");
-                message.append("<h3>Xin trân trọng thông báo kết quả thi tốt nghiệp THPT 2024 của bạn:</h2>");
+                message.append("<h1>Cổng thông tin tuyển sinh trường đại học - UAP</h1>");
+                message.append("<h3>Xin trân trọng thông báo kết quả thi tốt nghiệp THPT ")
+                        .append(listExamScoreByYear.getYear())
+                        .append(" của bạn:</h3>");
+
                 for (HighschoolExamScore score : userScores) {
                     if (score.getScore() != null) {
                         String subjectName = subjectIdToNameMap.get(score.getSubjectId());
                         message.append("<p>Môn: ").append(subjectName)
-                                .append(" - Điểm: ").append(score.getScore())
+                                .append("- Điểm: ").append("<b>" + score.getScore() + "</b>")
                                 .append("</p>");
+
+                        if (Set.of(27, 16, 23).contains(score.getSubjectId())) {
+                            khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(score.getScore()));
+                            hasKHTN = true;
+                        } else if (Set.of(34, 9, 54).contains(score.getSubjectId())) {
+                            khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(score.getScore()));
+                            hasKHXH = true;
+                        }
                     }
+                }
+                if (hasKHTN && khtnTotalScore.compareTo(BigDecimal.ZERO) > 0) {
+                    khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                    message.append("<p>Bài thi Khoa học tự nhiên")
+                            .append("- Điểm: ").append("<b>" + khtnTotalScore.floatValue() + "</b>")
+                            .append("</p>");
+                }
+                if (hasKHXH && khxhTotalScore.compareTo(BigDecimal.ZERO) > 0) {
+                    khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                    message.append("<p>Bài thi Khoa học xã hội")
+                            .append("- Điểm: ").append("<b>" + khxhTotalScore.floatValue() + "</b>")
+                            .append("</p>");
                 }
                 if (message.length() > "<h2>Kết quả thi của bạn:</h2>".length()) {
                     boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
@@ -814,12 +857,14 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                 }
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Công bố điểm thi THPT 2024 và gửi email thành công");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Công bố điểm thi THPT " + listExamScoreByYear.getYear() + " và gửi email thành công");
         } catch (Exception e) {
             log.error("Error publishing exam scores", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Có lỗi xảy ra khi công bố điểm thi THPT 2024");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Có lỗi xảy ra khi công bố điểm thi THPT " + listExamScoreByYearId);
         }
     }
+
+
 
     @Override
     public ResponseData<Page<ListExamScoreByYearResponse>> getAllListExamScoresByYear(Pageable pageable) {
