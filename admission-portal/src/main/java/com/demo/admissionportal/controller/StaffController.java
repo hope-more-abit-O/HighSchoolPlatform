@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.request.*;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityStatusRequest;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.campaign.CampaignStatusResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
 import com.demo.admissionportal.entity.Subject;
@@ -52,6 +53,7 @@ public class StaffController {
     private final CreateUniversityService createUniversityService;
     private final UniversityService universityService;
     private final ConsultantService consultantService;
+    private final UniversityPackageService universityPackageService;
 
     /**
      * Handles the submission of a university creation request.
@@ -73,7 +75,7 @@ public class StaffController {
             if (response.getStatus() != ResponseCode.C200.getCode())
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
             return ResponseEntity.ok(response);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getCause().getMessage()));
         }
     }
@@ -501,8 +503,8 @@ public class StaffController {
      * @throws ResourceNotFoundException the resource not found exception
      */
     @GetMapping("/consultant/{id}")
-    public ResponseEntity<ResponseData> getConsultantById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
-        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.",consultantService.getFullConsultantById(id)));
+    public ResponseEntity<ResponseData> getConsultantById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.", consultantService.getFullConsultantById(id)));
     }
 
     /**
@@ -541,4 +543,17 @@ public class StaffController {
         );
     }
 
+    @PostMapping("/campaign/{postId}")
+    public ResponseEntity<ResponseData<CampaignStatusResponseDTO>> changeStatusCampaign(@PathVariable(name = "postId") Integer postId) {
+        if (postId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
+        }
+        ResponseData<CampaignStatusResponseDTO> result = universityPackageService.changeStatus(postId);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } else if (result.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
 }

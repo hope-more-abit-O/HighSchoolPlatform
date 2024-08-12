@@ -1,5 +1,7 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.campaign.CampaignStatusResponseDTO;
 import com.demo.admissionportal.entity.AdsPackage;
 import com.demo.admissionportal.entity.UniversityPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
@@ -27,4 +29,12 @@ public interface UniversityPackageService {
      * @return the university package
      */
     UniversityPackage updateUniversityPackage(Integer transactionId, Integer postId, Integer packageId);
+
+    /**
+     * Change status campaign status response dto.
+     *
+     * @param postId the post id
+     * @return the campaign status response dto
+     */
+    ResponseData<CampaignStatusResponseDTO> changeStatus(Integer postId);
 }

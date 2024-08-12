@@ -1,6 +1,9 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.UniversityPackageStatus;
+import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.campaign.CampaignStatusResponseDTO;
 import com.demo.admissionportal.entity.AdsPackage;
 import com.demo.admissionportal.entity.UniversityPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
@@ -87,5 +90,27 @@ public class UniversityPackageServiceImpl implements UniversityPackageService {
 
     public UniversityPackage findOldUniversityPackage(Integer universityId, Integer postId) {
         return universityPackageRepository.findOldUniversityPackage(universityId, postId);
+    }
+
+    @Override
+    public ResponseData<CampaignStatusResponseDTO> changeStatus(Integer postId) {
+        try {
+            UniversityPackage universityPackage = universityPackageRepository.findCampaignByPostId(postId);
+            if (universityPackage == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy postId");
+            }
+            if (universityPackage.getStatus().equals(UniversityPackageStatus.ACTIVE)) {
+                universityPackage.setStatus(UniversityPackageStatus.INACTIVE);
+            } else {
+                universityPackage.setStatus(UniversityPackageStatus.ACTIVE);
+            }
+            UniversityPackage result = universityPackageRepository.save(universityPackage);
+            CampaignStatusResponseDTO campaignStatusResponseDTO = new CampaignStatusResponseDTO();
+            campaignStatusResponseDTO.setCurrentStatus(result.getStatus().name);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Thay đổi trạng thái chiến dịch thành công", campaignStatusResponseDTO);
+        } catch (Exception ex) {
+            log.error("Error when change status of uni package: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi thay đổi trạng thái chiến dịch");
+        }
     }
 }

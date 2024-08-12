@@ -52,4 +52,24 @@ public interface UniversityPackageRepository extends JpaRepository<UniversityPac
             "            JOIN ads_package ap ON ut.ads_package_id = ap.id " +
             "            WHERE p.id = :id", nativeQuery = true)
     UniversityPackage findCampaignByUniId(Integer id);
+
+    /**
+     * Find campaign by post id university package.
+     *
+     * @param id the id
+     * @return the university package
+     */
+    @Query(value = "SELECT up.* " +
+            "            FROM post p " +
+            "            LEFT JOIN ( " +
+            "                SELECT post_id, MAX(complete_time) AS max_complete_time " +
+            "                FROM university_package " +
+            "                GROUP BY post_id " +
+            "            ) max_up " +
+            "            ON p.id = max_up.post_id " +
+            "            LEFT JOIN university_package up ON up.post_id = p.id AND up.complete_time = max_up.max_complete_time " +
+            "            JOIN university_transaction ut ON up.university_transaction_id = ut.id " +
+            "            JOIN ads_package ap ON ut.ads_package_id = ap.id " +
+            "            WHERE p.id = :id", nativeQuery = true)
+    UniversityPackage findCampaignByPostId(Integer id);
 }
