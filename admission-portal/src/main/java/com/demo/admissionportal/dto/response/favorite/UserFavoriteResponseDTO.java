@@ -14,6 +14,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserFavoriteResponseDTO implements Serializable {
+    private Integer universityId;
     private String universityName;
     private String avatar;
     private Date dateFavorite;

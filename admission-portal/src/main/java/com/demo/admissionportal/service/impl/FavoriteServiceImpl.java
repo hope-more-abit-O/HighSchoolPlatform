@@ -114,6 +114,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     private UserFavoriteResponseDTO mapUserFavorite(UserFavorite userFavorite) {
         UserFavoriteResponseDTO result = new UserFavoriteResponseDTO();
+        result.setUniversityId(userFavorite.getUniversity().getId());
         result.setDateFavorite(userFavorite.getCreateTime());
         result.setUniversityName(userFavorite.getUniversity().getName());
         result.setAvatar(userFavorite.getUser().getAvatar());
