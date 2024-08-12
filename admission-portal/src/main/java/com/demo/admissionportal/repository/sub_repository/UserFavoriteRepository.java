@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * The interface User favorite repository.
  */
@@ -30,4 +32,15 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
             "FROM [user_favorite] uf " +
             "WHERE uf.status = 'FOLLOW' AND uf.university_id = :universityId ", nativeQuery = true)
     Integer totalFavoriteCount(Integer universityId);
+
+    /**
+     * Find by user id list.
+     *
+     * @param userId the user id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM user_favorite uf " +
+            "WHERE uf.user_id = :userId AND uf.status = 'FOLLOW'",nativeQuery = true)
+    List<UserFavorite> findByUserId(Integer userId);
 }

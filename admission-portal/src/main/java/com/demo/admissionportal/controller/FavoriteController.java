@@ -4,6 +4,8 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.TotalCountResponseDTO;
+import com.demo.admissionportal.dto.response.favorite.UserFavoriteResponseDTO;
+import com.demo.admissionportal.entity.UserFavorite;
 import com.demo.admissionportal.service.FavoriteService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * The type Favorite controller.
@@ -65,6 +69,7 @@ public class FavoriteController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfTotal);
     }
+
     /**
      * Gets favorite.
      *
@@ -84,5 +89,21 @@ public class FavoriteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(favorite);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
+    }
+
+    /**
+     * Get favorite by user id response entity.
+     *
+     * @return the response entity
+     */
+    @GetMapping("/list")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseData<List<UserFavoriteResponseDTO>>> getFavoriteByUserId() {
+        ResponseData<List<UserFavoriteResponseDTO>> list = favoriteService.getListFavorite();
+        if (list.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(list);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
     }
 }
