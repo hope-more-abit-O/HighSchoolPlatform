@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -56,7 +57,8 @@ public class UserInfo implements Serializable {
     @NotNull
     @Nationalized
     @Column(name = "education_level")
-    private String educationLevel;
+    @Enumerated(EnumType.STRING)
+    private EducationLevel educationLevel;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "province_id")

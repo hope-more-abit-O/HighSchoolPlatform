@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class HighschoolExamScoreResponse {
     private Integer identificationNumber;
+    private String local;
     private String examinationBoard;
     private String dateOfBirth;
     private String examiner;

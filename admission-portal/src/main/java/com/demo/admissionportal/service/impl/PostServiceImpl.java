@@ -72,8 +72,6 @@ public class PostServiceImpl implements PostService {
     private LocalDate lastRandomDate;
     private Integer lastSearch;
 
-    private List<PostPackageResponseDTO> lastPostPackageResponseDTOS;
-    private LocalDateTime lastPackageDate;
 
     private final UniversityTransactionRepository universityTransactionRepository;
     private final UniversityPackageRepository universityPackageRepository;
@@ -1055,6 +1053,7 @@ public class PostServiceImpl implements PostService {
                 .packageName(adsPackage != null ? adsPackage.getName() : null)
                 .startCampaignDate(universityPackage != null ? universityPackage.getCreateTime() : null)
                 .endCampaignDate(universityPackage != null ? universityPackage.getCompleteTime() : null)
+                .orderCode(universityTransaction != null ? universityTransaction.getOrderCode() : null)
                 .build();
     }
 
@@ -1240,20 +1239,10 @@ public class PostServiceImpl implements PostService {
 
     public ResponseData<List<PostPackageResponseDTO>> getPostHasPackage() {
         try {
-
-            LocalDateTime today = LocalDateTime.now();
-            // Case 1 : If not pass 30 minutes get old result
-            if (lastPackageDate != null && !(ChronoUnit.MINUTES.between(lastPackageDate, today) >= 30)) {
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post có package: ", lastPostPackageResponseDTOS);
-            }
-            // Case 2 : If pass 30 minutes when random it.
             List<Post> posts = postRepository.findPostHasPackage();
             List<PostPackageResponseDTO> postPackageResponseDTOS = posts.stream()
                     .map(this::mapToPostPackageResponseDTO)
                     .collect(Collectors.toList());
-            Collections.shuffle(postPackageResponseDTOS, new Random());
-            lastPostPackageResponseDTOS = postPackageResponseDTOS;
-            lastPackageDate = today;
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tìm thấy danh sách post có package", postPackageResponseDTOS);
         } catch (Exception ex) {
             log.info("Error when get post has package: {}", ex.getMessage());

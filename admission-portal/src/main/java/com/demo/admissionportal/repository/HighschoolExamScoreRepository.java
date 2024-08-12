@@ -14,12 +14,14 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
     @Query(value = "SELECT * FROM highschool_exam_score h WHERE " +
             "(:identificationNumber IS NULL OR h.identification_number = :identificationNumber) " +
-            "AND h.year = 2024",
+            "AND (:year IS NULL OR h.year = :year)",
             nativeQuery = true)
-    List<HighschoolExamScore> findAll(@Param("identificationNumber") Integer identificationNumber);
+    List<HighschoolExamScore> findAll(@Param("identificationNumber") Integer identificationNumber, @Param("year") Integer year);
 
-    @Query("SELECT COUNT(h) FROM HighschoolExamScore h WHERE h.identificationNumber = :identificationNumber AND h.year = 2024")
-    int countByIdentificationNumber(@Param("identificationNumber") Integer identificationNumber);
+
+    @Query("SELECT COUNT(h) FROM HighschoolExamScore h WHERE h.identificationNumber = :identificationNumber AND h.year = :year")
+    int countByIdentificationNumberAndYear(@Param("identificationNumber") Integer identificationNumber, @Param("year") Integer year);
+
 
     List<HighschoolExamScore> findByExaminer(String examiner);
     List<HighschoolExamScore> findByIdentificationNumber(Integer identificationNumber);
@@ -48,8 +50,19 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "FROM highschool_exam_score h " +
             "INNER JOIN subject s ON h.subject_id = s.id " +
             "WHERE s.name = :subjectName AND h.year = 2024 " +
+            "AND (:local IS NULL OR h.local = :local) " +
             "ORDER BY h.score DESC", nativeQuery = true)
-    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName);
+    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName, @Param("local") String local);
+
+    @Query(value = "SELECT TOP 100 h.identification_number " +
+            "FROM highschool_exam_score h " +
+            "WHERE h.year = 2024 AND " +
+            "(:local IS NULL OR h.local = :local) AND " +
+            "h.subject_id IN (:subjectIds) " +
+            "GROUP BY h.identification_number " +
+            "ORDER BY SUM(h.score) DESC", nativeQuery = true)
+    List<Integer> findTop100StudentsBySubjects(@Param("subjectIds") List<Integer> subjectIds, @Param("local") String local);
+
 
     @Query(value = "SELECT h.* " +
             "FROM highschool_exam_score h " +
@@ -59,7 +72,9 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
 
     List<HighschoolExamScore> findAllByStatus(HighschoolExamScoreStatus status);
-}
+
+    @Query("SELECT h FROM HighschoolExamScore h WHERE h.year = :year AND h.status = :status")
+    List<HighschoolExamScore> findAllByYearAndStatus(@Param("year") Integer year, @Param("status") HighschoolExamScoreStatus status);}
 
 
 

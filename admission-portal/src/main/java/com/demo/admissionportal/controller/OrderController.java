@@ -34,6 +34,7 @@ import vn.payos.type.PaymentLinkData;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +77,7 @@ public class OrderController {
             listAdsPackage.add(adsPackage);
         }
 
-        ObjectNode result = createPaymentLink(listAdsPackage);
+        ObjectNode result = createPaymentLink(listAdsPackage, infoTransactionDTOList);
         CreateQrResponseDTO responseDTO = new CreateQrResponseDTO();
         int error = result.findValue("error").asInt();
         if (error != 0) {
@@ -85,8 +86,11 @@ public class OrderController {
         JsonNode dataNode = result.get("data");
         String statusPayment = dataNode.get("status").asText();
         long orderCode = dataNode.get("orderCode").asLong();
+        for (CreateQrResponseDTO.InfoTransactionDTO transaction : infoTransactionDTOList) {
+            UniversityTransaction serviceTransaction = universityTransactionService.findTransaction(transaction.getUniversityTransactionId());
+            serviceTransaction.setOrderCode(orderCode);
+        }
         String checkoutUrl = dataNode.get("checkoutUrl").asText();
-
         responseDTO.setOrderCode(orderCode);
         responseDTO.setCheckoutURL(checkoutUrl);
         responseDTO.setTransaction(infoTransactionDTOList);
@@ -131,7 +135,7 @@ public class OrderController {
      * @return the object node
      */
     @Transactional(rollbackOn = Exception.class)
-    public ObjectNode createPaymentLink(List<AdsPackage> adsPackage) {
+    public ObjectNode createPaymentLink(List<AdsPackage> adsPackage, List<CreateQrResponseDTO.InfoTransactionDTO> infoTransactionDTOList) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
         CreatePaymentLinkRequestBody requestBody = new CreatePaymentLinkRequestBody();
@@ -140,11 +144,14 @@ public class OrderController {
             String productName = adsPackage.stream()
                     .map(AdsPackage::getName)
                     .collect(Collectors.joining(", "));
+            String productTransactionId = infoTransactionDTOList.stream()
+                    .map(dto -> dto.getUniversityTransactionId().toString())
+                    .collect(Collectors.joining(", "));
             for (AdsPackage ads : adsPackage) {
                 totalAmount += ads.getPrice();
             }
             requestBody.setProductName(productName);
-            requestBody.setDescription("Thanh toán gói quảng cáo");
+            requestBody.setDescription("Ma don hang " + productTransactionId);
             requestBody.setPrice(totalAmount);
             requestBody.setReturnUrl("https://your-return-url.com");
             requestBody.setCancelUrl("https://your-cancel-url.com");
@@ -155,7 +162,7 @@ public class OrderController {
 
             PaymentData paymentData = PaymentData.builder()
                     .orderCode(orderCode)
-                    .description(requestBody.getDescription())
+                    .description("Ma don hang " + productTransactionId)
                     .amount(totalAmount)
                     .items(mapItemList(adsPackage))
                     .returnUrl(requestBody.getReturnUrl())

@@ -180,25 +180,4 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "WHERE up.status = 'ACTIVE' AND p.status = 'ACTIVE'" +
             "ORDER BY up.create_time DESC ", nativeQuery = true)
     List<Post> findPostHasPackage();
-
-    /**
-     * Find campaign by uni id list.
-     *
-     * @param universityId the university id
-     * @return the list
-     */
-    @Query(value = "SELECT p.* " +
-            "FROM post p " +
-            "JOIN (" +
-            "    SELECT up.post_id, MAX(up.complete_time) AS max_complete_time " +
-            "    FROM [university_package] up " +
-            "    WHERE up.status = 'ACTIVE' " +
-            "    GROUP BY up.post_id " +
-            ") max_up ON p.id = max_up.post_id " +
-            "JOIN university_package up ON up.post_id = p.id AND up.complete_time = max_up.max_complete_time " +
-            "JOIN university_transaction ut ON up.university_transaction_id = ut.id " +
-            "JOIN ads_package ap ON ut.ads_package_id = ap.id " +
-            "JOIN consultant_info ci ON p.create_by = ci.consultant_id " +
-            "WHERE ci.university_id = :universityId", nativeQuery = true)
-    List<Post> findCampaignByUniId(Integer universityId);
 }

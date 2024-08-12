@@ -119,7 +119,7 @@ public class UserServiceImpl implements UserService {
 
             userProfileResponseDTO.setPhone(userInfo.getPhone());
             userProfileResponseDTO.setSpecificAddress(userInfo.getSpecificAddress());
-            userProfileResponseDTO.setEducation_level(userInfo.getEducationLevel());
+            userProfileResponseDTO.setEducation_level(userInfo.getEducationLevel().name);
             userProfileResponseDTO.setWard(ward);
             userProfileResponseDTO.setDistrict(district);
             userProfileResponseDTO.setProvince(province);
@@ -156,7 +156,10 @@ public class UserServiceImpl implements UserService {
             }
             // Update profile
             boolean isChanged = false;
-            validationService.validatePhoneNumber(requestDTO.getPhone());
+            boolean isPhoneChange = ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);;
+            if(isPhoneChange){
+                validationService.validatePhoneNumber(requestDTO.getPhone());
+            }
             ValidationService.updateIfChanged(requestDTO.getFirstName(), userInfo.getFirstName(), userInfo::setFirstName);
             ValidationService.updateIfChanged(requestDTO.getMiddleName(), userInfo.getMiddleName(), userInfo::setMiddleName);
             ValidationService.updateIfChanged(requestDTO.getLastName(), userInfo.getLastName(), userInfo::setLastName);
