@@ -1,8 +1,12 @@
 package com.demo.admissionportal.dto.response.payment;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.List;
 
 
 /**
@@ -11,11 +15,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder
 public class CreateQrResponseDTO {
     private long orderCode;
     private String statusPayment;
     private String checkoutURL;
-    private Integer universityTransactionId;
-    private Integer postId;
-    private Integer packageId;
+    private List<InfoTransactionDTO> transaction;
+
+    /**
+     * The type Info transaction dto.
+     */
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
+    public static class InfoTransactionDTO implements Serializable {
+        private Integer universityTransactionId;
+        private Integer postId;
+        private Integer packageId;
+    }
 }
