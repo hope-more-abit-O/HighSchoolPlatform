@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.payment.CreatePaymentLinkRequestBody;
+import com.demo.admissionportal.dto.request.payment.CreateQrRequestDTO;
 import com.demo.admissionportal.dto.request.payment.PaymentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.CreateQrResponseDTO;
@@ -30,7 +31,10 @@ import vn.payos.type.ItemData;
 import vn.payos.type.PaymentData;
 import vn.payos.type.PaymentLinkData;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type Order controller.
@@ -48,17 +52,31 @@ public class OrderController {
     /**
      * Create qr object node.
      *
-     * @param packageId the package id
+     * @param requestDTO the request dto
      * @return the object node
      */
     @PostMapping("/create-QR/")
-    @Transactional
-    public ResponseEntity<ResponseData<CreateQrResponseDTO>> createQR(@RequestParam(name = "packageId") Integer packageId, @RequestParam(name = "postId") Integer postId) {
+    @Transactional(rollbackOn = Exception.class)
+    public ResponseEntity<ResponseData<CreateQrResponseDTO>> createQR(@RequestBody List<CreateQrRequestDTO> requestDTO) {
         Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        AdsPackage adsPackage = packageRepository.findPackageById(packageId);
-        UniversityTransaction universityTransaction = universityTransactionService.createTransaction(universityId, adsPackage);
-        UniversityPackage universityPackage = universityPackageService.createUniPackage(adsPackage, universityTransaction, postId);
-        ObjectNode result = createPaymentLink(adsPackage);
+        AdsPackage adsPackage;
+        List<AdsPackage> listAdsPackage = new ArrayList<>();
+        UniversityTransaction universityTransaction;
+        UniversityPackage universityPackage;
+        List<CreateQrResponseDTO.InfoTransactionDTO> infoTransactionDTOList = new ArrayList<>();
+        for (CreateQrRequestDTO request : requestDTO) {
+            adsPackage = packageRepository.findPackageById(request.getPackageId());
+            universityTransaction = universityTransactionService.createTransaction(universityId, adsPackage);
+            universityPackage = universityPackageService.createUniPackage(adsPackage, universityTransaction, request.getPostId());
+            CreateQrResponseDTO.InfoTransactionDTO transactionDTO = new CreateQrResponseDTO.InfoTransactionDTO();
+            transactionDTO.setPostId(request.getPostId());
+            transactionDTO.setPackageId(request.getPackageId());
+            transactionDTO.setUniversityTransactionId(universityPackage.getUniversityTransactionId());
+            infoTransactionDTOList.add(transactionDTO);
+            listAdsPackage.add(adsPackage);
+        }
+
+        ObjectNode result = createPaymentLink(listAdsPackage);
         CreateQrResponseDTO responseDTO = new CreateQrResponseDTO();
         int error = result.findValue("error").asInt();
         if (error != 0) {
@@ -71,31 +89,37 @@ public class OrderController {
 
         responseDTO.setOrderCode(orderCode);
         responseDTO.setCheckoutURL(checkoutUrl);
-        responseDTO.setUniversityTransactionId(universityPackage.getUniversityTransactionId());
+        responseDTO.setTransaction(infoTransactionDTOList);
         responseDTO.setStatusPayment(statusPayment);
-        responseDTO.setPostId(postId);
-        responseDTO.setPackageId(adsPackage.getId());
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
 
+    /**
+     * Gets result payment.
+     *
+     * @param requestDTO the request dto
+     * @return the result payment
+     */
     @PostMapping("/")
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<ResponseData<PaymentResponseDTO>> getResultPayment(@RequestBody @Valid PaymentRequestDTO requestDTO) {
         ObjectNode resultOfPayment = getOrderById(requestDTO.getOrderCode());
         JsonNode dataNode = resultOfPayment.get("data");
         UniversityTransaction universityTransaction;
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
-        if (status.equals("PAID")) {
-            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
-            universityPackageService.updateUniversityPackage(requestDTO.getUniversityTransactionId(), requestDTO.getPostId(), requestDTO.getPackageId());
-        } else if (status.equals("CANCELLED")) {
-            universityTransaction = universityTransactionService.updateTransaction(requestDTO.getUniversityTransactionId(), status);
-        } else {
-            universityTransaction = universityTransactionService.findTransaction(requestDTO.getUniversityTransactionId());
+        for (PaymentRequestDTO.PaymentInfo paymentInfo : requestDTO.getTransaction()) {
+            if (status.equals("PAID")) {
+                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
+                universityPackageService.updateUniversityPackage(paymentInfo.getUniversityTransactionId(), paymentInfo.getPostId(), paymentInfo.getPackageId());
+            } else if (status.equals("CANCELLED")) {
+                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
+            } else {
+                universityTransaction = universityTransactionService.findTransaction(paymentInfo.getUniversityTransactionId());
+            }
+            paymentResponseDTO.setOrderCode(requestDTO.getOrderCode());
+            paymentResponseDTO.setPaymentStatus(universityTransaction.getStatus().name);
         }
-        paymentResponseDTO.setPayment(universityTransaction.getStatus().name);
-
         ResponseData<PaymentResponseDTO> responseData = new ResponseData<>(ResponseCode.C200.getCode(), "Lấy trạng thái payment thành công", paymentResponseDTO);
         return ResponseEntity.status(HttpStatus.OK).body(responseData);
     }
@@ -106,31 +130,34 @@ public class OrderController {
      * @param adsPackage the ads package
      * @return the object node
      */
-    public ObjectNode createPaymentLink(AdsPackage adsPackage) {
+    @Transactional(rollbackOn = Exception.class)
+    public ObjectNode createPaymentLink(List<AdsPackage> adsPackage) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
         CreatePaymentLinkRequestBody requestBody = new CreatePaymentLinkRequestBody();
         try {
-            requestBody.setProductName(adsPackage.getName());
+            int totalAmount = 0;
+            String productName = adsPackage.stream()
+                    .map(AdsPackage::getName)
+                    .collect(Collectors.joining(", "));
+            for (AdsPackage ads : adsPackage) {
+                totalAmount += ads.getPrice();
+            }
+            requestBody.setProductName(productName);
             requestBody.setDescription("Thanh toán gói quảng cáo");
-            requestBody.setPrice(adsPackage.getPrice());
+            requestBody.setPrice(totalAmount);
             requestBody.setReturnUrl("https://your-return-url.com");
             requestBody.setCancelUrl("https://your-cancel-url.com");
-            // Gen order code
-            String currentTimeString = String.valueOf(String.valueOf(new Date().getTime()));
-            long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
 
-            ItemData item = ItemData.builder()
-                    .name(requestBody.getProductName())
-                    .price(requestBody.getPrice())
-                    .quantity(1)
-                    .build();
+            // Gen order code
+            String currentTimeString = String.valueOf(new Date().getTime());
+            long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
 
             PaymentData paymentData = PaymentData.builder()
                     .orderCode(orderCode)
                     .description(requestBody.getDescription())
-                    .amount(requestBody.getPrice())
-                    .item(item)
+                    .amount(totalAmount)
+                    .items(mapItemList(adsPackage))
                     .returnUrl(requestBody.getReturnUrl())
                     .cancelUrl(requestBody.getCancelUrl())
                     .build();
@@ -152,12 +179,26 @@ public class OrderController {
         }
     }
 
+    private List<ItemData> mapItemList(List<AdsPackage> adsPackage) {
+        List<ItemData> items = new ArrayList<>();
+        for (AdsPackage ads : adsPackage) {
+            ItemData item = ItemData.builder()
+                    .name(ads.getName())
+                    .price(ads.getPrice())
+                    .quantity(1)
+                    .build();
+            items.add(item);
+        }
+        return items;
+    }
+
     /**
      * Gets order by id.
      *
      * @param orderId the order id
      * @return the order by id
      */
+    @Transactional(rollbackOn = Exception.class)
     public ObjectNode getOrderById(@PathVariable("orderId") long orderId) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();

@@ -13,12 +13,10 @@ public class EducationLevelConverter extends AbstractConverter<EducationLevel, S
         }
 
         switch (level) {
-            case SECONDARY:
-                return "Trung học";
             case HIGH:
-                return "Đại học";
+                return "Học sinh";
             case OTHER:
-                return "Khác";
+                return "Phụ huynh";
             default:
                 return level.name();
         }

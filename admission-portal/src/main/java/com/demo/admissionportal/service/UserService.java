@@ -59,11 +59,10 @@ public interface UserService extends UserDetailsService {
     /**
      * Update user response data.
      *
-     * @param id         the id
      * @param requestDTO the request dto
      * @return the response data
      */
-    ResponseData<UpdateUserResponseDTO> updateUser(Integer id, UpdateUserRequestDTO requestDTO);
+    ResponseData<UpdateUserResponseDTO> updateUser(UpdateUserRequestDTO requestDTO);
 
     /**
      * Change status response data.

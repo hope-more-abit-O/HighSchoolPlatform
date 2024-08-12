@@ -8,10 +8,7 @@ import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
-import com.demo.admissionportal.exception.exceptions.DataExistedException;
-import com.demo.admissionportal.exception.exceptions.QueryException;
-import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
-import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
+import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -116,10 +113,14 @@ public class AdmissionController {
         return ResponseEntity.ok(admissionService.getById(id));
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity universityAction(@RequestBody @Valid UpdateAdmissionStatusRequest request){
-        return ResponseEntity.ok(admissionService.universityUpdateStatus(request));
+    public ResponseEntity universityAction(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
+        if (id == null){
+            throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
+        } else if (id <= 0)
+            throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
+        return ResponseEntity.ok(admissionService.admissionUpdateStatus(id, request));
     }
 
     @PutMapping("/score")

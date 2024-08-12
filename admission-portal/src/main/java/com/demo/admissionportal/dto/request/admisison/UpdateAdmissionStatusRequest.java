@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateAdmissionStatusRequest {
-    @NotNull
-    private Integer admissionId;
-    @NotNull
+    @NotNull(message = "Ghi chú không được để trống.")
     private String note;
-    @NotNull
+    @NotNull(message = "Trạng thái đề án không được để trống.")
     private AdmissionStatus status;
 }
