@@ -20,6 +20,7 @@ import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
+import com.demo.admissionportal.repository.ConsultantInfoRepository;
 import com.demo.admissionportal.repository.admission.*;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
@@ -56,6 +57,8 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UniversityInfoServiceImpl universityInfoServiceImpl;
     private final SubjectGroupServiceImpl subjectGroupServiceImpl;
     private final SubjectServiceImpl subjectServiceImpl;
+    private final ConsultantInfoRepository consultantInfoRepository;
+    private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
 
     public Admission save(Admission admission) {
         try {
@@ -584,17 +587,22 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     @Transactional
-    public ResponseData universityUpdateStatus(UpdateAdmissionStatusRequest request)
+    public ResponseData admissionUpdateStatus(Integer id, UpdateAdmissionStatusRequest request)
             throws StoreDataFailedException, NotAllowedException {
-        Integer uniId = ServiceUtils.getId();
+        User user = ServiceUtils.getUser();
+        Admission admission = findById(id);
 
-        Admission admission = findById(request.getAdmissionId());
-        if (!admission.getUniversityId().equals(uniId))
+        if (user.getRole().equals(Role.UNIVERSITY) || !admission.getUniversityId().equals(user.getId())){
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
+
+        if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(consultantInfoServiceImpl.findById(user.getId()).getUniversityId())){
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
 
         admission.setAdmissionStatus(request.getStatus());
         admission.setNote(request.getNote());
-        admission.setUpdateBy(uniId);
+        admission.setUpdateBy(user.getId());
         admission.setUpdateTime(new Date());
 
         try {
@@ -606,6 +614,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Cập nhật trạng thái đề án thành công.");
     }
 
+    //TODO: must complete
     @Transactional
     public ResponseData updateAdmission(UpdateAdmissionRequest request) {
 

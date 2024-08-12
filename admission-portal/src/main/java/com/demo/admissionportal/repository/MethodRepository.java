@@ -66,7 +66,6 @@ public interface MethodRepository extends JpaRepository<Method, Integer> {
             AND (:createBy IS NULL OR m.create_by = :createBy)
             AND (:updateTime IS NULL OR m.update_time = :updateTime)
             AND (:updateBy IS NULL OR m.update_by = :updateBy)
-            AND (:status IS NULL OR m.status = :status)
     """, nativeQuery = true)
     Page<Method> findMethodBy(
             Pageable pageable,
