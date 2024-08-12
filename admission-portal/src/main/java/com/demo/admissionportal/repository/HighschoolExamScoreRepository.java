@@ -48,8 +48,9 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "FROM highschool_exam_score h " +
             "INNER JOIN subject s ON h.subject_id = s.id " +
             "WHERE s.name = :subjectName AND h.year = 2024 " +
+            "AND (:local IS NULL OR h.local = :local) " +
             "ORDER BY h.score DESC", nativeQuery = true)
-    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName);
+    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName, @Param("local") String local);
 
     @Query(value = "SELECT h.* " +
             "FROM highschool_exam_score h " +

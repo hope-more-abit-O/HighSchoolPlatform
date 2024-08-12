@@ -1,6 +1,8 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.ExamYearData;
+import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
@@ -40,8 +42,10 @@ public class HighschoolExamScoreController {
     }
     @GetMapping("/top-100")
     public ResponseEntity<ResponseData<List<HighschoolExamScoreResponse>>> getAllExamScores(
-            @RequestParam(required = false) String subjectName) {
-        ResponseData<List<HighschoolExamScoreResponse>> response = highschoolExamScoreService.getAllTop100HighestScoreBySubject(subjectName);
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(required = false) String local
+    ) {
+        ResponseData<List<HighschoolExamScoreResponse>> response = highschoolExamScoreService.getAllTop100HighestScoreBySubject(subjectName, local);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
@@ -55,13 +59,14 @@ public class HighschoolExamScoreController {
     @PostMapping
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<HighschoolExamScoreResponse>> createExamScore(@RequestBody CreateHighschoolExamScoreRequest request) {
-        ResponseData<HighschoolExamScoreResponse> response = highschoolExamScoreService.createExamScore(request);
+    public ResponseEntity<ResponseData<List<YearlyExamScoreResponse>>> createExamScores(@RequestBody List<ExamYearData> request) {
+        ResponseData<List<YearlyExamScoreResponse>> response = highschoolExamScoreService.createExamScores(request);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
     @PutMapping
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")

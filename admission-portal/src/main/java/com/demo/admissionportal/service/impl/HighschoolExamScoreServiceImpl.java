@@ -2,6 +2,8 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.ExamYearData;
+import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
@@ -69,6 +71,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             for (Map.Entry<Integer, List<HighschoolExamScore>> entry : groupedById.entrySet()) {
                 List<SubjectScoreDTO> subjectScores = new ArrayList<>();
                 String examinationBoard = null;
+                String local = null;
                 String examiner = null;
                 String dateOfBirth = null;
                 Integer year = 2024;
@@ -92,6 +95,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 hasKHXH = true;
                             }
                         }
+                    }   if (local == null) {
+                        local = score.getLocal();
                     }
                     if (examinationBoard == null) {
                         examinationBoard = score.getExaminationBoard();
@@ -114,6 +119,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
                 responseList.add(new HighschoolExamScoreResponse(
                         entry.getKey(),
+                        local,
                         examinationBoard,
                         dateOfBirth,
                         examiner,
@@ -131,17 +137,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(9, 27, 28, 34, 36, 38, 16, 23, 54);
 
-    @Override
     @Transactional
-    public ResponseData<HighschoolExamScoreResponse> createExamScore(CreateHighschoolExamScoreRequest request) {
+    public ResponseData<List<YearlyExamScoreResponse>> createExamScores(List<ExamYearData> examYearDataList) {
         try {
-            if (request != null) {
-                List<HighschoolExamScore> existIdentificationNumber = highschoolExamScoreRepository.findByIdentificationNumber(request.getIdentificationNumber());
-                if (existIdentificationNumber != null && !existIdentificationNumber.isEmpty()) {
-                    log.error("Identification Number {} is already existed", request.getIdentificationNumber());
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh đã tồn tại");
-                }
-            }
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
             if (!(principal instanceof User)) {
@@ -150,45 +148,59 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             User staff = (User) principal;
             Integer staffId = staff.getId();
 
-            Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
-                    .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+            List<YearlyExamScoreResponse> yearlyResponses = examYearDataList.stream().map(examYearData -> {
+                int year = examYearData.getYear();
+                List<HighschoolExamScoreResponse> yearResponses = examYearData.getExamScoreData().stream().map(request -> {
+                    List<HighschoolExamScore> existIdentificationNumber = highschoolExamScoreRepository.findByIdentificationNumber(request.getIdentificationNumber());
+                    if (existIdentificationNumber != null && !existIdentificationNumber.isEmpty()) {
+                        log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), year);
+                        throw new IllegalStateException("Số báo danh thí sinh đã tồn tại");
+                    }
 
-            List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
-                SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
-                HighschoolExamScore examScore = new HighschoolExamScore();
-                examScore.setIdentificationNumber(request.getIdentificationNumber());
-                examScore.setLocal(request.getLocal());
-                examScore.setExaminationBoard(request.getExaminationBoard());
-                examScore.setExaminer(request.getExaminer());
-                examScore.setDateOfBirth(request.getDateOfBirth());
-                examScore.setSubjectId(subjectId);
-                examScore.setYear(2024);
-                examScore.setScore(subjectScore.getScore());
-                examScore.setCreateTime(new Date());
-                examScore.setCreateBy(staffId);
-                examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
-                return examScore;
+                    Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
+                            .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+
+                    List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
+                        SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
+                        HighschoolExamScore examScore = new HighschoolExamScore();
+                        examScore.setIdentificationNumber(request.getIdentificationNumber());
+                        examScore.setLocal(request.getLocal());
+                        examScore.setExaminationBoard(request.getExaminationBoard());
+                        examScore.setExaminer(request.getExaminer());
+                        examScore.setDateOfBirth(request.getDateOfBirth());
+                        examScore.setSubjectId(subjectId);
+                        examScore.setYear(year);
+                        examScore.setScore(subjectScore.getScore());
+                        examScore.setCreateTime(new Date());
+                        examScore.setCreateBy(staffId);
+                        examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
+                        return examScore;
+                    }).collect(Collectors.toList());
+
+                    highschoolExamScoreRepository.saveAll(examScores);
+
+                    List<SubjectScoreDTO> allSubjectScores = examScores.stream().map(examScore -> {
+                        String subjectName = subjectRepository.findById(examScore.getSubjectId())
+                                .map(subject -> subject.getName())
+                                .orElse(null);
+                        return new SubjectScoreDTO(examScore.getSubjectId(), subjectName, examScore.getScore());
+                    }).collect(Collectors.toList());
+
+                    return new HighschoolExamScoreResponse(
+                            request.getIdentificationNumber(),
+                            request.getLocal(),
+                            request.getExaminationBoard(),
+                            request.getDateOfBirth(),
+                            request.getExaminer(),
+                            year,
+                            allSubjectScores
+                    );
+                }).collect(Collectors.toList());
+
+                return new YearlyExamScoreResponse(examYearData.getTitle(), year, yearResponses);
             }).collect(Collectors.toList());
 
-            highschoolExamScoreRepository.saveAll(examScores);
-
-            List<SubjectScoreDTO> allSubjectScores = examScores.stream().map(examScore -> {
-                String subjectName = subjectRepository.findById(examScore.getSubjectId())
-                        .map(subject -> subject.getName())
-                        .orElse(null);
-                return new SubjectScoreDTO(examScore.getSubjectId(), subjectName, examScore.getScore());
-            }).collect(Collectors.toList());
-
-            HighschoolExamScoreResponse response = new HighschoolExamScoreResponse(
-                    request.getIdentificationNumber(),
-                    request.getExaminationBoard(),
-                    request.getDateOfBirth(),
-                    request.getExaminer(),
-                    2024,
-                    allSubjectScores
-            );
-
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo điểm thi thành công!", response);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo điểm thi thành công!", yearlyResponses);
 
         } catch (Exception e) {
             log.error("Error creating exam scores", e);
@@ -566,10 +578,10 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     @Override
-    public ResponseData<List<HighschoolExamScoreResponse>> getAllTop100HighestScoreBySubject(String subjectName) {
+    public ResponseData<List<HighschoolExamScoreResponse>> getAllTop100HighestScoreBySubject(String subjectName, String local) {
         List<HighschoolExamScoreResponse> responseList = new ArrayList<>();
         try {
-            List<Integer> topStudents = highschoolExamScoreRepository.findTop100StudentsBySubject(subjectName);
+            List<Integer> topStudents = highschoolExamScoreRepository.findTop100StudentsBySubject(subjectName, local);
 
             if (topStudents.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Không có dữ liệu", responseList);
@@ -630,6 +642,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                     HighschoolExamScoreResponse response = new HighschoolExamScoreResponse(
                             firstScore.getIdentificationNumber(),
+                            firstScore.getLocal(),
                             firstScore.getExaminationBoard(),
                             firstScore.getDateOfBirth(),
                             firstScore.getExaminer(),

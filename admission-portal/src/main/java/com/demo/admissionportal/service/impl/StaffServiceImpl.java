@@ -9,6 +9,7 @@ import com.demo.admissionportal.dto.request.ActiveStaffRequest;
 import com.demo.admissionportal.dto.request.DeleteStaffRequest;
 import com.demo.admissionportal.dto.request.RegisterStaffRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateStaffRequestDTO;
+import com.demo.admissionportal.dto.response.ProvinceDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.StaffResponseDTO;
 import com.demo.admissionportal.dto.response.staff.FindAllStaffResponse;
@@ -147,13 +148,13 @@ public class StaffServiceImpl implements StaffService {
         staffResponseDTO.setStatus(modelMapper.map(userStaff.getStatus(), String.class));
 
         Optional<Province> provinceOpt = provinceRepository.findById(existStaff.getProvinceId());
-        provinceOpt.ifPresent(province -> staffResponseDTO.setProvinceName(province.getName()));
+        provinceOpt.ifPresent(province -> {
+            ProvinceDTO provinceDTO = new ProvinceDTO(province.getId(), province.getName());
+            staffResponseDTO.setProvince(provinceDTO);
+        });
         log.info("Staff details retrieved successfully for ID: {}", id);
         return new ResponseData<>(ResponseCode.C200.getCode(), ResponseCode.C200.getMessage(), staffResponseDTO);
     }
-
-
-
 
     @Override
     public ResponseData<StaffResponseDTO> updateStaff(UpdateStaffRequestDTO request, Integer id, String token) {
@@ -162,38 +163,55 @@ public class StaffServiceImpl implements StaffService {
             log.warn("Unauthorized staff with token: {}", token);
             return new ResponseData<>(ResponseCode.C209.getCode(), "Không thể xác thực nhân viên này !");
         }
-        Province existProvince = provinceRepository.findProvinceById(id);
+
+        // Validate the provided provinceId
+        Province existProvince = provinceRepository.findProvinceById(request.getProvinceId());
         if (existProvince == null) {
             return new ResponseData<>(ResponseCode.C203.getCode(), "Tỉnh/Thành phố không được tìm thấy.");
         }
 
         Optional<StaffInfo> existStaffOpt = staffInfoRepository.findById(id);
+        if (existStaffOpt.isEmpty()) {
+            log.warn("Staff with id: {} not found", id);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
+        }
+
+        StaffInfo existStaff = existStaffOpt.get();
+
         Optional<StaffInfo> existStaffByPhone = staffInfoRepository.findFirstByPhone(request.getPhone());
         if (existStaffByPhone.isPresent() && !existStaffByPhone.get().getId().equals(id)) {
             log.info("Phone of staff {}: ", request.getPhone());
             return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoại đã tồn tại: " + request.getPhone());
         }
 
-        if (existStaffOpt.isEmpty()) {
-            log.warn("Staff with id: {} not found", id);
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhân viên với mã: " + id);
-        }
-        StaffInfo existStaff = existStaffOpt.get();
         try {
             log.info("Starting update process for Staff name: {} {} {}", request.getFirstName(), request.getMiddleName(), request.getLastName());
-            modelMapper.map(request, existStaff);
-            existStaff.setProvinceId(request.getProvinceId());
 
-            User staff = userRepository.findById(existStaff.getId()).orElseThrow(() -> new IllegalStateException("Không tìm thấy nhân viên !"));
-            staff.setAvatar(request.getAvatar());
-            userRepository.save(staff);
+            // Update the provinceId and other fields
+            existStaff.setFirstName(request.getFirstName());
+            existStaff.setMiddleName(request.getMiddleName());
+            existStaff.setLastName(request.getLastName());
+            existStaff.setPhone(request.getPhone());
+            existStaff.setProvinceId(request.getProvinceId());  // Update provinceId here
+
+            // Update avatar and other fields in User entity if needed
+            User staffUser = userOpt.get();
+            staffUser.setAvatar(request.getAvatar());
+            userRepository.save(staffUser);
+
+            // Save updated StaffInfo
             staffInfoRepository.save(existStaff);
 
+            // Prepare response DTO using ModelMapper and additional manual mappings
             StaffResponseDTO staffResponseDTO = modelMapper.map(existStaff, StaffResponseDTO.class);
-            staffResponseDTO.setUsername(staff.getUsername());
-            staffResponseDTO.setEmail(staff.getEmail());
-            staffResponseDTO.setAvatar(staff.getAvatar());
-            staffResponseDTO.setStatus(modelMapper.map(staff.getStatus(), String.class));
+            staffResponseDTO.setUsername(staffUser.getUsername());
+            staffResponseDTO.setEmail(staffUser.getEmail());
+            staffResponseDTO.setAvatar(staffUser.getAvatar());
+            staffResponseDTO.setStatus(modelMapper.map(staffUser.getStatus(), String.class));
+
+            // Set the province DTO
+            ProvinceDTO provinceDTO = new ProvinceDTO(existProvince.getId(), existProvince.getName());
+            staffResponseDTO.setProvince(provinceDTO);
 
             log.info("Staff updated successfully with ID: {}", existStaff.getId());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thành công!", staffResponseDTO);
@@ -202,6 +220,7 @@ public class StaffServiceImpl implements StaffService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật thất bại, vui lòng thử lại sau!");
         }
     }
+
 
     @Override
     public ResponseData<?> deleteStaffById(int id, DeleteStaffRequest request) {
