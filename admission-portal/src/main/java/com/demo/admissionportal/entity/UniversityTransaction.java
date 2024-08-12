@@ -41,4 +41,7 @@ public class UniversityTransaction {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private UniversityTransactionStatus status;
+
+    @Column(name = "order_code")
+    private Long orderCode;
 }

@@ -26,4 +26,5 @@ public class PostDetailResponseDTOV2 implements Serializable {
     private Date startCampaignDate;
     private Date endCampaignDate;
     private String packageName;
+    private Long orderCode;
 }
