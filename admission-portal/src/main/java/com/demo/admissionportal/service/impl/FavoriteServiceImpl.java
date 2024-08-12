@@ -117,7 +117,8 @@ public class FavoriteServiceImpl implements FavoriteService {
         result.setUniversityId(userFavorite.getUniversity().getId());
         result.setDateFavorite(userFavorite.getCreateTime());
         result.setUniversityName(userFavorite.getUniversity().getName());
-        result.setAvatar(userFavorite.getUser().getAvatar());
+        User university = userRepository.findUserById(userFavorite.getUniversity().getId());
+        result.setAvatar(university.getAvatar());
         return result;
     }
 }
