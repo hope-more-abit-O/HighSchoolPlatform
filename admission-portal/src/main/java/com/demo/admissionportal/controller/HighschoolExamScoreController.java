@@ -140,11 +140,11 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    @PostMapping("/publish")
+    @PostMapping("/publish/{listId}")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<String>> publishExamScores() {
-        ResponseData<String> response = highschoolExamScoreService.publishExamScores();
+    public ResponseEntity<ResponseData<String>> publishExamScores(@PathVariable Integer listId) {
+        ResponseData<String> response = highschoolExamScoreService.publishExamScores(listId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {

@@ -24,6 +24,6 @@ public interface HighschoolExamScoreService {
     ResponseData<Map<String, Map<Float, Integer>>> getScoreDistributionBySubject(String local, String subjectName);
     ResponseData<Map<String, Map<String, Float>>> getScoreDistributionByLocal(String subjectName);
     ResponseData<List<HighschoolExamScoreResponse>> getAllTop100HighestScoreBySubject(String subjectName, String local);
-    ResponseData<String> publishExamScores();
+    ResponseData<String> publishExamScores(Integer listExamScoreByYearId);
     ResponseData<Page<ListExamScoreByYearResponse>> getAllListExamScoresByYear(Pageable pageable);
 }

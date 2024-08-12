@@ -72,7 +72,9 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
 
     List<HighschoolExamScore> findAllByStatus(HighschoolExamScoreStatus status);
-}
+
+    @Query("SELECT h FROM HighschoolExamScore h WHERE h.year = :year AND h.status = :status")
+    List<HighschoolExamScore> findAllByYearAndStatus(@Param("year") Integer year, @Param("status") HighschoolExamScoreStatus status);}
 
 
 
