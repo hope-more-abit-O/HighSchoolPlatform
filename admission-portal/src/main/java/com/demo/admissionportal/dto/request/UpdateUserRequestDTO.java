@@ -1,15 +1,9 @@
 package com.demo.admissionportal.dto.request;
 
-import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
+import com.demo.admissionportal.util.enum_validator.EnumName;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
-import com.demo.admissionportal.util.enum_validator.EnumValue;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,10 +22,15 @@ import java.util.Date;
 @NoArgsConstructor
 @Valid
 public class UpdateUserRequestDTO implements Serializable {
+    @EnumName(message = "Họ tên chỉ chứa chữ")
     private String firstName;
+    @EnumName(message = "Họ tên chỉ chứa chữ")
     private String middleName;
+    @EnumName(message = "Họ tên chỉ chứa chữ")
     private String lastName;
+    @PastOrPresent(message = "Ngày sinh không được vượt ngày hiện tại")
     private Date birthday;
+    @EnumPhone(message = "Số điện thoại từ 10 - 11")
     private String phone;
     private Gender gender;
     private String education_level;
