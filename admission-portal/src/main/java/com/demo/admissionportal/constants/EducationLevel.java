@@ -7,13 +7,20 @@ public enum EducationLevel {
     /**
      * Secondary education level.
      */
-    SECONDARY,
     /**
      * High education level.
      */
-    HIGH,
+    HIGH("Học sinh"),
     /**
      * Other education level.
      */
-    OTHER
+    OTHER("Phụ huynh");
+    /**
+     * The Name.
+     */
+    public final String name;
+
+    EducationLevel(String name) {
+        this.name = name;
+    }
 }
