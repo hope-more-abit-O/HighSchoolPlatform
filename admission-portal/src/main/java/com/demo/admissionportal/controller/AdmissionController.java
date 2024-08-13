@@ -104,7 +104,7 @@ public class AdmissionController {
     public ResponseEntity<ResponseData<List<AdmissionSourceDTO>>> getAdmissionSourceV2(
             Pageable pageable,
             @RequestParam(required = false) List<Integer> year,
-            @RequestParam(required = false) List<Integer> universityCode
+            @RequestParam(required = false) List<String> universityCode
     ) {
         try {
             return ResponseEntity.ok(admissionService.getSourceV2(pageable, year, universityCode));
@@ -137,9 +137,9 @@ public class AdmissionController {
     @GetMapping("/score")
     public ResponseEntity<ResponseData<GetAdmissionScoreResponse>> getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
                                                                                                             @RequestParam(required = false) List<Integer> year,
-                                                                                                            @RequestParam(required = false) List<Integer> universityId){
+                                                                                                            @RequestParam(required = false) List<String> universityCode){
         try {
-            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable ,year, universityId)) );
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable ,year, universityCode)) );
         } catch (SQLException e){
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
         }

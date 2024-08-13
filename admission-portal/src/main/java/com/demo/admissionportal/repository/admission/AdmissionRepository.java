@@ -48,11 +48,21 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
+    INNER JOIN university_info ui on ad.university_id = ui.university_id
     WHERE (ad.university_id IN (:universityId))
     AND (ad.year IN (:year))
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    List<Admission> findAllByListYearAndListUniversityId(Pageable pageable , List<Integer> year, List<Integer> universityId);
+    List<Admission> findAllByListYearAndListUniversityId(Pageable pageable , List<Integer> year, List<String> universityId);
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    INNER JOIN university_info ui on ad.university_id = ui.university_id
+    WHERE (ui.code IN (:universityId))
+    AND (ad.year IN (:year))
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByListYearAndListUniversityCode(Pageable pageable , List<Integer> year, List<String> universityId);
 
 
     @Query(value = """

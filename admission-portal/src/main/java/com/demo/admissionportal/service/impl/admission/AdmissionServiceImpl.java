@@ -364,17 +364,17 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Lấy tài liệu thành công.", Arrays.stream(admissions.get().getSource().split(";")).toList());
     }
 
-    public ResponseData<List<AdmissionSourceDTO>> getSourceV2(Pageable pageable, List<Integer> year, List<Integer> universityId) {
+    public ResponseData<List<AdmissionSourceDTO>> getSourceV2(Pageable pageable, List<Integer> year, List<String> universityId) {
         try {
             List<Admission> admissions;
             if ((year == null || year.isEmpty()) && (universityId == null || universityId.isEmpty())) {
                 admissions = admissionRepository.findAllActiveWithPageable(pageable);
             } else if ((year == null || year.isEmpty())) {
-                admissions = admissionRepository.findAllByListUniversityId(pageable, year);
+                admissions = admissionRepository.findAllByListUniversityCode(pageable, universityId);
             } else if ((universityId == null || universityId.isEmpty())) {
                 admissions = admissionRepository.findAllByListYear(pageable, year);
             } else
-                admissions = admissionRepository.findAllByListYearAndListUniversityId(pageable, year, universityId);
+                admissions = admissionRepository.findAllByListYearAndListUniversityCode(pageable, year, universityId);
 
             if (admissions.isEmpty()) {
                 throw new ResourceNotFoundException("Không tìm thấy đề án.");
@@ -882,7 +882,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, List<Integer> year, List<Integer> universityId) throws SQLException {
+    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, List<Integer> year, List<String> universityId) throws SQLException {
         List<Admission> admissions = null;
         universityId = universityId.stream().distinct().toList();
 
@@ -909,12 +909,12 @@ public class AdmissionServiceImpl implements AdmissionService {
             }
         } else if (year == null) {
             try {
-                admissions = admissionRepository.findAllByListUniversityId(pageable, universityId);
+                admissions = admissionRepository.findAllByListUniversityCode(pageable, universityId);
             } catch (Exception e) {
                 throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
             }
             if (admissions.isEmpty()){
-                List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityId);
+                List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByCodes(universityId);
                 StringJoiner uniCode = new StringJoiner(",");
                 if (universityInfos.size() > 1) {
                     for (UniversityInfo y : universityInfos) {
@@ -926,7 +926,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             }
         } else {
             try {
-                admissions = admissionRepository.findAllByListYearAndListUniversityId(pageable, year, universityId);
+                admissions = admissionRepository.findAllByListYearAndListUniversityCode(pageable, year, universityId);
             } catch (Exception e) {
                 throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
             }
