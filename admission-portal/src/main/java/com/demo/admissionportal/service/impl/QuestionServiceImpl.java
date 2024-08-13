@@ -145,6 +145,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 
     @Override
+    @Transactional
     public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
         try {
             if (questionId == null) {
@@ -155,11 +156,13 @@ public class QuestionServiceImpl implements QuestionService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
             }
             List<QuestionJob> questionJob = questionJobRepository.findQuestionJobByQuestionId(questionExisted.getId());
-            for (QuestionJob qj : questionJob){
+            for (QuestionJob qj : questionJob) {
                 questionJobRepository.delete(qj);
             }
+            QuestionQuestionType questionType = questionQuestionTypeRepository.findQuestionQuestionTypeByQuestionId(questionExisted.getId());
+            questionQuestionTypeRepository.delete(questionType);
             questionRepository.delete(questionExisted);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã xoá question với id: " + questionId + "  thành công");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã xoá question với id: " + questionId + " thành công");
         } catch (Exception e) {
             log.error("Error while delete question Id: {}", questionId);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá question id: " + questionId);

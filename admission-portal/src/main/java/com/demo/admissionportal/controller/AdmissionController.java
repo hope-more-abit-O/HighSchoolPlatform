@@ -10,6 +10,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
 
+    @Hidden
     @PostMapping
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<CreateAdmissionResponse>> createAdmission(@RequestBody CreateAdmissionAndMethodsAndMajorsRequest request)
@@ -61,13 +63,34 @@ public class AdmissionController {
 //        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
 //    }
     @GetMapping("/score-advice")
-    public ResponseEntity advice(@RequestParam(required = false) List<Integer> majorId,
+    public ResponseEntity advice(@RequestParam(required = false) String majorId,
                                  @RequestParam(required = false) Float offset,
                                  @RequestParam(required = false) Float score,
-                                 @RequestParam(required = false) List<Integer> subjectGroupId,
-                                 @RequestParam(required = false) List<Integer> methodId,
-                                 @RequestParam(required = false) List<Integer> provinceId){
-        return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorId, offset, score, subjectGroupId, methodId, provinceId)));
+                                 @RequestParam(required = false) String subjectGroupId,
+                                 @RequestParam(required = false) String methodId,
+                                 @RequestParam(required = false) String provinceId){
+        try {
+            List<Integer> majorIds = null;
+            List<Integer> subjectGroupIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> provinceIds = null;
+
+            if (majorId != null && !majorId.isEmpty()) {
+                majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (provinceId  != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @PostMapping("/create")
@@ -111,7 +134,7 @@ public class AdmissionController {
             List<Integer> years = null;
             List<String> universityCodes = null;
             if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
-            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
+            if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
             return ResponseEntity.ok(admissionService.getSourceV2(pageable, years, universityCodes));
         } catch (Exception e) {
             throw e;
@@ -147,7 +170,7 @@ public class AdmissionController {
             List<Integer> years = null;
             List<String> universityCodes = null;
             if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
-            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
+            if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
             return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , years, universityCodes)));
         } catch (SQLException e){
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));

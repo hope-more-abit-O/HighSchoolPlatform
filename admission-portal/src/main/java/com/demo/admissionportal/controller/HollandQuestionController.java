@@ -42,12 +42,6 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdQuestionResponse);
     }
 
-    /**
-     * Delete question response entity.
-     *
-     * @param questionId the question id
-     * @return the response entity
-     */
     @DeleteMapping("/question/{questionId}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
