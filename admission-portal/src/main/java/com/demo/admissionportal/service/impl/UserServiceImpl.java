@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
@@ -85,7 +86,7 @@ public class UserServiceImpl implements UserService {
             Page<UserResponseDTO> result = new PageImpl<>(userResponseDTOS, pageable, userPage.getTotalElements());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách user", result);
         } catch (Exception ex) {
-            log.error("Error while getting list user: {}", ex.getMessage());
+            log.error("Error getting list user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
         }
     }
@@ -128,7 +129,7 @@ public class UserServiceImpl implements UserService {
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy user", userProfileResponseDTO);
         } catch (Exception ex) {
-            log.error("Error while getting user: {}", ex.getMessage());
+            log.error("Error getting user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user");
         }
     }
@@ -198,7 +199,7 @@ public class UserServiceImpl implements UserService {
             return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoai đã tồn tại");
 
         } catch (Exception ex) {
-            log.error("Error while update user: {}", ex.getMessage());
+            log.error("Error update user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
         }
     }
@@ -225,7 +226,7 @@ public class UserServiceImpl implements UserService {
             response.setCurrentStatus(user.getStatus().name);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật trạng thái thành công", response);
         } catch (Exception ex) {
-            log.error("Error while change status user: {}", ex.getMessage());
+            log.error("Error change status user: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi thay đổi trạng thái user");
         }
     }
@@ -587,50 +588,49 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseData<String> updateIdentificationNumber(Integer userId, List<Integer> identificationNumbers, Authentication authentication) {
+    public ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
         try {
             String username = authentication.getName();
             Optional<User> authenticatedUserOpt = userRepository.findByUsername(username);
 
             if (authenticatedUserOpt.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "User not found");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy !");
             }
 
             User authenticatedUser = authenticatedUserOpt.get();
 
             if (!authenticatedUser.getId().equals(userId)) {
-                return new ResponseData<>(ResponseCode.C209.getCode(), "User does not have permission to perform this action");
+                return new ResponseData<>(ResponseCode.C209.getCode(), "Người dùng không được phép thực hiện !");
             }
 
             String email = authenticatedUser.getEmail();
 
             List<UserIdentificationNumberRegister> existingEntries = userIdentificationNumberRegisterRepository.findByUserId(userId);
 
-            if (existingEntries.size() + identificationNumbers.size() > 3) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Cannot register more than 3 identification numbers");
-            }
-            for (Integer identificationNumber : identificationNumbers) {
-                boolean isDuplicate = existingEntries.stream()
-                        .anyMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
-                if (isDuplicate) {
-                    return new ResponseData<>(ResponseCode.C204.getCode(), "Duplicate identification number: " + identificationNumber);
-                }
-            }
-            for (Integer identificationNumber : identificationNumbers) {
-                UserIdentificationNumberRegister newEntry = new UserIdentificationNumberRegister();
-                newEntry.setUserId(userId);
-                newEntry.setEmail(email);
-                newEntry.setIdentificationNumber(identificationNumber);
-                newEntry.setStatus(AccountStatus.INACTIVE); // Assuming default status is INACTIVE
-                newEntry.setCreateBy(userId); // Assuming the user who is updating is the one creating
-                userIdentificationNumberRegisterRepository.save(newEntry);
+            if (existingEntries.size() >= 3) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng chỉ được phép đăng kí tối đa 3 số báo danh");
             }
 
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Identification numbers registered successfully");
+            boolean isDuplicate = existingEntries.stream()
+                    .anyMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
+            if (isDuplicate) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Đã đăng kí số báo danh: " + identificationNumber + "này trước đó");
+            }
+
+            UserIdentificationNumberRegister newEntry = new UserIdentificationNumberRegister();
+            newEntry.setUserId(userId);
+            newEntry.setEmail(email);
+            newEntry.setIdentificationNumber(identificationNumber);
+            newEntry.setStatus(IdentificationNumberRegisterStatus.PENDING);
+            newEntry.setCreateBy(userId);
+            userIdentificationNumberRegisterRepository.save(newEntry);
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh được đăng kí thành công !");
 
         } catch (Exception e) {
-            log.error("Error occurred while updating identification numbers", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "An error occurred while registering identification numbers");
+            log.error("Error updating identification number", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình đăng kí số báo danh, vui lòng thử lại sau.");
         }
     }
+
 }

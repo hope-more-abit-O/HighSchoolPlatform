@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class ListExamScoreByYear {
     private String title;
     @Column(name = "year")
     private Integer year;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private ListExamScoreByYearStatus status;
 }

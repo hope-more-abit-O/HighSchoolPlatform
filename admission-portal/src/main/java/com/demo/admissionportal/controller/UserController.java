@@ -103,8 +103,10 @@ public class UserController {
         ResponseData<String> response = userService.updateIdentificationNumber(id, request.getIdentificationNumber(), authentication);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
