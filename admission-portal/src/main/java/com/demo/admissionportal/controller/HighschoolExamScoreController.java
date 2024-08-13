@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
 import com.demo.admissionportal.dto.response.ListExamScoreByYearResponse;
+import com.demo.admissionportal.dto.response.ListExamScoreByYearResponseV2;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -140,11 +141,11 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    @PostMapping("/publish")
+    @PostMapping("/publish/{listId}")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<String>> publishExamScores() {
-        ResponseData<String> response = highschoolExamScoreService.publishExamScores();
+    public ResponseEntity<ResponseData<String>> publishExamScores(@PathVariable Integer listId) {
+        ResponseData<String> response = highschoolExamScoreService.publishExamScores(listId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
@@ -154,4 +155,23 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    @GetMapping("/list-exam-score/{listId}")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<ListExamScoreByYearResponseV2>> getExamScoresListById(
+            @PathVariable Integer listId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        ResponseData<ListExamScoreByYearResponseV2> response = highschoolExamScoreService.getListExamScoreById(listId, page, size);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
 }

@@ -10,17 +10,18 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * The type Email util.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class
-
-EmailUtil {
+public class EmailUtil {
     private final JavaMailSender mailSender;
-
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     /**
      * Send otp email boolean.
@@ -103,17 +104,35 @@ EmailUtil {
     }
 
     public boolean sendExamScoreEmail(String to, String subject, String htmlMessage) {
-        MimeMessage message = mailSender.createMimeMessage();
+        return sendEmailAsync(to, subject, htmlMessage);
+    }
+
+    private boolean sendEmailAsync(String to, String subject, String htmlMessage) {
+        executorService.submit(() -> {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(htmlMessage, true);
+                mailSender.send(message);
+                log.info("Email sent to {}", to);
+            } catch (MessagingException e) {
+                log.error("Error sending email to {}: {}", to, e.getMessage());
+            }
+        });
+        return true; // Assuming the task submission is successful
+    }
+
+    // Optional: Shutdown executor service gracefully
+    public void shutdown() {
+        executorService.shutdown();
         try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlMessage, true);
-            mailSender.send(message);
-            return true; // Return true if the email is sent successfully
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            return false; // Return false if there is an exception
+            if (!executorService.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
         }
     }
 
