@@ -65,6 +65,6 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
      */
     Optional<UserInfo> findFirstByPhone(String phone);
 
-    List<UserInfo> findAllByIdentificationNumberIn(List<Integer> identificationNumbers);
+//    List<UserInfo> findAllByIdentificationNumberIn(List<Integer> identificationNumbers);
 
 }

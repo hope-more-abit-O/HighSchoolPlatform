@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
+import com.demo.admissionportal.dto.request.RegisterIdentificationNumberRequest;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.User;
@@ -48,7 +49,6 @@ public interface UserService extends UserDetailsService {
     /**
      * Gets user by id.
      *
-     * @param id the id
      * @return the user by id
      */
     ResponseData<UserProfileResponseDTO> getUserById();
@@ -257,10 +257,9 @@ public interface UserService extends UserDetailsService {
     /**
      * Update identification number response data.
      *
-     * @param userId                the user id
-     * @param identificationNumbers the identification numbers
-     * @param authentication        the authentication
+     * @param userId               the user id
+     * @param authentication       the authentication
      * @return the response data
      */
-    ResponseData<String> updateIdentificationNumber(Integer userId, List<Integer> identificationNumbers, Authentication authentication);
+    ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
 }

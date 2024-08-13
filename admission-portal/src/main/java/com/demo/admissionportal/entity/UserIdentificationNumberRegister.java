@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class UserIdentificationNumberRegister {
     @Column(name = "identification_number")
     private Integer identificationNumber;
     @Column(name = "status")
-    private AccountStatus status;
+    private IdentificationNumberRegisterStatus status;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "update_time")
