@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -103,11 +104,13 @@ public class AdmissionController {
     @GetMapping("/source")
     public ResponseEntity<ResponseData<List<AdmissionSourceDTO>>> getAdmissionSourceV2(
             Pageable pageable,
-            @RequestParam(required = false) List<Integer> year,
-            @RequestParam(required = false) List<String> universityCode
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String universityCode
     ) {
         try {
-            return ResponseEntity.ok(admissionService.getSourceV2(pageable, year, universityCode));
+            List<Integer> years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            List<String> universityCodes = Arrays.stream(universityCode.split(",")).toList();
+            return ResponseEntity.ok(admissionService.getSourceV2(pageable, years, universityCodes));
         } catch (Exception e) {
             throw e;
         }
@@ -136,10 +139,10 @@ public class AdmissionController {
 
     @GetMapping("/score")
     public ResponseEntity<ResponseData<GetAdmissionScoreResponse>> getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
-                                                                                                            @RequestParam(required = false) List<Integer> year,
-                                                                                                            @RequestParam(required = false) List<String> universityCode){
+                                                                                                            @RequestParam(required = false) String year,
+                                                                                                            @RequestParam(required = false) String universityCode){
         try {
-            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable ,year, universityCode)) );
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , Arrays.stream(year.split(",")).toList().stream().map(Integer::parseInt).toList(), Arrays.stream(universityCode.split(",")).toList())) );
         } catch (SQLException e){
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
         }

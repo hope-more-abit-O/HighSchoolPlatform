@@ -379,9 +379,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             if (admissions.isEmpty()) {
                 throw new ResourceNotFoundException("Không tìm thấy đề án.");
             }
-
             List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
-
 
             return ResponseData.ok("Lấy tài liệu thành công.", admissions.stream().map(element -> new AdmissionSourceDTO(element, universityInfos)).toList());
         } catch (Exception e) {
