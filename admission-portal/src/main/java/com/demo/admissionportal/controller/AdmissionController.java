@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -103,11 +104,15 @@ public class AdmissionController {
     @GetMapping("/source")
     public ResponseEntity<ResponseData<List<AdmissionSourceDTO>>> getAdmissionSourceV2(
             Pageable pageable,
-            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String year,
             @RequestParam(required = false) String universityCode
     ) {
         try {
-            return ResponseEntity.ok(admissionService.getSourceV2(pageable, year, universityCode));
+            List<Integer> years = null;
+            List<String> universityCodes = null;
+            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
+            return ResponseEntity.ok(admissionService.getSourceV2(pageable, years, universityCodes));
         } catch (Exception e) {
             throw e;
         }
@@ -136,10 +141,14 @@ public class AdmissionController {
 
     @GetMapping("/score")
     public ResponseEntity<ResponseData<GetAdmissionScoreResponse>> getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
-                                                                                                            @RequestParam(required = false) Integer year,
+                                                                                                            @RequestParam(required = false) String year,
                                                                                                             @RequestParam(required = false) String universityCode){
         try {
-            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable ,year, universityCode)) );
+            List<Integer> years = null;
+            List<String> universityCodes = null;
+            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , years, universityCodes)));
         } catch (SQLException e){
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
         }
