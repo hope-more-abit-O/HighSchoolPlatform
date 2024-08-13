@@ -3,11 +3,9 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.LikeStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.like.LikeResponseDTO;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserFavorite;
 import com.demo.admissionportal.entity.UserLike;
 import com.demo.admissionportal.entity.sub_entity.id.UserLikeId;
 import com.demo.admissionportal.repository.PostRepository;
@@ -53,7 +51,7 @@ public class UserLikeServiceImpl implements UserLikeService {
                 userLike.setId(userLikeId);
                 User user = userRepository.findUserById(userId);
                 userLike.setUser(user);
-                Post post = postRepository.findFirstById(postID);
+                Post post = postRepository.findPostWithActive(postID);
                 userLike.setPost(post);
                 userLike.setCreateTime(new Date());
                 userLike.setStatus(LikeStatus.LIKE);
@@ -61,7 +59,7 @@ public class UserLikeServiceImpl implements UserLikeService {
                 post.setLike(post.getLike() + 1);
                 postRepository.save(post);
             } else {
-                Post post = postRepository.findFirstById(postID);
+                Post post = postRepository.findPostWithActive(postID);
                 if (checkExisted.getStatus() == LikeStatus.LIKE) {
                     checkExisted.setStatus(LikeStatus.UNLIKE);
                     post.setLike(post.getLike() - 1);
