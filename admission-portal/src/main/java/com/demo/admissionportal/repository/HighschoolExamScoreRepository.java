@@ -2,6 +2,8 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.entity.HighschoolExamScore;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -74,7 +76,10 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findAllByStatus(HighschoolExamScoreStatus status);
 
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.year = :year AND h.status = :status")
-    List<HighschoolExamScore> findAllByYearAndStatus(@Param("year") Integer year, @Param("status") HighschoolExamScoreStatus status);}
+    List<HighschoolExamScore> findAllByYearAndStatus(@Param("year") Integer year, @Param("status") HighschoolExamScoreStatus status);
+
+    Page<HighschoolExamScore> findByYear(Integer year, Pageable pageable);
+}
 
 
 
