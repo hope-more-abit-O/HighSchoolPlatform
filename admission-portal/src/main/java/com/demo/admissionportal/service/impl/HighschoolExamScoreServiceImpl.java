@@ -143,7 +143,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
 
-    private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(9, 27, 28, 34, 36, 38, 16, 23, 54);
+    private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(36, 28, 38, 27, 16, 23, 34, 9, 54);
 
     @Override
     @Transactional
@@ -188,6 +188,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
                         Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
                                 .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+
                         List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
                             SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             HighschoolExamScore examScore = new HighschoolExamScore();
@@ -221,6 +222,37 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             SubjectScoreDTO scoreDTO = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             return new SubjectScoreDTO(subjectId, subjectName, scoreDTO.getScore());
                         }).collect(Collectors.toList());
+
+                        BigDecimal khtnTotalScore = BigDecimal.ZERO;
+                        BigDecimal khxhTotalScore = BigDecimal.ZERO;
+                        boolean hasKHTN = false;
+                        boolean hasKHXH = false;
+
+                        for (SubjectScoreDTO scoreDTO : allSubjectScores) {
+                            if (scoreDTO.getScore() != null) {
+                                if (Set.of(27, 16, 23).contains(scoreDTO.getSubjectId())) {
+                                    khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHTN = true;
+                                } else if (Set.of(34, 9, 54).contains(scoreDTO.getSubjectId())) {
+                                    khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHXH = true;
+                                }
+                            }
+                        }
+
+                        if (hasKHTN) {
+                            khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
+                        }
+
+                        if (hasKHXH) {
+                            khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", null));
+                        }
 
                         yearResponses.add(new HighschoolExamScoreResponse(
                                 request.getIdentificationNumber(),
@@ -926,7 +958,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     } else {
                         subjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
                     }
-
                     if (hasKHXH) {
                         khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
                         subjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
