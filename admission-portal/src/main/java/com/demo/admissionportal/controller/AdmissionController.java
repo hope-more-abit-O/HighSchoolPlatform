@@ -60,7 +60,12 @@ public class AdmissionController {
 //        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
 //    }
     @GetMapping("/score-advice")
-    public ResponseEntity advice(@RequestParam String majorId, @RequestParam Float offset, @RequestParam Float score, @RequestParam Integer subjectGroupId, @RequestParam Integer methodId, @RequestParam Integer provinceId){
+    public ResponseEntity advice(@RequestParam(required = false) List<Integer> majorId,
+                                 @RequestParam(required = false) Float offset,
+                                 @RequestParam(required = false) Float score,
+                                 @RequestParam(required = false) List<Integer> subjectGroupId,
+                                 @RequestParam(required = false) List<Integer> methodId,
+                                 @RequestParam(required = false) List<Integer> provinceId){
         return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorId, offset, score, subjectGroupId, methodId, provinceId)));
     }
 
