@@ -257,10 +257,10 @@ public interface UserService extends UserDetailsService {
     /**
      * Update identification number response data.
      *
-     * @param userId               the user id
-     * @param identificationNumber the identification number
-     * @param authentication       the authentication
+     * @param userId                the user id
+     * @param identificationNumbers the identification numbers
+     * @param authentication        the authentication
      * @return the response data
      */
-    ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
+    ResponseData<String> updateIdentificationNumber(Integer userId, List<Integer> identificationNumbers, Authentication authentication);
 }
