@@ -108,8 +108,10 @@ public class AdmissionController {
             @RequestParam(required = false) String universityCode
     ) {
         try {
-            List<Integer> years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
-            List<String> universityCodes = Arrays.stream(universityCode.split(",")).toList();
+            List<Integer> years = null;
+            List<String> universityCodes = null;
+            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
             return ResponseEntity.ok(admissionService.getSourceV2(pageable, years, universityCodes));
         } catch (Exception e) {
             throw e;
@@ -142,7 +144,11 @@ public class AdmissionController {
                                                                                                             @RequestParam(required = false) String year,
                                                                                                             @RequestParam(required = false) String universityCode){
         try {
-            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , Arrays.stream(year.split(",")).toList().stream().map(Integer::parseInt).toList(), Arrays.stream(universityCode.split(",")).toList())) );
+            List<Integer> years = null;
+            List<String> universityCodes = null;
+            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCodes != null && !universityCodes.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , years, universityCodes)));
         } catch (SQLException e){
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
         }
