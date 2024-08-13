@@ -2,10 +2,11 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.CreateQuestionRequest;
-import com.demo.admissionportal.dto.CreateQuestionResponse;
+import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
+import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.QuestionJob;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
@@ -61,7 +62,9 @@ public class QuestionServiceImpl implements QuestionService {
                 User staff = (User) principal;
                 Integer staffId = staff.getId();
 
-                Question question = modelMapper.map(request, Question.class);
+                Question question = new Question();
+                question.setContent(request.getContent().trim());
+                question.setType(request.getTypeId());
                 question.setCreateBy(staffId);
                 question.setCreateTime(new Date());
                 question.setStatus(AccountStatus.ACTIVE);
@@ -92,7 +95,7 @@ public class QuestionServiceImpl implements QuestionService {
                 questionQuestionType.setStatus(AccountStatus.ACTIVE);
                 questionQuestionTypeRepository.save(questionQuestionType);
 
-                List<QuestionJob> questionJobs = jobs.stream()
+                jobs.stream()
                         .map(job -> {
                             QuestionJob questionJob = new QuestionJob();
                             questionJob.setJobId(job.getId());
@@ -135,5 +138,18 @@ public class QuestionServiceImpl implements QuestionService {
                     actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
                     return actionerDTO;
                 }).orElse(null);
+    }
+
+
+    @Override
+    public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
+        if(questionId == null){
+            return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
+        }
+        Question question = questionRepository.findById(questionId).orElse(null);
+        if(question == null){
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
+        }
+        return null;
     }
 }

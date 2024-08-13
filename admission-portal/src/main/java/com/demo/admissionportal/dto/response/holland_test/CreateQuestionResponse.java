@@ -1,4 +1,4 @@
-package com.demo.admissionportal.dto;
+package com.demo.admissionportal.dto.response.holland_test;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

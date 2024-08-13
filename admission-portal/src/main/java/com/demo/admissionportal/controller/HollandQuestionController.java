@@ -1,9 +1,10 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.CreateQuestionRequest;
-import com.demo.admissionportal.dto.CreateQuestionResponse;
+import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
+import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
 import com.demo.admissionportal.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/holland-test")
@@ -23,7 +21,7 @@ public class HollandQuestionController {
     @Autowired
     private QuestionService questionService;
 
-    @PostMapping
+    @PostMapping("/question")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<CreateQuestionResponse>> createQuestion(@RequestBody @Valid CreateQuestionRequest request) {
         ResponseData<CreateQuestionResponse> createdQuestionResponse = questionService.createQuestion(request);
@@ -34,4 +32,14 @@ public class HollandQuestionController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdQuestionResponse);
     }
+
+    @DeleteMapping("/question/{questionId}")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId){
+        if(questionId == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
+        }
+        ResponseData<DeleteQuestionResponse> resultOfDelete = questionService.deleteQuestion(questionId);
+    }
+
 }
