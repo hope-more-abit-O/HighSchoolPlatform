@@ -760,10 +760,19 @@ public class AdmissionServiceImpl implements AdmissionService {
                     subjectGroups1,
                     year);
 
-            Admission admission = admissions1.stream().filter((element) -> element.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))).findFirst().orElse(null);
-            if (admission != null) {
-                schoolAdviceDTOs.add(new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class), admissionTrainingProgramDTOV2s.size(), admissionTrainingProgramDTOV2s, admission.getSource()));
-            }
+            admissions1.stream()
+                    .max(Comparator.comparing(Admission::getYear))
+                    .ifPresent(admission -> schoolAdviceDTOs.add(
+                            new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class),
+                                    admissionTrainingProgramDTOV2s.size(),
+                                    admissionTrainingProgramDTOV2s,
+                                    admission.getSource()))
+                    );
+
+        }
+
+        if (schoolAdviceDTOs.size() < 1) {
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
         }
 
         return ResponseData.ok("", schoolAdviceDTOs);

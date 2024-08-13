@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.request.admisison;
 
+import com.demo.admissionportal.util.enum_validator.EnumCreateAdmissionQuotaRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +20,6 @@ public class CreateAdmissionRequest implements Serializable {
     private String documents;
 
     @NotNull
+    @EnumCreateAdmissionQuotaRequest
     private List<CreateAdmissionQuotaRequest> quotas;
 }
