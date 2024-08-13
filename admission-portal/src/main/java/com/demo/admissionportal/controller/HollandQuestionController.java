@@ -2,9 +2,10 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
-import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
+import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
 import com.demo.admissionportal.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * The type Holland question controller.
@@ -42,7 +45,7 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdQuestionResponse);
     }
 
-    @DeleteMapping("/question/{questionId}")
+    @PostMapping("/question/change-status/{questionId}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
         if (questionId == null) {
@@ -59,4 +62,13 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfDelete);
     }
 
+    @GetMapping("/question/list")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestion() {
+        ResponseData<List<QuestionResponse>> resultOfList = questionService.getListQuestion();
+        if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
+    }
 }
