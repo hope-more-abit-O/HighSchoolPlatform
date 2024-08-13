@@ -104,7 +104,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
                 placeholders.add(":methodId" + i);
             }
 
-            queryBuilder.append(" AND atpm.method_id IN (")
+            queryBuilder.append(" AND am.method_id IN (")
                     .append(String.join(",", placeholders))
                     .append(") ");
 

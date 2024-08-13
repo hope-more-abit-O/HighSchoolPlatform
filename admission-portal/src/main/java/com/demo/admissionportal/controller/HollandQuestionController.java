@@ -40,6 +40,7 @@ public class HollandQuestionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
         }
         ResponseData<DeleteQuestionResponse> resultOfDelete = questionService.deleteQuestion(questionId);
+        return ResponseEntity.ok(resultOfDelete);
     }
 
 }
