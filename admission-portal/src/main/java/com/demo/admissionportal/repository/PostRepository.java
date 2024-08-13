@@ -24,7 +24,18 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT * " +
             "FROM [post] p " +
             "WHERE p.status = 'ACTIVE' AND p.id = :id", nativeQuery = true)
-    Post findFirstById(Integer id);
+    Post findPostWithActive(Integer id);
+
+    /**
+     * Find post with status post.
+     *
+     * @param id the id
+     * @return the post
+     */
+    @Query(value = "SELECT * " +
+            "FROM [post] p " +
+            "WHERE p.id = :id", nativeQuery = true)
+    Post findPostWithNoStatus(Integer id);
 
 
     /**

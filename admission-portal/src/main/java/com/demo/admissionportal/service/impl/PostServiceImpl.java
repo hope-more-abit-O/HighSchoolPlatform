@@ -372,7 +372,7 @@ public class PostServiceImpl implements PostService {
 
     private Post changeStatusPost(PostDeleteRequestDTO requestDTO, Integer createBy) {
         try {
-            Post post = postRepository.findFirstById(requestDTO.getPostId());
+            Post post = postRepository.findPostWithNoStatus(requestDTO.getPostId());
             if (post == null) {
                 return null;
             }
@@ -435,7 +435,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResponseData<PostDetailResponseDTO> getPostsById(Integer id) {
         try {
-            Post posts = postRepository.findFirstById(id);
+            Post posts = postRepository.findPostWithActive(id);
             PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
             if (posts != null && result != null) {
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với Id: " + id, result);
@@ -492,7 +492,7 @@ public class PostServiceImpl implements PostService {
             }
 
             // Update post
-            Post existingPost = postRepository.findFirstById(requestDTO.getPostId());
+            Post existingPost = postRepository.findPostWithNoStatus(requestDTO.getPostId());
             if (existingPost == null) {
                 throw new Exception("Không tìm thấy post");
             }
