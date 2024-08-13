@@ -1,12 +1,10 @@
-package com.demo.admissionportal.dto;
+package com.demo.admissionportal.dto.request.holland_test;
 
-import com.demo.admissionportal.constants.HollandCharacteristicType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 @Data
 @AllArgsConstructor
@@ -17,4 +15,8 @@ public class CreateQuestionRequest {
     @NotNull(message = "Loại câu hỏi không được để trống")
     private Integer typeId;
     private List<Integer> jobs;
+
+    public void setContent(String content) {
+        this.content = content.trim();
+    }
 }
