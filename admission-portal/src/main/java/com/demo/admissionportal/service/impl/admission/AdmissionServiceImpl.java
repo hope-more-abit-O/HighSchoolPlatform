@@ -891,7 +891,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, List<Integer> year, List<String> universityId) throws SQLException {
         List<Admission> admissions = null;
-        universityId = universityId.stream().distinct().toList();
+        if (universityId != null)
+            universityId = universityId.stream().distinct().toList();
 
         if (year == null && universityId == null) {
             try {
