@@ -48,13 +48,46 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
-    LEFT JOIN university_info ui ON ui.university_id = ad.university_id
-    LEFT JOIN [user] usr ON usr.id = ad.university_id
-    WHERE (:universityCode IS NULL OR LOWER(ui."code") = LOWER(:universityCode))
-    AND (:year IS NULL OR year = :year)
+    WHERE (ad.university_id IN (:universityId))
+    AND (ad.year IN (:year))
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    List<Admission> findAllByYearAndUniversityCode(Pageable pageable ,Integer year, String universityCode);
+    List<Admission> findAllByListYearAndListUniversityId(Pageable pageable , List<Integer> year, List<Integer> universityId);
+
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    WHERE (ad.year IN (:year))
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByListYear(Pageable pageable ,List<Integer> year);
+
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    WHERE (ad.university_id IN (:universityId))
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByListUniversityId(Pageable pageable , List<Integer> universityId);
+
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
+    WHERE (ui.code in (:universityCode))
+    AND (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllByListUniversityCode(Pageable pageable , List<String> universityCode);
+
+    @Query(value = """
+    SELECT ad.*
+    FROM admission ad
+    WHERE (ad.status = 'ACTIVE')
+    """, nativeQuery = true)
+    List<Admission> findAllActiveWithPageable(Pageable pageable);
 
     @Query(value = """
     SELECT TOP(:top) ad.*
@@ -65,7 +98,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     AND (:year IS NULL OR year = :year)
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode, Integer top);
+    List<Admission> findAllByListYearAndListUniversityId(Integer year, String universityCode, Integer top);
 
     @Query(value = """
     SELECT ad.*
@@ -76,7 +109,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     AND (:year IS NULL OR year = :year)
     AND (ad.status = 'ACTIVE')
     """, nativeQuery = true)
-    List<Admission> findAllByYearAndUniversityCode(Integer year, String universityCode);
+    List<Admission> findAllByListYearAndListUniversityId(Integer year, String universityCode);
 
     @Query(value = """
     SELECT TOP(1) ad.*

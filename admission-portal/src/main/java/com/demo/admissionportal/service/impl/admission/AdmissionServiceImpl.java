@@ -358,23 +358,35 @@ public class AdmissionServiceImpl implements AdmissionService {
         Optional<Admission> admissions = admissionRepository.findByYearAndUniversityCode(year, universityCode);
 
         if (admissions.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
+            throw new ResourceNotFoundException("Không tìm thấy đề án.");
         }
 
         return ResponseData.ok("Lấy tài liệu thành công.", Arrays.stream(admissions.get().getSource().split(";")).toList());
     }
 
-    public ResponseData<List<AdmissionSourceDTO>> getSourceV2(Pageable pageable, Integer year, String universityCode) {
-        List<Admission> admissions = admissionRepository.findAllByYearAndUniversityCode(pageable, year, universityCode);
+    public ResponseData<List<AdmissionSourceDTO>> getSourceV2(Pageable pageable, List<Integer> year, List<Integer> universityId) {
+        try {
+            List<Admission> admissions;
+            if ((year == null || year.isEmpty()) && (universityId == null || universityId.isEmpty())) {
+                admissions = admissionRepository.findAllActiveWithPageable(pageable);
+            } else if ((year == null || year.isEmpty())) {
+                admissions = admissionRepository.findAllByListUniversityId(pageable, year);
+            } else if ((universityId == null || universityId.isEmpty())) {
+                admissions = admissionRepository.findAllByListYear(pageable, year);
+            } else
+                admissions = admissionRepository.findAllByListYearAndListUniversityId(pageable, year, universityId);
 
-        if (admissions.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy đề án thành công.");
+            if (admissions.isEmpty()) {
+                throw new ResourceNotFoundException("Không tìm thấy đề án.");
+            }
+
+            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
+
+
+            return ResponseData.ok("Lấy tài liệu thành công.", admissions.stream().map(element -> new AdmissionSourceDTO(element, universityInfos)).toList());
+        } catch (Exception e) {
+            throw new QueryException("Lỗi tìm kiếm.", Map.of("queryError", e.getCause().getMessage()));
         }
-
-        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
-
-
-        return ResponseData.ok("Lấy tài liệu thành công.", admissions.stream().map(element -> new AdmissionSourceDTO(element, universityInfos)).toList());
     }
 
     protected List<ActionerDTO> getActioners(List<Admission> admissions) {
@@ -637,6 +649,20 @@ public class AdmissionServiceImpl implements AdmissionService {
         return this.mappingFullAdmissionDetail(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, universityInfos, admissionTrainingProgramMethods);
     }
 
+    public AdmissionDetailDTO getAdmissionScoreDetail(Admission admission) {
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByAdmissionId(admission.getId());
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admission.getId());
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).collect(Collectors.toList()));
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).collect(Collectors.toList()));
+
+        UniversityInfo universityInfos = universityInfoServiceImpl.findById(admission.getUniversityId());
+
+        return this.mappingFullAdmissionDetail(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, universityInfos, admissionTrainingProgramMethods);
+    }
+
     public GetLatestTrainingProgramResponse getLatestTrainingProgramByUniversityId(Integer universityId) {
         User user = userService.findById(universityId);
         if (!user.getRole().equals(Role.UNIVERSITY)) {
@@ -856,52 +882,63 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, Integer year, String universityCode) throws SQLException {
-        if (year == null && universityCode == null) {
-            List<Admission> admissions = null;
+    public GetAdmissionScoreResponse getAdmissionScoreResponse(Pageable pageable, List<Integer> year, List<Integer> universityId) throws SQLException {
+        List<Admission> admissions = null;
+        universityId = universityId.stream().distinct().toList();
+
+        if (year == null && universityId == null) {
             try {
                 admissions = admissionRepository.find(pageable);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
             }
             if (admissions.isEmpty())
                 throw new ResourceNotFoundException("Hiện đang không có đề án nào");
-
-            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
-
-            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
-        }
-
-        if (universityCode == null) {
-            List<Admission> admissions = null;
+        } else if (universityId == null) {
             try {
-                admissions = admissionRepository.findByYear(pageable, year);
+                admissions = admissionRepository.findAllByListYear(pageable, year);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
             }
-            if (admissions.isEmpty())
-                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho năm " + year);
-
-            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).toList());
-
-            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
-        }
-
-        if (year == null) {
-            List<Admission> admissions = null;
+            if (admissions.isEmpty()){
+                StringJoiner nam = new StringJoiner(",");
+                for (Integer y : year) {
+                    nam.add(y.toString());
+                }
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho năm " + nam.toString());
+            }
+        } else if (year == null) {
             try {
-                admissions = admissionRepository.findByUniversityCode(pageable, universityCode);
+                admissions = admissionRepository.findAllByListUniversityId(pageable, universityId);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
             }
-            if (admissions.isEmpty())
-                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho trường với mã " + universityCode);
+            if (admissions.isEmpty()){
+                List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityId);
+                StringJoiner uniCode = new StringJoiner(",");
+                if (universityInfos.size() > 1) {
+                    for (UniversityInfo y : universityInfos) {
+                        uniCode.add(y.getCode());
+                    }
+                }
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào cho trường với mã " + uniCode.toString());
 
-            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
-
-            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
+            }
+        } else {
+            try {
+                admissions = admissionRepository.findAllByListYearAndListUniversityId(pageable, year, universityId);
+            } catch (Exception e) {
+                throw new QueryException("Lỗi", Map.of("queryError", e.getCause().getMessage()));
+            }
+            if (admissions.isEmpty()){
+                throw new ResourceNotFoundException("Hiện đang không có đề án nào");
+            }
         }
 
-        return new GetAdmissionScoreResponse(getAdmissionScoreDetail(year, universityCode));
+        if (admissions.size() > 1 && !admissions.isEmpty()) {
+            List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+            return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
+        }
+        return new GetAdmissionScoreResponse(getAdmissionScoreDetail(admissions.get(0)));
     }
 }
