@@ -29,6 +29,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * The type Question service.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -143,13 +146,23 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
-        if(questionId == null){
-            return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
+        try {
+            if (questionId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
+            }
+            Question questionExisted = questionRepository.findById(questionId).orElse(null);
+            if (questionExisted == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
+            }
+            List<QuestionJob> questionJob = questionJobRepository.findQuestionJobByQuestionId(questionExisted.getId());
+            for (QuestionJob qj : questionJob){
+                questionJobRepository.delete(qj);
+            }
+            questionRepository.delete(questionExisted);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã xoá question với id: " + questionId + "  thành công");
+        } catch (Exception e) {
+            log.error("Error while delete question Id: {}", questionId);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá question id: " + questionId);
         }
-        Question question = questionRepository.findById(questionId).orElse(null);
-        if(question == null){
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
-        }
-        return null;
     }
 }
