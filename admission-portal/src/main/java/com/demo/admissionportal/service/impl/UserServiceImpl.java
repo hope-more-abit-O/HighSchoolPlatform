@@ -60,6 +60,7 @@ public class UserServiceImpl implements UserService {
     private final UniversityInfoServiceImpl universityInfoServiceImpl;
     private final ConsultantInfoServiceImpl consultantInfoService;
     private final StaffInfoServiceImpl staffInfoService;
+    private final UserIdentificationNumberRegisterRepository userIdentificationNumberRegisterRepository;
 
 
     @Override
@@ -586,30 +587,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
+    public ResponseData<String> updateIdentificationNumber(Integer userId, List<Integer> identificationNumbers, Authentication authentication) {
         try {
             String username = authentication.getName();
             Optional<User> authenticatedUserOpt = userRepository.findByUsername(username);
+
             if (authenticatedUserOpt.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy");
+                return new ResponseData<>(ResponseCode.C203.getCode(), "User not found");
             }
+
             User authenticatedUser = authenticatedUserOpt.get();
 
             if (!authenticatedUser.getId().equals(userId)) {
-                return new ResponseData<>(ResponseCode.C209.getCode(), "Người dùng không có quyền thực hiện điều này");
+                return new ResponseData<>(ResponseCode.C209.getCode(), "User does not have permission to perform this action");
             }
-            Optional<UserInfo> userInfoOpt = userInfoRepository.findById(userId);
-            if (userInfoOpt.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng không được tìm thấy");
+
+            String email = authenticatedUser.getEmail();
+
+            List<UserIdentificationNumberRegister> existingEntries = userIdentificationNumberRegisterRepository.findByUserId(userId);
+
+            if (existingEntries.size() + identificationNumbers.size() > 3) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Cannot register more than 3 identification numbers");
             }
-            UserInfo userInfo = userInfoOpt.get();
-            userInfo.setIdentificationNumber(identificationNumber);
-            userInfoRepository.save(userInfo);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh đã được đăng kí thành công");
+            for (Integer identificationNumber : identificationNumbers) {
+                boolean isDuplicate = existingEntries.stream()
+                        .anyMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
+                if (isDuplicate) {
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Duplicate identification number: " + identificationNumber);
+                }
+            }
+            for (Integer identificationNumber : identificationNumbers) {
+                UserIdentificationNumberRegister newEntry = new UserIdentificationNumberRegister();
+                newEntry.setUserId(userId);
+                newEntry.setEmail(email);
+                newEntry.setIdentificationNumber(identificationNumber);
+                newEntry.setStatus(AccountStatus.INACTIVE); // Assuming default status is INACTIVE
+                newEntry.setCreateBy(userId); // Assuming the user who is updating is the one creating
+                userIdentificationNumberRegisterRepository.save(newEntry);
+            }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Identification numbers registered successfully");
+
         } catch (Exception e) {
-            log.error("Error occurred while updating identification number", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi đăng kí số báo danh");
+            log.error("Error occurred while updating identification numbers", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "An error occurred while registering identification numbers");
         }
     }
-
 }
