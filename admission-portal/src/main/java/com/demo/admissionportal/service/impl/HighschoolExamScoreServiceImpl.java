@@ -6,11 +6,7 @@ import com.demo.admissionportal.dto.ExamYearData;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
-import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
-import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
-import com.demo.admissionportal.dto.response.ListExamScoreByYearResponse;
-import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.SubjectScoreDTO;
+import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.ListExamScoreHighSchoolExamScore;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
@@ -24,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -146,7 +143,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
 
-    private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(9, 27, 28, 34, 36, 38, 16, 23, 54);
+    private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(36, 28, 38, 27, 16, 23, 34, 9, 54);
 
     @Override
     @Transactional
@@ -191,6 +188,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
                         Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
                                 .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+
                         List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
                             SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             HighschoolExamScore examScore = new HighschoolExamScore();
@@ -224,6 +222,37 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             SubjectScoreDTO scoreDTO = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             return new SubjectScoreDTO(subjectId, subjectName, scoreDTO.getScore());
                         }).collect(Collectors.toList());
+
+                        BigDecimal khtnTotalScore = BigDecimal.ZERO;
+                        BigDecimal khxhTotalScore = BigDecimal.ZERO;
+                        boolean hasKHTN = false;
+                        boolean hasKHXH = false;
+
+                        for (SubjectScoreDTO scoreDTO : allSubjectScores) {
+                            if (scoreDTO.getScore() != null) {
+                                if (Set.of(27, 16, 23).contains(scoreDTO.getSubjectId())) {
+                                    khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHTN = true;
+                                } else if (Set.of(34, 9, 54).contains(scoreDTO.getSubjectId())) {
+                                    khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHXH = true;
+                                }
+                            }
+                        }
+
+                        if (hasKHTN) {
+                            khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
+                        }
+
+                        if (hasKHXH) {
+                            khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", null));
+                        }
 
                         yearResponses.add(new HighschoolExamScoreResponse(
                                 request.getIdentificationNumber(),
@@ -864,8 +893,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
     }
 
-
-
     @Override
     public ResponseData<Page<ListExamScoreByYearResponse>> getAllListExamScoresByYear(Pageable pageable) {
         try {
@@ -884,6 +911,89 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy danh sách, vui lòng thử lại sau.");
         }
     }
+
+    @Override
+    public ResponseData<ListExamScoreByYearResponseV2> getListExamScoreById(Integer id, int page, int size) {
+        try {
+            Optional<ListExamScoreByYear> optionalExamScore = listExamScoreByYearRepository.findById(id);
+
+            if (optionalExamScore.isPresent()) {
+                ListExamScoreByYear listExamScore = optionalExamScore.get();
+
+                PageRequest pageRequest = PageRequest.of(page, size);
+                Page<HighschoolExamScore> highschoolExamScoresPage = highschoolExamScoreRepository.findByYear(listExamScore.getYear(), pageRequest);
+
+                List<HighschoolExamScoreResponse> examScoreResponses = new ArrayList<>();
+
+                for (HighschoolExamScore score : highschoolExamScoresPage) {
+                    List<SubjectScoreDTO> subjectScores = new ArrayList<>();
+
+                    List<HighschoolExamScore> examinerScore = highschoolExamScoreRepository.findByIdentificationNumber(score.getIdentificationNumber());
+
+                    BigDecimal khtnTotalScore = BigDecimal.ZERO;
+                    BigDecimal khxhTotalScore = BigDecimal.ZERO;
+                    boolean hasKHTN = false;
+                    boolean hasKHXH = false;
+
+                    for (HighschoolExamScore subjectScore : examinerScore) {
+                        SubjectDTO subjectDTO = getSubjectDetails(subjectScore.getSubjectId());
+                        if (subjectDTO != null) {
+                            Float scoreValue = subjectScore.getScore();
+                            subjectScores.add(new SubjectScoreDTO(subjectDTO.getSubjectId(), subjectDTO.getSubjectName(), scoreValue));
+
+                            if (scoreValue != null) {
+                                if (Set.of(27, 16, 23).contains(subjectDTO.getSubjectId())) {
+                                    khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(scoreValue));
+                                    hasKHTN = true;
+                                } else if (Set.of(34, 9, 54).contains(subjectDTO.getSubjectId())) {
+                                    khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(scoreValue));
+                                    hasKHXH = true;
+                                }
+                            }
+                        }
+                    }
+                    if (hasKHTN) {
+                        khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                        subjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
+                    } else {
+                        subjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
+                    }
+                    if (hasKHXH) {
+                        khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                        subjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
+                    } else {
+                        subjectScores.add(new SubjectScoreDTO(999998, "KHXH", null));
+                    }
+
+                    examScoreResponses.add(new HighschoolExamScoreResponse(
+                            score.getIdentificationNumber(),
+                            score.getLocal(),
+                            score.getExaminationBoard(),
+                            score.getDateOfBirth(),
+                            score.getExaminer(),
+                            score.getYear(),
+                            subjectScores
+                    ));
+                }
+
+                ListExamScoreByYearResponseV2 response = new ListExamScoreByYearResponseV2(
+                        listExamScore.getId(),
+                        listExamScore.getTitle(),
+                        listExamScore.getYear(),
+                        examScoreResponses
+                );
+
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy thông tin thành công", response);
+            } else {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy thông tin danh sách bài kiểm tra đã cung cấp");
+            }
+        } catch (Exception e) {
+            log.error("Error fetching exam score by ID", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy thông tin, vui lòng thử lại sau.");
+        }
+    }
+
+
 
     private SubjectDTO getSubjectDetailsByName(String subjectName) {
         return subjectRepository.findByName(subjectName)
