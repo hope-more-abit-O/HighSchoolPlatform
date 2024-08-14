@@ -71,7 +71,7 @@ public class StaffController {
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<?> sendCreateUniversityRequest(@RequestBody @Valid CreateUniversityRequestRequest request) {
         try {
-            ResponseData response = createUniversityService.createUniversity(request);
+            ResponseData response = createUniversityService.createCreateUniversityRequest(request);
             if (response.getStatus() != ResponseCode.C200.getCode())
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
             return ResponseEntity.ok(response);

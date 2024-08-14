@@ -17,15 +17,15 @@ import java.util.Date;
 @Table(name = "[user_identification_register]")
 public class UserIdentificationNumberRegister {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
     @Column(name = "user_id")
     private Integer userId;
     @Column(name = "email")
     private String email;
     @Column(name = "identification_number")
     private Integer identificationNumber;
+    @Column(name = "year")
+    private Integer year;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private IdentificationNumberRegisterStatus status;
     @Column(name = "create_time")
