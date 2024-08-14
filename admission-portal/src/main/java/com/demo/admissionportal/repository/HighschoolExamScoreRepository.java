@@ -5,10 +5,13 @@ import com.demo.admissionportal.entity.HighschoolExamScore;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -79,6 +82,14 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findAllByYearAndStatus(@Param("year") Integer year, @Param("status") HighschoolExamScoreStatus status);
 
     Page<HighschoolExamScore> findByYear(Integer year, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE HighschoolExamScore h SET h.status = :status WHERE h.year = :year AND h.status = :oldStatus")
+    int updateStatusByYear(@Param("status") HighschoolExamScoreStatus status, @Param("year") Integer year, @Param("oldStatus") HighschoolExamScoreStatus oldStatus);
+
+    @Query("SELECT h FROM HighschoolExamScore h WHERE h.identificationNumber IN :identificationNumbers AND h.year = :year")
+    List<HighschoolExamScore> findByIdentificationNumberAndYearIn(@Param("identificationNumbers") List<Integer> identificationNumbers, @Param("year") Integer year);
 }
 
 

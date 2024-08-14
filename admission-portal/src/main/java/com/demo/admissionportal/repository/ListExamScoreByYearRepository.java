@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
 import com.demo.admissionportal.entity.ListExamScoreByYear;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,7 @@ public interface ListExamScoreByYearRepository extends JpaRepository<ListExamSco
     ListExamScoreByYear findByYear(int year);
     Page<ListExamScoreByYear> findAll(Pageable pageable);
 
-    List<ListExamScoreByYear> findAllByStatus(String status);
+    List<ListExamScoreByYear> findAllByStatus(ListExamScoreByYearStatus status);
 
     ListExamScoreByYear findByYear(Integer year);
 }

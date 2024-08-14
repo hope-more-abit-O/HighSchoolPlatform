@@ -9,7 +9,6 @@ import com.demo.admissionportal.dto.entity.IdAndName;
 import com.demo.admissionportal.dto.entity.user.FullUserResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
-import com.demo.admissionportal.dto.request.RegisterIdentificationNumberRequest;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
@@ -585,7 +584,6 @@ public class UserServiceImpl implements UserService {
             return userRepository.getConsultantAccount(pageable, id, name, username, universityName, universityId, statusesString, createBy, updateBy);
     }
 
-
     @Override
     @Transactional
     public ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
@@ -607,6 +605,11 @@ public class UserServiceImpl implements UserService {
 
             List<UserIdentificationNumberRegister> existingEntries = userIdentificationNumberRegisterRepository.findByUserId(userId);
 
+            boolean isIdentificationNumberTaken = userIdentificationNumberRegisterRepository.existsByIdentificationNumber(identificationNumber);
+            if (isIdentificationNumberTaken) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh " + identificationNumber + " đã được đăng kí bởi người dùng khác.");
+            }
+
             if (existingEntries.size() >= 3) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Người dùng chỉ được phép đăng kí tối đa 3 số báo danh");
             }
@@ -614,23 +617,25 @@ public class UserServiceImpl implements UserService {
             boolean isDuplicate = existingEntries.stream()
                     .anyMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
             if (isDuplicate) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Đã đăng kí số báo danh: " + identificationNumber + "này trước đó");
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Đã đăng kí số báo danh: " + identificationNumber + " trước đó");
             }
+            //TO DO: Check identification number exist in db
 
-            UserIdentificationNumberRegister newEntry = new UserIdentificationNumberRegister();
-            newEntry.setUserId(userId);
-            newEntry.setEmail(email);
-            newEntry.setIdentificationNumber(identificationNumber);
-            newEntry.setStatus(IdentificationNumberRegisterStatus.PENDING);
-            newEntry.setCreateBy(userId);
-            userIdentificationNumberRegisterRepository.save(newEntry);
+            UserIdentificationNumberRegister registerIdentificationNumber = new UserIdentificationNumberRegister();
+            registerIdentificationNumber.setUserId(userId);
+            registerIdentificationNumber.setEmail(email);
+            registerIdentificationNumber.setIdentificationNumber(identificationNumber);
+            registerIdentificationNumber.setYear(2024);
+            registerIdentificationNumber.setStatus(IdentificationNumberRegisterStatus.PENDING);
+            registerIdentificationNumber.setCreateBy(userId);
+            registerIdentificationNumber.setCreateTime(new Date());
+            userIdentificationNumberRegisterRepository.save(registerIdentificationNumber);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh được đăng kí thành công !");
 
         } catch (Exception e) {
-            log.error("Error updating identification number", e);
+            log.error("Error registering identification number", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình đăng kí số báo danh, vui lòng thử lại sau.");
         }
     }
-
 }
