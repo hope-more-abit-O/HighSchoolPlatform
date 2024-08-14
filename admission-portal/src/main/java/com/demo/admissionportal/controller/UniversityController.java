@@ -151,6 +151,7 @@ public class UniversityController {
     }
 
     @GetMapping("/transaction")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<List<OrderResponseDTO>>> getOrderByUniID() {
         return ResponseEntity.ok(universityTransactionService.getOrderByUniId());
     }
