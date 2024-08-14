@@ -20,7 +20,6 @@ public class CreateQrResponseDTO {
     private long orderCode;
     private String statusPayment;
     private String checkoutURL;
-    private List<InfoTransactionDTO> transaction;
 
     /**
      * The type Info transaction dto.

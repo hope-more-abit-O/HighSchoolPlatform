@@ -1,8 +1,7 @@
 package com.demo.admissionportal.entity.sub_entity;
 
-import com.demo.admissionportal.constants.AccountStatus;
+import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionQuestionTypeId;
-import com.demo.admissionportal.entity.sub_entity.id.QuestionnaireQuestionId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,5 +33,5 @@ public class QuestionQuestionType {
     private Date updateTime;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private AccountStatus status;
+    private QuestionStatus status;
 }

@@ -23,12 +23,10 @@ public interface UniversityPackageService {
     /**
      * Update package university package.
      *
-     * @param transactionId the transaction id
-     * @param postId        the post id
-     * @param packageId     the package id
+     * @param universityTransactionId the university transaction id
      * @return the university package
      */
-    UniversityPackage updateUniversityPackage(Integer transactionId, Integer postId, Integer packageId);
+    UniversityPackage updateUniversityPackage(Integer universityTransactionId);
 
     /**
      * Change status campaign status response dto.

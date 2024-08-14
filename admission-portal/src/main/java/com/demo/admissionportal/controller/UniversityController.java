@@ -7,12 +7,14 @@ import com.demo.admissionportal.dto.request.consultant.CreateConsultantRequest;
 import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequest;
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.payment.OrderResponseDTO;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.service.UniversityTransactionService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -30,15 +32,16 @@ import java.util.List;
 public class UniversityController {
     private final UniversityService universityService;
     private final ConsultantService consultantService;
+    private final UniversityTransactionService universityTransactionService;
 
     @PutMapping("/info")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity updateInfo(@RequestBody @Valid UpdateUniversityInfoRequest updateUniversityInfoRequest){
+    public ResponseEntity updateInfo(@RequestBody @Valid UpdateUniversityInfoRequest updateUniversityInfoRequest) {
         try {
             return ResponseEntity.ok(universityService.updateUniversityInfo(updateUniversityInfoRequest));
         } catch (ResourceNotFoundException | StoreDataFailedException e) {
             throw e;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -51,16 +54,16 @@ public class UniversityController {
      * response indicating success or failure.
      *
      * @param request The consultant creation request data, expected
-     *               as a JSON object in the request body.
-     * @return  A ResponseEntity containing the result of the operation
-     *          with a suitable HTTP status code (e.g., 201 Created for success).
-     * @throws DataExistedException  If the provided data conflicts
-     *                                 with existing records.
+     *                as a JSON object in the request body.
+     * @return A ResponseEntity containing the result of the operation
+     * with a suitable HTTP status code (e.g., 201 Created for success).
+     * @throws DataExistedException If the provided data conflicts
+     *                              with existing records.
      */
     @PostMapping("/consultant")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> createConsultant(@RequestBody @Valid CreateConsultantRequest request)
-            throws DataExistedException,StoreDataFailedException, ResourceNotFoundException {
+            throws DataExistedException, StoreDataFailedException, ResourceNotFoundException {
         return ResponseEntity.ok(consultantService.createConsultant(request));
     }
 
@@ -70,15 +73,15 @@ public class UniversityController {
      * <p>Fetches detailed information about a consultant using
      * their unique identifier and returns the data as a response.
      *
-     * @param id  The unique identifier of the consultant to retrieve.
-     * @return     A ResponseEntity containing consultant details with
-     *             a suitable HTTP status (e.g., 200 OK for success, 404 Not Found
-     *             if the consultant is not found).
+     * @param id The unique identifier of the consultant to retrieve.
+     * @return A ResponseEntity containing consultant details with
+     * a suitable HTTP status (e.g., 200 OK for success, 404 Not Found
+     * if the consultant is not found).
      */
     @GetMapping("/consultant/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException{
-        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.",consultantService.getFullConsultantByIdByUniversity(id)));
+    public ResponseEntity<?> getById(@PathVariable Integer id) throws NotAllowedException, ResourceNotFoundException {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.", consultantService.getFullConsultantByIdByUniversity(id)));
     }
 
     @GetMapping("/consultants")
@@ -112,19 +115,19 @@ public class UniversityController {
     @GetMapping("/full/{id}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
-        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityFullResponseById(id));
+        var result = ResponseData.ok("Lấy thông tin trường thành công", universityService.getUniversityFullResponseById(id));
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/info/{id}")
     public ResponseEntity<ResponseData<UniversityInfoResponseDTO>> findInfoUniversityById(@PathVariable Integer id) throws Exception {
-        var result = ResponseData.ok("Lấy thông tin trường thành công",universityService.getUniversityInfoResponseById(id));
+        var result = ResponseData.ok("Lấy thông tin trường thành công", universityService.getUniversityInfoResponseById(id));
         return ResponseEntity.ok(result);
     }
 
     @PutMapping("/consultant")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request){
+    public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request) {
         return ResponseEntity.ok(ResponseData.ok("Cập nhật trạng thái tư vấn viên thành công.", consultantService.updateConsultantStatus(request)));
     }
 
@@ -145,5 +148,11 @@ public class UniversityController {
                 universityService.getAllUniversityFullResponses(pageable,
                         id, code, username, name, phone,
                         email, status, createBy, createByName));
+    }
+
+    @GetMapping("/transaction")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<List<OrderResponseDTO>>> getOrderByUniID() {
+        return ResponseEntity.ok(universityTransactionService.getOrderByUniId());
     }
 }
