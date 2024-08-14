@@ -188,7 +188,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "LEFT JOIN university_package up " +
             "ON up.post_id = p.id " +
             "AND up.complete_time = max_up.max_complete_time " +
-            "WHERE up.status = 'ACTIVE' AND p.status = 'ACTIVE'" +
+            "WHERE up.status = 'ACTIVE' AND p.status = 'ACTIVE' " +
+            "AND up.complete_time >= GETDATE()" +
             "ORDER BY up.create_time DESC ", nativeQuery = true)
     List<Post> findPostHasPackage();
 }
