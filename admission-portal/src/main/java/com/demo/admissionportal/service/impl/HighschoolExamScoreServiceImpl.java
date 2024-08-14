@@ -950,17 +950,28 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 PageRequest pageRequest = PageRequest.of(page, size);
                 Page<HighschoolExamScore> highschoolExamScoresPage = highschoolExamScoreRepository.findByYear(listExamScore.getYear(), pageRequest);
 
+                Set<Integer> identificationNumbers = highschoolExamScoresPage
+                        .stream()
+                        .map(HighschoolExamScore::getIdentificationNumber)
+                        .collect(Collectors.toSet());
+
+                List<HighschoolExamScore> allScores = highschoolExamScoreRepository.findByIdentificationNumberIn(identificationNumbers);
+
+                Map<Integer, List<HighschoolExamScore>> scoresGroupedById = allScores
+                        .stream()
+                        .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
+
                 List<HighschoolExamScoreResponse> examScoreResponses = new ArrayList<>();
                 Set<Integer> seenIdentificationNumbers = new HashSet<>();
 
                 for (HighschoolExamScore score : highschoolExamScoresPage) {
                     if (seenIdentificationNumbers.contains(score.getIdentificationNumber())) {
-                        continue; // Skip duplicates
+                        continue;
                     }
                     seenIdentificationNumbers.add(score.getIdentificationNumber());
-
+                    
                     List<SubjectScoreDTO> subjectScores = new ArrayList<>();
-                    List<HighschoolExamScore> examinerScore = highschoolExamScoreRepository.findByIdentificationNumber(score.getIdentificationNumber());
+                    List<HighschoolExamScore> examinerScore = scoresGroupedById.get(score.getIdentificationNumber());
 
                     BigDecimal khtnTotalScore = BigDecimal.ZERO;
                     BigDecimal khxhTotalScore = BigDecimal.ZERO;
@@ -1025,6 +1036,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy thông tin, vui lòng thử lại sau.");
         }
     }
+
 
     @Override
     public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers() {
