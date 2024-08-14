@@ -1,12 +1,10 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.constants.AccountStatus;
-import com.demo.admissionportal.constants.HollandCharacteristicType;
+import com.demo.admissionportal.constants.QuestionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.Date;
 
@@ -34,5 +32,5 @@ public class Question {
     private Integer type;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private AccountStatus status;
+    private QuestionStatus status;
 }

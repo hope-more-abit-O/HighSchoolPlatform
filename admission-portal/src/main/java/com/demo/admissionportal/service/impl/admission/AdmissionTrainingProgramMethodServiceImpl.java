@@ -83,16 +83,15 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         // 1. Start building the base query
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT DISTINCT atpm.* " +
-                        "FROM admission_training_program_subject_group atpsg " +
-                        "INNER JOIN dbo.admission_training_program atp ON atp.id = atpsg.admission_training_program_id " +
-                        "INNER JOIN admission_training_program_method atpm ON atpm.admission_training_program_id = atp.id " +
-                        "INNER JOIN admission_method am ON am.id = atpm.admission_method_id " +
-                        "INNER JOIN dbo.admission a ON a.id = atp.admission_id " +
-                        "INNER JOIN [user] u ON u.id = a.university_id " +
-                        "INNER JOIN university_campus uc ON uc.university_id = u.id " +
-                        "INNER JOIN dbo.[major] m ON m.id = atp.major_id " +
-                        "WHERE am.method_id = 1 " +
-                        "AND a.status = 'ACTIVE' "
+                        "from admission a\n" +
+                        "inner join admission_training_program atp on a.id = atp.admission_id\n" +
+                        "inner join admission_training_program_method atpm on atp.id = atpm.admission_training_program_id\n" +
+                        "inner join admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id\n" +
+                        "inner join subject_group sg on sg.id = atpsg.subject_group_id\n" +
+                        "inner join university_info ui on ui.university_id = a.university_id\n" +
+                        "inner join dbo.admission_method am on a.id = am.admission_id\n" +
+                        "inner join university_info ui on ui.university_id = a.university_id\n" +
+                        "where a.status = 'ACTIVE' \n"
         );
 
         // 2. Create a Map to store parameters
@@ -165,7 +164,8 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         }
 
         // 4. Add the year filter (seems to be always required)
-        queryBuilder.append(" AND a.year IN (:yearMinus2, :yearMinus1, :currentYear) ");
+        queryBuilder.append(" AND a.year IN (:yearMinus3, :yearMinus2, :yearMinus1, :currentYear) ");
+        parameters.put("yearMinus3", year - 3);
         parameters.put("yearMinus2", year - 2);
         parameters.put("yearMinus1", year - 1);
         parameters.put("currentYear", 2024);

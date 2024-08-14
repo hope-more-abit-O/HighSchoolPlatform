@@ -4,6 +4,9 @@ import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
 import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
+import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
+
+import java.util.List;
 
 /**
  * The interface Question service.
@@ -24,4 +27,11 @@ public interface QuestionService {
      * @return the response data
      */
     ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId);
+
+    /**
+     * Gets list question.
+     *
+     * @return the list question
+     */
+    ResponseData<List<QuestionResponse>> getListQuestion();
 }
