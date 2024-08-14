@@ -697,9 +697,11 @@ public class AdmissionServiceImpl implements AdmissionService {
                 .map(AdmissionTrainingProgramMethodId::getAdmissionMethodId)
                 .distinct().toList();
 
+
         List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByIds(admissionTrainingProgramIds);
         List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(admissionMethodIds);
-        List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList());
+        List<Integer> methodIds = admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList();
+        List<Method> methods = methodService.findByIds(methodIds);
         List<Admission> admissions = admissionRepository.findAllById(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getAdmissionId).distinct().toList());
         List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingProgramIds);
