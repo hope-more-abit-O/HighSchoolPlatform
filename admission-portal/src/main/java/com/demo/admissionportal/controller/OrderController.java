@@ -35,7 +35,6 @@ import vn.payos.type.PaymentLinkData;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -155,8 +154,8 @@ public class OrderController {
             requestBody.setProductName(productName);
             requestBody.setDescription("Ma don hang " + productTransactionId);
             requestBody.setPrice(totalAmount);
-            requestBody.setReturnUrl("https://your-return-url.com");
-            requestBody.setCancelUrl("https://your-cancel-url.com");
+            requestBody.setReturnUrl("http://localhost:5173/consultant/manage-campaign");
+            requestBody.setCancelUrl("http://localhost:5173/consultant/manage-campaign");
 
             // Gen order code
             String currentTimeString = String.valueOf(new Date().getTime());
