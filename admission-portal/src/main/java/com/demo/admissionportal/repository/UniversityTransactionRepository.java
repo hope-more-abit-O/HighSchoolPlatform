@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * The interface University transaction repository.
  */
@@ -22,6 +24,12 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "WHERE ut.id = :transactionId ", nativeQuery = true)
     UniversityTransaction findByTransactionId(Integer transactionId);
 
+    /**
+     * Find campaign by uni id university transaction.
+     *
+     * @param id the id
+     * @return the university transaction
+     */
     @Query(value = "SELECT ut.* " +
             "            FROM post p " +
             "            LEFT JOIN ( " +
@@ -36,4 +44,26 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "            JOIN ads_package ap ON ut.ads_package_id = ap.id " +
             "            WHERE p.id = :id", nativeQuery = true)
     UniversityTransaction findCampaignByUniId(Integer id);
+
+    /**
+     * Find by order code list.
+     *
+     * @param orderCode the order code
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM university_transaction ut " +
+            "WHERE ut.order_code = :orderCode ", nativeQuery = true)
+    List<UniversityTransaction> findByOrderCode(Long orderCode);
+
+    /**
+     * Find by university id list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM university_transaction ut " +
+            "WHERE ut.university_id = :universityId ", nativeQuery = true)
+    List<UniversityTransaction> findByUniversityId(Integer universityId);
 }

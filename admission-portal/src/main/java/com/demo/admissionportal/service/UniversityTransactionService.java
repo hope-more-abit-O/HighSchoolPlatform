@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.ads_package.PackageResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.payment.OrderResponseDTO;
 import com.demo.admissionportal.entity.AdsPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
 
@@ -43,4 +44,11 @@ public interface UniversityTransactionService {
      * @return the list package
      */
     ResponseData<List<PackageResponseDTO>> getListPackage();
+
+    /**
+     * Gets order by uni id.
+     *
+     * @return the order by uni id
+     */
+    ResponseData<List<OrderResponseDTO>> getOrderByUniId();
 }

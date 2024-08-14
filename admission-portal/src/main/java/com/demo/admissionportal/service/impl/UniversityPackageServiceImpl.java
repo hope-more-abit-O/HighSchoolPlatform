@@ -77,9 +77,9 @@ public class UniversityPackageServiceImpl implements UniversityPackageService {
     }
 
     @Override
-    public UniversityPackage updateUniversityPackage(Integer transactionId, Integer postId, Integer packageId) {
+    public UniversityPackage updateUniversityPackage(Integer universityTransactionId) {
         try {
-            UniversityPackage universityPackage = universityPackageRepository.findUniversityPackageByTransactionId(transactionId);
+            UniversityPackage universityPackage = universityPackageRepository.findUniversityPackageByTransactionId(universityTransactionId);
             universityPackage.setStatus(UniversityPackageStatus.ACTIVE);
             return universityPackageRepository.save(universityPackage);
         } catch (Exception ex) {

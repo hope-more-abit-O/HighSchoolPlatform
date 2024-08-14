@@ -12,6 +12,7 @@ import com.demo.admissionportal.entity.UniversityPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.PackageRepository;
+import com.demo.admissionportal.repository.UniversityTransactionRepository;
 import com.demo.admissionportal.service.UniversityPackageService;
 import com.demo.admissionportal.service.UniversityTransactionService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,6 +50,7 @@ public class OrderController {
     private final PackageRepository packageRepository;
     private final UniversityTransactionService universityTransactionService;
     private final UniversityPackageService universityPackageService;
+    private final UniversityTransactionRepository universityTransactionRepository;
 
     /**
      * Create qr object node.
@@ -93,7 +95,6 @@ public class OrderController {
         String checkoutUrl = dataNode.get("checkoutUrl").asText();
         responseDTO.setOrderCode(orderCode);
         responseDTO.setCheckoutURL(checkoutUrl);
-        responseDTO.setTransaction(infoTransactionDTOList);
         responseDTO.setStatusPayment(statusPayment);
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
@@ -112,14 +113,15 @@ public class OrderController {
         UniversityTransaction universityTransaction;
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
-        for (PaymentRequestDTO.PaymentInfo paymentInfo : requestDTO.getTransaction()) {
+        List<UniversityTransaction> list = universityTransactionRepository.findByOrderCode(requestDTO.getOrderCode());
+        for (UniversityTransaction ut : list) {
             if (status.equals("PAID")) {
-                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
-                universityPackageService.updateUniversityPackage(paymentInfo.getUniversityTransactionId(), paymentInfo.getPostId(), paymentInfo.getPackageId());
+                universityTransaction = universityTransactionService.updateTransaction(ut.getId(), status);
+                universityPackageService.updateUniversityPackage(ut.getId());
             } else if (status.equals("CANCELLED")) {
-                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
+                universityTransaction = universityTransactionService.updateTransaction(ut.getId(), status);
             } else {
-                universityTransaction = universityTransactionService.findTransaction(paymentInfo.getUniversityTransactionId());
+                universityTransaction = universityTransactionService.findTransaction(ut.getId());
             }
             paymentResponseDTO.setOrderCode(requestDTO.getOrderCode());
             paymentResponseDTO.setPaymentStatus(universityTransaction.getStatus().name);

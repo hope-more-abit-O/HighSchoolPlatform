@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.UniversityTransactionStatus;
 import com.demo.admissionportal.dto.request.ads_package.PackageResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.payment.OrderResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.PackageRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
@@ -99,7 +100,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     private AdsPackage mapToInfoPackage(Integer packageId) {
-         return  packageRepository.findPackageById(packageId);
+        return packageRepository.findPackageById(packageId);
     }
 
     private PackageResponseDTO.InfoUniversity mapToInfoUniversity(Integer universityId) {
@@ -110,4 +111,28 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
                 .build();
     }
 
+    @Override
+    public ResponseData<List<OrderResponseDTO>> getOrderByUniId() {
+        List<OrderResponseDTO> responseDTOS = null;
+        try {
+            Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(universityId);
+            responseDTOS = list.stream()
+                    .map(this::mapToOrderResponse)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách giao dịch với university thành công", responseDTOS);
+        } catch (Exception ex) {
+            log.error("Error when get list transaction by University Id: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi lấy danh sách giao dịch với universityId ");
+        }
+    }
+
+    private OrderResponseDTO mapToOrderResponse(UniversityTransaction universityTransaction) {
+        OrderResponseDTO responseDTO = modelMapper.map(universityTransaction, OrderResponseDTO.class);
+        AdsPackage adsPackage = packageRepository.findPackageById(universityTransaction.getPackageId());
+        responseDTO.setPackageName(adsPackage.getName());
+        responseDTO.setPrice(adsPackage.getPrice());
+        responseDTO.setStatus(universityTransaction.getStatus().name);
+        return responseDTO;
+    }
 }
