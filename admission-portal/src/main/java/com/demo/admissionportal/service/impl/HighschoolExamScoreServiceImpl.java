@@ -951,10 +951,15 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 Page<HighschoolExamScore> highschoolExamScoresPage = highschoolExamScoreRepository.findByYear(listExamScore.getYear(), pageRequest);
 
                 List<HighschoolExamScoreResponse> examScoreResponses = new ArrayList<>();
+                Set<Integer> seenIdentificationNumbers = new HashSet<>();
 
                 for (HighschoolExamScore score : highschoolExamScoresPage) {
-                    List<SubjectScoreDTO> subjectScores = new ArrayList<>();
+                    if (seenIdentificationNumbers.contains(score.getIdentificationNumber())) {
+                        continue; // Skip duplicates
+                    }
+                    seenIdentificationNumbers.add(score.getIdentificationNumber());
 
+                    List<SubjectScoreDTO> subjectScores = new ArrayList<>();
                     List<HighschoolExamScore> examinerScore = highschoolExamScoreRepository.findByIdentificationNumber(score.getIdentificationNumber());
 
                     BigDecimal khtnTotalScore = BigDecimal.ZERO;
@@ -979,6 +984,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             }
                         }
                     }
+
                     if (hasKHTN) {
                         khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
                         subjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
@@ -1060,7 +1066,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách đăng kí số báo danh thành công !", userIdentificationResponseList);
 
         } catch (Exception e) {
-            log.error("Error fetching registered identification numbers for userId: {}", e);
+            log.error("Error fetching registered identification numbers", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy danh sách đăng kí số báo danh, vui lòng thử lại sau");
         }
     }
