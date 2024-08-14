@@ -154,8 +154,8 @@ public class OrderController {
             requestBody.setProductName(productName);
             requestBody.setDescription("Ma don hang " + productTransactionId);
             requestBody.setPrice(totalAmount);
-            requestBody.setReturnUrl("http://localhost:5173/consultant/manage-campaign");
-            requestBody.setCancelUrl("http://localhost:5173/consultant/manage-campaign");
+            requestBody.setReturnUrl("https://main--uap-portal.netlify.app/consultant/manage-campaign");
+            requestBody.setCancelUrl("https://main--uap-portal.netlify.app/consultant/manage-campaign");
 
             // Gen order code
             String currentTimeString = String.valueOf(new Date().getTime());
