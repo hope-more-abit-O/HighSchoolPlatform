@@ -721,7 +721,11 @@ public class AdmissionServiceImpl implements AdmissionService {
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường đại học."));
 
-            List<Admission> admissions1 = admissions.stream().filter((element) -> element.getUniversityId().equals(universityId)).toList();
+            List<Admission> admissions1 = admissions
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(universityId))
+                    .sorted(Comparator.comparing(Admission::getId).reversed())
+                    .toList();
 
             List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms
                     .stream()
@@ -760,14 +764,26 @@ public class AdmissionServiceImpl implements AdmissionService {
                     subjectGroups1,
                     year);
 
-            admissions1.stream()
-                    .max(Comparator.comparing(Admission::getYear))
-                    .ifPresent(admission -> schoolAdviceDTOs.add(
-                            new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class),
-                                    admissionTrainingProgramDTOV2s.size(),
-                                    admissionTrainingProgramDTOV2s,
-                                    admission.getSource()))
-                    );
+            Admission admission = admissions1.stream()
+                    .max(Comparator.comparing(Admission::getYear).reversed()).get();
+
+            Set<String> seen = new LinkedHashSet<>();
+
+            Integer count = admissionTrainingPrograms1.stream()
+                    .filter(program -> seen.add(
+                            program.getMajorId() + "-" +
+                                    (program.getMainSubjectId() != null ? program.getMainSubjectId() : "null") + "-" +
+                                    (program.getLanguage() != null ? program.getLanguage() : "null") + "-" +
+                                    (program.getTrainingSpecific() != null ? program.getTrainingSpecific() : "null")
+                    ))
+                    .collect(Collectors.toList()).size();
+            if (admission != null){
+                schoolAdviceDTOs.add(
+                        new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class),
+                                count,
+                                admissionTrainingProgramDTOV2s,
+                                admission.getSource()));
+            }
 
         }
 
@@ -775,7 +791,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
         }
 
-        return ResponseData.ok("", schoolAdviceDTOs);
+        return ResponseData.ok("Tìm kiếm các chương trình đào tạo phù hợp thành công", schoolAdviceDTOs);
     }
 
     public List<AdmissionTrainingProgramDTOV2> getSchoolAdviceMajorDetails(Integer universityId, List<Major> majors, List<Admission> admissions, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<SubjectGroup> subjectGroups, Integer year) {
@@ -783,53 +799,76 @@ public class AdmissionServiceImpl implements AdmissionService {
         List<AdmissionTrainingProgramDTOV2> admissionTrainingProgramDTOV2s = new ArrayList<>();
 
 
+
         for (Major major : majors) {
+            Set<String> seen = new LinkedHashSet<>();
+            admissionTrainingPrograms.stream().forEach(program -> seen.add(
+                    program.getMajorId() + "-" +
+                            (program.getMainSubjectId() != null ? program.getMainSubjectId() : "null") + "-" +
+                            (program.getLanguage() != null ? program.getLanguage() : "null") + "-" +
+                            (program.getTrainingSpecific() != null ? program.getTrainingSpecific() : "null")
+            ));
+            
             InfoMajorDTO majorDTO = modelMapper.map(major, InfoMajorDTO.class);
             SchoolAdviceMajorDetailDTO mapping = new SchoolAdviceMajorDetailDTO();
             mapping.setMajor(modelMapper.map(major, InfoMajorDTO.class));
 
             for (Admission admission : admissions) {
-                if (!admission.getYear().equals(year)) {
-                    AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms
-                            .stream()
-                            .filter((a) -> (a.getMajorId().equals(major.getId())) && a.getAdmissionId().equals(admission.getId()) && (a.getTrainingSpecific() == null)) //Get null training specific only
-                            .findAny()
-                            .orElse(null);
-                    if (admissionTrainingProgram == null) break;
+                for (String seenStr : seen) {
+                    // Split the seenStr back into its components
+                    String[] fields = seenStr.split("-");
 
-                    AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
-                            .stream()
-                            .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
-                            .findFirst()
-                            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
+                    Integer majorId = Integer.parseInt(fields[0]);
+                    Integer mainSubjectId = "null".equals(fields[1]) ? null : Integer.parseInt(fields[1]);
+                    String language = "null".equals(fields[2]) ? null : fields[2];
+                    String trainingSpecific = "null".equals(fields[3]) ? null : fields[3];
 
-                    List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
-                            .stream()
-                            .map(AdmissionTrainingProgramSubjectGroup::getId)
-                            .filter(id -> id.getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
-                            .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
-                            .toList();
+                    // Filter the list based on the current combination
+                    List<AdmissionTrainingProgram> filteredList = admissionTrainingPrograms.stream()
+                            .filter(program -> program.getMajorId().equals(majorId) &&
+                                    (program.getMainSubjectId() == null ? mainSubjectId == null : program.getMainSubjectId().equals(mainSubjectId)) &&
+                                    (program.getLanguage() == null ? language == null : program.getLanguage().equals(language)) &&
+                                    (program.getTrainingSpecific() == null ? trainingSpecific == null : program.getTrainingSpecific().equals(trainingSpecific)))
+                            .collect(Collectors.toList());
 
-                    List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((a) -> subjectGroupIds.contains(a.getId())).toList();
+                    for (AdmissionTrainingProgram admissionTrainingProgram : filteredList) {
+                        if (admissionTrainingProgram == null) break;
 
-                    AdmissionTrainingProgramScoreDTO admissionTrainingProgramScoreDTO = new AdmissionTrainingProgramScoreDTO(admission.getYear(), subjectGroups1.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).collect(Collectors.toList()), admissionTrainingProgramMethod.getAdmissionScore());
+                        AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods
+                                .stream()
+                                .filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                                .findFirst()
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy điểm.", Map.of("error", "Not found AdmissionTrainingProgramMethod.")));
 
-                    AdmissionTrainingProgramDTOV2 admissionTrainingProgramDTOV2 = admissionTrainingProgramDTOV2s
-                            .stream()
-                            .filter((element) -> element.getUniversityId().equals(admission.getUniversityId()) && element.getMajor().equals(majorDTO))
-                            .findFirst()
-                            .orElse(null);
+                        List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
+                                .stream()
+                                .map(AdmissionTrainingProgramSubjectGroup::getId)
+                                .filter(id -> id.getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId()))
+                                .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                                .toList();
 
-                    if (admissionTrainingProgramDTOV2 == null) {
-                        admissionTrainingProgramDTOV2s.add(new AdmissionTrainingProgramDTOV2(admission, modelMapper.map(majorDTO, InfoMajorDTO.class), new ArrayList<>(List.of(admissionTrainingProgramScoreDTO))));
-                    } else {
-                        Integer index = admissionTrainingProgramDTOV2s.indexOf(admissionTrainingProgramDTOV2);
-                        List<AdmissionTrainingProgramScoreDTO> list = admissionTrainingProgramDTOV2.getScore();
-                        list.add(admissionTrainingProgramScoreDTO);
-                        admissionTrainingProgramDTOV2.setScore(list);
-                        admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
+                        List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((a) -> subjectGroupIds.contains(a.getId())).toList();
+
+                        AdmissionTrainingProgramScoreDTO admissionTrainingProgramScoreDTO = new AdmissionTrainingProgramScoreDTO(admission.getYear(), subjectGroups1.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).collect(Collectors.toList()), admissionTrainingProgramMethod.getAdmissionScore());
+
+                        AdmissionTrainingProgramDTOV2 admissionTrainingProgramDTOV2 = admissionTrainingProgramDTOV2s
+                                .stream()
+                                .filter((element) -> element.getUniversityId().equals(admission.getUniversityId()) && element.getMajor().equals(majorDTO))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (admissionTrainingProgramDTOV2 == null) {
+                            admissionTrainingProgramDTOV2s.add(new AdmissionTrainingProgramDTOV2(admission, modelMapper.map(majorDTO, InfoMajorDTO.class), new ArrayList<>(List.of(admissionTrainingProgramScoreDTO)), admissionTrainingProgram.getTrainingSpecific(), admissionTrainingProgram.getLanguage()));
+                        } else {
+                            Integer index = admissionTrainingProgramDTOV2s.indexOf(admissionTrainingProgramDTOV2);
+                            List<AdmissionTrainingProgramScoreDTO> list = admissionTrainingProgramDTOV2.getScore();
+                            list.add(admissionTrainingProgramScoreDTO);
+                            admissionTrainingProgramDTOV2.setScore(list);
+                            admissionTrainingProgramDTOV2s.set(index, admissionTrainingProgramDTOV2);
+                        }
                     }
                 }
+
             }
         }
 
