@@ -1,15 +1,13 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityTransactionStatus;
 import com.demo.admissionportal.dto.request.ads_package.PackageResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.OrderResponseDTO;
 import com.demo.admissionportal.entity.*;
-import com.demo.admissionportal.repository.PackageRepository;
-import com.demo.admissionportal.repository.UniversityInfoRepository;
-import com.demo.admissionportal.repository.UniversityPackageRepository;
-import com.demo.admissionportal.repository.UniversityTransactionRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UniversityTransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +30,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     private final ModelMapper modelMapper;
     private final UniversityInfoRepository universityInfoRepository;
     private final PackageRepository packageRepository;
+    private final ConsultantInfoRepository consultantInfoRepository;
 
     public UniversityTransaction createTransaction(Integer universityId, AdsPackage adsPackage) {
         try {
@@ -115,8 +114,13 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     public ResponseData<List<OrderResponseDTO>> getOrderByUniId() {
         List<OrderResponseDTO> responseDTOS = null;
         try {
-            Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            List<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(universityId);
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            Role role = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
+            if (role == Role.CONSULTANT) {
+                ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
+                userId = consultantInfo.getUniversityId();
+            }
+            List<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(userId);
             responseDTOS = list.stream()
                     .map(this::mapToOrderResponse)
                     .collect(Collectors.toList());
