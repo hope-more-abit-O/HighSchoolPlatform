@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolExamScore, Integer> {
@@ -90,6 +91,8 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.identificationNumber IN :identificationNumbers AND h.year = :year")
     List<HighschoolExamScore> findByIdentificationNumberAndYearIn(@Param("identificationNumbers") List<Integer> identificationNumbers, @Param("year") Integer year);
+
+    List<HighschoolExamScore> findByIdentificationNumberIn(Set<Integer> identificationNumbers);
 }
 
 
