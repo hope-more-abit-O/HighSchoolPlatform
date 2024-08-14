@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -151,6 +152,7 @@ public class UniversityController {
     }
 
     @GetMapping("/transaction")
+    @PreAuthorize("hasAnyAuthority('UNIVERSITY','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<List<OrderResponseDTO>>> getOrderByUniID() {
         return ResponseEntity.ok(universityTransactionService.getOrderByUniId());
