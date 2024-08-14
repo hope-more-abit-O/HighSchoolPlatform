@@ -5,6 +5,7 @@ import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
 import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.ExamYearData;
+import com.demo.admissionportal.dto.RegisteredIdentificationNumberDTO;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
@@ -165,6 +166,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     .collect(Collectors.groupingBy(ExamYearData::getYear));
 
             List<YearlyExamScoreResponse> yearlyResponses = new ArrayList<>();
+            List<HighschoolExamScore> allExamScores = new ArrayList<>();
+            List<ListExamScoreHighSchoolExamScore> allListExamScores = new ArrayList<>();
 
             for (Map.Entry<Integer, List<ExamYearData>> entry : examYearDataGroupedByYear.entrySet()) {
                 int year = entry.getKey();
@@ -178,16 +181,24 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     listExamScoreByYear.setStatus(ListExamScoreByYearStatus.INACTIVE);
                     listExamScoreByYear = listExamScoreByYearRepository.save(listExamScoreByYear);
                 }
-                ListExamScoreByYear finalListExamScoreByYear = listExamScoreByYear;
+
+                List<Integer> existingIdentificationNumbers = highschoolExamScoreRepository
+                        .findByIdentificationNumberAndYearIn(groupedExamYearData.stream()
+                                .flatMap(data -> data.getExamScoreData().stream())
+                                .map(CreateHighschoolExamScoreRequest::getIdentificationNumber)
+                                .distinct()
+                                .toList(), year)
+                        .stream()
+                        .map(HighschoolExamScore::getIdentificationNumber)
+                        .toList();
 
                 List<HighschoolExamScoreResponse> yearResponses = new ArrayList<>();
 
                 for (ExamYearData examYearData : groupedExamYearData) {
                     for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
-                        List<HighschoolExamScore> existIdentificationNumber = highschoolExamScoreRepository.findByIdentificationNumber(request.getIdentificationNumber());
-                        if (existIdentificationNumber != null && !existIdentificationNumber.isEmpty()) {
+                        if (existingIdentificationNumbers.contains(request.getIdentificationNumber())) {
                             log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), year);
-                            throw new IllegalStateException("Số báo danh thí sinh đã tồn tại");
+                            return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh " + request.getIdentificationNumber() + " đã tồn tại trong năm " + year);
                         }
 
                         Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
@@ -208,20 +219,22 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             examScore.setCreateBy(staffId);
                             examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
                             return examScore;
-                        }).collect(Collectors.toList());
+                        }).toList();
 
-                        highschoolExamScoreRepository.saveAll(examScores);
+                        allExamScores.addAll(examScores);
+
+                        ListExamScoreByYear finalListExamScoreByYear = listExamScoreByYear;
                         examScores.forEach(savedExamScore -> {
                             ListExamScoreHighSchoolExamScore listExamScoreHighSchoolExamScore = new ListExamScoreHighSchoolExamScore();
                             listExamScoreHighSchoolExamScore.setListExamScoreByYearId(finalListExamScoreByYear.getId());
                             listExamScoreHighSchoolExamScore.setHighschoolExamScoreId(savedExamScore.getId());
-                            listExamScoreHighSchoolExamScore.setStatus("INACTIVE");
-                            listExamScoreHighSchoolExamScoreRepository.save(listExamScoreHighSchoolExamScore);
+                            listExamScoreHighSchoolExamScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
+                            allListExamScores.add(listExamScoreHighSchoolExamScore);
                         });
 
                         List<SubjectScoreDTO> allSubjectScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
                             String subjectName = subjectRepository.findById(subjectId)
-                                    .map(subject -> subject.getName())
+                                    .map(Subject::getName)
                                     .orElse(null);
                             SubjectScoreDTO scoreDTO = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             return new SubjectScoreDTO(subjectId, subjectName, scoreDTO.getScore());
@@ -270,8 +283,11 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     }
                 }
 
-                yearlyResponses.add(new YearlyExamScoreResponse(finalListExamScoreByYear.getTitle(), year, yearResponses));
+                yearlyResponses.add(new YearlyExamScoreResponse(listExamScoreByYear.getTitle(), year, yearResponses));
             }
+
+            highschoolExamScoreRepository.saveAll(allExamScores);
+            listExamScoreHighSchoolExamScoreRepository.saveAll(allListExamScores);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo điểm thi thành công!", yearlyResponses);
 
@@ -280,6 +296,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình tạo điểm, vui lòng thử lại sau. Lỗi: " + e.getMessage());
         }
     }
+
+
 
     @Override
     @Transactional
@@ -801,49 +819,40 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     @Transactional
     public ResponseData<String> publishExamScores(Integer listExamScoreByYearId) {
         try {
-            ListExamScoreByYear listExamScoreByYear = listExamScoreByYearRepository.findById(listExamScoreByYearId)
-                    .orElseThrow(() -> new IllegalStateException("ListExamScoreByYear ID không tồn tại"));
-
-            List<ListExamScoreByYear> activeScores = listExamScoreByYearRepository.findAllByStatus(ListExamScoreByYearStatus.ACTIVE.name());
-            if (!activeScores.isEmpty()) {
-                activeScores.forEach(activeScore -> {
-                    activeScore.setStatus(ListExamScoreByYearStatus.INACTIVE);
-                    listExamScoreByYearRepository.save(activeScore);
-                });
+            ListExamScoreByYear listExamScoreByYear = listExamScoreByYearRepository.findById(listExamScoreByYearId).orElse(null);
+            if (listExamScoreByYear == null) {
+                log.error("List exam score id {} not found", listExamScoreByYearId);
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Dữ liệu điểm thi không tồn tại!");
             }
 
-            List<HighschoolExamScore> highschoolExamScore = highschoolExamScoreRepository.findAllByYearAndStatus(
-                    listExamScoreByYear.getYear(), HighschoolExamScoreStatus.INACTIVE);
+            List<ListExamScoreByYear> activeScores = listExamScoreByYearRepository.findAllByStatus(ListExamScoreByYearStatus.ACTIVE);
+            activeScores.forEach(activeScore -> activeScore.setStatus(ListExamScoreByYearStatus.INACTIVE));
+            listExamScoreByYearRepository.saveAll(activeScores);
 
-            if (highschoolExamScore.isEmpty()) {
-                return new ResponseData<>(ResponseCode.C200.getCode(), "Điểm thi đã được công bố từ trước đó.");
-            }
-
-            highschoolExamScore.forEach(score -> score.setStatus(HighschoolExamScoreStatus.ACTIVE));
-            highschoolExamScoreRepository.saveAll(highschoolExamScore);
+            highschoolExamScoreRepository.updateStatusByYear(HighschoolExamScoreStatus.ACTIVE, listExamScoreByYear.getYear(), HighschoolExamScoreStatus.INACTIVE);
 
             listExamScoreByYear.setStatus(ListExamScoreByYearStatus.ACTIVE);
             listExamScoreByYearRepository.save(listExamScoreByYear);
 
+            List<HighschoolExamScore> highschoolExamScores = highschoolExamScoreRepository.findAllByYearAndStatus(
+                    listExamScoreByYear.getYear(), HighschoolExamScoreStatus.ACTIVE);
+
+            Set<Integer> scoreIdentificationNumbers = highschoolExamScores.stream()
+                    .map(HighschoolExamScore::getIdentificationNumber)
+                    .collect(Collectors.toSet());
+
             List<UserIdentificationNumberRegister> allRegisters = userIdentificationNumberRegisterRepository.findAll();
-
-            Map<Integer, HighschoolExamScore> highschoolExamScoreFound = highschoolExamScore.stream()
-                    .collect(Collectors.toMap(HighschoolExamScore::getIdentificationNumber, score -> score));
-
-            for (UserIdentificationNumberRegister register : allRegisters) {
-                if (highschoolExamScoreFound.containsKey(register.getIdentificationNumber())) {
+            allRegisters.parallelStream().forEach(register -> {
+                if (scoreIdentificationNumbers.contains(register.getIdentificationNumber())) {
                     register.setStatus(IdentificationNumberRegisterStatus.SENDED);
                 } else {
                     register.setStatus(IdentificationNumberRegisterStatus.NOT_FOUND);
                 }
-                userIdentificationNumberRegisterRepository.save(register);
-            }
+            });
 
-            List<ListExamScoreHighSchoolExamScore> relatedScores = listExamScoreHighSchoolExamScoreRepository
-                    .findAllByListExamScoreByYearId(listExamScoreByYearId);
+            userIdentificationNumberRegisterRepository.saveAll(allRegisters);
 
-            relatedScores.forEach(score -> score.setStatus("ACTIVE"));
-            listExamScoreHighSchoolExamScoreRepository.saveAll(relatedScores);
+            listExamScoreHighSchoolExamScoreRepository.updateStatusByListExamScoreByYearId(HighschoolExamScoreStatus.ACTIVE, listExamScoreByYearId);
 
             for (UserIdentificationNumberRegister register : allRegisters) {
                 if (register.getStatus() == IdentificationNumberRegisterStatus.SENDED) {
@@ -856,7 +865,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             .append(listExamScoreByYear.getYear())
                             .append(" của bạn:</h3>");
 
-                    List<HighschoolExamScore> userScores = highschoolExamScore.stream()
+                    List<HighschoolExamScore> userScores = highschoolExamScores.stream()
                             .filter(score -> score.getIdentificationNumber().equals(register.getIdentificationNumber()))
                             .toList();
 
@@ -911,9 +920,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Có lỗi xảy ra khi công bố điểm thi THPT " + listExamScoreByYearId);
         }
     }
-
-
-
     @Override
     public ResponseData<Page<ListExamScoreByYearResponse>> getAllListExamScoresByYear(Pageable pageable) {
         try {
@@ -1014,7 +1020,50 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
     }
 
+    @Override
+    public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers() {
+        try {
+            List<UserIdentificationNumberRegister> registers = userIdentificationNumberRegisterRepository.findAll();
 
+            if (registers.isEmpty()) {
+                log.error("No identification number registered found {}", registers);
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy số báo danh nào được đăng kí");
+            }
+
+            Map<Integer, List<UserIdentificationNumberRegister>> groupedByUserId = registers.stream()
+                    .collect(Collectors.groupingBy(UserIdentificationNumberRegister::getUserId));
+
+            List<UserIdentificationResponseDTO> userIdentificationResponseList = groupedByUserId.entrySet().stream()
+                    .map(entry -> {
+                        Integer userId = entry.getKey();
+                        List<UserIdentificationNumberRegister> userRegisters = entry.getValue();
+
+                        List<RegisteredIdentificationNumberDTO> registeredIdentificationNumberList = userRegisters.stream()
+                                .map(r -> new RegisteredIdentificationNumberDTO(
+                                        r.getIdentificationNumber(),
+                                        r.getYear(),
+                                        r.getStatus().name()
+                                ))
+                                .collect(Collectors.toList());
+
+                        UserIdentificationNumberRegister firstRegister = userRegisters.get(0);
+
+                        return new UserIdentificationResponseDTO(
+                                userId,
+                                firstRegister.getEmail(),
+                                registeredIdentificationNumberList,
+                                firstRegister.getCreateTime()
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách đăng kí số báo danh thành công !", userIdentificationResponseList);
+
+        } catch (Exception e) {
+            log.error("Error fetching registered identification numbers for userId: {}", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy danh sách đăng kí số báo danh, vui lòng thử lại sau");
+        }
+    }
 
     private SubjectDTO getSubjectDetailsByName(String subjectName) {
         return subjectRepository.findByName(subjectName)

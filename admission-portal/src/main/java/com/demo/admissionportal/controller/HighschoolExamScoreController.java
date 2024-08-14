@@ -5,10 +5,8 @@ import com.demo.admissionportal.dto.ExamYearData;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
-import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
-import com.demo.admissionportal.dto.response.ListExamScoreByYearResponse;
-import com.demo.admissionportal.dto.response.ListExamScoreByYearResponseV2;
-import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.entity.UserIdentificationNumberRegister;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +59,7 @@ public class HighschoolExamScoreController {
     }
 
     @GetMapping("/list-of-exam-score-data")
+    @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<Page<ListExamScoreByYearResponse>>> listOfExamScoreData(Pageable pageable){
         ResponseData<Page<ListExamScoreByYearResponse>> response = highschoolExamScoreService.getAllListExamScoresByYear(pageable);
@@ -164,6 +163,21 @@ public class HighschoolExamScoreController {
             @RequestParam(defaultValue = "10") int size) {
 
         ResponseData<ListExamScoreByYearResponseV2> response = highschoolExamScoreService.getListExamScoreById(listId, page, size);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @GetMapping("/list-all-registered-identification-number")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<UserIdentificationResponseDTO>>> getAllRegisteredIdentificationNumbers() {
+        ResponseData<List<UserIdentificationResponseDTO>> response = highschoolExamScoreService.getAllRegisteredIdentificationNumbers();
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {

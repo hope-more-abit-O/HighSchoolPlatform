@@ -94,7 +94,7 @@ public class UserController {
      * @param authentication the authentication
      * @return the response entity
      */
-    @PutMapping("/register-identification-number/{id}")
+    @PostMapping("/register-identification-number/{id}")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<String>> updateIdentificationNumber(
             @PathVariable("id") Integer id,
