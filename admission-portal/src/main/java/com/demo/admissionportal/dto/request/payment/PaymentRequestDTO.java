@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * The type Payment request dto.
@@ -15,19 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class PaymentRequestDTO implements Serializable {
-    @NotNull(message = "Nhập mã orderCode PayOS")
+    @NotNull(message = "Mã orderCode PayOS bị trống")
     private long orderCode;
-    private List<PaymentInfo> transaction;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PaymentInfo implements Serializable {
-        @NotNull(message = "Nhập mã giao dịch")
-        private Integer universityTransactionId;
-        @NotNull(message = "Nhập postId")
-        private Integer postId;
-        @NotNull(message = "Nhập packageId")
-        private Integer packageId;
-    }
 }

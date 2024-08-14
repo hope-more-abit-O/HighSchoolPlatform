@@ -12,6 +12,7 @@ import com.demo.admissionportal.entity.UniversityPackage;
 import com.demo.admissionportal.entity.UniversityTransaction;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.PackageRepository;
+import com.demo.admissionportal.repository.UniversityTransactionRepository;
 import com.demo.admissionportal.service.UniversityPackageService;
 import com.demo.admissionportal.service.UniversityTransactionService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +35,6 @@ import vn.payos.type.PaymentLinkData;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +49,7 @@ public class OrderController {
     private final PackageRepository packageRepository;
     private final UniversityTransactionService universityTransactionService;
     private final UniversityPackageService universityPackageService;
+    private final UniversityTransactionRepository universityTransactionRepository;
 
     /**
      * Create qr object node.
@@ -93,7 +94,6 @@ public class OrderController {
         String checkoutUrl = dataNode.get("checkoutUrl").asText();
         responseDTO.setOrderCode(orderCode);
         responseDTO.setCheckoutURL(checkoutUrl);
-        responseDTO.setTransaction(infoTransactionDTOList);
         responseDTO.setStatusPayment(statusPayment);
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
@@ -112,14 +112,15 @@ public class OrderController {
         UniversityTransaction universityTransaction;
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         String status = dataNode.get("status").asText();
-        for (PaymentRequestDTO.PaymentInfo paymentInfo : requestDTO.getTransaction()) {
+        List<UniversityTransaction> list = universityTransactionRepository.findByOrderCode(requestDTO.getOrderCode());
+        for (UniversityTransaction ut : list) {
             if (status.equals("PAID")) {
-                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
-                universityPackageService.updateUniversityPackage(paymentInfo.getUniversityTransactionId(), paymentInfo.getPostId(), paymentInfo.getPackageId());
+                universityTransaction = universityTransactionService.updateTransaction(ut.getId(), status);
+                universityPackageService.updateUniversityPackage(ut.getId());
             } else if (status.equals("CANCELLED")) {
-                universityTransaction = universityTransactionService.updateTransaction(paymentInfo.getUniversityTransactionId(), status);
+                universityTransaction = universityTransactionService.updateTransaction(ut.getId(), status);
             } else {
-                universityTransaction = universityTransactionService.findTransaction(paymentInfo.getUniversityTransactionId());
+                universityTransaction = universityTransactionService.findTransaction(ut.getId());
             }
             paymentResponseDTO.setOrderCode(requestDTO.getOrderCode());
             paymentResponseDTO.setPaymentStatus(universityTransaction.getStatus().name);
@@ -153,8 +154,8 @@ public class OrderController {
             requestBody.setProductName(productName);
             requestBody.setDescription("Ma don hang " + productTransactionId);
             requestBody.setPrice(totalAmount);
-            requestBody.setReturnUrl("https://your-return-url.com");
-            requestBody.setCancelUrl("https://your-cancel-url.com");
+            requestBody.setReturnUrl("http://localhost:5173/consultant/manage-campaign");
+            requestBody.setCancelUrl("http://localhost:5173/consultant/manage-campaign");
 
             // Gen order code
             String currentTimeString = String.valueOf(new Date().getTime());
