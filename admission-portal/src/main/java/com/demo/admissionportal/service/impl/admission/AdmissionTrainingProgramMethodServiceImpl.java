@@ -90,6 +90,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
                         "inner join subject_group sg on sg.id = atpsg.subject_group_id\n" +
                         "inner join university_info ui on ui.university_id = a.university_id\n" +
                         "inner join dbo.admission_method am on a.id = am.admission_id\n" +
+                        "inner join university_info ui on ui.university_id = a.university_id\n" +
                         "where a.status = 'ACTIVE' \n"
         );
 
