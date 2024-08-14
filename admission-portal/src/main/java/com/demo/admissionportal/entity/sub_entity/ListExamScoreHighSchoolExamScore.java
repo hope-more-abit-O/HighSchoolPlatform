@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.entity.sub_entity.id.ListExamScoreHighSchoolExamScoreId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class ListExamScoreHighSchoolExamScore {
     @Id
     @Column(name = "highschool_exam_score_id")
     private Integer highschoolExamScoreId;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private HighschoolExamScoreStatus status;
 }
