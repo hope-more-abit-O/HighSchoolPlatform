@@ -84,13 +84,13 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT DISTINCT atpm.* " +
                         "from admission a\n" +
-                        "inner join admission_training_program atp on a.id = atp.admission_id\n" +
-                        "inner join admission_training_program_method atpm on atp.id = atpm.admission_training_program_id\n" +
-                        "inner join admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id\n" +
-                        "inner join subject_group sg on sg.id = atpsg.subject_group_id\n" +
-                        "inner join university_campus uc on uc.university_id = a.university_id\n" +
-                        "inner join dbo.admission_method am on a.id = am.admission_id\n" +
-                        "where a.status = 'ACTIVE' \n"
+                        " inner join admission_training_program atp on a.id = atp.admission_id\n" +
+                        " inner join admission_training_program_method atpm on atp.id = atpm.admission_training_program_id\n" +
+                        " inner join admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id\n" +
+                        " inner join subject_group sg on sg.id = atpsg.subject_group_id\n" +
+                        " inner join university_campus uc on uc.university_id = a.university_id\n" +
+                        " inner join dbo.admission_method am on atpm.admission_method_id = am.id\n" +
+                        " where a.status = 'ACTIVE' \n"
         );
 
         // 2. Create a Map to store parameters
