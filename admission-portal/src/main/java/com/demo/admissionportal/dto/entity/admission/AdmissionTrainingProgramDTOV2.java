@@ -1,7 +1,6 @@
 package com.demo.admissionportal.dto.entity.admission;
 
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
-import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.Admission;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -19,6 +18,7 @@ public class AdmissionTrainingProgramDTOV2 {
     private InfoMajorDTO major;
     private String trainingSpecific;
     private String language;
+    private String methodName;
     private List<AdmissionTrainingProgramScoreDTO> score;
 
     public AdmissionTrainingProgramDTOV2(Admission admission, InfoMajorDTO major, List<AdmissionTrainingProgramScoreDTO> score) {
@@ -27,11 +27,12 @@ public class AdmissionTrainingProgramDTOV2 {
         this.score = score;
     }
 
-    public AdmissionTrainingProgramDTOV2(Admission admission, InfoMajorDTO major, List<AdmissionTrainingProgramScoreDTO> score, String trainingSpecific, String language) {
+    public AdmissionTrainingProgramDTOV2(Admission admission, InfoMajorDTO major, List<AdmissionTrainingProgramScoreDTO> score, String trainingSpecific, String language, String methodName) {
         this.universityId = admission.getUniversityId();
         this.major = major;
         this.score = score;
         this.trainingSpecific = trainingSpecific;
         this.language = language;
+        this.methodName = methodName;
     }
 }
