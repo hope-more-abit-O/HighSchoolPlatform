@@ -53,9 +53,6 @@ public class Post {
     @Column(name = "quote")
     private String quote;
 
-    @Column(name = "[view]")
-    private Integer view;
-
     @Column(name = "[like]")
     private Integer like;
 

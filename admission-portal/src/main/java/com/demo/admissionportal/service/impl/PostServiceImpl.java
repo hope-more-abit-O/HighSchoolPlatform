@@ -14,13 +14,11 @@ import com.demo.admissionportal.dto.response.post.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.PostTag;
 import com.demo.admissionportal.entity.sub_entity.PostType;
-import com.demo.admissionportal.entity.sub_entity.PostView;
 import com.demo.admissionportal.entity.sub_entity.id.PostTagId;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.sub_repository.PostTagRepository;
 import com.demo.admissionportal.repository.sub_repository.PostTypeRepository;
-import com.demo.admissionportal.repository.sub_repository.PostViewRepository;
 import com.demo.admissionportal.service.CommentService;
 import com.demo.admissionportal.service.PostService;
 import com.demo.admissionportal.service.TagService;
@@ -53,7 +51,6 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostTypeRepository postTypeRepository;
     private final TypeRepository typeRepository;
-    private final PostViewRepository postViewRepository;
     private final TagService tagService;
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
@@ -95,12 +92,6 @@ public class PostServiceImpl implements PostService {
             List<PostType> postTypes = postTypeSave(requestDTO.getListType(), post);
             if (postTypes.isEmpty()) {
                 throw new Exception("Save post type thất bại!");
-            }
-
-            // Insert Post View
-            PostView postView = postViewSave(createBy, post);
-            if (postView == null) {
-                throw new Exception("Save post view thất bại!");
             }
 
             // Check Tag Name if user input duplicate
@@ -245,7 +236,6 @@ public class PostServiceImpl implements PostService {
             post.setCreateTime(new Date());
             post.setStatus(PostStatus.ACTIVE);
             post.setLike(0);
-            post.setView(0);
             post.setUrl(convertURL(requestDTO.getTitle()) + "-" + randomCodeGeneratorUtil.generateRandomString());
             return postRepository.save(post);
         } catch (Exception ex) {
@@ -275,22 +265,6 @@ public class PostServiceImpl implements PostService {
         return postTypes;
     }
 
-    private PostView postViewSave(Integer createBy, Post post) {
-        try {
-            PostView postView = new PostView();
-            postView.setId(post.getId());
-            postView.setCreateTime(post.getCreateTime());
-            postView.setViewCount(0);
-            postView.setLikeCount(0);
-            postView.setCreateBy(createBy);
-            postView.setStatus(PostPropertiesStatus.ACTIVE);
-            return postViewRepository.save(postView);
-        } catch (Exception ex) {
-            log.error("Error when save post view: {}", ex.getMessage());
-            return null;
-        }
-    }
-
     @Override
     public ResponseData<String> changeStatus(PostDeleteRequestDTO requestDTO) {
         Integer createBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -316,11 +290,6 @@ public class PostServiceImpl implements PostService {
                 throw new Exception("Thay đổi trạng thái  post type thất bại");
             }
 
-            // Remove Post View
-            boolean resultChangeStatusPostView = changeStatusPostView(requestDTO, createBy);
-            if (!resultChangeStatusPostView) {
-                throw new Exception("Thay đổi trạng thái post view thất bại");
-            }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Thay đổi trạng thái thành công");
         } catch (Exception ex) {
             log.error("Error when delete post: {}", ex.getMessage());
@@ -328,26 +297,6 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private boolean changeStatusPostView(PostDeleteRequestDTO requestDTO, Integer createBy) {
-        try {
-            PostView postView = postViewRepository.findPostViewById(requestDTO.getPostId());
-            if (postView == null) {
-                return false;
-            }
-            if (postView.getStatus().equals(PostPropertiesStatus.INACTIVE)) {
-                postView.setStatus(PostPropertiesStatus.ACTIVE);
-            } else {
-                postView.setStatus(PostPropertiesStatus.INACTIVE);
-            }
-            postView.setUpdateTime(new Date());
-            postView.setUpdateBy(createBy);
-            postViewRepository.save(postView);
-            return true;
-        } catch (Exception ex) {
-            log.error("Error when remove post view : {}", ex.getMessage());
-            return false;
-        }
-    }
 
     private boolean changeStatusPostType(PostDeleteRequestDTO requestDTO, Integer createBy) {
         try {
@@ -944,12 +893,10 @@ public class PostServiceImpl implements PostService {
     private void filterPost(PostFavoriteResponseDTO postFavoriteResponseDTO) {
         // Count comment in post
         int countComment = commentRepository.countByPostId(postFavoriteResponseDTO.getPostProperties().getId());
-        // Get view in post
-        int view = postFavoriteResponseDTO.getPostProperties().getView();
         // Get like in post
         int like = postFavoriteResponseDTO.getPostProperties().getLike();
         // Average contact with post
-        float interactPost = (float) (countComment + view + like) / 3;
+        float interactPost = (float) (countComment + like) / 2;
         postFavoriteResponseDTO.setInteractPost(interactPost);
     }
 
