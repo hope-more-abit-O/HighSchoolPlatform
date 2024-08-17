@@ -643,16 +643,15 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 Float score = ((Number) data[2]).floatValue();
 
                 if (score != null) {
-                    BigDecimal roundedScore = new BigDecimal(score).setScale(2, RoundingMode.DOWN);
-                    totalScoresByStudent.merge(identificationNumber, roundedScore.floatValue(), Float::sum);
+                    totalScoresByStudent.merge(identificationNumber, score, Float::sum);
                 }
             }
         }
 
         Map<Float, Integer> scoreDistribution = new HashMap<>();
         for (Float totalScore : totalScoresByStudent.values()) {
-            if (totalScore <= 30 && totalScore > 10) {
-                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(2, RoundingMode.DOWN);
+            if (totalScore > 10) {
+                BigDecimal roundedTotalScore = new BigDecimal(totalScore).setScale(1, RoundingMode.HALF_UP);
                 scoreDistribution.merge(roundedTotalScore.floatValue(), 1, Integer::sum);
             }
         }
@@ -1052,6 +1051,104 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy danh sách đăng kí số báo danh, vui lòng thử lại sau");
         }
     }
+
+    @Override
+    public ResponseData<String> getRankingBySubjectGroupAndLocal(Integer identificationNumber, String subjectGroup, String local) {
+        try {
+            // Step 1: Hardcode the subject group mappings
+            Map<String, List<Integer>> subjectGroupMap = Map.ofEntries(
+                    Map.entry("A00", List.of(36, 27, 16)),
+                    Map.entry("A01", List.of(36, 38, 27)),
+                    Map.entry("A02", List.of(36, 38, 16)),
+                    Map.entry("B00", List.of(36, 16, 23)),
+                    Map.entry("B03", List.of(36, 28, 23)),
+                    Map.entry("B08", List.of(36, 38, 23)),
+                    Map.entry("C00", List.of(28, 34, 9)),
+                    Map.entry("C03", List.of(36, 28, 34)),
+                    Map.entry("C04", List.of(36, 28, 9)),
+                    Map.entry("D01", List.of(36, 28, 38)),
+                    Map.entry("D09", List.of(36, 38, 34)),
+                    Map.entry("D10", List.of(36, 38, 9)),
+                    Map.entry("D14", List.of(28, 38, 34))
+            );
+
+
+            // Step 2: Get the subject IDs for the given subject group
+            List<Integer> subjectIds = subjectGroupMap.get(subjectGroup);
+
+            if (subjectIds == null || subjectIds.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy nhóm môn học này!");
+            }
+
+            // Step 3: Fetch scores for all students in the same local and subject group
+            List<Object[]> allScoresInLocal = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
+
+            // Log the retrieved scores for debugging
+            log.debug("All scores in local for subject group {}: {}", subjectGroup, allScoresInLocal);
+
+            Map<Integer, BigDecimal> totalScoresByIdentificationNumber = new HashMap<>();
+            Map<Integer, Set<Integer>> validSubjectCounts = new HashMap<>();
+
+            for (Object[] data : allScoresInLocal) {
+                Integer otherIdentificationNumber = (Integer) data[0];
+                Float score = ((Number) data[2]).floatValue();
+                Integer subjectId = (Integer) data[1];
+
+                if (score != null && subjectIds.contains(subjectId)) {
+                    totalScoresByIdentificationNumber.merge(
+                            otherIdentificationNumber,
+                            BigDecimal.valueOf(score),
+                            BigDecimal::add
+                    );
+
+                    // Track how many valid subjects this identification number has
+                    validSubjectCounts.computeIfAbsent(otherIdentificationNumber, k -> new HashSet<>()).add(subjectId);
+
+                    // Log individual score details for debugging
+                    log.debug("Identification Number: {}, Subject ID: {}, Score: {}", otherIdentificationNumber, subjectId, score);
+                }
+            }
+
+            // Step 4: Validate the specific identificationNumber
+            Set<Integer> studentSubjects = validSubjectCounts.get(identificationNumber);
+            if (studentSubjects == null || studentSubjects.size() < subjectIds.size()) {
+                // Log the missing subjects for debugging
+                log.debug("Missing subjects for identification number {}: expected {}, but got {}", identificationNumber, subjectIds.size(), studentSubjects != null ? studentSubjects.size() : 0);
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Thí sinh không có điểm cho tất cả các môn trong tổ hợp môn này.");
+            }
+
+            // Step 5: Remove other students from ranking if they don't have valid scores for all subjects
+            totalScoresByIdentificationNumber.entrySet().removeIf(entry ->
+                    validSubjectCounts.get(entry.getKey()).size() < subjectIds.size()
+            );
+
+            // Step 6: Calculate the student's total score
+            BigDecimal studentTotalScore = totalScoresByIdentificationNumber.get(identificationNumber);
+
+            if (studentTotalScore == null) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Thí sinh không có điểm cho tất cả các môn trong tổ hợp môn này.");
+            }
+
+            // Step 7: Rank the student's score against others
+            List<BigDecimal> sortedScores = totalScoresByIdentificationNumber.values().stream()
+                    .sorted(Comparator.reverseOrder())
+                    .collect(Collectors.toList());
+
+            int rank = sortedScores.indexOf(studentTotalScore) + 1;
+
+            // Create the response message
+            String responseMessage = "Thứ hạng của bạn với tổ hợp môn " + subjectGroup + " tại " + local + " là " + rank;
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy xếp hạng thành công!", responseMessage);
+
+        } catch (Exception e) {
+            log.error("Error fetching ranking by subject group and local", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy xếp hạng, vui lòng thử lại sau.");
+        }
+    }
+
+
+
 
     private SubjectDTO getSubjectDetailsByName(String subjectName) {
         return subjectRepository.findByName(subjectName)

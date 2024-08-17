@@ -89,6 +89,8 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findByIdentificationNumberAndYearIn(@Param("identificationNumbers") List<Integer> identificationNumbers, @Param("year") Integer year);
 
     List<HighschoolExamScore> findByIdentificationNumberIn(Set<Integer> identificationNumbers);
+
+    List<HighschoolExamScore> findByIdentificationNumberAndSubjectIdIn(Integer identificationNumber, List<Integer> subjectIds);
 }
 
 

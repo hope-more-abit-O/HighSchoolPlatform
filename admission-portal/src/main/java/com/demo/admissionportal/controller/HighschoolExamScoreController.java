@@ -188,4 +188,13 @@ public class HighschoolExamScoreController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @GetMapping("/ranking")
+    public ResponseData<String> getRanking(
+            @RequestParam Integer identificationNumber,
+            @RequestParam String subjectGroup,
+            @RequestParam String local
+    ) {
+        return highschoolExamScoreService.getRankingBySubjectGroupAndLocal(identificationNumber, subjectGroup, local);
+    }
+
 }
