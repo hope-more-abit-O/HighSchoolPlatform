@@ -12,9 +12,6 @@ import java.util.List;
 public class HighschoolExamScoreResponse {
     private Integer identificationNumber;
     private String local;
-    private String examinationBoard;
-    private String dateOfBirth;
-    private String examiner;
     private Integer year;
     private List<SubjectScoreDTO> subjectScores;
 }

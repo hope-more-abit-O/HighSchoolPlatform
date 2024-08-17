@@ -23,12 +23,6 @@ public class HighschoolExamScore {
     private Integer identificationNumber;
     @Column(name = "local")
     private String local;
-    @Column(name = "examination_board")
-    private String examinationBoard;
-    @Column(name = "examiner")
-    private String examiner;
-    @Column(name = "dob")
-    private String dateOfBirth;
     @Column(name = "subject_id")
     private Integer subjectId;
     @Column(name = "score")

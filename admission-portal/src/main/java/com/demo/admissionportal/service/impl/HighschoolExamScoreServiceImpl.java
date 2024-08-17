@@ -78,9 +78,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             List<HighschoolExamScoreResponse> responseList = new ArrayList<>();
             for (Map.Entry<Integer, List<HighschoolExamScore>> entry : groupedById.entrySet()) {
                 List<SubjectScoreDTO> subjectScores = new ArrayList<>();
-                String examinationBoard = null;
-                String examiner = null;
-                String dateOfBirth = null;
                 Integer resultYear = null;
                 String local = null;
 
@@ -110,15 +107,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     if (local == null) {
                         local = score.getLocal();
                     }
-                    if (examinationBoard == null) {
-                        examinationBoard = score.getExaminationBoard();
-                    }
-                    if (dateOfBirth == null) {
-                        dateOfBirth = score.getDateOfBirth();
-                    }
-                    if (examiner == null) {
-                        examiner = score.getExaminer();
-                    }
                 }
 
                 if (hasKHTN) {
@@ -132,9 +120,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 responseList.add(new HighschoolExamScoreResponse(
                         entry.getKey(),
                         local,
-                        examinationBoard,
-                        dateOfBirth,
-                        examiner,
                         resultYear,
                         subjectScores
                 ));
@@ -209,9 +194,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             HighschoolExamScore examScore = new HighschoolExamScore();
                             examScore.setIdentificationNumber(request.getIdentificationNumber());
                             examScore.setLocal(request.getLocal());
-                            examScore.setExaminationBoard(request.getExaminationBoard());
-                            examScore.setExaminer(request.getExaminer());
-                            examScore.setDateOfBirth(request.getDateOfBirth());
                             examScore.setSubjectId(subjectId);
                             examScore.setYear(year);
                             examScore.setScore(subjectScore.getScore());
@@ -274,9 +256,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         yearResponses.add(new HighschoolExamScoreResponse(
                                 request.getIdentificationNumber(),
                                 request.getLocal(),
-                                request.getExaminationBoard(),
-                                request.getDateOfBirth(),
-                                request.getExaminer(),
                                 year,
                                 allSubjectScores
                         ));
@@ -374,9 +353,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         HighschoolExamScoreResponse response = new HighschoolExamScoreResponse();
                         response.setIdentificationNumber(identificationNumber);
                         response.setLocal(request.getLocal());
-                        response.setExaminationBoard(request.getExaminationBoard());
-                        response.setDateOfBirth(request.getDateOfBirth());
-                        response.setExaminer(request.getExaminer());
                         response.setYear(year);
                         response.setSubjectScores(allSubjectScores);
 
@@ -800,9 +776,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     HighschoolExamScoreResponse response = new HighschoolExamScoreResponse(
                             firstScore.getIdentificationNumber(),
                             firstScore.getLocal(),
-                            firstScore.getExaminationBoard(),
-                            firstScore.getDateOfBirth(),
-                            firstScore.getExaminer(),
                             firstScore.getYear(),
                             sortedScores
                     );
@@ -1012,9 +985,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     examScoreResponses.add(new HighschoolExamScoreResponse(
                             score.getIdentificationNumber(),
                             score.getLocal(),
-                            score.getExaminationBoard(),
-                            score.getDateOfBirth(),
-                            score.getExaminer(),
                             score.getYear(),
                             subjectScores
                     ));

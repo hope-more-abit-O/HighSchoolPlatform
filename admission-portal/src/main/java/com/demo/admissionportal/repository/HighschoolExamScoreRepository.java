@@ -29,7 +29,6 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     int countByIdentificationNumberAndYear(@Param("identificationNumber") Integer identificationNumber, @Param("year") Integer year);
 
 
-    List<HighschoolExamScore> findByExaminer(String examiner);
     List<HighschoolExamScore> findByIdentificationNumber(Integer identificationNumber);
     List<HighschoolExamScore> findByIdentificationNumberAndYear(Integer identificationNumber, Integer year);
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.local = :local")
@@ -42,9 +41,6 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "h.subject_id IN (:subjectIds) AND h.status = 'ACTIVE'", nativeQuery = true)
     List<Object[]> findScoresForSubjects(@Param("subjectIds") List<Integer> subjectIds, @Param("local") String local);
 
-    @Query(value = "SELECT h.examiner, h.subject_id FROM highschool_exam_score h WHERE " +
-            "h.year = 2024 AND (:local IS NULL OR h.local LIKE %:local%) AND h.status = 'ACTIVE'", nativeQuery = true)
-    List<Object[]> findExaminerAndSubjects(@Param("local") String local);
 
     @Query("SELECT s.local, s.score FROM HighschoolExamScore s WHERE s.subjectId = :subjectId AND s.local = :local AND s.status = 'ACTIVE'")
     List<Object[]> findScoresBySubjectIdAndLocal(@Param("subjectId") Integer subjectId, @Param("local") String local);
