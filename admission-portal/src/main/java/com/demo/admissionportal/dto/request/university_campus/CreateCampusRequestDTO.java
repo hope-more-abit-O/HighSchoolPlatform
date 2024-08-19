@@ -1,10 +1,6 @@
 package com.demo.admissionportal.dto.request.university_campus;
 
-import com.demo.admissionportal.constants.CampusType;
-import com.demo.admissionportal.util.enum_validator.EnumName;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
