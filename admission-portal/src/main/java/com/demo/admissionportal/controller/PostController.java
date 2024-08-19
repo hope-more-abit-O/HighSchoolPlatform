@@ -58,7 +58,7 @@ public class PostController {
      * @return the response entity
      */
     @PostMapping("/change-status")
-    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
+    @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT','UNIVERSITY')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<String>> deletePost(@RequestBody @Valid PostDeleteRequestDTO requestDTO) {
         if (requestDTO == null) {

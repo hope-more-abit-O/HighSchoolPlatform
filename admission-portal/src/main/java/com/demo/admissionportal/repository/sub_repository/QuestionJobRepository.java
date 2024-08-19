@@ -17,4 +17,12 @@ public interface QuestionJobRepository extends JpaRepository<QuestionJob, Questi
      * @return the question job
      */
     List<QuestionJob> findQuestionJobByQuestionId(Integer questionId);
+
+    /**
+     * Find question job by job id question job.
+     *
+     * @param jobId the job id
+     * @return the question job
+     */
+    QuestionJob findQuestionJobByJobId(Integer jobId);
 }
