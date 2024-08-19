@@ -780,6 +780,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 subjectOrder.add(0, mainSubject.getSubjectId());
             }
 
+
             List<Integer> finalSubjectOrder = new ArrayList<>(subjectOrder);
 
             Map<Integer, List<SubjectScoreDTO>> scoresByStudent = allScores.stream()

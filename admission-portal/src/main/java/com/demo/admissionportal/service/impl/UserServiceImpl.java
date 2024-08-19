@@ -624,11 +624,6 @@ public class UserServiceImpl implements UserService {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Bạn đã đăng kí số báo danh: " + identificationNumber + " trước đó");
             }
 
-            boolean existsInDb = highschoolExamScoreRepository.existsByIdentificationNumber(identificationNumber);
-            if (!existsInDb) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh " + identificationNumber + " không tồn tại trong hệ thống.");
-            }
-
             UserIdentificationNumberId id = new UserIdentificationNumberId(userId, identificationNumber);
             UserIdentificationNumberRegister registerIdentificationNumber = new UserIdentificationNumberRegister();
             registerIdentificationNumber.setId(id);
