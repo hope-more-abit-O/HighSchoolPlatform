@@ -2,6 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
+import com.demo.admissionportal.entity.sub_entity.id.UserIdentificationNumberId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,13 +17,10 @@ import java.util.Date;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "[user_identification_register]")
 public class UserIdentificationNumberRegister {
-    @Id
-    @Column(name = "user_id")
-    private Integer userId;
+    @EmbeddedId
+    private UserIdentificationNumberId id;
     @Column(name = "email")
     private String email;
-    @Column(name = "identification_number")
-    private Integer identificationNumber;
     @Column(name = "year")
     private Integer year;
     @Enumerated(EnumType.STRING)
@@ -36,4 +34,24 @@ public class UserIdentificationNumberRegister {
     private Integer createBy;
     @Column(name = "update_by")
     private Integer updateBy;
+
+    public Integer getUserId() {
+        return id != null ? id.getUserId() : null;
+    }
+    public void setUserId(Integer userId) {
+        if (this.id == null) {
+            this.id = new UserIdentificationNumberId();
+        }
+        this.id.setUserId(userId);
+    }
+    public Integer getIdentificationNumber() {
+        return id != null ? id.getIdentificationNumber() : null;
+    }
+
+    public void setIdentificationNumber(Integer identificationNumber) {
+        if (this.id == null) {
+            this.id = new UserIdentificationNumberId();
+        }
+        this.id.setIdentificationNumber(identificationNumber);
+    }
 }

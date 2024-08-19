@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.UserIdentificationNumberRegister;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
+import com.demo.admissionportal.service.impl.HighschoolExamScoreServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,8 @@ public class HighschoolExamScoreController {
 
     @Autowired
     private HighschoolExamScoreService highschoolExamScoreService;
+    @Autowired
+    private HighschoolExamScoreServiceImpl highschoolExamScoreServiceImpl;
 
     @GetMapping
     public ResponseEntity<ResponseData<List<HighschoolExamScoreResponse>>> getAllExamScores(
@@ -127,18 +130,32 @@ public class HighschoolExamScoreController {
     }
     //Subject Group distribution
     @GetMapping("/distribution")
-    public ResponseEntity<ResponseData<Map<String, Map<Float, Integer>>>> getScoreDistributionBySubjectGroup(
+    public ResponseEntity<ResponseData<?>> getScoreDistributionBySubjectGroup(
             @RequestParam(required = false) String local,
-            @RequestParam(required = false) String subjectGroup) {
-        ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubjectGroup(local, subjectGroup);
-        if (response.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(response);
-        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            @RequestParam(required = false) String subjectGroup,
+            @RequestParam(required = false) Integer identificationNumber) {
+
+        if (identificationNumber != null) {
+            ResponseData<String> response = highschoolExamScoreServiceImpl.getRankingBySubjectGroupAndLocal(identificationNumber, subjectGroup, local);
+            if (response.getStatus() == ResponseCode.C200.getCode()) {
+                return ResponseEntity.ok(response);
+            } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } else {
+            ResponseData<Map<String, Map<Float, Integer>>> response = highschoolExamScoreService.getScoreDistributionBySubjectGroup(local, subjectGroup);
+            if (response.getStatus() == ResponseCode.C200.getCode()) {
+                return ResponseEntity.ok(response);
+            } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
     @PostMapping("/publish/{listId}")
     @SecurityRequirement(name = "BearerAuth")
@@ -176,8 +193,11 @@ public class HighschoolExamScoreController {
     @GetMapping("/list-all-registered-identification-number")
     @SecurityRequirement(name = "BearerAuth")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<List<UserIdentificationResponseDTO>>> getAllRegisteredIdentificationNumbers() {
-        ResponseData<List<UserIdentificationResponseDTO>> response = highschoolExamScoreService.getAllRegisteredIdentificationNumbers();
+    public ResponseEntity<ResponseData<List<UserIdentificationResponseDTO>>> getAllRegisteredIdentificationNumbers(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer identificationNumber
+    ) {
+        ResponseData<List<UserIdentificationResponseDTO>> response = highschoolExamScoreService.getAllRegisteredIdentificationNumbers(userId, identificationNumber);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
@@ -187,14 +207,4 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
-    @GetMapping("/ranking")
-    public ResponseData<String> getRanking(
-            @RequestParam Integer identificationNumber,
-            @RequestParam String subjectGroup,
-            @RequestParam String local
-    ) {
-        return highschoolExamScoreService.getRankingBySubjectGroupAndLocal(identificationNumber, subjectGroup, local);
-    }
-
 }
