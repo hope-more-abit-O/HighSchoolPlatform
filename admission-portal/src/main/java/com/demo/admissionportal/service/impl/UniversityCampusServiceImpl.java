@@ -7,6 +7,9 @@ import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusDTO;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityCampusProperties;
 import com.demo.admissionportal.dto.entity.university_campus.UniversityProperties;
+import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
+import com.demo.admissionportal.dto.request.post.ProvinceResponseDTO;
+import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.request.university_campus.CreateCampusRequestDTO;
 import com.demo.admissionportal.dto.request.university_campus.UpdateCampusRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -84,7 +87,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
     }
 
     public List<UniversityCampusProperties> mapToListCampusV2(Integer universityId) {
-        log.info("Start mapToListCampus");
+        log.info("Start mapToListCampusV2");
         List<UniversityCampus> universityCampus = universityCampusRepository.findByUniversityId(universityId);
         List<Integer> provincesIds = universityCampus.stream().map(UniversityCampus::getProvinceId).distinct().toList();
         List<Integer> districtIds = universityCampus.stream().map(UniversityCampus::getDistrictId).distinct().toList();
@@ -106,6 +109,9 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .email(universityCampus.getEmail())
                 .picture(mapToListPicture(universityCampus.getPicture()))
                 .address(universityCampus.getSpecificAddress() + ", " + wardCampus.getName() + ", " + districtCampus.getName() + ", " + provinceCampus.getName())
+                .provinceResponseDTO(modelMapper.map(provinceCampus, ProvinceResponseDTO.class))
+                .wardResponseDTO(modelMapper.map(wardCampus, WardResponseDTO.class))
+                .districtResponseDTO(modelMapper.map(districtCampus, DistrictResponseDTO.class))
                 .type(universityCampus.getType().name)
                 .status(universityCampus.getStatus().name)
                 .build();

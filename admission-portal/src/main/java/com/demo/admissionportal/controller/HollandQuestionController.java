@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
+import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
@@ -23,6 +24,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/holland-test")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('STAFF')")
+
 public class HollandQuestionController {
     @Autowired
     private QuestionService questionService;
@@ -34,7 +37,6 @@ public class HollandQuestionController {
      * @return the response entity
      */
     @PostMapping("/question")
-    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<CreateQuestionResponse>> createQuestion(@RequestBody @Valid CreateQuestionRequest request) {
         ResponseData<CreateQuestionResponse> createdQuestionResponse = questionService.createQuestion(request);
         if (createdQuestionResponse.getStatus() == ResponseCode.C200.getCode()) {
@@ -46,7 +48,6 @@ public class HollandQuestionController {
     }
 
     @PostMapping("/question/change-status/{questionId}")
-    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
         if (questionId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
@@ -63,7 +64,6 @@ public class HollandQuestionController {
     }
 
     @GetMapping("/question/list")
-    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestion() {
         ResponseData<List<QuestionResponse>> resultOfList = questionService.getListQuestion();
         if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
@@ -71,4 +71,20 @@ public class HollandQuestionController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
     }
+
+//    @PutMapping("/question/{questionId}")
+//    public ResponseEntity<ResponseData<String>> getQuestion(@PathVariable(name = "questionId") Integer questionId, @RequestBody @Valid UpdateQuestionRequest request) {
+//        if (questionId == null || request == null) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
+//        }
+//        ResponseData<String> questionResponse = questionService.updateQuestion(questionId, request);
+//        if (questionResponse.getStatus() == ResponseCode.C200.getCode()) {
+//            return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
+//        } else if (questionResponse.getStatus() == ResponseCode.C205.getCode()) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(questionResponse);
+//        } else if (questionResponse.getStatus() == ResponseCode.C203.getCode()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(questionResponse);
+//        }
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(questionResponse);
+//    }
 }
