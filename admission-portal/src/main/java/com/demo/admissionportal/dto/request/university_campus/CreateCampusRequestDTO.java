@@ -24,7 +24,6 @@ import java.util.List;
 @Data
 public class CreateCampusRequestDTO implements Serializable {
     @NotNull(message = "Tên campus không thể để trống !")
-    @EnumName(message = "Tên campus chỉ chứa chữ")
     private String campusName;
 
     @NotNull(message = "Số điện thoại không thể để trống !")

@@ -1,12 +1,12 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.holland_test.CreateJobRequest;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
 import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
+import com.demo.admissionportal.dto.response.holland_test.*;
+import com.demo.admissionportal.service.JobService;
 import com.demo.admissionportal.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import java.util.List;
 @PreAuthorize("hasAuthority('STAFF')")
 
 public class HollandQuestionController {
-    @Autowired
-    private QuestionService questionService;
+    private final QuestionService questionService;
+    private final JobService jobService;
 
     /**
      * Create question response entity.
@@ -47,6 +47,12 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdQuestionResponse);
     }
 
+    /**
+     * Delete question response entity.
+     *
+     * @param questionId the question id
+     * @return the response entity
+     */
     @PostMapping("/question/change-status/{questionId}")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
         if (questionId == null) {
@@ -63,6 +69,11 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfDelete);
     }
 
+    /**
+     * Gets list question.
+     *
+     * @return the list question
+     */
     @GetMapping("/question/list")
     public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestion() {
         ResponseData<List<QuestionResponse>> resultOfList = questionService.getListQuestion();
@@ -72,6 +83,13 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
     }
 
+    /**
+     * Gets question.
+     *
+     * @param questionId the question id
+     * @param request    the request
+     * @return the question
+     */
     @PutMapping("/question/{questionId}")
     public ResponseEntity<ResponseData<String>> getQuestion(@PathVariable(name = "questionId") Integer questionId, @RequestBody @Valid UpdateQuestionRequest request) {
         if (questionId == null || request == null) {
@@ -86,5 +104,39 @@ public class HollandQuestionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(questionResponse);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(questionResponse);
+    }
+
+    /**
+     * Gets list job.
+     *
+     * @return the list job
+     */
+    @GetMapping("/job")
+    public ResponseEntity<ResponseData<List<JobResponse>>> getListJob() {
+        ResponseData<List<JobResponse>> responseJobList = jobService.getAllJob();
+        if (responseJobList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(responseJobList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseJobList);
+    }
+
+    /**
+     * Create job response entity.
+     *
+     * @param request the request
+     * @return the response entity
+     */
+    @PostMapping("/job")
+    public ResponseEntity<ResponseData<List<CreateJobResponse>>> createJob(@RequestBody @Valid List<CreateJobRequest> request) {
+        if (request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
+        }
+        ResponseData<List<CreateJobResponse>> list = jobService.createJob(request);
+        if (list.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(list);
+        } else if (list.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(list);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(list);
     }
 }

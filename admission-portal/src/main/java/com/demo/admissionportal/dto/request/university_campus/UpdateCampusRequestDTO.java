@@ -17,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class UpdateCampusRequestDTO implements Serializable {
-    @EnumNameV2(message = "Tên campus chỉ chứa chữ")
     private String campusName;
 
     @EnumPhoneV2(message = "Số điện thoại phải bắt đầu bằng số 0 và chứa 10-11 chữ số!")
