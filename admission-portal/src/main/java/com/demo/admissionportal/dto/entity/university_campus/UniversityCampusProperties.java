@@ -25,6 +25,7 @@ public class UniversityCampusProperties implements Serializable {
     private String email;
     private List<String> picture;
     private String address;
+    private String specificAddress;
     private ProvinceResponseDTO provinceResponseDTO;
     private WardResponseDTO wardResponseDTO;
     private DistrictResponseDTO districtResponseDTO;

@@ -43,5 +43,5 @@ public interface QuestionService {
      * @param request    the request
      * @return the question reponse
      */
-//    ResponseData<String> updateQuestion(Integer questionId, UpdateQuestionRequest request);
+    ResponseData<String> updateQuestion(Integer questionId, UpdateQuestionRequest request);
 }

@@ -166,7 +166,9 @@ public class QuestionServiceImpl implements QuestionService {
                 questionExisted.setStatus(QuestionStatus.ACTIVE);
             }
             questionRepository.save(questionExisted);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công");
+            DeleteQuestionResponse response = new DeleteQuestionResponse();
+            response.setCurrentStatus(questionExisted.getStatus().name);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công", response);
         } catch (Exception e) {
             log.error("Error while delete question Id: {}", questionId);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá question id: " + questionId);
@@ -211,35 +213,34 @@ public class QuestionServiceImpl implements QuestionService {
         return jobRepository.findById(questionJob.getJobId()).orElse(null);
     }
 
-//    @Override
-//    public ResponseData<String> updateQuestion(Integer questionId, UpdateQuestionRequest request) {
-//        try {
-//            Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-//            if (questionId == null) {
-//                return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
-//            }
-//            Question questionExisted = questionRepository.findById(questionId).orElse(null);
-//            if (questionExisted == null) {
-//                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
-//            }
-//
-//            // Update question
-//            ValidationService.updateIfChanged(request.getContent(), questionExisted.getContent(), questionExisted::setContent);
-//            ValidationService.updateIfChanged(request.getType(), questionExisted.getType(), questionExisted::setType);
-//            ValidationService.updateIfChanged(request.getStatus(), questionExisted.getStatus(), questionExisted::setStatus);
-//            questionExisted.setUpdateBy(staffId);
-//            questionExisted.setUpdateTime(new Date());
-//            questionRepository.save(questionExisted);
-//
-//            questionJobService.updateQuestionJob(questionId, request, staffId);
-//
-//            // Update question type
-//            void updateQuestionquestionType = questionExisted.getType() != null ? questionQuestionTypeService.updateQuestionType(questionId) : null;
-//
-//
-//            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật question thành công");
-//        } catch (Exception ex) {
-//            log.error("Error while update question : {}", ex.getMessage());
-//            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi cập nhật question", null);
-//        }
+    @Transactional
+    @Override
+    public ResponseData<String> updateQuestion(Integer questionId, UpdateQuestionRequest request) {
+        try {
+            Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (questionId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
+            }
+            Question questionExisted = questionRepository.findById(questionId).orElse(null);
+            if (questionExisted == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
+            }
+
+            // Update question
+            ValidationService.updateIfChanged(request.getContent(), questionExisted.getContent(), questionExisted::setContent);
+            ValidationService.updateIfChanged(request.getType(), questionExisted.getType(), questionExisted::setType);
+            questionExisted.setUpdateBy(staffId);
+            questionExisted.setUpdateTime(new Date());
+            questionRepository.save(questionExisted);
+
+            questionJobService.updateQuestionJob(questionId, request, staffId);
+
+            // Update question type
+            questionQuestionTypeService.updateQuestionType(request.getType(), questionId, staffId);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật question thành công");
+        } catch (Exception ex) {
+            log.error("Error while update question : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi cập nhật question", null);
+        }
     }
+}

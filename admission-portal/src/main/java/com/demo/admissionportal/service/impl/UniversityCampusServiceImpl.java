@@ -109,6 +109,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .email(universityCampus.getEmail())
                 .picture(mapToListPicture(universityCampus.getPicture()))
                 .address(universityCampus.getSpecificAddress() + ", " + wardCampus.getName() + ", " + districtCampus.getName() + ", " + provinceCampus.getName())
+                .specificAddress(universityCampus.getSpecificAddress())
                 .provinceResponseDTO(modelMapper.map(provinceCampus, ProvinceResponseDTO.class))
                 .wardResponseDTO(modelMapper.map(wardCampus, WardResponseDTO.class))
                 .districtResponseDTO(modelMapper.map(districtCampus, DistrictResponseDTO.class))

@@ -72,19 +72,19 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
     }
 
-//    @PutMapping("/question/{questionId}")
-//    public ResponseEntity<ResponseData<String>> getQuestion(@PathVariable(name = "questionId") Integer questionId, @RequestBody @Valid UpdateQuestionRequest request) {
-//        if (questionId == null || request == null) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
-//        }
-//        ResponseData<String> questionResponse = questionService.updateQuestion(questionId, request);
-//        if (questionResponse.getStatus() == ResponseCode.C200.getCode()) {
-//            return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
-//        } else if (questionResponse.getStatus() == ResponseCode.C205.getCode()) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(questionResponse);
-//        } else if (questionResponse.getStatus() == ResponseCode.C203.getCode()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(questionResponse);
-//        }
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(questionResponse);
-//    }
+    @PutMapping("/question/{questionId}")
+    public ResponseEntity<ResponseData<String>> getQuestion(@PathVariable(name = "questionId") Integer questionId, @RequestBody @Valid UpdateQuestionRequest request) {
+        if (questionId == null || request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Question Id null"));
+        }
+        ResponseData<String> questionResponse = questionService.updateQuestion(questionId, request);
+        if (questionResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
+        } else if (questionResponse.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(questionResponse);
+        } else if (questionResponse.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(questionResponse);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(questionResponse);
+    }
 }
