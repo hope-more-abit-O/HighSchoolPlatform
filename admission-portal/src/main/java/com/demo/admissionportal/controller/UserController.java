@@ -100,7 +100,7 @@ public class UserController {
             @PathVariable("id") Integer id,
             @RequestBody @Valid RegisterIdentificationNumberRequest request,
             Authentication authentication) {
-        ResponseData<String> response = userService.updateIdentificationNumber(id, request.getIdentificationNumber(), authentication);
+        ResponseData<String> response = userService.registerIdentificationNumber(id, request.getIdentificationNumber(), authentication);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {

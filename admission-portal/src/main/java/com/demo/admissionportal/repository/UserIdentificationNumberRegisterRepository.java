@@ -6,7 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface UserIdentificationNumberRegisterRepository extends JpaRepository<UserIdentificationNumberRegister, Integer> {
-    List<UserIdentificationNumberRegister> findByUserId(Integer userId);
-
-    boolean existsByIdentificationNumber(Integer identificationNumber);
+    List<UserIdentificationNumberRegister> findByIdUserId(Integer userId);
+    boolean existsByIdIdentificationNumber(Integer identificationNumber);
+    List<UserIdentificationNumberRegister> findByIdIdentificationNumber(Integer identificationNumber);
+    List<UserIdentificationNumberRegister> findByIdUserIdAndIdIdentificationNumber(Integer userId, Integer identificationNumber);
 }

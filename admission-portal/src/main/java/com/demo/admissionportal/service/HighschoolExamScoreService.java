@@ -25,5 +25,5 @@ public interface HighschoolExamScoreService {
     ResponseData<String> publishExamScores(Integer listExamScoreByYearId);
     ResponseData<Page<ListExamScoreByYearResponse>> getAllListExamScoresByYear(Pageable pageable);
     ResponseData<ListExamScoreByYearResponseV2> getListExamScoreById(Integer id, int page, int size);
-    ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers();
+    ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, Integer identificationNumber);
 }

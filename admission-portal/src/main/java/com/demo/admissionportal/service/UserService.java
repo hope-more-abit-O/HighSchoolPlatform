@@ -261,5 +261,5 @@ public interface UserService extends UserDetailsService {
      * @param authentication       the authentication
      * @return the response data
      */
-    ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
+    ResponseData<String> registerIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
 }

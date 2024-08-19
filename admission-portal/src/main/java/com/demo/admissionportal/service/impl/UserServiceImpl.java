@@ -12,6 +12,7 @@ import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.sub_entity.id.UserIdentificationNumberId;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
     private final ConsultantInfoServiceImpl consultantInfoService;
     private final StaffInfoServiceImpl staffInfoService;
     private final UserIdentificationNumberRegisterRepository userIdentificationNumberRegisterRepository;
+    private final HighschoolExamScoreRepository highschoolExamScoreRepository;
 
 
     @Override
@@ -586,7 +588,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseData<String> updateIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
+    public ResponseData<String> registerIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
         try {
             String username = authentication.getName();
             Optional<User> authenticatedUserOpt = userRepository.findByUsername(username);
@@ -603,11 +605,13 @@ public class UserServiceImpl implements UserService {
 
             String email = authenticatedUser.getEmail();
 
-            List<UserIdentificationNumberRegister> existingEntries = userIdentificationNumberRegisterRepository.findByUserId(userId);
+            List<UserIdentificationNumberRegister> existingEntries = userIdentificationNumberRegisterRepository.findByIdUserId(userId);
 
-            boolean isIdentificationNumberTaken = userIdentificationNumberRegisterRepository.existsByIdentificationNumber(identificationNumber);
-            if (isIdentificationNumberTaken) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh " + identificationNumber + " đã được đăng kí bởi người dùng khác.");
+            boolean isIdentificationNumberRegisterByOtherUser = userIdentificationNumberRegisterRepository.existsByIdIdentificationNumber(identificationNumber)
+                    && existingEntries.stream().noneMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
+
+            if (isIdentificationNumberRegisterByOtherUser) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh: " + identificationNumber + " đã được đăng kí bởi người dùng khác.");
             }
 
             if (existingEntries.size() >= 3) {
@@ -617,11 +621,17 @@ public class UserServiceImpl implements UserService {
             boolean isDuplicate = existingEntries.stream()
                     .anyMatch(entry -> entry.getIdentificationNumber().equals(identificationNumber));
             if (isDuplicate) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Đã đăng kí số báo danh: " + identificationNumber + " trước đó");
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Bạn đã đăng kí số báo danh: " + identificationNumber + " trước đó");
             }
-            //TO DO: Check identification number exist in db
 
+            boolean existsInDb = highschoolExamScoreRepository.existsByIdentificationNumber(identificationNumber);
+            if (!existsInDb) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh " + identificationNumber + " không tồn tại trong hệ thống.");
+            }
+
+            UserIdentificationNumberId id = new UserIdentificationNumberId(userId, identificationNumber);
             UserIdentificationNumberRegister registerIdentificationNumber = new UserIdentificationNumberRegister();
+            registerIdentificationNumber.setId(id);
             registerIdentificationNumber.setUserId(userId);
             registerIdentificationNumber.setEmail(email);
             registerIdentificationNumber.setIdentificationNumber(identificationNumber);
@@ -629,6 +639,7 @@ public class UserServiceImpl implements UserService {
             registerIdentificationNumber.setStatus(IdentificationNumberRegisterStatus.PENDING);
             registerIdentificationNumber.setCreateBy(userId);
             registerIdentificationNumber.setCreateTime(new Date());
+
             userIdentificationNumberRegisterRepository.save(registerIdentificationNumber);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh được đăng kí thành công !");
@@ -638,4 +649,5 @@ public class UserServiceImpl implements UserService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình đăng kí số báo danh, vui lòng thử lại sau.");
         }
     }
+
 }
