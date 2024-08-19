@@ -24,6 +24,10 @@ public class UniversityInfoServiceImpl implements UniversityInfoService {
         });
     }
 
+    public List<UniversityInfo> findByStaffId(Integer id)throws ResourceNotFoundException {
+        return universityInfoRepository.findByStaffId(id);
+    }
+
     public List<UniversityInfo> findByIds(List<Integer> ids)throws ResourceNotFoundException {
         return universityInfoRepository.findAllById(ids);
     }

@@ -10,12 +10,10 @@ import java.util.List;
 public class EnumCreateAdmissionQuotaRequestValidator implements ConstraintValidator<EnumCreateAdmissionQuotaRequest, List<CreateAdmissionQuotaRequest>> {
     @Override
     public boolean isValid(List<CreateAdmissionQuotaRequest> quotaRequests, ConstraintValidatorContext constraintValidatorContext) {
-        for (CreateAdmissionQuotaRequest quotaRequest : quotaRequests) {
-
+        if (quotaRequests == null || quotaRequests.isEmpty()) {
+            return false;
         }
-
-
-        return false;
+        return true;
     }
 
 //    boolean checkMajorRequestValid()

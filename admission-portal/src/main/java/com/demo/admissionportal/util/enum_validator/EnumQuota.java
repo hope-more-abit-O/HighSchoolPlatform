@@ -1,7 +1,8 @@
 package com.demo.admissionportal.util.enum_validator;
 
-import com.demo.admissionportal.util.impl.EnumCreateAdmissionQuotaRequestValidator;
-import com.demo.admissionportal.util.impl.EnumNameValidatorV2;
+
+import com.demo.admissionportal.util.impl.EnumPhoneValidatorV2;
+import com.demo.admissionportal.util.impl.EnumQuotaValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -13,17 +14,20 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * The interface Enum password.
+ */
 @Documented
 @Retention(RUNTIME)
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
-@Constraint(validatedBy = EnumCreateAdmissionQuotaRequestValidator.class)
-public @interface EnumCreateAdmissionQuotaRequest {
+@Constraint(validatedBy = EnumQuotaValidator.class)
+public @interface EnumQuota {
     /**
      * Message string.
      *
      * @return the string
      */
-    String message() default "Bảng chỉ tiêu không hợp lệ.";
+    String message() default "";
 
     /**
      * Groups class [ ].
@@ -39,4 +43,3 @@ public @interface EnumCreateAdmissionQuotaRequest {
      */
     Class<? extends Payload>[] payload() default {};
 }
-

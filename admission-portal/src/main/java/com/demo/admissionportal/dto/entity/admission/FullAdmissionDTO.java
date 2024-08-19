@@ -19,12 +19,24 @@ public class FullAdmissionDTO {
     private Integer year;
     private String name;
     private List<String> sources;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private InfoUniversityResponseDTO university;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ActionerDTO createBy;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date createTime;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ActionerDTO updateBy;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date updateTime;
+
     private String status;
+
     private String scoreStatus;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -38,6 +50,18 @@ public class FullAdmissionDTO {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<FullAdmissionQuotaDTO> details;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalMethods;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalMajors;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalQuota;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<ScoreRange> scoreRanges;
 
     public FullAdmissionDTO(Admission admission) {
         this.admissionId = admission.getId();
