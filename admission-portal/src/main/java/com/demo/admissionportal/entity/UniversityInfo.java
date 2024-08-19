@@ -63,6 +63,9 @@ public class UniversityInfo{
     @Column(length = 100)
     private String coverImage;
 
+    @Column(name = "staff_id")
+    private Integer staffId;
+
     @NotNull
     @Column
     @Enumerated(EnumType.STRING)
@@ -84,6 +87,7 @@ public class UniversityInfo{
         this.description = "";
         this.type = createUniversityRequest.getUniversityType();
         this.coverImage = "https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/uploads%2Funiversity.png?alt=media&token=d80d250a-c6c5-406b-9314-cbf9b7da9c2d";
+        this.staffId = createUniversityRequest.getCreateBy();
     }
     public UniversityInfo(Integer id, CreateUniversityRequestRequest createUniversityRequest) {
         this.id = id;

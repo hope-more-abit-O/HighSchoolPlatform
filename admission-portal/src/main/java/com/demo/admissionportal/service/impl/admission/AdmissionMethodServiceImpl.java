@@ -68,27 +68,17 @@ public class AdmissionMethodServiceImpl {
 
         List<AdmissionMethod> admissionMethods = new ArrayList<>();
         List<String> errorMessages = new ArrayList<>();
-        Map<String, String> error = new HashMap<>();
 
         for (Method method : methods) {
-            try {
-                AdmissionMethod admissionMethod = new AdmissionMethod(admissionId, method);
-                admissionMethods.add(admissionMethod);
-                log.info("Created admission method: {}", admissionMethod);
-            } catch (Exception e) {
-                log.info("Creating admission method failed for method ID: {}", method);
-                log.error(e.getMessage(), e);
-                errorMessages.add("Method ID: " + method + " - Error: " + e.getMessage());
-            }
-        }
-
-        if (!errorMessages.isEmpty()) {
-            String combinedErrorMessage = String.join("; ", errorMessages);
-            throw new CreateEntityFailedException("Tạo model cho Phương thức tuyển sinh thất bại", Map.of("errors", combinedErrorMessage));
+            admissionMethods.add(new AdmissionMethod(admissionId, method));
         }
 
         try {
             List<AdmissionMethod> savedAdmissionMethods = admissionMethodRepository.saveAll(admissionMethods);
+            if (savedAdmissionMethods.size() != admissionMethods.size()) {
+                log.error("Mismatch in the number of saved admission methods for admission ID: {}", admissionId);
+                throw new CreateEntityFailedException("Mismatch in the number of saved admission methods", Map.of("expected", String.valueOf(admissionMethods.size()), "actual", String.valueOf(savedAdmissionMethods.size())));
+            }
             log.info("Admission methods saved successfully for admission ID: {}", admissionId);
             return savedAdmissionMethods;
         } catch (Exception e) {
@@ -98,14 +88,6 @@ public class AdmissionMethodServiceImpl {
         }
         String combinedErrorMessage = String.join("; ", errorMessages);
         throw new CreateEntityFailedException("Lưu Đề án - Phương thức tuyển sinh thất bại", Map.of("errors", combinedErrorMessage));
-    }
-
-    public List<AdmissionMethod> saveAdmissionMethod(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas)
-            throws ResourceNotFoundException {
-            
-        List<Method> methods = methodService.insertNewMethodsAndGetExistedMethods(quotas);
-
-        return saveAllAdmissionMethodWithListMethods(admissionId, methods);
     }
 
     public List<AdmissionMethod> findByAdmissionId(Integer id) {

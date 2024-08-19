@@ -3,29 +3,31 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
-import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
-import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
-import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.Job;
+import com.demo.admissionportal.entity.Question;
+import com.demo.admissionportal.entity.QuestionType;
+import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.sub_entity.PostType;
 import com.demo.admissionportal.entity.sub_entity.QuestionJob;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
 import com.demo.admissionportal.repository.JobRepository;
 import com.demo.admissionportal.repository.QuestionRepository;
-import com.demo.admissionportal.repository.StaffInfoRepository;
-import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionJobRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionQuestionTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionTypeRepository;
+import com.demo.admissionportal.service.QuestionJobService;
+import com.demo.admissionportal.service.QuestionQuestionTypeService;
 import com.demo.admissionportal.service.QuestionService;
-import com.demo.admissionportal.util.impl.NameUtils;
-import com.google.api.Http;
+import com.demo.admissionportal.service.ValidationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -44,10 +46,10 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionQuestionTypeRepository questionQuestionTypeRepository;
     private final QuestionJobRepository questionJobRepository;
     private final ModelMapper modelMapper;
-    private final UserRepository userRepository;
-    private final StaffInfoRepository staffInfoRepository;
     private final QuestionTypeRepository questionTypeRepository;
     private final JobRepository jobRepository;
+    private final QuestionJobService questionJobService;
+    private final QuestionQuestionTypeService questionQuestionTypeService;
 
     @Override
     @Transactional
@@ -66,8 +68,7 @@ public class QuestionServiceImpl implements QuestionService {
                 if (!(principal instanceof User)) {
                     return new ResponseData<>(ResponseCode.C205.getCode(), "Người tham chiếu không hợp lệ !");
                 }
-                User staff = (User) principal;
-                Integer staffId = staff.getId();
+                Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
                 Question question = new Question();
                 question.setContent(request.getContent().trim());
@@ -130,24 +131,6 @@ public class QuestionServiceImpl implements QuestionService {
         return new ResponseData<>(ResponseCode.C201.getCode(), "Yêu cầu không hợp lệ");
     }
 
-    private ActionerDTO getStaffDetails(Integer userId) {
-        return userRepository.findById(userId)
-                .map(user -> {
-                    StaffInfo staffInfo = staffInfoRepository.findById(userId).orElse(null);
-                    String fullName;
-                    if (staffInfo != null) {
-                        fullName = NameUtils.getFullName(staffInfo.getFirstName(), staffInfo.getMiddleName(), staffInfo.getLastName());
-                    } else {
-                        fullName = "Nhân viên UAP";
-                    }
-                    ActionerDTO actionerDTO = new ActionerDTO(user.getId(), fullName, null, null);
-                    actionerDTO.setRole(modelMapper.map(user.getRole(), String.class));
-                    actionerDTO.setStatus(modelMapper.map(user.getStatus(), String.class));
-                    return actionerDTO;
-                }).orElse(null);
-    }
-
-
     @Override
     @Transactional
     public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
@@ -183,7 +166,9 @@ public class QuestionServiceImpl implements QuestionService {
                 questionExisted.setStatus(QuestionStatus.ACTIVE);
             }
             questionRepository.save(questionExisted);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công");
+            DeleteQuestionResponse response = new DeleteQuestionResponse();
+            response.setCurrentStatus(questionExisted.getStatus().name);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công", response);
         } catch (Exception e) {
             log.error("Error while delete question Id: {}", questionId);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá question id: " + questionId);
@@ -226,5 +211,36 @@ public class QuestionServiceImpl implements QuestionService {
 
     private Job mapToJob(QuestionJob questionJob) {
         return jobRepository.findById(questionJob.getJobId()).orElse(null);
+    }
+
+    @Transactional
+    @Override
+    public ResponseData<String> updateQuestion(Integer questionId, UpdateQuestionRequest request) {
+        try {
+            Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (questionId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
+            }
+            Question questionExisted = questionRepository.findById(questionId).orElse(null);
+            if (questionExisted == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
+            }
+
+            // Update question
+            ValidationService.updateIfChanged(request.getContent(), questionExisted.getContent(), questionExisted::setContent);
+            ValidationService.updateIfChanged(request.getType(), questionExisted.getType(), questionExisted::setType);
+            questionExisted.setUpdateBy(staffId);
+            questionExisted.setUpdateTime(new Date());
+            questionRepository.save(questionExisted);
+
+            questionJobService.updateQuestionJob(questionId, request, staffId);
+
+            // Update question type
+            questionQuestionTypeService.updateQuestionType(request.getType(), questionId, staffId);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật question thành công");
+        } catch (Exception ex) {
+            log.error("Error while update question : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi cập nhật question", null);
+        }
     }
 }

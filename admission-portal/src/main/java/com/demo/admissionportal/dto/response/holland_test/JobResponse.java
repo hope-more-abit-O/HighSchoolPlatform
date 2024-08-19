@@ -4,17 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
- * The type Create question response.
+ * The type Job response.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateQuestionResponse {
-    private String content;
-    private String type;
-    private List<String> jobNames;
+public class JobResponse implements Serializable {
+    private Integer id;
+    private String name;
+    private String createBy;
+    private Date createTime;
 }

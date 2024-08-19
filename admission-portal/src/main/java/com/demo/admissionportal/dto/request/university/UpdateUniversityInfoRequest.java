@@ -16,4 +16,5 @@ public class UpdateUniversityInfoRequest {
     private String type;
     private String description;
     private String coverImage;
+    private String avatar;
 }
