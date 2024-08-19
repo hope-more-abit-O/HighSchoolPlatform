@@ -5,9 +5,12 @@ import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.AdmissionSourceDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
+import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
+import com.demo.admissionportal.dto.response.admission.GetAdmissionDetailResponse;
+import com.demo.admissionportal.dto.response.admission.SearchAdmissionResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -31,37 +34,6 @@ import java.util.Map;
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
 
-    @Hidden
-    @PostMapping
-    @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<CreateAdmissionResponse>> createAdmission(@RequestBody CreateAdmissionAndMethodsAndMajorsRequest request)
-            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException {
-        return ResponseEntity.ok(admissionService.createAdmission(request));
-    }
-
-//    @PostMapping("/training-program")
-//    @SecurityRequirement(name = "BearerAuth")
-//    public ResponseEntity createAdmissionTrainingProgram(@RequestBody CreateAdmissionTrainingProgramRequest request){
-//        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgram(request));
-//    }
-//
-//    @PostMapping("/major")
-//    @SecurityRequirement(name = "BearerAuth")
-//    public ResponseEntity createAdmissionMajor(@RequestBody CreateAdmissionMethodRequest request){
-//        return ResponseEntity.ok(admissionService.createAdmissionMethod(request));
-//    }
-//
-//    @PostMapping("/quota")
-//    @SecurityRequirement(name = "BearerAuth")
-//    public ResponseEntity createAdmissionQuotas(@RequestBody CreateAdmissionTrainingProgramMethodRequest request){
-//        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramMethodQuota(request));
-//    }
-//
-//    @PostMapping("/training-program/subject-group")
-//    @SecurityRequirement(name = "BearerAuth")
-//    public ResponseEntity createAdmissionTrainingProgramSubjectGroup(@RequestBody CreateAdmissionTrainingProgramSubjectGroupRequest request){
-//        return ResponseEntity.ok(admissionService.createAdmissionTrainingProgramSubjectGroup(request));
-//    }
     @GetMapping("/score-advice")
     public ResponseEntity advice(@RequestParam(required = false) String majorId,
                                  @RequestParam(required = false) Float offset,
@@ -95,7 +67,7 @@ public class AdmissionController {
 
     @PostMapping("/create")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity createAdmission(@RequestBody CreateAdmissionRequest request)
+    public ResponseEntity createAdmission(@RequestBody @Valid CreateAdmissionRequest request)
         throws DataExistedException{
         try{
             admissionService.createAdmission(request);
@@ -109,6 +81,7 @@ public class AdmissionController {
     public ResponseEntity<ResponseData<Page<FullAdmissionDTO>>> getCreateAdmissionRequests(
             Pageable pageable,
             @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) Integer staffId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String source,
             @RequestParam(required = false) Integer universityId,
@@ -120,35 +93,37 @@ public class AdmissionController {
             @RequestParam(required = false) AdmissionScoreStatus scoreStatus
     ) {
         return ResponseEntity.ok(admissionService.getBy(
-                pageable, id, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus
+                pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus
         ));
     }
 
-    @GetMapping("/source")
-    public ResponseEntity<ResponseData<List<AdmissionSourceDTO>>> getAdmissionSourceV2(
+    @GetMapping("/search")
+    public ResponseEntity<ResponseData<SearchAdmissionResponse>> searchAdmission(
             Pageable pageable,
             @RequestParam(required = false) String year,
-            @RequestParam(required = false) String universityCode
+            @RequestParam(required = false) String universityCode,
+            @RequestParam(required = false) Integer staffId,
+            @RequestParam(required = false) List<AdmissionStatus> status
     ) {
         try {
             List<Integer> years = null;
             List<String> universityCodes = null;
             if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
             if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
-            return ResponseEntity.ok(admissionService.getSourceV2(pageable, years, universityCodes));
-        } catch (Exception e) {
+            return ResponseEntity.ok( ResponseData.ok("Lấy tài liệu thành công.", new SearchAdmissionResponse(admissionService.searchAdmission(pageable, years, universityCodes, staffId, status))));
+        } catch (ResourceNotFoundException | QueryException e) {
             throw e;
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
-        return ResponseEntity.ok(admissionService.getById(id));
+        return ResponseEntity.ok(admissionService.getByIdV2(id));
     }
 
     @PutMapping("/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity universityAction(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
+    public ResponseEntity updateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
         if (id == null){
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)

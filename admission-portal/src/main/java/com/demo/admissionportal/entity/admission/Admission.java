@@ -79,7 +79,7 @@ public class Admission {
         this.universityId = universityId;
         this.createBy = createBy;
         this.createTime = new Date();
-        this.admissionStatus = AdmissionStatus.ACTIVE;
+        this.admissionStatus = AdmissionStatus.PENDING;
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
     }
 }

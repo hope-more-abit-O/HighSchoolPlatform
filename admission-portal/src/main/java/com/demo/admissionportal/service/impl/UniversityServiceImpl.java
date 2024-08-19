@@ -254,20 +254,29 @@ public class UniversityServiceImpl implements UniversityService {
         return new UniversityFullResponseDTO(userService.mappingFullResponse(account), fullInfo, universityCampusServiceImpl.mapToListCampusV2(account.getId()));
     }
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException{
-        UniversityInfo universityInfo = findById(ServiceUtils.getId());
+        Integer id = ServiceUtils.getId();
+        UniversityInfo universityInfo = findById(id);
 
         boolean isChanged = false; // Reset the flag at the beginning
 
-        ValidationService.updateIfChanged(request.getName(), universityInfo.getName(), universityInfo::setName);
-        ValidationService.updateIfChanged(request.getDescription(), universityInfo.getDescription(), universityInfo::setDescription);
-        ValidationService.updateIfChanged(request.getCoverImage(), universityInfo.getCoverImage(), universityInfo::setCoverImage);
-        ValidationService.updateIfChanged(request.getType() != null ? UniversityType.valueOf(request.getType()) : null, universityInfo.getType(), universityInfo::setType);
-        ValidationService.updateIfChanged(request.getCode(), universityInfo.getCode(), universityInfo::setCode);
+        isChanged |= ValidationService.updateIfChanged(request.getName(), universityInfo.getName(), universityInfo::setName);
+        isChanged |= ValidationService.updateIfChanged(request.getDescription(), universityInfo.getDescription(), universityInfo::setDescription);
+        isChanged |= ValidationService.updateIfChanged(request.getCoverImage(), universityInfo.getCoverImage(), universityInfo::setCoverImage);
+        isChanged |= ValidationService.updateIfChanged(request.getType() != null ? UniversityType.valueOf(request.getType()) : null, universityInfo.getType(), universityInfo::setType);
+        isChanged |= ValidationService.updateIfChanged(request.getCode(), universityInfo.getCode(), universityInfo::setCode);
 
-        if (!isChanged)
+        if (isChanged)
             saveUniversityInfo(universityInfo);
+
+        User account = userService.findById(id);
+
+        isChanged = false;
+        isChanged = ValidationService.updateIfChanged(request.getAvatar(), account.getAvatar(), account::setAvatar);
+
+        if (isChanged)
+            userService.save(account, "ảnh đại diện trường học");
         return ResponseData.ok("Cập nhật thông tin trường đại học thành công.",modelMapper.map(universityInfo, UpdateUniversityInfoResponse.class));
     }
 

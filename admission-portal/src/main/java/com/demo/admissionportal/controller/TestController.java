@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.TestResponseABCDTO;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
@@ -112,5 +113,10 @@ public class TestController {
                                 @RequestParam(required = false) List<Integer> methodId,
                                 @RequestParam(required = false) List<Integer> provinceId){
         return ResponseEntity.ok(admissionTrainingProgramMethodService.findAdmissionData(subjectGroupId, score, offset, methodId, majorId, provinceId, 2024));
+    }
+
+    @GetMapping("/test1")
+    public TestResponseABCDTO test1(@RequestParam(required = false) Integer a, @RequestParam(required = false) Integer b){
+        return new TestResponseABCDTO(a,b);
     }
 }

@@ -101,18 +101,10 @@ public class AdmissionTrainingProgramServiceImpl {
 
     public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas, List<Major> majors) throws StoreDataFailedException{
         List<AdmissionTrainingProgram> result;
-        List< TrainingProgramDTO> trainingProgramDTOs = quotas.stream().map(TrainingProgramDTO::new).distinct().toList();
+        List<TrainingProgramDTO> trainingProgramDTOs = quotas.stream().map(TrainingProgramDTO::new).distinct().toList();
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = trainingProgramDTOs.stream()
                 .map(quota -> {
-                    if (quota.getMajorId() == null){
-                        Optional<Major> matchingMajor = majors.stream()
-                                .filter(major -> major.getName().equals(quota.getMajorName()))
-                                .findFirst();
-
-                        matchingMajor.ifPresent(major -> quota.setMajorId(major.getId()));
-                    }
-
                     return new AdmissionTrainingProgram(admissionId, quota);
                 })
                 .toList();
@@ -122,23 +114,6 @@ public class AdmissionTrainingProgramServiceImpl {
         return result;
     }
 
-    public Integer getAdmissionTrainingProgramId(CreateAdmissionQuotaRequest request, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Major> majors) {
-        List<AdmissionTrainingProgram> admissionTrainingProgramList = admissionTrainingPrograms.stream()
-                .filter(ad -> request.getLanguage().equals(ad.getLanguage()) && request.getTrainingSpecific().equals(ad.getTrainingSpecific()))
-                .toList();
-
-        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingProgramList) {
-            if (admissionTrainingProgram.getMajorId() != null && admissionTrainingProgram.getMajorId().equals(request.getMajorId())){
-                return admissionTrainingProgram.getId();
-            } else {
-                Major major = majorService.getMajor(majors, admissionTrainingProgram.getMajorId());
-                if (major.getName().equals(request.getMajorName()) && major.getCode().equals(request.getMajorCode())){
-                    return admissionTrainingProgram.getId();
-                }
-            }
-        }
-        throw new ResourceNotFoundException("Không tìm thấy admission training program");
-    }
 
     public List<AdmissionTrainingProgram> findByAdmissionId(Integer id) {
         return admissionTrainingProgramRepository.findByAdmissionId(id);

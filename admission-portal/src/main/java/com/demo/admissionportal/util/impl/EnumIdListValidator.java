@@ -14,6 +14,9 @@ public class EnumIdListValidator implements ConstraintValidator<EnumIdList, List
         if (ids == null) {
             return true;
         }
+        if (ids.isEmpty()) {
+            return false;
+        }
         List<Integer> falseIds = new ArrayList<>();
         ids.forEach(id -> {if(id <=0) falseIds.add(id);});
         if (falseIds.isEmpty()) {
