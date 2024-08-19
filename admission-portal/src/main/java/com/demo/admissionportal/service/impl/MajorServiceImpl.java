@@ -196,32 +196,32 @@ public class MajorServiceImpl implements MajorService {
         }
     }
 
-    public List<Major> insertNewMajorsAndGetExistedMajors(List<CreateAdmissionQuotaRequest> quotas)
-            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException{
-        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-
-        //CREATE A LIST OF NEW MAJORS
-        List<Major> newMajors = quotas.stream()
-                .filter(quota -> quota.getMajorId() == null )
-                .map(quota -> new Major(quota.getMajorCode(), quota.getMajorName(), consultantId))
-                .toList();
-
-        //VALIDATE MAJOR'S NAME AND CODE
-        checkExistedNameAndCode(newMajors);
-
-        //SAVE ALL NEW MAJORS INTO DATABASE
-        List<Major> result = saveAll(newMajors);
-
-        //GET ALL MAJORS EXISTED BY IDS
-        result.addAll(findByIds(quotas
-                .stream()
-                .map(CreateAdmissionQuotaRequest::getMajorId)
-                .filter(Objects::nonNull)
-                .toList()
-        ));
-
-        return result;
-    }
+//    public List<Major> insertNewMajorsAndGetExistedMajors(List<CreateAdmissionQuotaRequest> quotas)
+//            throws ResourceNotFoundException, DataExistedException, StoreDataFailedException{
+//        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+//
+//        //CREATE A LIST OF NEW MAJORS
+//        List<Major> newMajors = quotas.stream()
+//                .filter(quota -> quota.getMajorId() == null )
+//                .map(quota -> new Major(quota.getMajorCode(), quota.getMajorName(), consultantId))
+//                .toList();
+//
+//        //VALIDATE MAJOR'S NAME AND CODE
+//        checkExistedNameAndCode(newMajors);
+//
+//        //SAVE ALL NEW MAJORS INTO DATABASE
+//        List<Major> result = saveAll(newMajors);
+//
+//        //GET ALL MAJORS EXISTED BY IDS
+//        result.addAll(findByIds(quotas
+//                .stream()
+//                .map(CreateAdmissionQuotaRequest::getMajorId)
+//                .filter(Objects::nonNull)
+//                .toList()
+//        ));
+//
+//        return result;
+//    }
 
     public Major getMajor(List<Major> majors, Integer id) throws ResourceNotFoundException {
         return majors.stream().filter(major -> major.getId().equals(id)).findFirst().orElse(null);

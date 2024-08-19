@@ -201,31 +201,31 @@ public class MethodServiceImpl implements MethodService {
                 .toList();
     }
 
-    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateAdmissionQuotaRequest> quotas){
-        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-
-        //CREATE A LIST OF NEW METHODS
-        List<Method> newMethods = quotas.stream()
-                .filter(quota -> quota.getMethodId() == null )
-                .map(quota -> new Method(quota.getMethodCode(), quota.getMethodName(), consultantId))
-                .toList();
-
-        //VALIDATE METHOD'S NAME AND CODE
-        checkExistedNameAndCode(newMethods);
-
-        //SAVE ALL NEW MethodS INTO DATABASE
-        List<Method> result = saveAll(newMethods);
-
-        //GET ALL MethodS EXISTED BY IDS
-        result.addAll(findByIds(quotas
-                .stream()
-                .map(CreateAdmissionQuotaRequest::getMethodId)
-                .filter(Objects::nonNull)
-                .toList()
-        ));
-
-        return result;
-    }
+//    public List<Method> insertNewMethodsAndGetExistedMethods(List<CreateAdmissionQuotaRequest> quotas){
+//        Integer consultantId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+//
+//        //CREATE A LIST OF NEW METHODS
+//        List<Method> newMethods = quotas.stream()
+//                .filter(quota -> quota.getMethodId() == null )
+//                .map(quota -> new Method(quota.getMethodCode(), quota.getMethodName(), consultantId))
+//                .toList();
+//
+//        //VALIDATE METHOD'S NAME AND CODE
+//        checkExistedNameAndCode(newMethods);
+//
+//        //SAVE ALL NEW MethodS INTO DATABASE
+//        List<Method> result = saveAll(newMethods);
+//
+//        //GET ALL MethodS EXISTED BY IDS
+//        result.addAll(findByIds(quotas
+//                .stream()
+//                .map(CreateAdmissionQuotaRequest::getMethodId)
+//                .filter(Objects::nonNull)
+//                .toList()
+//        ));
+//
+//        return result;
+//    }
 
     @Override
     public ResponseData getAllMethods(

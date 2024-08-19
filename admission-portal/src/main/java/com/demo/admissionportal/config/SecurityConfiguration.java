@@ -93,7 +93,7 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
 
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/source").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/search").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/score-advice").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/a").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/university/{id}/latest-training-program").permitAll()

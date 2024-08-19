@@ -43,4 +43,6 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
     UniversityInfo findUniversityInfoByConsultantId(Integer id);
 
     List<UniversityInfo> findByCodeIn(Collection<String> codes);
+
+    List<UniversityInfo> findByStaffId(Integer staffId);
 }
