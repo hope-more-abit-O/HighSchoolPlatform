@@ -117,6 +117,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .status(universityCampus.getStatus().name)
                 .build();
     }
+
     private UniversityCampusProperties mapToCampus(UniversityCampus universityCampus, Province province, District district, Ward ward) {
         return UniversityCampusProperties.builder()
                 .id(universityCampus.getId())
@@ -132,20 +133,20 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
 
     private List<UniversityCampusProperties> mapToCampus(List<UniversityCampus> universityCampus, List<Province> provinces, List<District> districts, List<Ward> wards) {
         List<UniversityCampusProperties> result = new ArrayList<>();
-        for (UniversityCampus uniCam: universityCampus) {
+        for (UniversityCampus uniCam : universityCampus) {
             Province province = provinces
                     .stream()
-                    .filter( (pr) -> pr.getId().equals(uniCam.getProvinceId()))
+                    .filter((pr) -> pr.getId().equals(uniCam.getProvinceId()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 1.", Map.of("provinceId", uniCam.getProvinceId().toString())));
             District district = districts
                     .stream()
-                    .filter( (ds) -> ds.getId().equals(uniCam.getDistrictId()))
+                    .filter((ds) -> ds.getId().equals(uniCam.getDistrictId()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 2.", Map.of("districtId", uniCam.getDistrictId().toString())));
             Ward ward = wards
                     .stream()
-                    .filter( (wr) -> wr.getId().equals(uniCam.getWardId()))
+                    .filter((wr) -> wr.getId().equals(uniCam.getWardId()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ cấp 3.", Map.of("wardId", uniCam.getWardId().toString())));
 
@@ -168,7 +169,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
             }
             String picture = requestDTO.getPicture().stream()
                     .collect(Collectors.joining(","));
-            validationService.validateRegisterUniversityCampus(requestDTO.getEmail(), requestDTO.getPhone());
+//            validationService.validateRegisterUniversityCampus(requestDTO.getEmail(), requestDTO.getPhone());
             UniversityCampus universityCampus = getUniversityCampus(requestDTO, universityId, picture);
             if (getUniversityCampus(requestDTO, universityId, picture) == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Cơ sở chính đã được đăng ký trước đó.");
@@ -222,17 +223,6 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
             String picture = requestDTO.getPicture().stream()
                     .collect(Collectors.joining(","));
 
-            String newEmail = requestDTO.getEmail();
-            String newPhone = requestDTO.getPhone();
-            String existingEmail = universityCampus.getEmail();
-            String existingPhone = universityCampus.getPhone();
-
-            boolean isEmailChanged = newEmail != null && !newEmail.equals(existingEmail);
-            boolean isPhoneChanged = newPhone != null && !newPhone.equals(existingPhone);
-
-            if (isEmailChanged || isPhoneChanged) {
-                validationService.validateRegisterUniversityCampus(newEmail, newPhone);
-            }
 
             UniversityCampus campus = getUpdateUniversityCampus(universityCampus, requestDTO, universityId, picture);
             if (campus == null) {
@@ -272,12 +262,16 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
 
     private UniversityCampus getUpdateUniversityCampus(UniversityCampus universityCampus, UpdateCampusRequestDTO requestDTO, Integer universityId, String picture) {
         universityCampus.setCampusName(requestDTO.getCampusName() != null ? requestDTO.getCampusName() : universityCampus.getCampusName());
-        universityCampus.setEmail(requestDTO.getEmail() != null ? requestDTO.getEmail() : universityCampus.getEmail());
+        if (requestDTO.getEmail() != null && !requestDTO.getEmail().equals(universityCampus.getEmail())) {
+            universityCampus.setEmail(requestDTO.getEmail());
+        }
         universityCampus.setSpecificAddress(requestDTO.getSpecificAddress() != null ? requestDTO.getSpecificAddress() : universityCampus.getSpecificAddress());
         universityCampus.setProvinceId(requestDTO.getProvinceId() != null ? requestDTO.getProvinceId() : universityCampus.getProvinceId());
         universityCampus.setDistrictId(requestDTO.getDistrictId() != null ? requestDTO.getDistrictId() : universityCampus.getDistrictId());
         universityCampus.setWardId(requestDTO.getWardId() != null ? requestDTO.getWardId() : universityCampus.getWardId());
-        universityCampus.setPhone(requestDTO.getPhone() != null ? requestDTO.getPhone() : universityCampus.getPhone());
+        if (requestDTO.getPhone() != null && !requestDTO.getPhone().equals(universityCampus.getPhone())) {
+            universityCampus.setPhone(requestDTO.getPhone());
+        }
         universityCampus.setUpdateBy(universityId);
         universityCampus.setUpdateTime(new Date());
         universityCampus.setPicture(picture != null ? picture.trim() : universityCampus.getPicture());
