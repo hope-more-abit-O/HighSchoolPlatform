@@ -3,22 +3,22 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentReportRequest;
+import com.demo.admissionportal.dto.CreateReportRequest;
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
+import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
+import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
+import com.demo.admissionportal.dto.response.ReportResponse;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.FindAllReportsResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
-import com.demo.admissionportal.dto.response.report.comment_report.ListAllCommentReportResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.UpdateCommentReportResponse;
-import com.demo.admissionportal.dto.response.report.function_report.FindAllFunctionReportResponse;
 import com.demo.admissionportal.dto.response.report.function_report.FunctionReportResponse;
 import com.demo.admissionportal.dto.response.report.function_report.UpdateFunctionReportResponse;
-import com.demo.admissionportal.dto.response.report.post_report.*;
-import com.demo.admissionportal.dto.request.report.post_report.CreatePostReportRequest;
-import com.demo.admissionportal.dto.request.report.post_report.UpdatePostReportRequest;
-import com.demo.admissionportal.dto.response.ResponseData;
+import com.demo.admissionportal.dto.response.report.post_report.ReportPostResponse;
+import com.demo.admissionportal.dto.response.report.post_report.UpdatePostReportResponse;
 import com.demo.admissionportal.entity.sub_entity.CommentReport;
 import com.demo.admissionportal.entity.sub_entity.FunctionReport;
 import com.demo.admissionportal.entity.sub_entity.PostReport;
@@ -49,8 +49,6 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @SecurityRequirement(name = "BearerAuth")
 public class ReportController {
-
-    private final ReportService postReportService;
     private final ReportService reportService;
 
     /**
@@ -66,42 +64,27 @@ public class ReportController {
      * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link PostReport}.
      * @since 1.0
      */
-    @PostMapping("/post/create")
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<PostReport>> createPostReport(@RequestBody @Valid CreatePostReportRequest request, Authentication authentication) {
-        ResponseData<PostReport> createdPostReport = postReportService.createPostReport(request, authentication);
+    public ResponseEntity<ResponseData<?>> createReport(@RequestBody @Valid CreateReportRequest request, Authentication authentication) {
+        if (request.getPostReport() != null && request.getCommentReport() == null){
+        ResponseData<PostReport> createdPostReport = reportService.createPostReport(request.getPostReport(), authentication);
         if (createdPostReport.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(createdPostReport);
         } else if (createdPostReport.getStatus() == ResponseCode.C204.getCode()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(createdPostReport);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createdPostReport);
-    }
-
-    /**
-     * <h2>Get Post Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific post report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the post report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the post report along with {@link ReportPostResponse}.
-     * @since 1.0
-     */
-    @GetMapping("/post/{reportId}")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<ReportPostResponse>> getPostReportById(@PathVariable Integer reportId, Authentication authentication) {
-        ResponseData<ReportPostResponse> postReportResponse = reportService.getPostReportById(reportId, authentication);
-        if (postReportResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(postReportResponse);
-        } else if (postReportResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(postReportResponse);
+    } else {
+            ResponseData<CommentReport> createCommentReport = reportService.createCommentReport(request.getCommentReport(), authentication);
+            if (createCommentReport.getStatus() == ResponseCode.C200.getCode()){
+                return ResponseEntity.ok(createCommentReport);
+            } else if (createCommentReport.getStatus() == ResponseCode.C204.getCode()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(createCommentReport);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createCommentReport);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
-    }
+}
 
     /**
      * <h2>Update Post Report</h2>
@@ -130,43 +113,6 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportResponse);
     }
-
-    /**
-     * <h2>Find All Post Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all post reports, optionally filtered by report ID, ticket ID, creator, content, and status.
-     * The response includes summary details of each post report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param content        Optional filter for the content.
-     * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of post reports.
-     * @since 1.0
-     */
-    @GetMapping("/posts")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<ListAllPostReportResponse>>> findAllPostReports(
-            Pageable pageable,
-            Authentication authentication,
-            @RequestParam(required = false) Integer reportId,
-            @RequestParam(required = false) String ticketId,
-            @RequestParam(required = false) Integer createBy,
-            @RequestParam(required = false) String content,
-            @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<ListAllPostReportResponse>> postReportsResponse = reportService.findAllPostReports(pageable, authentication, reportId, ticketId, createBy, content, status);
-        if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(postReportsResponse);
-        } else if (postReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(postReportsResponse);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
-    }
-
     /**
      * <h2>Find All Reports</h2>
      * <p>
@@ -189,8 +135,10 @@ public class ReportController {
                                                                                      @RequestParam(required = false) String ticketId,
                                                                                      @RequestParam(required = false) Integer createBy,
                                                                                      @RequestParam(required = false) ReportType reportType,
-                                                                                     @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, reportType, status);
+                                                                                     @RequestParam(required = false) ReportStatus status,
+                                                                                     @RequestParam(required = false) String postUrl
+    ) {
+        ResponseData<Page<FindAllReportsResponse>> reportsResponse = reportService.findAllReports(pageable, authentication, reportId, ticketId, createBy, postUrl, reportType, status);
         if (reportsResponse.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(reportsResponse);
         } else if (reportsResponse.getStatus() == ResponseCode.C203.getCode()) {
@@ -198,126 +146,17 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(reportsResponse);
     }
-
-
-    /**
-     * <h2>Find All Completed Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
-     * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param reportType     Optional filter for the report type.
-     * @return A {@link ResponseData} object containing a paginated list of completed post reports.
-     * @since 1.0
-     */
-    @GetMapping("/completed")
+    @GetMapping("/{reportId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<FindAllReportsCompletedResponse>>> findAllCompleteReports(
-            Pageable pageable,
-            Authentication authentication,
-            @RequestParam(required = false) Integer reportId,
-            @RequestParam(required = false) String ticketId,
-            @RequestParam(required = false) Integer createBy,
-            @RequestParam(required = false) ReportType reportType) {
-        ResponseData<Page<FindAllReportsCompletedResponse>> postReportsResponse = reportService.findAllCompletedReports(pageable, authentication, reportId, ticketId, createBy, reportType);
-        if (postReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(postReportsResponse);
-        } else if (postReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(postReportsResponse);
+    public ResponseEntity<ResponseData<ReportResponse>> getReportById(@PathVariable Integer reportId, Authentication authentication) {
+        ResponseData<ReportResponse> reportsResponse = reportService.getReportById(reportId, authentication);
+        if (reportsResponse.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(reportsResponse);
+        } else if (reportsResponse.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reportsResponse);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(postReportsResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(reportsResponse);
     }
-
-    /**
-     * <h2>Create Comment Report</h2>
-     * <p>
-     * Creates a new comment report based on the provided request data. The request must contain valid report details
-     * including the comment ID and content. The authenticated user information is used to track who created the report.
-     * </p>
-     *
-     * @param request        The {@link CreateCommentReportRequest} containing the details of the new comment report.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the result of the creation operation along with the created {@link CommentReport}.
-     * @since 1.0
-     */
-    @PostMapping("/comment/create")
-    @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<CommentReport>> createCommentReport(@RequestBody @Valid CreateCommentReportRequest request, Authentication authentication) {
-        ResponseData<CommentReport> createCommentReport = reportService.createCommentReport(request, authentication);
-        if (createCommentReport.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(createCommentReport);
-        } else if (createCommentReport.getStatus() == ResponseCode.C204.getCode()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(createCommentReport);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createCommentReport);
-    }
-
-    /**
-     * <h2>Get Comment Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific comment report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the comment report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the comment report along with {@link CommentReportResponse}.
-     * @since 1.0
-     */
-    @GetMapping("/comment/{reportId}")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<CommentReportResponse>> getCommentReportById(@PathVariable Integer reportId, Authentication authentication) {
-        ResponseData<CommentReportResponse> commentReportsResponse = reportService.getCommentReportById(reportId, authentication);
-        if (commentReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(commentReportsResponse);
-        } else if (commentReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(commentReportsResponse);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentReportsResponse);
-    }
-
-    /**
-     * <h2>Find All Comment Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all comment reports, optionally filtered by report ID, ticket ID, creator, content, and status.
-     * The response includes summary details of each comment report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param content        Optional filter for the content.
-     * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of comment reports.
-     * @since 1.0
-     */
-    @GetMapping("/comments")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<ListAllCommentReportResponse>>> findAllCommentReports(Pageable pageable,
-                                                                                                  Authentication authentication,
-                                                                                                  @RequestParam(required = false) Integer reportId,
-                                                                                                  @RequestParam(required = false) String ticketId,
-                                                                                                  @RequestParam(required = false) Integer createBy,
-                                                                                                  @RequestParam(required = false) String content,
-                                                                                                  @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<ListAllCommentReportResponse>> commentReportsResponse = reportService.findAllCommentReports(pageable, authentication, reportId, ticketId, createBy, content, status);
-        if (commentReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(commentReportsResponse);
-        } else if (commentReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(commentReportsResponse);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentReportsResponse);
-    }
-
     /**
      * <h2>Update Comment Report</h2>
      * <p>
@@ -365,13 +204,10 @@ public class ReportController {
             @RequestParam("content") String content,
             @RequestParam("proofs") MultipartFile[] proofs,
             Authentication authentication) {
-
         CreateFunctionReportRequest request = new CreateFunctionReportRequest();
         request.setContent(content);
         request.setProofs(proofs);
-
         ResponseData<FunctionReport> response = reportService.createFunctionReport(request, authentication);
-
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C203.getCode()) {
@@ -379,32 +215,6 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
-    /**
-     * <h2>Get Function Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific function report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the function report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the function report along with {@link FunctionReportResponse}.
-     * @since 1.0
-     */
-    @GetMapping("/function/{reportId}")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<FunctionReportResponse>> getFunctionReportById(@PathVariable Integer reportId, Authentication authentication) {
-        ResponseData<FunctionReportResponse> functionReportResponse = reportService.getFunctionReportById(reportId, authentication);
-        if (functionReportResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(functionReportResponse);
-        } else if (functionReportResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(functionReportResponse);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(functionReportResponse);
-    }
-
     /**
      * <h2>Update Function Report</h2>
      * <p>
@@ -432,39 +242,4 @@ public class ReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(functionReportResponse);
     }
-
-    /**
-     * <h2>Find All Function Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all function reports, optionally filtered by report ID, ticket ID, creator, and status.
-     * The response includes summary details of each function report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of function reports.
-     * @since 1.0
-     */
-    @GetMapping("/functions")
-    @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<FindAllFunctionReportResponse>>> findAllFunctionReports(
-            Pageable pageable,
-            Authentication authentication,
-            @RequestParam(required = false) Integer reportId,
-            @RequestParam(required = false) String ticketId,
-            @RequestParam(required = false) Integer createBy,
-            @RequestParam(required = false) ReportStatus status) {
-        ResponseData<Page<FindAllFunctionReportResponse>> functionReportsResponse = reportService.findAllFunctionReports(pageable, authentication, reportId, ticketId, createBy, status);
-        if (functionReportsResponse.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.ok(functionReportsResponse);
-        } else if (functionReportsResponse.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(functionReportsResponse);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(functionReportsResponse);
-    }
-
 }

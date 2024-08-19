@@ -11,12 +11,5 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FunctionReportResponse {
-    private Integer id;
-    private String ticketId;
-    private ActionerDTO createBy;
-    private Date createTime;
-    private String reportContent;
-    private String reportType;
     private String proofs;
-    private String status;
 }

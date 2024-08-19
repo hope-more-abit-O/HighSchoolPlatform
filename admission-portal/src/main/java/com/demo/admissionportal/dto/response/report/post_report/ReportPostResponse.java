@@ -13,13 +13,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReportPostResponse {
-    private Integer reportId;
-    private String ticketId;
-    private ActionerDTO createBy;
-    private Date createTime;
-    private String reportType;
-    private String content;
-
     private Integer postId;
     private String title;
     private Integer postCreateBy;

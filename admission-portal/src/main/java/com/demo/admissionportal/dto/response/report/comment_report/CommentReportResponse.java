@@ -14,16 +14,10 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentReportResponse {
-    private Integer id;
-    private String ticketId;
-    private ActionerDTO createBy;
-    private Date createTime;
-    private String reportContent;
-    private String reportType;
-    private String status;
     private Integer commentId;
     private String content;
     private Integer commentCreateBy;
-    private Date commentCreateTime;
+    private String commentCreateTime;
     private String commentType;
+    private String commentStatus;
 }
