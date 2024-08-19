@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.request.report.comment_report.CreateCommentR
 import com.demo.admissionportal.dto.request.report.comment_report.UpdateCommentReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.CreateFunctionReportRequest;
 import com.demo.admissionportal.dto.request.report.function_report.UpdateFunctionReportRequest;
+import com.demo.admissionportal.dto.response.ReportResponse;
 import com.demo.admissionportal.dto.response.report.FindAllReportsCompletedResponse;
 import com.demo.admissionportal.dto.response.report.FindAllReportsResponse;
 import com.demo.admissionportal.dto.response.report.comment_report.CommentReportResponse;
@@ -64,22 +65,6 @@ public interface ReportService {
     ResponseData<PostReport> createPostReport(CreatePostReportRequest request, Authentication authentication);
 
     /**
-     * <h2>Get Post Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific post report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the post report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the post report along with {@link ReportPostDTO}.
-     * @since 1.0
-     */
-    ResponseData<ReportPostResponse> getPostReportById(Integer reportId, Authentication authentication);
-
-
-    /**
      * <h2>Find All Post Reports</h2>
      * <p>
      * Retrieves a paginated list of all post reports, optionally filtered by report ID, ticket ID, creator, content, and status.
@@ -96,7 +81,7 @@ public interface ReportService {
      * @return A {@link ResponseData} object containing a paginated list of post reports.
      * @since 1.0
      */
-    ResponseData<Page<ListAllPostReportResponse>> findAllPostReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportStatus status);
+    ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status);
 
     /**
      * <h2>Update Post Report</h2>
@@ -129,43 +114,6 @@ public interface ReportService {
     ResponseData<CommentReport> createCommentReport(CreateCommentReportRequest request, Authentication authentication);
 
     /**
-     * <h2>Get Comment Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific comment report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the comment report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the comment report along with {@link CommentReportResponse}.
-     * @since 1.0
-     */
-    ResponseData<CommentReportResponse> getCommentReportById(Integer reportId, Authentication authentication);
-
-
-    /**
-     * <h2>Find All Comment Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all comment reports, optionally filtered by report ID, ticket ID, creator, content, and status.
-     * The response includes summary details of each comment report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param content        Optional filter for the content.
-     * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of comment reports.
-     * @since 1.0
-     */
-    ResponseData<Page<ListAllCommentReportResponse>> findAllCommentReports(Pageable pageable, Authentication authentication,
-                                                                           Integer reportId, String ticketId, Integer createBy,
-                                                                           String content, ReportStatus status);
-
-    /**
      * <h2>Update Comment Report</h2>
      * <p>
      * Updates the details of an existing comment report identified by the provided ID. The request contains the updated
@@ -195,41 +143,6 @@ public interface ReportService {
      * @since 1.0
      */
     ResponseData<FunctionReport> createFunctionReport(CreateFunctionReportRequest request, Authentication authentication);
-
-    /**
-     * <h2>Get Function Report By ID</h2>
-     * <p>
-     * Retrieves the details of a specific function report identified by the provided ID. The response includes all the
-     * report details along with the information about who created the report. The authenticated user information is
-     * used to verify permissions.
-     * </p>
-     *
-     * @param reportId       The ID of the function report to be retrieved.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @return A {@link ResponseData} object containing the details of the function report along with {@link FunctionReportResponse}.
-     * @since 1.0
-     */
-    ResponseData<FunctionReportResponse> getFunctionReportById(Integer reportId, Authentication authentication);
-
-
-    /**
-     * <h2>Find All Function Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all function reports, optionally filtered by report ID, ticket ID, creator, and status.
-     * The response includes summary details of each function report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param status         Optional filter for the report status.
-     * @return A {@link ResponseData} object containing a paginated list of function reports.
-     * @since 1.0
-     */
-    ResponseData<Page<FindAllFunctionReportResponse>> findAllFunctionReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, ReportStatus status);
-
     /**
      * <h2>Update Function Report</h2>
      * <p>
@@ -244,27 +157,5 @@ public interface ReportService {
      * @since 1.0
      */
     ResponseData<UpdateFunctionReportResponse> updateFunctionReport(Integer reportId, UpdateFunctionReportRequest request, Authentication authentication);
-
-    /**
-     * <h2>Find All Completed Post Reports</h2>
-     * <p>
-     * Retrieves a paginated list of all completed post reports, optionally filtered by report ID, ticket ID, creator, and report type.
-     * The response includes summary details of each completed post report. The authenticated user information is used to verify permissions.
-     * </p>
-     *
-     * @param pageable       Pagination details.
-     * @param authentication The {@link Authentication} object representing the authenticated user.
-     * @param reportId       Optional filter for the report ID.
-     * @param ticketId       Optional filter for the ticket ID.
-     * @param createBy       Optional filter for the creator ID.
-     * @param reportType     Optional filter for the report type.
-     * @return A {@link ResponseData} object containing a paginated list of completed post reports.
-     * @since 1.0
-     */
-    ResponseData<Page<FindAllReportsCompletedResponse>> findAllCompletedReports(Pageable pageable, Authentication authentication,
-                                                                                Integer reportId, String ticketId, Integer createBy,
-                                                                                ReportType reportType);
-    ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, ReportType reportType, ReportStatus status);
-
-
+    ResponseData<ReportResponse> getReportById(Integer reportId, Authentication authentication);
 }
