@@ -661,11 +661,19 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     public ResponseData<String> getRankingBySubjectGroupAndLocal(Integer identificationNumber, String subjectGroup, String local) {
         try {
-            boolean existsInLocal = highschoolExamScoreRepository.existsByIdentificationNumberAndLocal(identificationNumber, local);
-            if (!existsInLocal) {
-                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh: " + identificationNumber + " không có trong " + local);
-            }
             Map<Integer, Float> totalScoresByStudent = calculateScoresForStudent(local, subjectGroup);
+
+            if (local == null || local.isEmpty()) {
+                boolean existsInAnyLocal = highschoolExamScoreRepository.existsByIdentificationNumber(identificationNumber);
+                if (!existsInAnyLocal) {
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh: " + identificationNumber + " không có trong hệ thống.");
+                }
+            } else {
+                boolean existsInLocal = highschoolExamScoreRepository.existsByIdentificationNumberAndLocal(identificationNumber, local);
+                if (!existsInLocal) {
+                    return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh: " + identificationNumber + " không có trong " + local);
+                }
+            }
 
             filterStudentsWithoutCompleteScores(totalScoresByStudent, subjectGroup, local);
 
@@ -681,8 +689,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             int totalOfIdentificationNumber = totalScoresByStudent.size();
 
-            String responseMessage = "Thứ hạng của bạn với tổ hợp môn " + subjectGroup + " tại " + local + " là " + rank +
-                    " trong tổng số " + totalOfIdentificationNumber + " thí sinh.";
+            String responseMessage = "Thứ hạng của bạn với tổ hợp môn " + subjectGroup + " " +
+                    (local == null || local.isEmpty() ? "trên toàn quốc" : "tại " + local) +
+                    " là " + rank + " trong tổng số " + totalOfIdentificationNumber + " thí sinh.";
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy xếp hạng thành công!", responseMessage);
 
@@ -702,7 +711,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         totalScoresByStudent.entrySet().removeIf(entry -> {
             Integer idNumber = entry.getKey();
-            List<Object[]> scores = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
+            List<Object[]> scores = local == null || local.isEmpty()
+                    ? highschoolExamScoreRepository.findScoresForSubjectsOnly(subjectIds)
+                    : highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
 
             long count = scores.stream()
                     .filter(score -> score[0].equals(idNumber) && score[2] != null)
@@ -718,7 +729,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         for (SubjectGroup sg : subjectGroups) {
             List<Integer> subjectIds = getSubjectIdsForGroup(sg.getId());
-            List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
+            List<Object[]> scoresData = local == null || local.isEmpty()
+                    ? highschoolExamScoreRepository.findScoresForSubjectsOnly(subjectIds)
+                    : highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
 
             for (Object[] data : scoresData) {
                 if (data[0] != null && data[2] != null) {

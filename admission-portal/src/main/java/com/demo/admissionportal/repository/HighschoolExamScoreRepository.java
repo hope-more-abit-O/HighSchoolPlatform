@@ -95,6 +95,11 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     boolean existsByIdentificationNumber(Integer identificationNumber);
 
     boolean existsByIdentificationNumberAndLocal(Integer identificationNumber, String local);
+
+    @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.local FROM highschool_exam_score h " +
+            "WHERE h.year = 2024 AND " +
+            "h.subject_id IN (:subjectIds) AND h.status = 'ACTIVE'", nativeQuery = true)
+    List<Object[]> findScoresForSubjectsOnly(List<Integer> subjectIds);
 }
 
 
