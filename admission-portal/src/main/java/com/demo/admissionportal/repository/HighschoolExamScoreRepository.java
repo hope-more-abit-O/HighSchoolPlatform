@@ -93,6 +93,8 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     List<HighschoolExamScore> findByIdentificationNumberAndSubjectIdIn(Integer identificationNumber, List<Integer> subjectIds);
 
     boolean existsByIdentificationNumber(Integer identificationNumber);
+
+    boolean existsByIdentificationNumberAndLocal(Integer identificationNumber, String local);
 }
 
 

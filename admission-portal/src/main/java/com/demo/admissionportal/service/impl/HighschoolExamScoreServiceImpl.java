@@ -661,8 +661,13 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     public ResponseData<String> getRankingBySubjectGroupAndLocal(Integer identificationNumber, String subjectGroup, String local) {
         try {
-            // Bước 1: Tính tổng điểm cho tất cả học sinh trong nhóm môn học và khu vực
+            boolean existsInLocal = highschoolExamScoreRepository.existsByIdentificationNumberAndLocal(identificationNumber, local);
+            if (!existsInLocal) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh: " + identificationNumber + " không có trong " + local);
+            }
             Map<Integer, Float> totalScoresByStudent = calculateScoresForStudent(local, subjectGroup);
+
+            filterStudentsWithoutCompleteScores(totalScoresByStudent, subjectGroup, local);
 
             if (!totalScoresByStudent.containsKey(identificationNumber)) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Thí sinh không có điểm cho tất cả các môn trong tổ hợp môn này.");
@@ -672,16 +677,39 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             Collections.sort(sortedScores, Collections.reverseOrder());
 
             Float studentScore = totalScoresByStudent.get(identificationNumber);
-
             int rank = sortedScores.indexOf(studentScore) + 1;
 
-            String responseMessage = "Thứ hạng của bạn với tổ hợp môn " + subjectGroup + " tại " + local + " là " + rank;
+            int totalOfIdentificationNumber = totalScoresByStudent.size();
+
+            String responseMessage = "Thứ hạng của bạn với tổ hợp môn " + subjectGroup + " tại " + local + " là " + rank +
+                    " trong tổng số " + totalOfIdentificationNumber + " thí sinh.";
+
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy xếp hạng thành công!", responseMessage);
 
         } catch (Exception e) {
             log.error("Error fetching ranking by subject group and local", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy xếp hạng, vui lòng thử lại sau.");
         }
+    }
+
+    private void filterStudentsWithoutCompleteScores(Map<Integer, Float> totalScoresByStudent, String subjectGroup, String local) {
+        List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(subjectGroup);
+        List<Integer> subjectIds = new ArrayList<>();
+
+        for (SubjectGroup sg : subjectGroups) {
+            subjectIds.addAll(getSubjectIdsForGroup(sg.getId()));
+        }
+
+        totalScoresByStudent.entrySet().removeIf(entry -> {
+            Integer idNumber = entry.getKey();
+            List<Object[]> scores = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, local);
+
+            long count = scores.stream()
+                    .filter(score -> score[0].equals(idNumber) && score[2] != null)
+                    .count();
+
+            return count < subjectIds.size();
+        });
     }
 
     private Map<Integer, Float> calculateScoresForStudent(String local, String subjectGroup) {
@@ -1054,7 +1082,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy thông tin, vui lòng thử lại sau.");
         }
     }
-
 
     @Override
     public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, Integer identificationNumber) {
