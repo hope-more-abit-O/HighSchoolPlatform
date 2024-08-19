@@ -41,13 +41,11 @@ public class QuestionJobServiceImpl implements QuestionJobService {
                 questionJob.setQuestionId(questionId);
                 questionJob.setCreateBy(staffId);
                 questionJob.setCreateTime(new Date());
-                questionJob.setStatus(request.getStatus());
                 questionJobRepository.save(questionJob);
             } else {
                 questionJob.setUpdateBy(staffId);
                 questionJob.setUpdateTime(new Date());
             }
-            questionJob.setStatus(request.getStatus());
             questionJobRepository.save(questionJob);
         }
     }
