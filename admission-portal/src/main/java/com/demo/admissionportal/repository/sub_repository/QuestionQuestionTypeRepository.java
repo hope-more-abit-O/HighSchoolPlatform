@@ -5,6 +5,8 @@ import com.demo.admissionportal.entity.sub_entity.id.QuestionQuestionTypeId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * The interface Question question type repository.
  */

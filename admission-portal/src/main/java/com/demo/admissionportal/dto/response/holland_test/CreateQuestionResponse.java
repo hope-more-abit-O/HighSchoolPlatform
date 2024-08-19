@@ -7,14 +7,14 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * The type Create question response.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateQuestionResponse {
     private String content;
-    private Integer createBy;
-    private Date createTime;
     private String type;
     private List<String> jobNames;
-    private String status;
 }
