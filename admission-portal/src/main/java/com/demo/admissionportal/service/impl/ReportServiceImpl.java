@@ -529,7 +529,7 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C200.getCode(), "Báo cáo chức năng Web thành công !", functionReport);
         } catch (Exception e) {
             log.error("Error while creating function report", e);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Error while creating function report");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra khi tạo yêu cầu hỗ trợ chức năng, vui lòng thử lại sau.");
         }
     }
 
