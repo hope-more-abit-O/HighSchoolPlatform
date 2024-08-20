@@ -246,4 +246,7 @@ and (:staffId IS NULL OR ui.staff_id = :staffId)
 """, nativeQuery = true)
     List<Admission> findWithPageableAndListStatus(Pageable pageable, List<String> status, Integer staffId);
 
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatus(Integer universityId, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(Integer universityId, AdmissionStatus admissionStatus);
 }

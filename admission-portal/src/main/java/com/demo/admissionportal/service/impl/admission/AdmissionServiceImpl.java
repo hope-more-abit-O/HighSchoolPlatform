@@ -57,8 +57,8 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UniversityInfoServiceImpl universityInfoServiceImpl;
     private final SubjectGroupServiceImpl subjectGroupServiceImpl;
     private final SubjectServiceImpl subjectServiceImpl;
-    private final ConsultantInfoRepository consultantInfoRepository;
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
+    private final UniversityTrainingProgramServiceImpl universityTrainingProgramService;
 
     public Admission save(Admission admission) {
         try {
@@ -757,6 +757,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                     throw new BadRequestException("Đề án không ở trạng thái kích hoạt.");
                 }
             }
+
         } else {
             if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
                 throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
@@ -776,8 +777,25 @@ public class AdmissionServiceImpl implements AdmissionService {
         admission.setUpdateBy(user.getId());
         admission.setUpdateTime(new Date());
 
+        if (request.getStatus().equals(AdmissionStatus.ACTIVE) && admission.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))) {
+            List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(id);
+            universityTrainingProgramService.createFromAdmission(admissionTrainingPrograms, id, user.getId());
+        }
+
+        if (request.getStatus().equals(AdmissionStatus.INACTIVE)) {
+            List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(id);
+            Admission nearestActiveAdmission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(id, AdmissionStatus.ACTIVE)
+                    .orElse(null);
+            if (nearestActiveAdmission != null) {
+                List<AdmissionTrainingProgram> admissionTrainingProgramList = admissionTrainingProgramService.findByAdmissionId(nearestActiveAdmission.getId());
+                universityTrainingProgramService.createFromAdmission(admissionTrainingProgramList, id, user.getId());
+            } else {
+                universityTrainingProgramService.inactiveAll(id);
+            }
+        }
+
         try {
-            Admission admission1 = admissionRepository.save(admission);
+            admissionRepository.save(admission);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhật thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
         }
