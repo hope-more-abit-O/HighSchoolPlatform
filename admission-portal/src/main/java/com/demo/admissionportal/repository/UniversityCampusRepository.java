@@ -33,7 +33,7 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
     @Query(value =
                     "SELECT * " +
                     "FROM university_campus uc " +
-                    "WHERE uc.university_id = :id " +
+                    "WHERE uc.university_id = :id AND uc.status = 'ACTIVE' " +
                     "ORDER BY type ASC, id ASC", nativeQuery = true)
     List<UniversityCampus> findListUniversityCampusByUniversityId(Integer id);
 
