@@ -3,31 +3,35 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
+import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
 import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
-import com.demo.admissionportal.entity.Job;
-import com.demo.admissionportal.entity.Question;
-import com.demo.admissionportal.entity.QuestionType;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.sub_entity.PostType;
+import com.demo.admissionportal.dto.response.holland_test.QuestionnaireDetailResponse;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.QuestionJob;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
+import com.demo.admissionportal.entity.sub_entity.QuestionnaireQuestion;
 import com.demo.admissionportal.repository.JobRepository;
 import com.demo.admissionportal.repository.QuestionRepository;
+import com.demo.admissionportal.repository.QuestionnaireRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionJobRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionQuestionTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionTypeRepository;
+import com.demo.admissionportal.repository.sub_repository.QuestionnaireQuestionRepository;
 import com.demo.admissionportal.service.QuestionJobService;
 import com.demo.admissionportal.service.QuestionQuestionTypeService;
 import com.demo.admissionportal.service.QuestionService;
 import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.RandomCodeHollandTest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,9 @@ public class QuestionServiceImpl implements QuestionService {
     private final JobRepository jobRepository;
     private final QuestionJobService questionJobService;
     private final QuestionQuestionTypeService questionQuestionTypeService;
+    private final QuestionnaireRepository questionnaireRepository;
+    private final QuestionnaireQuestionRepository questionnaireQuestionRepository;
+    private final RandomCodeHollandTest randomCodeHollandTest;
 
     @Override
     @Transactional
@@ -176,12 +183,10 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseData<List<QuestionResponse>> getListQuestion() {
+    public ResponseData<Page<QuestionResponse>> getListQuestion(Pageable pageable) {
         try {
-            List<Question> questionList = questionRepository.findAll();
-            List<QuestionResponse> questionResponses = questionList.stream()
-                    .map(this::mapToListQuestionResponse)
-                    .collect(Collectors.toList());
+            Page<Question> questionList = questionRepository.findListQuestion(pageable);
+            Page<QuestionResponse> questionResponses = questionList.map(this::mapToListQuestionResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách question thành công", questionResponses);
         } catch (Exception e) {
             log.error("Error while get list question : {}", e.getMessage());
@@ -242,5 +247,89 @@ public class QuestionServiceImpl implements QuestionService {
             log.error("Error while update question : {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi cập nhật question", null);
         }
+    }
+
+    @Override
+    public ResponseData<List<QuestionResponse>> getRandomQuestion() {
+        try {
+            List<Question> allQuestions = questionRepository.findAll();
+            Map<Integer, List<Question>> questionsByType = allQuestions.stream()
+                    .collect(Collectors.groupingBy(Question::getType));
+
+            List<QuestionResponse> resultOfRandom = new ArrayList<>();
+
+            questionsByType.forEach((typeId, questions) -> {
+                List<Question> randomQuestions = getRandomSubset(questions, 10);
+                randomQuestions.forEach(question -> {
+                    QuestionResponse questionResponse = mapToListQuestionResponse(question);
+                    resultOfRandom.add(questionResponse);
+                });
+            });
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy câu hỏi ngẫu nhiên thành công", resultOfRandom);
+        } catch (Exception e) {
+            log.error("Error while getting random questions: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Failed to fetch random questions", null);
+        }
+    }
+
+    private List<Question> getRandomSubset(List<Question> questions, int count) {
+        Collections.shuffle(questions);
+        return questions.stream()
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public ResponseData<QuestionnaireDetailResponse> createQuestionnaire(QuestionnaireRequest request) {
+        try {
+            Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (request == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "request null");
+            }
+            // Check question is enough 10 with each type
+            boolean isEnough = checkQuestionIsEnough(request.getQuestions());
+            if (!isEnough) {
+                return new ResponseData<>(ResponseCode.C205.getCode(),"Question không đủ");
+            }
+            // Create questionnaire
+            Questionnaire questionnaire = modelMapper.map(request, Questionnaire.class);
+            questionnaire.setCreateBy(staffId);
+            questionnaire.setCreateTime(new Date());
+            questionnaire.setStatus(QuestionStatus.ACTIVE);
+            questionnaire.setCode(randomCodeHollandTest.generateRandomCode());
+            questionnaireRepository.save(questionnaire);
+
+            // Create questionnaire with 60 question
+            for (QuestionResponse question : request.getQuestions()) {
+                QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
+                questionnaireQuestion.setQuestionId(question.getQuestionId());
+                questionnaireQuestion.setQuestionnaireId(questionnaire.getId());
+                questionnaireQuestionRepository.save(questionnaireQuestion);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo bộ câu hỏi thành công");
+        } catch (Exception ex) {
+            log.error("Error while add questionnaire : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi tạo bộ câu hỏi");
+        }
+    }
+
+    public boolean checkQuestionIsEnough(List<QuestionResponse> question) {
+        // Group questions by their type
+        Map<String, List<QuestionResponse>> questionsByType = question.stream()
+                .collect(Collectors.groupingBy(QuestionResponse::getQuestionType));
+
+        // Check if all 6 types have exactly 10 questions
+        if (questionsByType.size() != 6) {
+            return false;
+        }
+        for (Map.Entry<String, List<QuestionResponse>> entry : questionsByType.entrySet()) {
+            if (entry.getValue().size() != 10) {
+                return false;
+            }
+        }
+        return true;
     }
 }

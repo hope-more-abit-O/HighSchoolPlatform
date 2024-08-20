@@ -23,7 +23,7 @@ public class Questionnaire {
     @Column(name = "name")
     private String name;
     @Column(name = "description")
-    private String desciption;
+    private String description;
     @Column(name = "cover_image")
     private String coverImage;
     @Column(name = "create_by")
