@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.response.holland_test;
 
 import com.demo.admissionportal.constants.QuestionStatus;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
@@ -13,18 +13,18 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * The type Question response.
+ * The type Questionnaire response.
  */
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class QuestionResponse implements Serializable {
-    private Integer questionId;
-    private String content;
-    private String questionType;
-    private String jobName;
+public class QuestionnaireResponse implements Serializable {
+    private Integer id;
+    private String code;
+    private String name;
+    private Integer numberOfQuestions;
+    private String createBy;
     private Date createTime;
     private String status;
 }

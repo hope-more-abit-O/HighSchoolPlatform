@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionJobId;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionnaireQuestionId;
 import jakarta.persistence.*;
@@ -23,5 +24,7 @@ public class QuestionnaireQuestion {
     @Column(name = "question_id")
     private Integer questionId;
 
+    @Enumerated(EnumType.STRING)
+    private QuestionStatus status;
 
 }
