@@ -118,7 +118,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
-    INNER JOIN univeristy_info ui on ui.university_id = ad.university_id
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ad.year IN (:year))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
     """, nativeQuery = true)
@@ -127,7 +127,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
-    INNER JOIN univeristy_info ui on ui.university_id = ad.university_id
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ad.year IN (:year))
     AND (ad.status IN (:status))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)

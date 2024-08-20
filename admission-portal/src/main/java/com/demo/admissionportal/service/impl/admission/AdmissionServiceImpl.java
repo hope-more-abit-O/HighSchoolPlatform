@@ -565,8 +565,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream()
                     .filter(ad -> ad.getId().getAdmissionMethodId().equals(admissionMethod.getId()))
                     .toList();
-            AdmissionTrainingProgramMethod a = admissionTrainingProgramMethods1.get(0);
-            Float smallestAdmissionScore = 0f, biggestAdmissionScore = 0f;
+            Float smallestAdmissionScore = null, biggestAdmissionScore = null;
 
             if (admissionTrainingProgramMethods1.isEmpty()){
                 scoreRanges.add(new ScoreRange(admissionMethod.getMethodId(), smallestAdmissionScore, biggestAdmissionScore));
@@ -582,13 +581,15 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             smallestAdmissionScore = admissionTrainingProgramMethods1.stream()
                     .map(AdmissionTrainingProgramMethod::getAdmissionScore)
+                    .filter(Objects::nonNull)
                     .min(Float::compareTo)
-                    .orElse(0f);
+                    .orElse(null);
 
             biggestAdmissionScore = admissionTrainingProgramMethods1.stream()
                     .map(AdmissionTrainingProgramMethod::getAdmissionScore)
+                    .filter(Objects::nonNull)
                     .max(Float::compareTo)
-                    .orElse(0f);
+                    .orElse(null);
 
             scoreRanges.add(new ScoreRange(admissionMethod.getId(), smallestAdmissionScore, biggestAdmissionScore));
         }
