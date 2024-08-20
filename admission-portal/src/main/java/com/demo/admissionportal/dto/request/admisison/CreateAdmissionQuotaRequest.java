@@ -19,6 +19,9 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     @EnumId(message = "Mã ngành phải là số và phải lớn hơn 0")
     private Integer majorId;
 
+    private String majorName;
+    private String majorCode;
+
     @EnumId(message = "Mã môn học chính phải là số và phải lớn hơn 0")
     private Integer mainSubjectId;
     private String language;
@@ -27,6 +30,8 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     @NotNull(message = "Mã phương thức phải không được để trống")
     @EnumId(message = "Mã phương thức phải là số và phải lớn hơn 0")
     private Integer methodId;
+    private String methodName;
+    private String methodCode;
 
     @NotNull(message = "Mã nhóm môn học phải không được để trống")
     @EnumIdList(message = "Mã nhóm môn học phải là số lớn hơn 0 và có ít nhất 1 phần tử")
