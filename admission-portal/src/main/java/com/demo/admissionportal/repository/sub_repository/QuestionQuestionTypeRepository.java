@@ -3,6 +3,7 @@ package com.demo.admissionportal.repository.sub_repository;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
 import com.demo.admissionportal.entity.sub_entity.id.QuestionQuestionTypeId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -19,4 +20,9 @@ public interface QuestionQuestionTypeRepository extends JpaRepository<QuestionQu
      * @return the question question type
      */
     QuestionQuestionType findQuestionQuestionTypeByQuestionId(Integer id);
+
+    @Query(value = "SELECT * " +
+            "FROM question_question_type " +
+            "WHERE status = 'ACTIVE' AND question_id = :questionId", nativeQuery = true)
+    QuestionQuestionType findQuestionQuestionTypeByQuestionTypeIdWithStatus(Integer questionId);
 }
