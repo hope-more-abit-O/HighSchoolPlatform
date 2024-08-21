@@ -10,6 +10,7 @@ import com.demo.admissionportal.entity.UniversityTrainingProgram;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
+import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
 import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
@@ -29,6 +30,9 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
 
     public List<UniversityTrainingProgram> findByUniversityId(Integer universityId) {
         return universityTrainingProgramRepository.findByUniversityId(universityId);
+    }
+    public List<UniversityTrainingProgram> findByUniversityIdWithStatus(Integer universityId, UniversityTrainingProgramStatus status) {
+        return universityTrainingProgramRepository.findByUniversityIdAndStatus(universityId, status);
     }
 
     public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId) {
@@ -111,7 +115,11 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
                 .concat(activeUniversityTrainingPrograms.stream(), universityTrainingPrograms.stream())
                 .collect(Collectors.toList());
 
-        return universityTrainingProgramRepository.saveAll(newList);
+        try {
+            return universityTrainingProgramRepository.saveAll(newList);
+        } catch (Exception e){
+            throw new StoreDataFailedException("Lưu thông tin chương trình đào tạo thất bại", Map.of("error", e.getMessage()));
+        }
     }
 
     public FullUniversityTrainingProgramDTO fullMapping(UniversityTrainingProgram universityTrainingProgram){
@@ -148,14 +156,14 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         return universityTrainingPrograms.stream().map(this::infoMapping).collect(Collectors.toList());
     }
 
-    public void inactiveAll(Integer id) {
-        List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityId(id);
+    public void inactiveAll(Integer universityId, Integer updateBy) {
+        List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityIdWithStatus(universityId, UniversityTrainingProgramStatus.ACTIVE);
 
         if (universityTrainingPrograms.isEmpty()) {
             return;
         }
 
-        universityTrainingPrograms.forEach(uni -> uni.updateStatus(UniversityTrainingProgramStatus.INACTIVE, id));
+        universityTrainingPrograms.forEach(uni -> uni.updateStatus(UniversityTrainingProgramStatus.INACTIVE, updateBy));
 
         universityTrainingProgramRepository.saveAll(universityTrainingPrograms);
     }

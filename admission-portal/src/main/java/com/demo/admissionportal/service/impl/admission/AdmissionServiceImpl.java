@@ -26,7 +26,6 @@ import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.*;
 import com.demo.admissionportal.util.impl.ServiceUtils;
-import com.demo.admissionportal.exception.exceptions.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -735,93 +734,32 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Cập nhật điểm thành công.");
     }
 
-    @Transactional
-    public ResponseData admissionUpdateStatus(Integer id, UpdateAdmissionStatusRequest request)
-            throws StoreDataFailedException, NotAllowedException {
-        User user = ServiceUtils.getUser();
-        Admission admission = findById(id);
-        if (user.getRole().equals(Role.STAFF)){
-            UniversityInfo universityInfo = universityInfoServiceImpl.findById(admission.getUniversityId());
-            if (!universityInfo.getStaffId().equals(user.getId()))
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+    protected void updateUniversityTrainingProgram(AdmissionStatus status,  Admission admission, Integer admissionId, User user, Integer universityId) {
 
-            if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
-                if (admission.getAdmissionStatus().equals(AdmissionStatus.ACTIVE)) {
-                    throw new BadRequestException("Đề án đã được kích hoạt.");
-                }
-                if (!admission.getAdmissionStatus().equals(AdmissionStatus.PENDING)) {
-                    throw new BadRequestException("Đề án không ở trạng thái chờ kích hoạt.");
-                }
-            }
-
-            if (request.getStatus().equals(AdmissionStatus.INACTIVE)) {
-                if (admission.getAdmissionStatus().equals(AdmissionStatus.INACTIVE)) {
-                    throw new BadRequestException("Đề án đã bị hủy.");
-                }
-                if (!admission.getAdmissionStatus().equals(AdmissionStatus.ACTIVE)) {
-                    throw new BadRequestException("Đề án không ở trạng thái kích hoạt.");
-                }
-            }
-
-        } else {
-            if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
-            }
-
-            if (user.getRole().equals(Role.UNIVERSITY) || !admission.getUniversityId().equals(user.getId())) {
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
-            }
-
-            if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(consultantInfoServiceImpl.findById(user.getId()).getUniversityId())) {
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
-            }
+        Admission admission1 = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(admission.getUniversityId(), AdmissionStatus.ACTIVE)
+                .orElse(null);
+        if (admission1 == null){
+            universityTrainingProgramService.inactiveAll(universityId, user.getId());
+            return;
         }
 
-        admission.setAdmissionStatus(request.getStatus());
-        admission.setNote(request.getNote());
-        admission.setUpdateBy(user.getId());
-        admission.setUpdateTime(new Date());
-
-        updateUniversityTrainingProgram(request.getStatus(), admission, id, user);
-
-        try {
-            admissionRepository.save(admission);
-        } catch (Exception e) {
-            throw new StoreDataFailedException("Cập nhật thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
-        }
-
-        return ResponseData.ok("Cập nhật trạng thái đề án thành công.");
-    }
-
-    protected void updateUniversityTrainingProgram(AdmissionStatus status,  Admission admission, Integer admissionId, User user) {
-        if (status.equals(AdmissionStatus.ACTIVE) && admission.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))) {
-            List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admissionId);
-            universityTrainingProgramService.createFromAdmission(admissionTrainingPrograms, admissionId, user.getId());
-        }
-
-        if (status.equals(AdmissionStatus.INACTIVE) && admission.getYear().equals(Calendar.getInstance().get(Calendar.YEAR))) {
-            List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admissionId);
-            Admission nearestActiveAdmission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(admissionId, AdmissionStatus.ACTIVE)
-                    .orElse(null);
-            if (nearestActiveAdmission != null) {
-                List<AdmissionTrainingProgram> admissionTrainingProgramList = admissionTrainingProgramService.findByAdmissionId(nearestActiveAdmission.getId());
-                universityTrainingProgramService.createFromAdmission(admissionTrainingProgramList, admissionId, user.getId());
-            } else {
-                universityTrainingProgramService.inactiveAll(admissionId);
-            }
-        }
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admissionId);
+        universityTrainingProgramService.createFromAdmission(admissionTrainingPrograms, universityId, user.getId());
     }
 
     public void universityAndConsultantUpdateAdmissionStatus(Integer id, UpdateAdmissionStatusRequest request){
         User user = ServiceUtils.getUser();
         Admission admission = findById(id);
+        Integer uniId = null;
         ConsultantInfo consultantInfo = null;
         if (user.getRole().equals(Role.UNIVERSITY) && !admission.getUniversityId().equals(user.getId())) {
+            uniId = user.getId();
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
         }
 
         if (user.getRole().equals(Role.CONSULTANT)) {
             consultantInfo = consultantInfoServiceImpl.findById(user.getId());
+            uniId = consultantInfo.getUniversityId();
             if (!admission.getUniversityId().equals(consultantInfo.getUniversityId())) {
                 throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
             }
@@ -854,7 +792,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         admission.setUpdateBy(user.getId());
         admission.setUpdateTime(new Date());
 
-        updateUniversityTrainingProgram(request.getStatus(), admission, id, user);
+        updateUniversityTrainingProgram(request.getStatus(), admission, id, user, uniId);
 
         try {
             admissionRepository.save(admission);
