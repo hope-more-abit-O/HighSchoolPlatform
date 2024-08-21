@@ -1,6 +1,6 @@
 package com.demo.admissionportal.constants;
 
-public enum UniversityMajorStatus {
+public enum UniversityTrainingProgramStatus {
 
     ACTIVE("Hoạt động"),
 
@@ -8,7 +8,7 @@ public enum UniversityMajorStatus {
 
     public final String name;
 
-    UniversityMajorStatus(String name) {
+    UniversityTrainingProgramStatus(String name) {
         this.name = name;
     }
 }

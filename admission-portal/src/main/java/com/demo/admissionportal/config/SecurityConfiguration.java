@@ -50,6 +50,7 @@ public class SecurityConfiguration {
     private static final String METHOD_API = "/api/v1/method/**";
     private static final String SEARCH_API = "/api/v1/search/**";
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
+    private static final String UNIVERSITY_TRAINING_PROGRAM = "/api/v1/university-training-program/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
     private static final String EXAM_SCORE_API = "/api/v1/exam-scores/**";
     private static final String PACKAGE_API = "/api/v1/package/**";
@@ -59,6 +60,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
+    private static final String SUBJECT_API = "/api/v1/subject/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -101,6 +103,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/{id}").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/admission/score").permitAll()
                                 .requestMatchers(HttpMethod.PUT,"/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.PUT,"/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.PUT,"/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(ADMISSION_API).authenticated()
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY","CONSULTANT")
@@ -109,6 +113,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/all").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
+                                .requestMatchers(HttpMethod.GET,"/api/v1/university-training-program/info/{universityId}").permitAll()
+                                .requestMatchers(UNIVERSITY_TRAINING_PROGRAM).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(AUTHENTICATION_API,
                                         HOLLAND_TEST_API,
                                         CHATBOT_API,
@@ -122,6 +128,7 @@ public class SecurityConfiguration {
                                         METHOD_API,
                                         SEARCH_API,
                                         FAVORITE_API,
+                                        SUBJECT_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

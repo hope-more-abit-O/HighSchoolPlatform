@@ -1,9 +1,9 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.config.ModelMapperConfig;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.SubjectStatus;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
+import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
@@ -204,5 +204,9 @@ public class SubjectServiceImpl implements SubjectService {
         }
 
         return subjects;
+    }
+
+    public List<SubjectDTO> getAllActive(){
+        return subjectRepository.findAllByStatus(SubjectStatus.ACTIVE).stream().map(SubjectDTO::new).toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.Role;
@@ -20,7 +21,6 @@ import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
-import com.demo.admissionportal.repository.ConsultantInfoRepository;
 import com.demo.admissionportal.repository.admission.AdmissionRepository;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
@@ -57,8 +57,8 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UniversityInfoServiceImpl universityInfoServiceImpl;
     private final SubjectGroupServiceImpl subjectGroupServiceImpl;
     private final SubjectServiceImpl subjectServiceImpl;
-    private final ConsultantInfoRepository consultantInfoRepository;
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
+    private final UniversityTrainingProgramServiceImpl universityTrainingProgramService;
 
     public Admission save(Admission admission) {
         try {
@@ -310,11 +310,13 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                       Integer updateBy,
                                                       Date updateTime,
                                                       AdmissionStatus status,
-                                                      AdmissionScoreStatus scoreStatus) {
+                                                      AdmissionScoreStatus scoreStatus,
+                                                      AdmissionConfirmStatus confirmStatus) {
         Page<Admission> admissions = null;
 
+        String a = (confirmStatus != null) ? confirmStatus.name() : null;
         try {
-            admissions = admissionRepository.findAllBy(pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null);
+            admissions = admissionRepository.findAllBy(pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null, (confirmStatus != null) ? confirmStatus.name() : null);
         } catch (Exception e) {
             throw new QueryException("Lỗi tìm kiếm.", Map.of("queryError", e.getCause().getMessage()));
         }
@@ -419,6 +421,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
+        result.setConfirmStatus(admission.getConfirmStatus().name);
         UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University info not found"));
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
@@ -429,8 +432,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                 result.setUpdateBy(actionerDTO);
                 result.setCreateBy(actionerDTO);
             } else {
-                result.setUpdateBy(getCreateBy(admission, actionerDTOs));
-                result.setCreateBy(getUpdateBy(admission, actionerDTOs));
+                result.setUpdateBy(getUpdateBy(admission, actionerDTOs));
+                result.setCreateBy(getCreateBy(admission, actionerDTOs));
             }
         } else {
             result.setUpdateBy(null);
@@ -565,8 +568,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream()
                     .filter(ad -> ad.getId().getAdmissionMethodId().equals(admissionMethod.getId()))
                     .toList();
-            AdmissionTrainingProgramMethod a = admissionTrainingProgramMethods1.get(0);
-            Float smallestAdmissionScore = 0f, biggestAdmissionScore = 0f;
+            Float smallestAdmissionScore = null, biggestAdmissionScore = null;
 
             if (admissionTrainingProgramMethods1.isEmpty()){
                 scoreRanges.add(new ScoreRange(admissionMethod.getMethodId(), smallestAdmissionScore, biggestAdmissionScore));
@@ -582,13 +584,15 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             smallestAdmissionScore = admissionTrainingProgramMethods1.stream()
                     .map(AdmissionTrainingProgramMethod::getAdmissionScore)
+                    .filter(Objects::nonNull)
                     .min(Float::compareTo)
-                    .orElse(0f);
+                    .orElse(null);
 
             biggestAdmissionScore = admissionTrainingProgramMethods1.stream()
                     .map(AdmissionTrainingProgramMethod::getAdmissionScore)
+                    .filter(Objects::nonNull)
                     .max(Float::compareTo)
-                    .orElse(0f);
+                    .orElse(null);
 
             scoreRanges.add(new ScoreRange(admissionMethod.getId(), smallestAdmissionScore, biggestAdmissionScore));
         }
@@ -730,59 +734,110 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Cập nhật điểm thành công.");
     }
 
-    @Transactional
-    public ResponseData admissionUpdateStatus(Integer id, UpdateAdmissionStatusRequest request)
-            throws StoreDataFailedException, NotAllowedException {
+    protected void updateUniversityTrainingProgram(AdmissionStatus status,  Admission admission, Integer admissionId, User user, Integer universityId) {
+
+        Admission admission1 = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(admission.getUniversityId(), AdmissionStatus.ACTIVE)
+                .orElse(null);
+        if (admission1 == null){
+            universityTrainingProgramService.inactiveAll(universityId, user.getId());
+            return;
+        }
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admissionId);
+        universityTrainingProgramService.createFromAdmission(admissionTrainingPrograms, universityId, user.getId());
+    }
+
+    public void universityAndConsultantUpdateAdmissionStatus(Integer id, UpdateAdmissionStatusRequest request){
         User user = ServiceUtils.getUser();
         Admission admission = findById(id);
-        if (user.getRole().equals(Role.STAFF)){
-            UniversityInfo universityInfo = universityInfoServiceImpl.findById(admission.getUniversityId());
-            if (!universityInfo.getStaffId().equals(user.getId()))
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        Integer uniId = null;
+        ConsultantInfo consultantInfo = null;
+        if (user.getRole().equals(Role.UNIVERSITY) && !admission.getUniversityId().equals(user.getId())) {
+            uniId = user.getId();
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
 
-            if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
-                if (admission.getAdmissionStatus().equals(AdmissionStatus.ACTIVE)) {
-                    throw new BadRequestException("Đề án đã được kích hoạt.");
-                }
-                if (!admission.getAdmissionStatus().equals(AdmissionStatus.PENDING)) {
-                    throw new BadRequestException("Đề án không ở trạng thái chờ kích hoạt.");
-                }
-            }
-
-            if (request.getStatus().equals(AdmissionStatus.INACTIVE)) {
-                if (admission.getAdmissionStatus().equals(AdmissionStatus.INACTIVE)) {
-                    throw new BadRequestException("Đề án đã bị hủy.");
-                }
-                if (!admission.getAdmissionStatus().equals(AdmissionStatus.ACTIVE)) {
-                    throw new BadRequestException("Đề án không ở trạng thái kích hoạt.");
-                }
-            }
-        } else {
-            if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
-            }
-
-            if (user.getRole().equals(Role.UNIVERSITY) || !admission.getUniversityId().equals(user.getId())) {
-                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
-            }
-
-            if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(consultantInfoServiceImpl.findById(user.getId()).getUniversityId())) {
+        if (user.getRole().equals(Role.CONSULTANT)) {
+            consultantInfo = consultantInfoServiceImpl.findById(user.getId());
+            uniId = consultantInfo.getUniversityId();
+            if (!admission.getUniversityId().equals(consultantInfo.getUniversityId())) {
                 throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
             }
         }
+
+        if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
+            if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
+                throw new NotAllowedException("Đề án này phải được chấp nhận trước.");
+
+            if (user.getRole().equals(Role.UNIVERSITY)) {
+                Admission otherAdmission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(user.getId(), admission.getYear(), AdmissionStatus.ACTIVE)
+                        .orElse(null);
+                if (otherAdmission != null)
+                    throw new BadRequestException("Đề án khác cùng năm đã được kích hoạt.", Map.of("admissionId", otherAdmission.getId().toString()));
+            } else {
+                if (consultantInfo == null)
+                    consultantInfo = consultantInfoServiceImpl.findById(user.getId());
+                Admission otherAdmission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(consultantInfo.getUniversityId(), admission.getYear(), AdmissionStatus.ACTIVE)
+                        .orElse(null);
+                if (otherAdmission != null)
+                    throw new BadRequestException("Đề án khác cùng năm đã được kích hoạt.", Map.of("admissionId", otherAdmission.getId().toString()));
+            }
+        }
+
+        if (request.getStatus().equals(AdmissionStatus.PENDING))
+            throw new BadRequestException("Không thể chuyển đề án về trạng thái chờ kích hoạt.");
 
         admission.setAdmissionStatus(request.getStatus());
         admission.setNote(request.getNote());
         admission.setUpdateBy(user.getId());
         admission.setUpdateTime(new Date());
 
+        updateUniversityTrainingProgram(request.getStatus(), admission, id, user, uniId);
+
         try {
-            Admission admission1 = admissionRepository.save(admission);
+            admissionRepository.save(admission);
         } catch (Exception e) {
             throw new StoreDataFailedException("Cập nhật thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
         }
+    }
 
-        return ResponseData.ok("Cập nhật trạng thái đề án thành công.");
+    public void staffUpdateAdmissionConfirmStatus(Integer id, UpdateAdmissionConfirmStatusRequest request) throws NotAllowedException, BadRequestException, StoreDataFailedException {
+        User user = ServiceUtils.getUser();
+        Admission admission = findById(id);
+        UniversityInfo universityInfo = universityInfoServiceImpl.findById(admission.getUniversityId());
+        if (!universityInfo.getStaffId().equals(user.getId()))
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+
+        if (request.getStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
+            if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
+                throw new BadRequestException("Đề án đã được chấp nhận.");
+            } else if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING)) {
+                throw new BadRequestException("Đề án không ở trạng thái chờ kích hoạt.");
+            }
+        }
+
+        if (request.getStatus().equals(AdmissionConfirmStatus.REJECTED) && admission.getConfirmStatus().equals(AdmissionConfirmStatus.REJECTED))
+            throw new BadRequestException("Đề án đã bị hủy.");
+
+        if (request.getStatus().equals(AdmissionConfirmStatus.REJECTED)){
+            admission.setConfirmStatus(AdmissionConfirmStatus.REJECTED);
+            admission.setAdmissionStatus(AdmissionStatus.INACTIVE);
+        }
+
+        if (request.getStatus().equals(AdmissionConfirmStatus.CONFIRMED)){
+            admission.setConfirmStatus(AdmissionConfirmStatus.CONFIRMED);
+            admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
+        }
+
+        admission.setNote(request.getNote());
+        admission.setUpdateBy(user.getId());
+        admission.setUpdateTime(new Date());
+
+        try {
+            admissionRepository.save(admission);
+        } catch (Exception e) {
+            throw new StoreDataFailedException("Cập nhật thông tin đề án thất bại.", Map.of("error", e.getCause().getMessage()));
+        }
     }
 
     //TODO: must complete
@@ -1174,5 +1229,12 @@ public class AdmissionServiceImpl implements AdmissionService {
             return new GetAdmissionScoreResponse(admissions.stream().map(element -> new AdmissionWithUniversityInfoDTO(element, universityInfos)).toList());
         }
         return new GetAdmissionScoreResponse(getAdmissionScoreDetail(admissions.get(0)));
+    }
+
+    public void consultantUpdateAdmission(Integer id) {
+        Admission admission = findById(id);
+        admission.setConfirmStatus(AdmissionConfirmStatus.PENDING);
+        admission.setUpdateTime(new Date());
+        admission.setUpdateBy(ServiceUtils.getId());
     }
 }

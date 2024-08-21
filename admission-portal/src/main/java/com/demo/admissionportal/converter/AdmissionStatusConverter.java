@@ -18,8 +18,6 @@ public class AdmissionStatusConverter extends AbstractConverter<AdmissionStatus,
                 return "Không hoạt động";
             case PENDING:
                 return "Chờ duyệt";
-            case DENY:
-                return "Từ chối";
             default:
                 return status.name();
         }
