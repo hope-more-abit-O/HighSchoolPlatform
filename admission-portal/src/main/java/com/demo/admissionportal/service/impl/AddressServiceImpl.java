@@ -75,4 +75,8 @@ public class AddressServiceImpl implements AddressService {
         }
         return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách ward", wardResponseDTOS);
     }
+
+    public List<Province> getAllProvince() {
+        return provinceRepository.findAll();
+    }
 }

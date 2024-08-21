@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.constants.SubjectStatus;
+import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
@@ -8,6 +9,8 @@ import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * The interface Subject service.
@@ -64,4 +67,6 @@ public interface SubjectService {
      * @return the response data
      */
     ResponseData<?> activateSubject(Integer id);
+
+    List<SubjectDTO> getAllActive();
 }

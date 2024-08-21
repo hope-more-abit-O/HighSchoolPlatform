@@ -60,6 +60,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
+    private static final String SUBJECT_API = "/api/v1/subject/**";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -127,6 +128,7 @@ public class SecurityConfiguration {
                                         METHOD_API,
                                         SEARCH_API,
                                         FAVORITE_API,
+                                        SUBJECT_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

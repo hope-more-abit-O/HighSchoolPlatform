@@ -4,12 +4,15 @@ import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.TestResponseABCDTO;
+import com.demo.admissionportal.entity.District;
+import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
 import com.demo.admissionportal.service.AddressService;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.impl.AddressServiceImpl;
+import com.demo.admissionportal.service.impl.DistrictServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionTrainingProgramMethodServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,8 @@ public class TestController {
     private final ValidationServiceImpl validationServiceImpl;
     private final AdmissionServiceImpl admissionService;
     private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
+    private final DistrictServiceImpl districtServiceImpl;
+    private final AddressServiceImpl addressServiceImpl;
 
     @GetMapping("/")
     public String home(){
@@ -118,5 +123,10 @@ public class TestController {
     @GetMapping("/test1")
     public TestResponseABCDTO test1(@RequestParam(required = false) Integer a, @RequestParam(required = false) Integer b){
         return new TestResponseABCDTO(a,b);
+    }
+
+    @GetMapping("/province")
+    public List<Province> getAllProvince() {
+        return addressServiceImpl.getAllProvince();
     }
 }

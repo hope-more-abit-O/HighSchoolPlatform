@@ -21,6 +21,7 @@ public class FullAdmissionDTO {
     private Integer year;
     private String name;
     private List<String> sources;
+    private String note;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private InfoUniversityResponseDTO university;
