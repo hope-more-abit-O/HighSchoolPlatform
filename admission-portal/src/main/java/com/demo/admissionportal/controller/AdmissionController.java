@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.AdmissionSourceDTO;
@@ -90,10 +91,11 @@ public class AdmissionController {
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date updateTime,
             @RequestParam(required = false) AdmissionStatus status,
-            @RequestParam(required = false) AdmissionScoreStatus scoreStatus
+            @RequestParam(required = false) AdmissionScoreStatus scoreStatus,
+            @RequestParam(required = false) AdmissionConfirmStatus confirmStatus
     ) {
         return ResponseEntity.ok(admissionService.getBy(
-                pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus
+                pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus, confirmStatus
         ));
     }
 
@@ -103,7 +105,9 @@ public class AdmissionController {
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String universityCode,
             @RequestParam(required = false) Integer staffId,
-            @RequestParam(required = false) List<AdmissionStatus> status
+            @RequestParam(required = false) List<AdmissionStatus> status,
+            @RequestParam(required = false) List<AdmissionConfirmStatus> confirmStatus,
+            @RequestParam(required = false) List<AdmissionScoreStatus> scoreStatus
     ) {
         try {
             List<Integer> years = null;
@@ -121,15 +125,61 @@ public class AdmissionController {
         return ResponseEntity.ok(admissionService.getByIdV2(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/university/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity updateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
+    public ResponseEntity universityUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
         if (id == null){
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
-        return ResponseEntity.ok(admissionService.admissionUpdateStatus(id, request));
+        try {
+            admissionService.universityAndConsultantUpdateAdmissionStatus(id, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
     }
+
+    @PutMapping("/staff/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity staffUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionConfirmStatusRequest request){
+        if (id == null){
+            throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
+        } else if (id <= 0)
+            throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
+        try {
+            admissionService.staffUpdateAdmissionConfirmStatus(id, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/test/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity consultantUpdateAdmission(@PathVariable Integer id){
+        if (id == null){
+            throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
+        } else if (id <= 0)
+            throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
+        try {
+            admissionService.consultantUpdateAdmission(id);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+
 
     @PutMapping("/score")
     @SecurityRequirement(name = "BearerAuth")

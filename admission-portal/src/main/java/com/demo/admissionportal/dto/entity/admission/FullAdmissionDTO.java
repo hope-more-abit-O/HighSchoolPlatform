@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +40,8 @@ public class FullAdmissionDTO {
     private String status;
 
     private String scoreStatus;
+
+    private String confirmStatus;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<AdmissionMethodDTO> admissionMethods;
@@ -70,6 +74,6 @@ public class FullAdmissionDTO {
         this.createTime = admission.getCreateTime();
         this.updateBy =  null;
         this.updateTime = admission.getUpdateTime();
-        this.status = admission.getSource();
+        this.sources = admission.getSource() != null ? Arrays.asList(admission.getSource().split(",")) : null;
     }
 }
