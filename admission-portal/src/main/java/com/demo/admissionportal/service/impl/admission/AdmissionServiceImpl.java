@@ -432,8 +432,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                 result.setUpdateBy(actionerDTO);
                 result.setCreateBy(actionerDTO);
             } else {
-                result.setUpdateBy(getCreateBy(admission, actionerDTOs));
-                result.setCreateBy(getUpdateBy(admission, actionerDTOs));
+                result.setUpdateBy(getUpdateBy(admission, actionerDTOs));
+                result.setCreateBy(getCreateBy(admission, actionerDTOs));
             }
         } else {
             result.setUpdateBy(null);
@@ -826,7 +826,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         if (request.getStatus().equals(AdmissionConfirmStatus.CONFIRMED)){
             admission.setConfirmStatus(AdmissionConfirmStatus.CONFIRMED);
-            admission.setAdmissionStatus(AdmissionStatus.PENDING);
+            admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
         }
 
         admission.setNote(request.getNote());

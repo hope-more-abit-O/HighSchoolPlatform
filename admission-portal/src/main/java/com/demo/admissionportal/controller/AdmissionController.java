@@ -66,6 +66,37 @@ public class AdmissionController {
         }
     }
 
+    @GetMapping("/score-advice/v2")
+    public ResponseEntity adviceV2(@RequestParam(required = false) String majorId,
+                                 @RequestParam(required = false) Float offset,
+                                 @RequestParam(required = false) Float score,
+                                 @RequestParam(required = false) String subjectGroupId,
+                                 @RequestParam(required = false) String methodId,
+                                 @RequestParam(required = false) String provinceId){
+        try {
+            List<Integer> majorIds = null;
+            List<Integer> subjectGroupIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> provinceIds = null;
+
+            if (majorId != null && !majorId.isEmpty()) {
+                majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (provinceId  != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @PostMapping("/create")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmission(@RequestBody @Valid CreateAdmissionRequest request)

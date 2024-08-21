@@ -48,4 +48,5 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
     Optional<Subject> findByName(String name);
 
+    List<Subject> findAllByStatus(SubjectStatus status);
 }
