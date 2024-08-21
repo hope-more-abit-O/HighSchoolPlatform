@@ -31,6 +31,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
       AND (:updateTime IS NULL OR a.update_time = :updateTime)
       AND (:status IS NULL OR a.status = :status)
       AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
+      AND (:confirmStatus IS NULL OR a.confirm_status = :confirmStatus)
     """,
             countQuery = """
     SELECT COUNT(a.id)
@@ -47,8 +48,8 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
       AND (:updateTime IS NULL OR a.update_time = :updateTime)
       AND (:status IS NULL OR a.status = :status)
       AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
-    """,
-            nativeQuery = true)
+      AND (:confirmStatus IS NULL OR a.confirm_status = :confirmStatus)
+    """, nativeQuery = true)
     Page<Admission> findAllBy(
             Pageable pageable,
             @Param("id") Integer id,
@@ -61,7 +62,8 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
             @Param("updateBy") Integer updateBy,
             @Param("updateTime") Date updateTime,
             @Param("status") String status,
-            @Param("scoreStatus") String scoreStatus
+            @Param("scoreStatus") String scoreStatus,
+            @Param("confirmStatus") String confirmStatus
     );
 
 
@@ -249,4 +251,6 @@ and (:staffId IS NULL OR ui.staff_id = :staffId)
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatus(Integer universityId, AdmissionStatus admissionStatus);
 
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(Integer universityId, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findByUniversityIdAndYearAndAdmissionStatus(Integer universityId, Integer year, AdmissionStatus admissionStatus);
 }

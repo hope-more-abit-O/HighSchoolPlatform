@@ -144,6 +144,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleBadRequestExceptions(BadRequestException ex) {
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Map.of("error", ex.getCause().getMessage()));
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Map.of("error", ex.getMessage()));
     }
 }
