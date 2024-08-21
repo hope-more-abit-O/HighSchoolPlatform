@@ -5,8 +5,6 @@ import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
-import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;

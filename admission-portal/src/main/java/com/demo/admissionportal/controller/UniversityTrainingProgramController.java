@@ -8,25 +8,31 @@ import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api/v1/university-training-program")
 @RequiredArgsConstructor
 public class UniversityTrainingProgramController {
     private final UniversityTrainingProgramService universityTrainingProgramService;
 
 
-    @GetMapping("/info")
-    public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(Integer universityId) {
+    @GetMapping("/info/{universityId}")
+    public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(@PathVariable Integer universityId) {
         return universityTrainingProgramService.getInfoUniversityTrainingPrograms(universityId);
     }
 
-    @GetMapping("/full")
-    public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId) {
+    @GetMapping("/full/{universityId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(@PathVariable Integer universityId) {
         User user = ServiceUtils.getUser();
 
         if (user.getRole().equals(Role.UNIVERSITY))
