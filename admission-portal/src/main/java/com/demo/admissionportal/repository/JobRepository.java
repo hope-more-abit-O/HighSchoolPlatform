@@ -33,4 +33,13 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
      */
     @Query("SELECT j FROM Job j WHERE j.name IN :names")
     List<Job> findJobsByNameIn(@Param("names") Set<String> names);
+
+    /**
+     * Find jobs by id in list.
+     *
+     * @param jobIds the job ids
+     * @return the list
+     */
+    @Query("SELECT j FROM Job j WHERE j.id IN :jobIds")
+    List<Job> findJobsByIdIn(List<Integer> jobIds);
 }

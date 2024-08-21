@@ -1,9 +1,6 @@
 package com.demo.admissionportal.dto.response.holland_test;
 
-import com.demo.admissionportal.constants.QuestionStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

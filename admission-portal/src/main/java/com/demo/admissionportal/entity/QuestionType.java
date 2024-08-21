@@ -31,4 +31,8 @@ public class QuestionType {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private QuestionStatus status;
+    @Column(name = "image")
+    private String image;
+    @Column(name = "content")
+    private String content;
 }

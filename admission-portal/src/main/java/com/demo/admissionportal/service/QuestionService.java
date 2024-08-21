@@ -2,12 +2,10 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
 import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
+import com.demo.admissionportal.dto.request.holland_test.SubmitRequestDTO;
 import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.QuestionnaireDetailResponse;
+import com.demo.admissionportal.dto.response.holland_test.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -66,4 +64,20 @@ public interface QuestionService {
      * @return the response data
      */
     ResponseData<QuestionnaireDetailResponse> createQuestionnaire(QuestionnaireRequest request);
+
+
+    /**
+     * Gets holland test.
+     *
+     * @return the holland test
+     */
+    ResponseData<List<ParticipateResponse>> getHollandTest();
+
+    /**
+     * Submit holland test response data.
+     *
+     * @param request the request
+     * @return the response data
+     */
+    ResponseData<SubmitResponse> submitHollandTest(List<SubmitRequestDTO> request);
 }
