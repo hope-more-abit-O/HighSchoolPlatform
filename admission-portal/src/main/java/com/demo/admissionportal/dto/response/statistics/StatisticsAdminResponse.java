@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class StatisticsResponse implements Serializable {
+public class StatisticsAdminResponse implements Serializable {
     private StatisticsTransactionResponse transaction;
     private StatisticsInteractResponse interact;
     private StatisticsAccountResponse account;

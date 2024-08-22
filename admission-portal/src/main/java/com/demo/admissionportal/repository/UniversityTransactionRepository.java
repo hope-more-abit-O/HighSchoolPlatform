@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface University transaction repository.
@@ -76,7 +77,7 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "FROM university_transaction ut " +
             "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
             "WHERE ut.status = 'PAID'", nativeQuery = true)
-    Integer calculatorTotalTransaction();
+    Optional<Integer> calculatorTotalTransaction();
 
     /**
      * Calculator current transaction integer.
@@ -87,5 +88,17 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "FROM university_transaction ut " +
             "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
             "WHERE ut.status = 'PAID' AND CONVERT(DATE, ut.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
-    Integer calculatorCurrentTransaction();
+    Optional<Integer> calculatorCurrentTransaction();
+
+    /**
+     * Find university transaction by university id list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT ut.* " +
+            "FROM university_transaction ut " +
+            "JOIN university_info ci ON ut.university_id = ci.university_id " +
+            "WHERE ci.university_id = :universityId AND ut.status = 'PAID'", nativeQuery = true)
+    List<UniversityTransaction> findUniversityTransactionByUniversityId(Integer universityId);
 }

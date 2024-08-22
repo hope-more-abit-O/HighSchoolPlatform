@@ -91,7 +91,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (universityID == null) {
             return new ResponseData<>(ResponseCode.C205.getCode(), "universityID null");
         }
-        Integer totalCount = userFavoriteRepository.totalFavoriteCount(universityID);
+        Integer totalCount = userFavoriteRepository.totalFavoriteCount(universityID).orElse(0);
         TotalCountResponseDTO totalCountResponseDTO = new TotalCountResponseDTO();
         totalCountResponseDTO.setTotalCount(totalCount);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy số lượng favorite thành công", totalCountResponseDTO);

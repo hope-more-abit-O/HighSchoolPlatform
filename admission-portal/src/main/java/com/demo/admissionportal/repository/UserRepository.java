@@ -333,7 +333,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
             "WHERE u.role = 'USER'", nativeQuery = true)
-    Integer totalAccount();
+    Optional<Integer> totalAccount();
 
 
     /**
@@ -344,5 +344,25 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
             "WHERE u.role = 'USER' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
-    Integer currentAccount();
+    Optional<Integer> currentAccount();
+
+    /**
+     * Account active optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER' AND u.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> accountActive();
+
+    /**
+     * Account inactive optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER' AND u.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> accountInactive();
 }

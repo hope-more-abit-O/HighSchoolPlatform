@@ -2,7 +2,6 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.statistics.StatisticsResponse;
 import com.demo.admissionportal.service.StatisticsService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +26,8 @@ public class StatisticsController {
      * @return the statistics
      */
     @GetMapping
-    public ResponseEntity<ResponseData<StatisticsResponse>> getStatistics() {
-        ResponseData<StatisticsResponse> responseData = statisticsService.getStatistics();
+    public ResponseEntity<ResponseData<?>> getStatistics() {
+        ResponseData<?> responseData = statisticsService.getStatistics();
         if (responseData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseData);
         }
