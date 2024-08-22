@@ -65,5 +65,11 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      */
     UniversityCampus findUniversityCampusById(Integer id);
 
+    /**
+     * Find by university id list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
     List<UniversityCampus> findByUniversityId(Integer universityId);
 }
