@@ -151,14 +151,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     Post findFirstByUrl(String url);
 
     /**
-     * Find first by create by post.
-     *
-     * @param id the id
-     * @return the post
-     */
-    List<Post> findPostByCreateBy(Integer id);
-
-    /**
      * Find all by create by in list.
      *
      * @param universityId the university id
@@ -192,4 +184,23 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             "AND up.complete_time >= GETDATE()" +
             "ORDER BY up.create_time DESC ", nativeQuery = true)
     List<Post> findPostHasPackage();
+
+    /**
+     * Total post integer.
+     *
+     * @return the integer
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM post", nativeQuery = true)
+    Integer totalPost();
+
+    /**
+     * Current post integer.
+     *
+     * @return the integer
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM post p " +
+            "WHERE p.status = 'ACTIVE' AND CONVERT(DATE, p.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Integer currentPost();
 }

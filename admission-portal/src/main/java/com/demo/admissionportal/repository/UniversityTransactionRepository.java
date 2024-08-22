@@ -66,4 +66,26 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "FROM university_transaction ut " +
             "WHERE ut.university_id = :universityId ", nativeQuery = true)
     List<UniversityTransaction> findByUniversityId(Integer universityId);
+
+    /**
+     * Calculator total transaction integer.
+     *
+     * @return the integer
+     */
+    @Query(value = "SELECT SUM(ap.price) " +
+            "FROM university_transaction ut " +
+            "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
+            "WHERE ut.status = 'PAID'", nativeQuery = true)
+    Integer calculatorTotalTransaction();
+
+    /**
+     * Calculator current transaction integer.
+     *
+     * @return the integer
+     */
+    @Query(value = "SELECT SUM(ap.price) " +
+            "FROM university_transaction ut " +
+            "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
+            "WHERE ut.status = 'PAID' AND CONVERT(DATE, ut.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Integer calculatorCurrentTransaction();
 }
