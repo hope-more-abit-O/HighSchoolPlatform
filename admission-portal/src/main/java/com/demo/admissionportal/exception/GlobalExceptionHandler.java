@@ -4,6 +4,8 @@ import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.exception.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,9 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +65,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseData<Object> handleResourceNotFountExceptions(ResourceNotFoundException ex) {
-        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Dữ liệu không tồn tại": ex.getMessage(), ex.getErrors());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Dữ liệu không tồn tại" : ex.getMessage(), ex.getErrors());
     }
 
     /**
@@ -87,7 +89,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotAllowedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseData<Object> handleNotAllowedException(NotAllowedException ex) {
-        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Không có quyền thực hiện.": ex.getMessage(), ex.getErrors());
+        return new ResponseData<>(HttpStatus.NOT_FOUND.value(), (ex.getMessage() == null) ? "Không có quyền thực hiện." : ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(QueryException.class)
@@ -107,6 +109,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
                 .body(ResponseData.error("Maximum upload size exceeded. Please upload a smaller file."));
     }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseData<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
@@ -120,13 +123,13 @@ public class GlobalExceptionHandler {
         } else if (message.contains("Cannot deserialize value of type `java.lang.Float`")) {
             message = "Định dạng không đúng.";
             errors.put("error", message);
-        } else if (message.contains("Unrecognized field")){
+        } else if (message.contains("Unrecognized field")) {
             message = "Request chứa thông tin không hợp lệ";
             errors.put("error", message);
-        } else if(message.contains("JSON parse error: Chỉ cho phép số tự nhiên")){
+        } else if (message.contains("JSON parse error: Chỉ cho phép số tự nhiên")) {
             message = "Chỉ cho phép số tự nhiên";
             errors.put("error", message);
-        } else if (message.contains("JSON parse error: Môn học không tồn tại")){
+        } else if (message.contains("JSON parse error: Môn học không tồn tại")) {
             message = "Tổ hợp môn học có chứa môn học không tồn tại";
             errors.put("error", message);
         }
@@ -141,9 +144,10 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseData<Object> handleBadRequestExceptions(BadRequestException ex) {
-        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Map.of("error", ex.getMessage()));
+    public ResponseData<Object> handleBadRequestExceptions(HandlerMethodValidationException ex) {
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getReason());
     }
 }
+
