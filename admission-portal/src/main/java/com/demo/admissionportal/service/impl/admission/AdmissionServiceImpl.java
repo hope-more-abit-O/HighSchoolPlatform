@@ -353,6 +353,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                       List<AdmissionConfirmStatus> confirmStatus) {
         Page<Admission> admissions = null;
 
+        String countBuilder;
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT a.* " +
                         "FROM admission a " +
@@ -424,6 +425,17 @@ public class AdmissionServiceImpl implements AdmissionService {
             parameters.put("confirmStatus", confirmStatus.stream().map(Enum::name).toList());
         }
 
+        countBuilder = queryBuilder.toString();
+
+        if (pageable.getSort().isSorted()) {
+            queryBuilder.append(" ORDER BY ");
+            List<String> sortingCriteria = new ArrayList<>();
+            pageable.getSort().forEach(order -> {
+                sortingCriteria.add("a." + order.getProperty() + " " + order.getDirection().name());
+            });
+            queryBuilder.append(String.join(", ", sortingCriteria));
+        }
+
         // 4. Create and execute the TypedQuery
         Query query = entityManager.createNativeQuery(queryBuilder.toString(), Admission.class);
 
@@ -441,7 +453,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         // 8. Get total count for pagination
         // You may want to create a count query for the total results based on the same criteria
-        Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + queryBuilder.toString() + ") as countQuery");
+        Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + countBuilder.toString() + ") as countQuery");
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             countQuery.setParameter(entry.getKey(), entry.getValue());
         }
