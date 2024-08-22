@@ -123,7 +123,7 @@ public class AdmissionController {
             @RequestParam(required = false) Date updateTime,
             @RequestParam(required = false) AdmissionStatus status,
             @RequestParam(required = false) AdmissionScoreStatus scoreStatus,
-            @RequestParam(required = false) AdmissionConfirmStatus confirmStatus
+            @RequestParam(required = false) List<AdmissionConfirmStatus> confirmStatus
     ) {
         return ResponseEntity.ok(admissionService.getBy(
                 pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus, confirmStatus
