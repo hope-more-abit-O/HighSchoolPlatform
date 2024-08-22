@@ -370,7 +370,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
 
         if (staffId != null) {
-            queryBuilder.append(" AND a.staff_id = :staffId ");
+            queryBuilder.append(" AND ui.staff_id = :staffId ");
             parameters.put("staffId", staffId);
         }
 
