@@ -1,0 +1,37 @@
+package com.demo.admissionportal;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.util.Date;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "exam_year")
+public class ExamYear {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @NotNull
+    @Column(name = "year", nullable = false)
+    private Integer year;
+
+    @Column(name = "create_time")
+    private Date createTime;
+
+    @Column(name = "create_by")
+    private Integer createBy;
+
+    @Column(name = "update_time")
+    private Date updateTime;
+
+    @Column(name = "update_by")
+    private Integer updateBy;
+
+}

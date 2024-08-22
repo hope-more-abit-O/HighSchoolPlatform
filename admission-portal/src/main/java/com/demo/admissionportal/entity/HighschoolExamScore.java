@@ -1,5 +1,7 @@
 package com.demo.admissionportal.entity;
 
+import com.demo.admissionportal.ExamLocal;
+import com.demo.admissionportal.ExamYear;
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,14 +23,16 @@ public class HighschoolExamScore {
     private Integer id;
     @Column(name = "identification_number")
     private Integer identificationNumber;
-    @Column(name = "local")
-    private String local;
     @Column(name = "subject_id")
     private Integer subjectId;
     @Column(name = "score")
     private Float score;
-    @Column(name = "year")
-    private Integer year;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_local_id", nullable = false)
+    private ExamLocal examLocal;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_year_id", nullable = false)
+    private ExamYear examYear;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "create_by")
