@@ -311,12 +311,15 @@ public class AdmissionServiceImpl implements AdmissionService {
                                                       Date updateTime,
                                                       AdmissionStatus status,
                                                       AdmissionScoreStatus scoreStatus,
-                                                      AdmissionConfirmStatus confirmStatus) {
+                                                      List<AdmissionConfirmStatus> confirmStatus) {
         Page<Admission> admissions = null;
-
-        String a = (confirmStatus != null) ? confirmStatus.name() : null;
         try {
-            admissions = admissionRepository.findAllBy(pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null, (confirmStatus != null) ? confirmStatus.name() : null);
+            if (confirmStatus != null){
+                List<String> confirmStatusString = confirmStatus.stream().map(Enum::name).toList();
+                admissions = admissionRepository.findAllBy(pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null, confirmStatusString);
+            }
+            else
+                admissions = admissionRepository.findAllBy(pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, (status != null) ? status.name() : null, (scoreStatus != null) ? scoreStatus.name() : null);
         } catch (Exception e) {
             throw new QueryException("Lỗi tìm kiếm.", Map.of("queryError", e.getCause().getMessage()));
         }
@@ -752,6 +755,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         Admission admission = findById(id);
         Integer uniId = null;
         ConsultantInfo consultantInfo = null;
+        if (admission.getAdmissionStatus().equals(AdmissionStatus.STAFF_INACTIVE)){
+            throw new NotAllowedException("Đề án này đã bị ngưng hoạt động bới staff.");
+        }
         if (user.getRole().equals(Role.UNIVERSITY) && !admission.getUniversityId().equals(user.getId())) {
             uniId = user.getId();
             throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
@@ -805,28 +811,50 @@ public class AdmissionServiceImpl implements AdmissionService {
         User user = ServiceUtils.getUser();
         Admission admission = findById(id);
         UniversityInfo universityInfo = universityInfoServiceImpl.findById(admission.getUniversityId());
-        if (!universityInfo.getStaffId().equals(user.getId()))
-            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        if (request.getConfirmStatus() != null){
+            if (!universityInfo.getStaffId().equals(user.getId()))
+                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
 
-        if (request.getStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
-            if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
-                throw new BadRequestException("Đề án đã được chấp nhận.");
-            } else if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING)) {
-                throw new BadRequestException("Đề án không ở trạng thái chờ kích hoạt.");
+            if (request.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
+                if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED)) {
+                    throw new BadRequestException("Đề án đã được chấp nhận.");
+                } else if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING)) {
+                    throw new BadRequestException("Đề án không ở trạng thái chờ kích hoạt.");
+                }
+            }
+
+            if (request.getConfirmStatus().equals(AdmissionConfirmStatus.REJECTED) && admission.getConfirmStatus().equals(AdmissionConfirmStatus.REJECTED))
+                throw new BadRequestException("Đề án đã bị hủy.");
+
+            if (request.getConfirmStatus().equals(AdmissionConfirmStatus.REJECTED)){
+                admission.setConfirmStatus(AdmissionConfirmStatus.REJECTED);
+                admission.setAdmissionStatus(AdmissionStatus.INACTIVE);
+            }
+
+            if (request.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING)){
+                admission.setConfirmStatus(AdmissionConfirmStatus.REJECTED);
+                admission.setAdmissionStatus(AdmissionStatus.INACTIVE);
+            }
+
+            if (request.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED)){
+                admission.setConfirmStatus(AdmissionConfirmStatus.CONFIRMED);
+                admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
             }
         }
-
-        if (request.getStatus().equals(AdmissionConfirmStatus.REJECTED) && admission.getConfirmStatus().equals(AdmissionConfirmStatus.REJECTED))
-            throw new BadRequestException("Đề án đã bị hủy.");
-
-        if (request.getStatus().equals(AdmissionConfirmStatus.REJECTED)){
-            admission.setConfirmStatus(AdmissionConfirmStatus.REJECTED);
-            admission.setAdmissionStatus(AdmissionStatus.INACTIVE);
-        }
-
-        if (request.getStatus().equals(AdmissionConfirmStatus.CONFIRMED)){
-            admission.setConfirmStatus(AdmissionConfirmStatus.CONFIRMED);
-            admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
+        else {
+            if (request.getAdmissionStatus() == null)
+                throw new BadRequestException("Trạng thái không được để trống.");
+            if (request.getAdmissionStatus().equals(AdmissionStatus.STAFF_INACTIVE)){
+                admission.setAdmissionStatus(AdmissionStatus.STAFF_INACTIVE);
+            }
+            if (request.getAdmissionStatus().equals(AdmissionStatus.INACTIVE)){
+                admission.setAdmissionStatus(AdmissionStatus.INACTIVE);
+            }
+            if (request.getAdmissionStatus().equals(AdmissionStatus.ACTIVE)){
+                if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
+                    throw new BadRequestException("Đề án này phải được chấp nhận trước.");
+                admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
+            }
         }
 
         admission.setNote(request.getNote());
