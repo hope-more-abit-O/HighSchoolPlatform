@@ -71,11 +71,13 @@ public class AdmissionController {
                                  @RequestParam(required = false) Float offset,
                                  @RequestParam(required = false) Float score,
                                  @RequestParam(required = false) String subjectGroupId,
+                                 @RequestParam(required = false) String subjectId,
                                  @RequestParam(required = false) String methodId,
                                  @RequestParam(required = false) String provinceId){
         try {
             List<Integer> majorIds = null;
             List<Integer> subjectGroupIds = null;
+            List<Integer> subjectIds = null;
             List<Integer> methodIds = null;
             List<Integer> provinceIds = null;
 
@@ -85,13 +87,16 @@ public class AdmissionController {
             if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
                 subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
             }
+            if (subjectId != null && !subjectId.isEmpty()) {
+                subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
+            }
             if (methodId != null && !methodId.isEmpty()) {
                 methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
             }
             if (provinceId  != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
+            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, offset, score, null, subjectGroupIds, subjectIds, methodIds, provinceIds)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -121,11 +126,11 @@ public class AdmissionController {
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date updateTime,
-            @RequestParam(required = false) AdmissionStatus status,
-            @RequestParam(required = false) AdmissionScoreStatus scoreStatus,
+            @RequestParam(required = false) List<AdmissionStatus> status,
+            @RequestParam(required = false) List<AdmissionScoreStatus> scoreStatus,
             @RequestParam(required = false) List<AdmissionConfirmStatus> confirmStatus
     ) {
-        return ResponseEntity.ok(admissionService.getBy(
+        return ResponseEntity.ok(admissionService.getByV2(
                 pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus, confirmStatus
         ));
     }

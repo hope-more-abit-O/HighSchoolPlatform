@@ -26,11 +26,14 @@ import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.*;
 import com.demo.admissionportal.util.impl.ServiceUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -59,6 +62,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final SubjectServiceImpl subjectServiceImpl;
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
     private final UniversityTrainingProgramServiceImpl universityTrainingProgramService;
+    private final EntityManager entityManager;
 
     public Admission save(Admission admission) {
         try {
@@ -323,6 +327,127 @@ public class AdmissionServiceImpl implements AdmissionService {
         } catch (Exception e) {
             throw new QueryException("Lỗi tìm kiếm.", Map.of("queryError", e.getCause().getMessage()));
         }
+
+        if (admissions == null || admissions.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy đề án nào.");
+        }
+        List<ActionerDTO> actionerDTOs = this.getActioners(admissions.getContent());
+
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.getContent().stream().map(Admission::getUniversityId).toList());
+
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mappingInfo(element, actionerDTOs, universityInfos)));
+    }
+
+    public ResponseData<Page<FullAdmissionDTO>> getByV2(Pageable pageable,
+                                                      Integer id,
+                                                      Integer staffId,
+                                                      Integer year,
+                                                      String source,
+                                                      Integer universityId,
+                                                      Date createTime,
+                                                      Integer createBy,
+                                                      Integer updateBy,
+                                                      Date updateTime,
+                                                      List<AdmissionStatus> status,
+                                                      List<AdmissionScoreStatus> scoreStatus,
+                                                      List<AdmissionConfirmStatus> confirmStatus) {
+        Page<Admission> admissions = null;
+
+        StringBuilder queryBuilder = new StringBuilder(
+                "SELECT a.* " +
+                        "FROM admission a " +
+                        "INNER JOIN university_info ui ON a.university_id = ui.university_id " +
+                        "WHERE 1=1 "
+        );
+
+        // 2. Create a Map to store parameters
+        Map<String, Object> parameters = new HashMap<>();
+
+        // 3. Add conditions based on method parameters
+        if (id != null) {
+            queryBuilder.append(" AND a.id = :id ");
+            parameters.put("id", id);
+        }
+
+        if (staffId != null) {
+            queryBuilder.append(" AND ui.staff_id = :staffId ");
+            parameters.put("staffId", staffId);
+        }
+
+        if (year != null) {
+            queryBuilder.append(" AND a.year = :year ");
+            parameters.put("year", year);
+        }
+
+        if (source != null && !source.isEmpty()) {
+            queryBuilder.append(" AND a.source = :source ");
+            parameters.put("source", source);
+        }
+
+        if (universityId != null) {
+            queryBuilder.append(" AND a.university_id = :universityId ");
+            parameters.put("universityId", universityId);
+        }
+
+        if (createTime != null) {
+            queryBuilder.append(" AND a.create_time = :createTime ");
+            parameters.put("createTime", createTime);
+        }
+
+        if (createBy != null) {
+            queryBuilder.append(" AND a.create_by = :createBy ");
+            parameters.put("createBy", createBy);
+        }
+
+        if (updateBy != null) {
+            queryBuilder.append(" AND a.update_by = :updateBy ");
+            parameters.put("updateBy", updateBy);
+        }
+
+        if (updateTime != null) {
+            queryBuilder.append(" AND a.update_time = :updateTime ");
+            parameters.put("updateTime", updateTime);
+        }
+
+        if (status != null && !status.isEmpty()) {
+            queryBuilder.append(" AND a.status IN (:status) ");
+            parameters.put("status", status.stream().map(Enum::name).toList());
+        }
+
+        if (scoreStatus != null && !scoreStatus.isEmpty()) {
+            queryBuilder.append(" AND a.score_status IN (:scoreStatus) ");
+            parameters.put("scoreStatus", scoreStatus.stream().map(Enum::name).toList());
+        }
+
+        if (confirmStatus != null && !confirmStatus.isEmpty()) {
+            queryBuilder.append(" AND a.confirm_status IN (:confirmStatus) ");
+            parameters.put("confirmStatus", confirmStatus.stream().map(Enum::name).toList());
+        }
+
+        // 4. Create and execute the TypedQuery
+        Query query = entityManager.createNativeQuery(queryBuilder.toString(), Admission.class);
+
+        // 5. Set the parameters
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            query.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        // 6. Handle pagination
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        // 7. Execute the query and get results
+        var admissionList = query.getResultList();
+
+        // 8. Get total count for pagination
+        // You may want to create a count query for the total results based on the same criteria
+        Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + queryBuilder.toString() + ") as countQuery");
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            countQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+        Long total = ((Number) countQuery.getSingleResult()).longValue();
+
+        admissions = new PageImpl<>(admissionList, pageable, total);
 
         if (admissions == null || admissions.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy đề án nào.");
@@ -917,6 +1042,139 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public ResponseData adviceSchool(SchoolAdviceRequest request) {
+        Integer year = 2024;
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findAdmissionData(
+                request.getSubjectGroupId(),
+                request.getScore(),
+                request.getOffset(),
+                request.getMethodId(),
+                request.getMajorId(),
+                request.getProvinceId(),
+                year);
+
+        if (admissionTrainingProgramMethods.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
+        log.info(request.toString());
+        List<Integer> admissionTrainingProgramIds = admissionTrainingProgramMethods
+                .stream()
+                .map(AdmissionTrainingProgramMethod::getId)
+                .map(AdmissionTrainingProgramMethodId::getAdmissionTrainingProgramId)
+                .distinct().toList();
+        List<Integer> admissionMethodIds = admissionTrainingProgramMethods
+                .stream()
+                .map(AdmissionTrainingProgramMethod::getId)
+                .map(AdmissionTrainingProgramMethodId::getAdmissionMethodId)
+                .distinct().toList();
+
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByIds(admissionTrainingProgramIds);
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(admissionMethodIds);
+        List<Integer> methodIds = admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList();
+        List<Method> methods = methodService.findByIds(methodIds);
+        List<Admission> admissions = admissionRepository.findAllById(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getAdmissionId).distinct().toList());
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingProgramIds);
+        List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(admissionTrainingProgramSubjectGroups
+                .stream()
+                .map(AdmissionTrainingProgramSubjectGroup::getId)
+                .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                .distinct().toList());
+        List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList());
+
+        List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).distinct().toList();
+//        List<InfoMajorDTO> infoMajors = majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList();
+//        List<InfoUniversityResponseDTO> infoUniversityResponses = universityInfos
+//                .stream()
+//                .map((element) -> modelMapper.map(element, InfoUniversityResponseDTO.class))
+//                .toList();
+//        List<SubjectGroupResponseDTO2> subjectGroupResponses = subjectGroups.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).toList();
+        List<SchoolAdviceDTO> schoolAdviceDTOs = new ArrayList<>();
+
+
+        for (Integer universityId : universityIds) {
+
+            UniversityInfo universityInfo = universityInfos
+                    .stream()
+                    .filter((element) -> element.getId().equals(universityId))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường đại học."));
+
+            List<Admission> admissions1 = admissions
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(universityId))
+                    .sorted(Comparator.comparing(Admission::getId).reversed())
+                    .toList();
+
+            List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms
+                    .stream()
+                    .filter((element) -> admissions1.stream().map(Admission::getId).toList().contains(element.getAdmissionId()))
+                    .toList();
+
+            List<Integer> admissionTrainingProgramIds1 = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
+
+            List<Major> majors1 = majors.stream().filter((ele) -> admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList().contains(ele.getId())).distinct().toList();
+
+            List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups
+                    .stream()
+                    .map(AdmissionTrainingProgramSubjectGroup::getId)
+                    .filter(id -> admissionTrainingProgramIds1.contains(id.getAdmissionTrainingProgramId()))
+                    .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                    .toList();
+
+            List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((element) -> subjectGroupIds.contains(element.getId())).toList();
+
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups1 = admissionTrainingProgramSubjectGroups
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds1.contains(element.getId().getAdmissionTrainingProgramId()))
+                    .toList();
+
+            List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds1.contains(element.getId().getAdmissionTrainingProgramId()))
+                    .toList();
+
+            List<AdmissionTrainingProgramDTOV2> admissionTrainingProgramDTOV2s = getSchoolAdviceMajorDetails(universityId,
+                    majors1,
+                    admissions1,
+                    admissionTrainingPrograms1,
+                    admissionTrainingProgramSubjectGroups1,
+                    admissionTrainingProgramMethods1,
+                    subjectGroups1,
+                    year,
+                    admissionMethods,
+                    methods);
+
+            Admission admission = admissions1.stream()
+                    .max(Comparator.comparing(Admission::getYear).reversed()).get();
+
+            Set<String> seen = new LinkedHashSet<>();
+
+            Integer count = admissionTrainingPrograms1.stream()
+                    .filter(program -> seen.add(
+                            program.getMajorId() + "-" +
+                                    (program.getMainSubjectId() != null ? program.getMainSubjectId() : "null") + "-" +
+                                    (program.getLanguage() != null ? program.getLanguage() : "null") + "-" +
+                                    (program.getTrainingSpecific() != null ? program.getTrainingSpecific() : "null")
+                    ))
+                    .collect(Collectors.toList()).size();
+            if (admission != null){
+                schoolAdviceDTOs.add(
+                        new SchoolAdviceDTO(modelMapper.map(universityInfo, InfoUniversityResponseDTO.class),
+                                count,
+                                admissionTrainingProgramDTOV2s,
+                                admission.getSource()));
+            }
+
+        }
+
+        if (schoolAdviceDTOs.size() < 1) {
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
+        }
+
+        return ResponseData.ok("Tìm kiếm các chương trình đào tạo phù hợp thành công", schoolAdviceDTOs);
+    }
+
+    public ResponseData adviceSchoolV2(SchoolAdviceRequestV2 request) {
         Integer year = 2024;
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findAdmissionData(
                 request.getSubjectGroupId(),
