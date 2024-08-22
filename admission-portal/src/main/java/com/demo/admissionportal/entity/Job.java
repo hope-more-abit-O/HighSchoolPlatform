@@ -31,4 +31,6 @@ public class Job {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "status")
     private JobStatus status;
+    @Column(name = "image")
+    private String image;
 }

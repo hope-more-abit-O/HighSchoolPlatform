@@ -4,23 +4,17 @@ import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
 import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
+import com.demo.admissionportal.dto.request.holland_test.SubmitRequestDTO;
 import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.holland_test.CreateQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.DeleteQuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
-import com.demo.admissionportal.dto.response.holland_test.QuestionnaireDetailResponse;
+import com.demo.admissionportal.dto.response.holland_test.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.QuestionJob;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
+import com.demo.admissionportal.entity.sub_entity.QuestionTypeJob;
 import com.demo.admissionportal.entity.sub_entity.QuestionnaireQuestion;
-import com.demo.admissionportal.repository.JobRepository;
-import com.demo.admissionportal.repository.QuestionRepository;
-import com.demo.admissionportal.repository.QuestionnaireRepository;
-import com.demo.admissionportal.repository.sub_repository.QuestionJobRepository;
-import com.demo.admissionportal.repository.sub_repository.QuestionQuestionTypeRepository;
-import com.demo.admissionportal.repository.sub_repository.QuestionTypeRepository;
-import com.demo.admissionportal.repository.sub_repository.QuestionnaireQuestionRepository;
+import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.repository.sub_repository.*;
 import com.demo.admissionportal.service.QuestionJobService;
 import com.demo.admissionportal.service.QuestionQuestionTypeService;
 import com.demo.admissionportal.service.QuestionService;
@@ -57,6 +51,10 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionnaireRepository questionnaireRepository;
     private final QuestionnaireQuestionRepository questionnaireQuestionRepository;
     private final RandomCodeHollandTest randomCodeHollandTest;
+    private final TestResponseRepository testResponseRepository;
+    private final UserInfoRepository userInfoRepository;
+    private final TestResponseAnswerRepository testResponseAnswerRepository;
+    private final QuestionTypeJobRepository questionTypeJobRepository;
 
     @Override
     @Transactional
@@ -292,7 +290,7 @@ public class QuestionServiceImpl implements QuestionService {
             // Check question is enough 10 with each type
             boolean isEnough = checkQuestionIsEnough(request.getQuestions());
             if (!isEnough) {
-                return new ResponseData<>(ResponseCode.C205.getCode(),"Question không đủ");
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Question không đủ");
             }
             // Create questionnaire
             Questionnaire questionnaire = modelMapper.map(request, Questionnaire.class);
@@ -331,5 +329,142 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
         return true;
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public ResponseData<List<ParticipateResponse>> getHollandTest() {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            // Get questionnaire for user participate
+            List<Questionnaire> questionnaires = questionnaireRepository.findAll();
+            Collections.shuffle(questionnaires, new Random());
+            // Save questionnaire for user
+            if (!questionnaires.isEmpty()) {
+                Questionnaire selectedQuestionnaire = questionnaires.get(0);
+                TestResponse testResponse = new TestResponse();
+                testResponse.setQuestionnaireId(selectedQuestionnaire.getId());
+                testResponse.setUserId(userInfo.getId());
+                testResponse.setCreateTime(new Date());
+                testResponseRepository.save(testResponse);
+            }
+            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userInfo.getId());
+            List<QuestionnaireQuestion> questionnaireQuestions = questionnaireQuestionRepository.findByQuestionnaireId(testResponse.getQuestionnaireId());
+            List<ParticipateResponse> resultGetHollandTest = questionnaireQuestions.parallelStream()
+                    .map(this::mapToQuestion)
+                    .collect(Collectors.toList());
+            Collections.shuffle(resultGetHollandTest, new Random());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách câu hỏi holland test thành công", resultGetHollandTest);
+        } catch (Exception ex) {
+            log.error("Error while get holland test : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy câu hỏi holland test");
+        }
+    }
+
+    private ParticipateResponse mapToQuestion(QuestionnaireQuestion questionnaireQuestion) {
+        Question question = questionRepository.findById(questionnaireQuestion.getQuestionId()).orElse(null);
+        if (question == null) {
+            return null;
+        }
+        return new ParticipateResponse(question.getId(), question.getContent());
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public ResponseData<SubmitResponse> submitHollandTest(List<SubmitRequestDTO> request) {
+        try {
+            log.info("Start Submit answer holland test");
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userId);
+            request.forEach(submit -> mapToSubmit(submit, testResponse));
+            log.info("End Submit answer holland test");
+            List<Integer> questionIds = request.stream()
+                    .map(SubmitRequestDTO::getQuestion_id)
+                    .collect(Collectors.toList());
+            List<Question> questions = questionRepository.findQuestionByIds(questionIds);
+            Map<Integer, Integer> questionsCountByType = questions.stream()
+                    .collect(Collectors.groupingBy(
+                            Question::getType,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+                    ));
+
+            List<SubmitDetailResponse> submitDetail = mapToSubmitDetail(questionsCountByType);
+            List<HighestTypeResponse> highestTypeResponses = mapToMaxValue(questionsCountByType);
+            List<SuggestJobResponse> suggestMajor = mapToMajor(highestTypeResponses);
+
+
+            SubmitResponse result = SubmitResponse.builder()
+                    .submitDetail(submitDetail)
+                    .highestType(highestTypeResponses)
+                    .suggestJob(suggestMajor)
+                    .build();
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Kết quả holland test", result);
+
+        } catch (Exception ex) {
+            log.error("Error while submit holland test : {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi nộp câu trả lời holland test");
+        }
+    }
+
+    private List<SuggestJobResponse> mapToMajor(List<HighestTypeResponse> highestTypeResponses) {
+        return highestTypeResponses.stream()
+                .flatMap(major -> {
+                    List<QuestionTypeJob> questionType = questionTypeJobRepository.findByQuestionTypeId(major.getTypeQuestionId());
+                    List<Integer> jobIds = questionType.stream()
+                            .map(QuestionTypeJob::getJobId)
+                            .collect(Collectors.toList());
+                    List<Job> jobs = jobRepository.findJobsByIdIn(jobIds);
+                    return jobs.stream()
+                            .map(job -> SuggestJobResponse.builder()
+                                    .jobName(job.getName())
+                                    .image(job.getImage())
+                                    .build());
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<SubmitDetailResponse> mapToSubmitDetail(Map<Integer, Integer> questionsCountByType) {
+        return questionsCountByType.entrySet().stream()
+                .map(entry -> SubmitDetailResponse.builder()
+                        .typeQuestions(mapToTypeQuestion(entry.getKey()))
+                        .numberOfSubmit(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private String mapToTypeQuestion(Integer key) {
+        QuestionType questionType = questionTypeRepository.findById(key).orElse(null);
+        return questionType.getName();
+    }
+
+    private List<HighestTypeResponse> mapToMaxValue(Map<Integer, Integer> questionsCountByType) {
+        int maxValue = questionsCountByType.values().stream()
+                .max(Integer::compareTo)
+                .orElse(0);
+        return questionsCountByType.entrySet().stream()
+                .filter(entry -> entry.getValue() == maxValue)
+                .map(entry -> {
+                    QuestionType questionType = questionTypeRepository.findById(entry.getKey()).orElse(null);
+                    if (questionType != null) {
+                        return HighestTypeResponse.builder()
+                                .typeQuestionId(questionType.getId())
+                                .typeQuestion(questionType.getName())
+                                .content(questionType.getContent())
+                                .image(questionType.getImage())
+                                .build();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public void mapToSubmit(SubmitRequestDTO submitRequestDTO, TestResponse testResponse) {
+        TestResponseAnswer testResponseAnswer = new TestResponseAnswer();
+        testResponseAnswer.setQuestionId(submitRequestDTO.getQuestion_id());
+        testResponseAnswer.setTestResponseId(testResponse.getId());
+        testResponseAnswerRepository.save(testResponseAnswer);
     }
 }

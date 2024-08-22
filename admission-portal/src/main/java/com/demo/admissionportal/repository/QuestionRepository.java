@@ -43,4 +43,9 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             "FROM question q " +
             "WHERE q.status = N'ACTIVE' AND id = :questionId", nativeQuery = true)
     Question findQuestionWithStatus(Integer questionId);
+
+    @Query(value = "SELECT * " +
+            "FROM question " +
+            "WHERE id IN (:questionId)", nativeQuery = true)
+    List<Question> findQuestionByIds(List<Integer> questionId);
 }
