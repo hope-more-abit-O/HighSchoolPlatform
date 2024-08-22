@@ -50,4 +50,5 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
     Optional<Subject> findByName(String name);
 
     List<Subject> findByIdIn(Set<Integer> subjectIds);
+    List<Subject> findAllByStatus(SubjectStatus status);
 }

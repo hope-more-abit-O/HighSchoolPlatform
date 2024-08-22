@@ -50,16 +50,20 @@ public class SecurityConfiguration {
     private static final String METHOD_API = "/api/v1/method/**";
     private static final String SEARCH_API = "/api/v1/search/**";
     private static final String UNIVERSITY_CAMPUS_API = "/api/v1/university-campus/**";
+    private static final String UNIVERSITY_TRAINING_PROGRAM = "/api/v1/university-training-program/**";
     private static final String ADMISSION_API = "/api/v1/admission/**";
     private static final String EXAM_SCORE_API = "/api/v1/exam-scores/**";
     private static final String PACKAGE_API = "/api/v1/package/**";
     private static final String FAVORITE_API = "/api/v1/favorite/**";
-    private static final String ORDER_API ="/api/v1/order/**";
+    private static final String ORDER_API = "/api/v1/order/**";
     private static final String LIKE_API = "/api/v1/like/**";
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
     private static final String EXAM_LOCAL = "/api/v1/exam-local";
+    private static final String SUBJECT_API = "/api/v1/subject/**";
+    private static final String STATISTICS_API = "/api/v1/statistics/**";
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -73,43 +77,48 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(ADMIN_API).hasAuthority("ADMIN")
 
-                                .requestMatchers(STUDENT_REPORT, REPORTS_API).hasAnyAuthority("USER","STAFF")
+                                .requestMatchers(STUDENT_REPORT, REPORTS_API).hasAnyAuthority("USER", "STAFF")
 
                                 .requestMatchers(CHAT_API).hasAnyAuthority("STAFF", "USER", "CONSULTANT")
 
                                 .requestMatchers(CREATE_UNI_REQUEST_API).hasAnyAuthority("STAFF", "ADMIN")
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/university/info/{id}").permitAll()
-                                .requestMatchers(HttpMethod.GET ,"/api/v1/university").permitAll()
-                                .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY","CONSULTANT")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university").permitAll()
+                                .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
 
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
 
-                                .requestMatchers(HttpMethod.GET,"/api/v1/major/all").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/major").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/major/all").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/major").permitAll()
                                 .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
 
-                                .requestMatchers(HttpMethod.GET,METHOD_API).permitAll()
+                                .requestMatchers(HttpMethod.GET, METHOD_API).permitAll()
                                 .requestMatchers(METHOD_API).hasAnyAuthority("STAFF", "ADMIN")
 
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
 
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/search").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/score-advice").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/a").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/university/{id}/latest-training-program").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/{id}").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/admission/score").permitAll()
-                                .requestMatchers(HttpMethod.PUT,"/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/search").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/a").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/university/{id}/latest-training-program").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/score").permitAll()
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(ADMISSION_API).authenticated()
 
-                                .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN","UNIVERSITY","CONSULTANT")
-                                .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY","CONSULTANT")
+                                .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(LIKE_API).hasAuthority("USER")
-                                .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/all").permitAll()
-                                .requestMatchers(HttpMethod.GET,"/api/v1/subject-group/list-all-subject-groups").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/all").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university-training-program/info/{universityId}").permitAll()
+                                .requestMatchers(UNIVERSITY_TRAINING_PROGRAM).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
+                                .requestMatchers(STATISTICS_API).hasAnyAuthority("UNIVERSITY","ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
                                         EXAM_LOCAL,
                                         HOLLAND_TEST_API,
@@ -124,6 +133,7 @@ public class SecurityConfiguration {
                                         METHOD_API,
                                         SEARCH_API,
                                         FAVORITE_API,
+                                        SUBJECT_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -151,6 +161,7 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

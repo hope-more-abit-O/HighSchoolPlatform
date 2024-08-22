@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.admission;
 
+import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import jakarta.persistence.*;
@@ -73,6 +74,13 @@ public class Admission {
     @Column(name = "score_status", nullable = false)
     private AdmissionScoreStatus scoreStatus;
 
+    @NotNull
+    @Nationalized
+    @ColumnDefault("'PENDING'")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "confirm_status", nullable = false)
+    private AdmissionConfirmStatus confirmStatus;
+
     public Admission(Integer year, String source, Integer universityId, Integer createBy) {
         this.year = year;
         this.source = source;
@@ -81,5 +89,6 @@ public class Admission {
         this.createTime = new Date();
         this.admissionStatus = AdmissionStatus.PENDING;
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
+        this.confirmStatus = AdmissionConfirmStatus.PENDING;
     }
 }

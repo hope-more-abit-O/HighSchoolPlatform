@@ -1,5 +1,6 @@
 package com.demo.admissionportal.controller;
 
+import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.AdmissionSourceDTO;
@@ -65,6 +66,42 @@ public class AdmissionController {
         }
     }
 
+    @GetMapping("/score-advice/v2")
+    public ResponseEntity adviceV2(@RequestParam(required = false) String majorId,
+                                 @RequestParam(required = false) Float offset,
+                                 @RequestParam(required = false) Float score,
+                                 @RequestParam(required = false) String subjectGroupId,
+                                 @RequestParam(required = false) String subjectId,
+                                 @RequestParam(required = false) String methodId,
+                                 @RequestParam(required = false) String provinceId){
+        try {
+            List<Integer> majorIds = null;
+            List<Integer> subjectGroupIds = null;
+            List<Integer> subjectIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> provinceIds = null;
+
+            if (majorId != null && !majorId.isEmpty()) {
+                majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (subjectId != null && !subjectId.isEmpty()) {
+                subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (provinceId  != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, offset, score, null, subjectGroupIds, subjectIds, methodIds, provinceIds)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @PostMapping("/create")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmission(@RequestBody @Valid CreateAdmissionRequest request)
@@ -89,11 +126,12 @@ public class AdmissionController {
             @RequestParam(required = false) Integer createBy,
             @RequestParam(required = false) Integer updateBy,
             @RequestParam(required = false) Date updateTime,
-            @RequestParam(required = false) AdmissionStatus status,
-            @RequestParam(required = false) AdmissionScoreStatus scoreStatus
+            @RequestParam(required = false) List<AdmissionStatus> status,
+            @RequestParam(required = false) List<AdmissionScoreStatus> scoreStatus,
+            @RequestParam(required = false) List<AdmissionConfirmStatus> confirmStatus
     ) {
-        return ResponseEntity.ok(admissionService.getBy(
-                pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus
+        return ResponseEntity.ok(admissionService.getByV2(
+                pageable, id, staffId, year, source, universityId, createTime, createBy, updateBy, updateTime, status, scoreStatus, confirmStatus
         ));
     }
 
@@ -103,7 +141,9 @@ public class AdmissionController {
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String universityCode,
             @RequestParam(required = false) Integer staffId,
-            @RequestParam(required = false) List<AdmissionStatus> status
+            @RequestParam(required = false) List<AdmissionStatus> status,
+            @RequestParam(required = false) List<AdmissionConfirmStatus> confirmStatus,
+            @RequestParam(required = false) List<AdmissionScoreStatus> scoreStatus
     ) {
         try {
             List<Integer> years = null;
@@ -121,15 +161,61 @@ public class AdmissionController {
         return ResponseEntity.ok(admissionService.getByIdV2(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/university/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity updateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
+    public ResponseEntity universityUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
         if (id == null){
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
-        return ResponseEntity.ok(admissionService.admissionUpdateStatus(id, request));
+        try {
+            admissionService.universityAndConsultantUpdateAdmissionStatus(id, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
     }
+
+    @PutMapping("/staff/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity staffUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionConfirmStatusRequest request){
+        if (id == null){
+            throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
+        } else if (id <= 0)
+            throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
+        try {
+            admissionService.staffUpdateAdmissionConfirmStatus(id, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/test/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity consultantUpdateAdmission(@PathVariable Integer id){
+        if (id == null){
+            throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
+        } else if (id <= 0)
+            throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
+        try {
+            admissionService.consultantUpdateAdmission(id);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        }catch (NotAllowedException | BadRequestException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+
 
     @PutMapping("/score")
     @SecurityRequirement(name = "BearerAuth")

@@ -12,6 +12,7 @@ import java.util.Map;
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
 @Data
 public class NotAllowedException extends RuntimeException{
+    private static final String DEFAULT_MESSAGE = "Bạn không có quyền thực hiện hành động này.";
     private Map<String, String> errors;
     /**
      * Instantiates a new Resource not found exception.
@@ -24,6 +25,11 @@ public class NotAllowedException extends RuntimeException{
 
     public NotAllowedException(String message, Map<String, String> errors) {
         super(message);
+        this.errors = errors;
+    }
+
+    public NotAllowedException(Map<String, String> errors) {
+        super(DEFAULT_MESSAGE);
         this.errors = errors;
     }
 }

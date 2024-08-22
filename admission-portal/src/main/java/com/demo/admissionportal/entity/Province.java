@@ -1,9 +1,7 @@
 package com.demo.admissionportal.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.demo.admissionportal.constants.Region;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,6 +47,11 @@ public class Province implements Serializable {
     @Nationalized
     @Column(name = "name")
     private String name;
+
+    @NotNull
+    @Column(name = "region")
+    @Enumerated(EnumType.STRING)
+    private Region region;
 
     public Province(Integer id) {
         this.id = id;

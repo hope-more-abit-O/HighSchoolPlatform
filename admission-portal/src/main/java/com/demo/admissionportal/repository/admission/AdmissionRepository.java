@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository.admission;
 
+import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.entity.admission.Admission;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
       AND (:updateTime IS NULL OR a.update_time = :updateTime)
       AND (:status IS NULL OR a.status = :status)
       AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
+      AND (a.confirm_status IN :confirmStatus)
     """,
             countQuery = """
     SELECT COUNT(a.id)
@@ -47,8 +49,55 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
       AND (:updateTime IS NULL OR a.update_time = :updateTime)
       AND (:status IS NULL OR a.status = :status)
       AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
+      AND (a.confirm_status IN :confirmStatus)
+    """, nativeQuery = true)
+    Page<Admission> findAllBy(
+            Pageable pageable,
+            @Param("id") Integer id,
+            @Param("staffId") Integer staffId,
+            @Param("year") Integer year,
+            @Param("source") String source,
+            @Param("universityId") Integer universityId,
+            @Param("createTime") Date createTime,
+            @Param("createBy") Integer createBy,
+            @Param("updateBy") Integer updateBy,
+            @Param("updateTime") Date updateTime,
+            @Param("status") String status,
+            @Param("scoreStatus") String scoreStatus,
+            @Param("confirmStatus") List<String> confirmStatus
+    );
+    @Query(value = """
+    SELECT a.*
+    FROM admission a
+    INNER JOIN university_info ui ON a.university_id = ui.university_id
+    WHERE (:id IS NULL OR a.id = :id)
+      AND (:year IS NULL OR a.year = :year)
+      AND (:staffId IS NULL OR ui.staff_id = :staffId)
+      AND (:source IS NULL OR a.source LIKE %:source%)
+      AND (:universityId IS NULL OR a.university_id = :universityId)
+      AND (:createTime IS NULL OR a.create_time = :createTime)
+      AND (:createBy IS NULL OR a.create_by = :createBy)
+      AND (:updateBy IS NULL OR a.update_by = :updateBy)
+      AND (:updateTime IS NULL OR a.update_time = :updateTime)
+      AND (:status IS NULL OR a.status = :status)
+      AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
     """,
-            nativeQuery = true)
+            countQuery = """
+    SELECT COUNT(a.id)
+    FROM admission a
+    INNER JOIN university_info ui ON a.university_id = ui.university_id
+    WHERE (:id IS NULL OR a.id = :id)
+      AND (:year IS NULL OR a.year = :year)
+      AND (:staffId IS NULL OR ui.staff_id = :staffId)
+      AND (:source IS NULL OR a.source LIKE %:source%)
+      AND (:universityId IS NULL OR a.university_id = :universityId)
+      AND (:createTime IS NULL OR a.create_time = :createTime)
+      AND (:createBy IS NULL OR a.create_by = :createBy)
+      AND (:updateBy IS NULL OR a.update_by = :updateBy)
+      AND (:updateTime IS NULL OR a.update_time = :updateTime)
+      AND (:status IS NULL OR a.status = :status)
+      AND (:scoreStatus IS NULL OR a.score_status = :scoreStatus)
+    """, nativeQuery = true)
     Page<Admission> findAllBy(
             Pageable pageable,
             @Param("id") Integer id,
@@ -118,7 +167,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
-    INNER JOIN univeristy_info ui on ui.university_id = ad.university_id
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ad.year IN (:year))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
     """, nativeQuery = true)
@@ -127,7 +176,7 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     @Query(value = """
     SELECT ad.*
     FROM admission ad
-    INNER JOIN univeristy_info ui on ui.university_id = ad.university_id
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ad.year IN (:year))
     AND (ad.status IN (:status))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
@@ -246,4 +295,9 @@ and (:staffId IS NULL OR ui.staff_id = :staffId)
 """, nativeQuery = true)
     List<Admission> findWithPageableAndListStatus(Pageable pageable, List<String> status, Integer staffId);
 
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatus(Integer universityId, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(Integer universityId, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findByUniversityIdAndYearAndAdmissionStatus(Integer universityId, Integer year, AdmissionStatus admissionStatus);
 }

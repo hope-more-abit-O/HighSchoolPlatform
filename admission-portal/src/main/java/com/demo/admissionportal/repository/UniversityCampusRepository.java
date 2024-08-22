@@ -31,9 +31,10 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      * @return the list
      */
     @Query(value =
-            "SELECT * " +
+                    "SELECT * " +
                     "FROM university_campus uc " +
-                    "WHERE uc.university_id = :id", nativeQuery = true)
+                    "WHERE uc.university_id = :id AND uc.status = 'ACTIVE' " +
+                    "ORDER BY type ASC, id ASC", nativeQuery = true)
     List<UniversityCampus> findListUniversityCampusByUniversityId(Integer id);
 
     /**
@@ -64,5 +65,11 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      */
     UniversityCampus findUniversityCampusById(Integer id);
 
+    /**
+     * Find by university id list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
     List<UniversityCampus> findByUniversityId(Integer universityId);
 }
