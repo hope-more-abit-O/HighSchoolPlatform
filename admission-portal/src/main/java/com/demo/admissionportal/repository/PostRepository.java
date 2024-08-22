@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Post repository.
@@ -192,7 +194,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      */
     @Query(value = "SELECT COUNT(*) " +
             "FROM post", nativeQuery = true)
-    Integer totalPost();
+    Optional<Integer> totalPost();
 
     /**
      * Current post integer.
@@ -202,5 +204,38 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query(value = "SELECT COUNT(*) " +
             "FROM post p " +
             "WHERE p.status = 'ACTIVE' AND CONVERT(DATE, p.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
-    Integer currentPost();
+    Optional<Integer> currentPost();
+
+    /**
+     * Total post with uni id optional.
+     *
+     * @param universityId the university id
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(p.id) " +
+            "FROM university_info ui " +
+            "JOIN consultant_info ci ON ci.university_id = ui.university_id " +
+            "JOIN post p ON p.create_by = ci.consultant_id OR p.create_by = ui.university_id " +
+            "WHERE ui.university_id = :universityId", nativeQuery = true)
+    Optional<Integer> totalPostWithUniId(Integer universityId);
+
+    /**
+     * Active post optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM post p " +
+            "WHERE p.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> activePost();
+
+    /**
+     * Inactive post optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM post p " +
+            "WHERE p.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> inactivePost();
 }

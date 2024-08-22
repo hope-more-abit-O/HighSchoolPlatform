@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface User favorite repository.
@@ -31,7 +32,7 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user_favorite] uf " +
             "WHERE uf.status = 'FOLLOW' AND uf.university_id = :universityId ", nativeQuery = true)
-    Integer totalFavoriteCount(Integer universityId);
+    Optional<Integer> totalFavoriteCount(Integer universityId);
 
     /**
      * Find by user id list.
@@ -57,7 +58,7 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
             "    SELECT COUNT(*) AS count " +
             "    FROM user_like ul " +
             ") AS combined_counts;",nativeQuery = true)
-    Integer totalInteraction();
+    Optional<Integer> totalInteraction();
 
     /**
      * Current interaction integer.
@@ -74,5 +75,5 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
             "        FROM user_like ul " +
             "        WHERE CONVERT(DATE, ul.create_time) = CONVERT(DATE, GETDATE())" +
             "    ) AS combined_counts;",nativeQuery = true)
-    Integer currentInteraction();
+    Optional<Integer> currentInteraction();
 }

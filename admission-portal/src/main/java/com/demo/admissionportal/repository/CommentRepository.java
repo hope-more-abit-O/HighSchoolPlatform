@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Comment repository.
@@ -40,4 +41,12 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
             "FROM [comment] m " +
             "WHERE m.comment_status = 'ACTIVE' AND m.post_id = :postId ", nativeQuery = true)
     int countByPostId(Integer postId);
+
+    @Query(value = "SELECT COUNT(c.post_id) " +
+            "FROM university_info ui " +
+            "JOIN consultant_info ci ON ci.university_id = ui.university_id " +
+            "JOIN post p ON p.create_by = ci.consultant_id OR p.create_by = ui.university_id " +
+            "JOIN comment c ON p.id = c.post_id " +
+            "WHERE ui.university_id = :universityId", nativeQuery = true)
+    Optional<Integer> totalComment(Integer universityId);
 }
