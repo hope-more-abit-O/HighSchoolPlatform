@@ -17,4 +17,6 @@ import java.io.Serializable;
 public class StatisticsAccountResponse implements Serializable {
     private Integer totalAccount;
     private Integer currentAccount;
+    private Integer accountActive;
+    private Integer accountInactive;
 }

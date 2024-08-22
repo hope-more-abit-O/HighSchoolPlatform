@@ -17,4 +17,6 @@ import java.io.Serializable;
 public class StatisticsPostResponse implements Serializable {
     private Integer totalPost;
     private Integer currentPost;
+    private Integer activePost;
+    private Integer inactivePost;
 }
