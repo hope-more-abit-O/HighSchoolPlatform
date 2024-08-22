@@ -106,7 +106,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .currentInteraction(currentInteraction)
                 .build();
     }
-
+    
     private StatisticsTransactionResponse calculatorTransactionByAdmin() {
         Integer totalTransaction = universityTransactionRepository.calculatorTotalTransaction();
         Integer currentTransaction = universityTransactionRepository.calculatorCurrentTransaction();
