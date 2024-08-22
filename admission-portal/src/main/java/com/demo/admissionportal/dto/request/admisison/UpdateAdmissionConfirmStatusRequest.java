@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class UpdateAdmissionConfirmStatusRequest {
     @NotNull(message = "Ghi chú không được để trống.")
     private String note;
-    @NotNull(message = "Trạng thái đề án không được để trống.")
-    private AdmissionConfirmStatus status;
+    private AdmissionConfirmStatus confirmStatus;
+    private AdmissionStatus admissionStatus;
 }
