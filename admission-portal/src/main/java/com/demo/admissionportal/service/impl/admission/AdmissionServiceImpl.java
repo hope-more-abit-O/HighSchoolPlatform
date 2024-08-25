@@ -21,6 +21,7 @@ import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.exception.exceptions.*;
+import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.admission.AdmissionRepository;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
@@ -63,6 +64,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
     private final UniversityTrainingProgramServiceImpl universityTrainingProgramService;
     private final EntityManager entityManager;
+    private final UniversityInfoRepository universityInfoRepository;
 
     public Admission save(Admission admission) {
         try {
@@ -468,6 +470,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.getContent().stream().map(Admission::getUniversityId).toList());
 
+
         return ResponseData.ok("Lấy thông tin các đề án thành công.", admissions.map((element) -> this.mappingInfo(element, actionerDTOs, universityInfos)));
     }
 
@@ -589,7 +592,8 @@ public class AdmissionServiceImpl implements AdmissionService {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
-        UniversityInfo universityInfo = universityInfoServiceImpl.findById(admission.getUniversityId());
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(admission.getCreateBy());
+        result.setCreateBy(new ActionerDTO(universityInfo.getId(), universityInfo.getName(), null, null));
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
         result.setSources(sources);
@@ -826,7 +830,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         Integer totalQuota = admissionTrainingProgramMethods.stream().mapToInt(AdmissionTrainingProgramMethod::getQuota).sum();
 
-        return ResponseData.ok("Lấy thông tin các đề án thành công.", this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods));
+        FullAdmissionDTO result = this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods) ;
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", result);
     }
 
     @Transactional
