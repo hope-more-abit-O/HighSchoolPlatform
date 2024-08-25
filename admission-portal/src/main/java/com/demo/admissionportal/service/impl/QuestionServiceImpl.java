@@ -339,6 +339,7 @@ public class QuestionServiceImpl implements QuestionService {
             UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
             // Get questionnaire for user participate
             List<Questionnaire> questionnaires = questionnaireRepository.findAll();
+            TestResponse result = new TestResponse();
             Collections.shuffle(questionnaires, new Random());
             // Save questionnaire for user
             if (!questionnaires.isEmpty()) {
@@ -347,9 +348,9 @@ public class QuestionServiceImpl implements QuestionService {
                 testResponse.setQuestionnaireId(selectedQuestionnaire.getId());
                 testResponse.setUserId(userInfo.getId());
                 testResponse.setCreateTime(new Date());
-                testResponseRepository.save(testResponse);
+                result = testResponseRepository.save(testResponse);
             }
-            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userInfo.getId());
+            TestResponse testResponse = testResponseRepository.findTestResponseById(result.getId());
             List<QuestionnaireQuestion> questionnaireQuestions = questionnaireQuestionRepository.findByQuestionnaireId(testResponse.getQuestionnaireId());
             List<ParticipateResponse> resultGetHollandTest = questionnaireQuestions.parallelStream()
                     .map(this::mapToQuestion)

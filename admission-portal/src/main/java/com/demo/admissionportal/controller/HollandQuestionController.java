@@ -273,7 +273,7 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfDelete);
     }
 
-    @PostMapping("/participate")
+    @GetMapping("/participate")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<List<ParticipateResponse>>> getHollandTest() {
         ResponseData<List<ParticipateResponse>> responseData = questionService.getHollandTest();
