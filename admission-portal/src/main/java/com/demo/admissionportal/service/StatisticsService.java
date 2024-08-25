@@ -12,4 +12,6 @@ public interface StatisticsService {
      * @return the statistics
      */
     ResponseData<?> getStatistics();
+
+    ResponseData<?> getStatisticsV2(String period);
 }

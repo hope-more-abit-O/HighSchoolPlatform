@@ -15,6 +15,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +56,40 @@ public class StatisticsServiceImpl implements StatisticsService {
             log.error("Failed when get statistics: {} ", e.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy dữ liệu thống kê thất bại");
         }
+    }
+
+    @Override
+    public ResponseData<?> getStatisticsV2(String period) {
+        try {
+
+            if (period == null || period.isEmpty()) {
+                period = "12 tháng";
+            }
+
+            if (!isValidPeriod(period)) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Period không hợp lệ: " + period);
+            }
+
+            Role user = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
+            switch (user) {
+                case ADMIN -> calculatorStatisticsByAdminV2(period);
+//                case UNIVERSITY ->
+//                        calculatorStatisticsByUniversityV2(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+                default -> throw new Exception();
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu thống kê thành công", user == Role.ADMIN ?
+                    calculatorStatisticsByAdminV2(period) : null);
+//                    :
+//                    calculatorStatisticsByUniversity(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId()));
+        } catch (Exception e) {
+            log.error("Failed when get statistics: {} ", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy dữ liệu thống kê thất bại");
+        }
+    }
+
+    private boolean isValidPeriod(String period) {
+        List<String> validPeriods = Arrays.asList("12 tháng", "6 tháng", "30 ngày", "7 ngày");
+        return validPeriods.contains(period);
     }
 
     private StatisticsUniversityResponse calculatorStatisticsByUniversity(Integer universityId) {
@@ -101,6 +139,13 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .account(calculatorAccountResponseByAdmin())
                 .post(calculatorPostResponseByAdmin())
                 .activityTransaction(calculatorActivityTransaction())
+                .build();
+    }
+
+    private StatisticsAdminResponseV2 calculatorStatisticsByAdminV2(String period) {
+        return StatisticsAdminResponseV2.builder()
+                .getRevenueStatistics(getRevenueStatistics(period))
+                .getInteractionStatistics(getInteractionStatistics(period))
                 .build();
     }
 
@@ -181,5 +226,87 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .totalTransaction(totalTransaction)
                 .currentTransaction(currentTransaction)
                 .build();
+    }
+
+    public List<StatisticsAdminResponseV3> getStatistics(String period, String type) {
+        List<StatisticsAdminResponseV3> statistics = new ArrayList<>();
+
+        if (period == null || period.isEmpty()) {
+            period = "12 tháng";
+        }
+
+        switch (type.toLowerCase()) {
+            case "interaction":
+                List<Object[]> likeData;
+                List<Object[]> favoriteData;
+
+                switch (period) {
+                    case "12 tháng":
+                        likeData = universityTransactionRepository.findLikeAndUnlikeCountByLast12MonthsForAllUniversities();
+                        favoriteData = universityTransactionRepository.findFollowAndUnfollowCountByLast12MonthsForAllUniversities();
+                        break;
+                    case "6 tháng":
+                        likeData = universityTransactionRepository.findLikeAndUnlikeCountByLast6MonthsForAllUniversities();
+                        favoriteData = universityTransactionRepository.findFollowAndUnfollowCountByLast6MonthsForAllUniversities();
+                        break;
+                    case "30 ngày":
+                        likeData = universityTransactionRepository.findLikeAndUnlikeCountByLast30DaysForAllUniversities();
+                        favoriteData = universityTransactionRepository.findFollowAndUnfollowCountByLast30DaysForAllUniversities();
+                        break;
+                    case "7 ngày":
+                        likeData = universityTransactionRepository.findLikeAndUnlikeCountByLast7DaysForAllUniversities();
+                        favoriteData = universityTransactionRepository.findFollowAndUnfollowCountByLast7DaysForAllUniversities();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid period: " + period);
+                }
+
+                for (Object[] record : likeData) {
+                    Date date = (Date) record[0];
+                    Integer likeCount = ((Integer) record[1]).intValue();
+                    Integer unlikeCount = ((Integer) record[2]).intValue();
+                    statistics.add(new StatisticInteractionByTime(date, likeCount - unlikeCount, "LIKE"));
+                }
+
+                for (Object[] record : favoriteData) {
+                    Date date = (Date) record[0];
+                    Integer followCount = ((Integer) record[1]).intValue();
+                    Integer unfollowCount = ((Integer) record[2]).intValue();
+                    statistics.add(new StatisticInteractionByTime(date, followCount - unfollowCount, "FOLLOW"));
+                }
+                break;
+
+            case "revenue":
+                List<Object[]> revenueData;
+
+                switch (period) {
+                    case "12 tháng":
+                        revenueData = universityTransactionRepository.findRevenueByLast12MonthsForAllUniversities();
+                        break;
+                    case "6 tháng":
+                        revenueData = universityTransactionRepository.findRevenueByLast6MonthsForAllUniversities();
+                        break;
+                    case "30 ngày":
+                        revenueData = universityTransactionRepository.findRevenueByLast30DaysForAllUniversities();
+                        break;
+                    case "7 ngày":
+                        revenueData = universityTransactionRepository.findRevenueByLast7DaysForAllUniversities();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid period: " + period);
+                }
+
+                for (Object[] record : revenueData) {
+                    Date date = (Date) record[0];
+                    Integer revenue = ((BigDecimal) record[1]).intValue();
+                    statistics.add(new StatisticRevenueByTime(date, revenue));
+                }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid filter type: " + filterType);
+        }
+
+        return statistics;
     }
 }
