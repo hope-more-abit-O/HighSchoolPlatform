@@ -427,17 +427,32 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private List<SubmitDetailResponse> mapToSubmitDetail(Map<Integer, Integer> questionsCountByType) {
-        return questionsCountByType.entrySet().stream()
-                .map(entry -> SubmitDetailResponse.builder()
-                        .typeQuestions(mapToTypeQuestion(entry.getKey()))
-                        .numberOfSubmit(entry.getValue())
-                        .build())
-                .collect(Collectors.toList());
+        List<String> nameOfCharacter = List.of(
+                "Kỹ thuật",
+                "Nghiên cứu",
+                "Nghệ thuật",
+                "Xã hội",
+                "Quản lý",
+                "Nghiệp vụ"
+        );
+        List<SubmitDetailResponse> submitDetailResponses = new ArrayList<>();
+
+        for (String character : nameOfCharacter) {
+            Integer typeId = mapToTypeQuestionId(character);
+            int numberOfSubmit = questionsCountByType.getOrDefault(typeId, 0);
+            submitDetailResponses.add(
+                    SubmitDetailResponse.builder()
+                            .typeQuestions(character)
+                            .numberOfSubmit(numberOfSubmit)
+                            .build()
+            );
+        }
+        return submitDetailResponses;
     }
 
-    private String mapToTypeQuestion(Integer key) {
-        QuestionType questionType = questionTypeRepository.findById(key).orElse(null);
-        return questionType.getName();
+    private Integer mapToTypeQuestionId(String character) {
+        QuestionType questionType = questionTypeRepository.findByName(character);
+        return questionType != null ? questionType.getId() : null;
     }
 
     private List<HighestTypeResponse> mapToMaxValue(Map<Integer, Integer> questionsCountByType) {
