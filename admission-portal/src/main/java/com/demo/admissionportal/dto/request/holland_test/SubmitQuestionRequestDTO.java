@@ -5,15 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * The type Submit request dto.
+ * The type Submit question request dto.
  */
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SubmitRequestDTO implements Serializable {
-    private Integer testResponseId;
-    private List<SubmitQuestionRequestDTO> question;
+@Data
+public class SubmitQuestionRequestDTO implements Serializable {
+    private Integer question_id;
 }

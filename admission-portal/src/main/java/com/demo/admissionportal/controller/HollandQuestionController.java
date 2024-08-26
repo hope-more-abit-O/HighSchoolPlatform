@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The type Holland question controller.
@@ -273,25 +272,38 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfDelete);
     }
 
+    /**
+     * Gets holland test.
+     *
+     * @return the holland test
+     */
     @GetMapping("/participate")
     @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<List<ParticipateResponse>>> getHollandTest() {
-        ResponseData<List<ParticipateResponse>> responseData = questionService.getHollandTest();
+    public ResponseEntity<ResponseData<ParticipateResponse>> getHollandTest() {
+        ResponseData<ParticipateResponse> responseData = questionService.getHollandTest();
         if (responseData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseData);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
     }
 
+    /**
+     * Submit holland test response entity.
+     *
+     * @param request the request
+     * @return the response entity
+     */
     @PostMapping("/submit")
     @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<SubmitResponse>> submitHollandTest(@RequestBody @Valid List<SubmitRequestDTO> request) {
+    public ResponseEntity<ResponseData<SubmitResponse>> submitHollandTest(@RequestBody @Valid SubmitRequestDTO request) {
         if (request == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
         }
         ResponseData<SubmitResponse> submitData = questionService.submitHollandTest(request);
         if (submitData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(submitData);
+        } else if (submitData.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(submitData);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(submitData);
     }
