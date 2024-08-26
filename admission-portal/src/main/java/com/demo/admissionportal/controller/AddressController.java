@@ -5,13 +5,16 @@ import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
+import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type Province controller.
@@ -28,12 +31,25 @@ public class AddressController {
      * @return the province
      */
     @GetMapping("/province")
-    public ResponseEntity<ResponseData<List<Province>>> getProvince() {
-        ResponseData<List<Province>> result = addressService.findProvince();
-        if (result.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+    public ResponseEntity<ResponseData<List<Province>>> getProvince(@RequestParam(required = false) String region) {
+        List<String> regions = null;
+        if (region != null && !region.isEmpty()) {
+            regions = Arrays.stream(region.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
         }
-        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        try {
+            ResponseData<List<Province>> result = addressService.findProvince(regions);
+            if (result.getStatus() == ResponseCode.C200.getCode()) {
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException("Region không hợp lệ");
+        }
     }
 
     /**

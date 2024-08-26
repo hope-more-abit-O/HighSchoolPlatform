@@ -149,5 +149,12 @@ public class GlobalExceptionHandler {
     public ResponseData<Object> handleBadRequestExceptions(HandlerMethodValidationException ex) {
         return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getReason());
     }
+
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseData<Object> handleBadRequestExceptionsV2(BadRequestException ex) {
+        return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), ex.getErrors());
+    }
 }
 
