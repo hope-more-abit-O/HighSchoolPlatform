@@ -151,15 +151,55 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Async
     protected StatisticsAccountResponse calculatorAccountResponseByAdmin() {
-        Integer totalAccount = userRepository.totalAccount().orElse(0);
-        Integer currentAccount = userRepository.currentAccount().orElse(0);
-        Integer accountActive = userRepository.accountActive().orElse(0);
-        Integer accountInactive = userRepository.accountInactive().orElse(0);
         return StatisticsAccountResponse.builder()
-                .totalAccount(totalAccount)
-                .accountActive(accountActive)
-                .accountInactive(accountInactive)
-                .currentAccount(currentAccount)
+                .totalAccount(userRepository.totalAccount().orElse(0))
+                .accountActive(userRepository.accountActive().orElse(0))
+                .accountInactive(userRepository.accountInactive().orElse(0))
+                .currentAccount(userRepository.currentAccount().orElse(0))
+                .user(calculatorUser())
+                .staff(calculatorStaff())
+                .university(calculatorUniversity())
+                .consultant(calculatorConsultant())
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountUserResponse calculatorUser() {
+        return StatisticsAccountResponse.StatisticsAccountUserResponse.builder()
+                .total(userRepository.totalUserAccount().orElse(0))
+                .current(userRepository.currentUserAccount().orElse(0))
+                .active(userRepository.totalUserAccountActive().orElse(0))
+                .inactive(userRepository.totalUserAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountStaffResponse calculatorStaff() {
+        return StatisticsAccountResponse.StatisticsAccountStaffResponse.builder()
+                .total(userRepository.totalStaffAccount().orElse(0))
+                .active(userRepository.totalStaffAccountActive().orElse(0))
+                .current(userRepository.currentStaffAccount().orElse(0))
+                .inactive(userRepository.totalStaffAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountConsultantResponse calculatorConsultant() {
+        return StatisticsAccountResponse.StatisticsAccountConsultantResponse.builder()
+                .total(userRepository.totalConsultantAccount().orElse(0))
+                .active(userRepository.totalConsultantAccountActive().orElse(0))
+                .current(userRepository.currentConsultantAccount().orElse(0))
+                .inactive(userRepository.totalConsultantAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountUniversityResponse calculatorUniversity() {
+        return StatisticsAccountResponse.StatisticsAccountUniversityResponse.builder()
+                .total(userRepository.totalUniversityAccount().orElse(0))
+                .active(userRepository.totalUniversityAccountActive().orElse(0))
+                .current(userRepository.currentUniversityAccount().orElse(0))
+                .inactive(userRepository.totalUniversityAccountInactive().orElse(0))
                 .build();
     }
 

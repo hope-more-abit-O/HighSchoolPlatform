@@ -485,4 +485,69 @@ public class QuestionServiceImpl implements QuestionService {
         testResponseAnswer.setTestResponseId(testResponse.getId());
         testResponseAnswerRepository.save(testResponseAnswer);
     }
+
+    public ResponseData<SubmitResponse> getHistoryByTestResponseId(Integer testResponseId) {
+        try {
+            if (testResponseId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "testResponseId null");
+            }
+            List<TestResponseAnswer> responseAnswers = testResponseAnswerRepository.findTestResponseAnswerByTestResponseId(testResponseId);
+            List<Integer> questionIds = responseAnswers.stream()
+                    .map(TestResponseAnswer::getQuestionId)
+                    .collect(Collectors.toList());
+            List<Question> questions = questionRepository.findQuestionByIds(questionIds);
+            Map<Integer, Integer> questionsCountByType = questions.stream()
+                    .collect(Collectors.groupingBy(
+                            Question::getType,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+                    ));
+            List<SubmitDetailResponse> submitDetail = mapToSubmitDetail(questionsCountByType);
+            List<HighestTypeResponse> highestTypeResponses = mapToMaxValue(questionsCountByType);
+            List<SuggestJobResponse> suggestMajor = mapToMajor(highestTypeResponses);
+            SubmitResponse result = SubmitResponse.builder()
+                    .submitDetail(submitDetail)
+                    .highestType(highestTypeResponses)
+                    .suggestJob(suggestMajor)
+                    .build();
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Kết quả holland test", result);
+        } catch (Exception e) {
+            log.error("Error while get holland test by test response Id: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy lịch sử holland test với id: " + testResponseId);
+        }
+    }
+
+    @Override
+    public ResponseData<List<HistoryParticipateResponse>> getHistory() {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<TestResponse> listOfTestResponse = testResponseRepository.findTestResponseByUserId(userId);
+            listOfTestResponse.stream()
+                    .map(this::mapToTestResponse)
+                    .collect(Collectors.toList());
+            List<HistoryParticipateResponse> response = listOfTestResponse.stream()
+                    .map(this::mapToQuestionnaire)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy lịch sử holland test thành công", response);
+        } catch (Exception ex) {
+            log.error("Error while get holland test by history: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy lịch sử holland test");
+        }
+    }
+
+    private HistoryParticipateResponse mapToTestResponse(TestResponse testResponse) {
+        return HistoryParticipateResponse.builder()
+                .createTime(testResponse.getCreateTime())
+                .testResponseId(testResponse.getId())
+                .build();
+    }
+
+    private HistoryParticipateResponse mapToQuestionnaire(TestResponse testResponse) {
+        Questionnaire questionnaire = questionnaireRepository.findById(testResponse.getQuestionnaireId()).orElse(null);
+        return HistoryParticipateResponse.builder()
+                .code(questionnaire.getCode())
+                .createTime(testResponse.getCreateTime())
+                .testResponseId(testResponse.getId())
+                .name(questionnaire.getName())
+                .build();
+    }
 }
