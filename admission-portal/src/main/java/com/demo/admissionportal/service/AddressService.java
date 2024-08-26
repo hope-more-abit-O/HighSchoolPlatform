@@ -21,7 +21,7 @@ public interface AddressService {
      *
      * @return the response data
      */
-    ResponseData<List<Province>> findProvince();
+    ResponseData<List<Province>> findProvince(List<String> regions);
 
     /**
      * Find all response data.

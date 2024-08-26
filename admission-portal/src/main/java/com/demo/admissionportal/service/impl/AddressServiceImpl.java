@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.Region;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.post.DistrictResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
@@ -7,6 +8,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Province;
 import com.demo.admissionportal.entity.sub_entity.DistrictWard;
 import com.demo.admissionportal.entity.sub_entity.ProvinceDistrict;
+import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.ProvinceRepository;
 import com.demo.admissionportal.repository.sub_repository.DistrictWardRepository;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Province service.
@@ -45,8 +48,23 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResponseData<List<Province>> findProvince() {
-        List<Province> result = provinceRepository.findAll();
+    public ResponseData<List<Province>> findProvince(List<String> regions) {
+        List<Region> regionList = new ArrayList<>();
+        List<Province> result;
+        if (regions != null)
+            try{
+                for (String region : regions) {
+                    regionList.add(Region.valueOf(region));
+                }
+            } catch (Exception e) {
+                throw new BadRequestException("Region không hợp lệ", Map.of("region", e.getMessage()));
+            }
+
+        if (regionList.isEmpty()) {
+            result = provinceRepository.findAll();
+        }
+        else
+            result = provinceRepository.findByRegionIn(regionList);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách province", result);
     }
 
