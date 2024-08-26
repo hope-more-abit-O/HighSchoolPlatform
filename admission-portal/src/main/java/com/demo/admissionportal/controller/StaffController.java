@@ -75,8 +75,11 @@ public class StaffController {
             if (response.getStatus() != ResponseCode.C200.getCode())
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getMessage());
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getCause().getMessage()));
+        } catch (DataExistedException | StoreDataFailedException e){
+            throw e;
+        }
+        catch (Exception e) {
+            throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getMessage()));
         }
     }
 
