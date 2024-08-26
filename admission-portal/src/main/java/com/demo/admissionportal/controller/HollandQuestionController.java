@@ -307,4 +307,35 @@ public class HollandQuestionController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(submitData);
     }
+
+    /**
+     * Gets history by test response id.
+     *
+     * @param testResponseId the test response id
+     * @return the history by test response id
+     */
+    @GetMapping("/history/{testResponseId}")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseData<SubmitResponse>> getHistoryByTestResponseId(@PathVariable(name = "testResponseId") Integer testResponseId) {
+        if (testResponseId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "testResponseId null"));
+        }
+        ResponseData<SubmitResponse> resultOfHistory = questionService.getHistoryByTestResponseId(testResponseId);
+        if (resultOfHistory.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfHistory);
+        } else if (resultOfHistory.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultOfHistory);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
+    }
+
+    @GetMapping("/history")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseData<List<HistoryParticipateResponse>>> getHistory() {
+        ResponseData<List<HistoryParticipateResponse>> resultOfHistory = questionService.getHistory();
+        if (resultOfHistory.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfHistory);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
+    }
 }

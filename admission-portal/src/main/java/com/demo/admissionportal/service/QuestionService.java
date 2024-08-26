@@ -80,4 +80,19 @@ public interface QuestionService {
      * @return the response data
      */
     ResponseData<SubmitResponse> submitHollandTest(SubmitRequestDTO request);
+
+    /**
+     * Gets history by test response id.
+     *
+     * @param testResponseId the test response id
+     * @return the history by test response id
+     */
+    ResponseData<SubmitResponse> getHistoryByTestResponseId(Integer testResponseId);
+
+    /**
+     * Gets history.
+     *
+     * @return the history
+     */
+    ResponseData<List<HistoryParticipateResponse>> getHistory();
 }
