@@ -16,7 +16,6 @@ import com.demo.admissionportal.repository.sub_repository.UserFavoriteRepository
 import com.demo.admissionportal.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +33,6 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserFavoriteRepository userFavoriteRepository;
     private final UserRepository userRepository;
     private final UniversityInfoRepository universityInfoRepository;
-    private final ModelMapper modelMapper;
 
     @Override
     public ResponseData<FavoriteResponseDTO> createFavorite(Integer universityID) {
