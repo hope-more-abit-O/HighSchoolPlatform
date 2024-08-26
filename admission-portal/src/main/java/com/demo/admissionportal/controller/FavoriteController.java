@@ -5,7 +5,6 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.TotalCountResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.UserFavoriteResponseDTO;
-import com.demo.admissionportal.entity.UserFavorite;
 import com.demo.admissionportal.service.FavoriteService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
