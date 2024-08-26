@@ -423,6 +423,8 @@ public class QuestionServiceImpl implements QuestionService {
                                     .image(job.getImage())
                                     .build());
                 })
+                .distinct()
+                .limit(10)
                 .collect(Collectors.toList());
     }
 
