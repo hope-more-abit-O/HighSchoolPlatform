@@ -2,10 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
-import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
-import com.demo.admissionportal.dto.request.holland_test.SubmitRequestDTO;
-import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
+import com.demo.admissionportal.dto.request.holland_test.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.*;
 import com.demo.admissionportal.entity.*;
@@ -333,7 +330,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ResponseData<List<ParticipateResponse>> getHollandTest() {
+    public ResponseData<ParticipateResponse> getHollandTest() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
@@ -352,11 +349,14 @@ public class QuestionServiceImpl implements QuestionService {
             }
             TestResponse testResponse = testResponseRepository.findTestResponseById(result.getId());
             List<QuestionnaireQuestion> questionnaireQuestions = questionnaireQuestionRepository.findByQuestionnaireId(testResponse.getQuestionnaireId());
-            List<ParticipateResponse> resultGetHollandTest = questionnaireQuestions.parallelStream()
-                    .map(this::mapToQuestion)
-                    .collect(Collectors.toList());
-            Collections.shuffle(resultGetHollandTest, new Random());
-
+            ParticipateResponse resultGetHollandTest = new ParticipateResponse();
+            resultGetHollandTest.setTestResponseId(testResponse.getId());
+            resultGetHollandTest.setQuestion(
+                    questionnaireQuestions.stream()
+                            .map(this::mapToQuestion)
+                            .collect(Collectors.toList())
+            );
+            Collections.shuffle(resultGetHollandTest.getQuestion(), new Random());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách câu hỏi holland test thành công", resultGetHollandTest);
         } catch (Exception ex) {
             log.error("Error while get holland test : {}", ex.getMessage());
@@ -364,25 +364,28 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    private ParticipateResponse mapToQuestion(QuestionnaireQuestion questionnaireQuestion) {
+    private ParticipateQuestionResponse mapToQuestion(QuestionnaireQuestion questionnaireQuestion) {
         Question question = questionRepository.findById(questionnaireQuestion.getQuestionId()).orElse(null);
         if (question == null) {
             return null;
         }
-        return new ParticipateResponse(question.getId(), question.getContent());
+        return new ParticipateQuestionResponse(question.getId(), question.getContent());
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ResponseData<SubmitResponse> submitHollandTest(List<SubmitRequestDTO> request) {
+    public ResponseData<SubmitResponse> submitHollandTest(SubmitRequestDTO request) {
         try {
             log.info("Start Submit answer holland test");
-            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userId);
-            request.forEach(submit -> mapToSubmit(submit, testResponse));
+            TestResponse testResponse = testResponseRepository.findTestResponseById(request.getTestResponseId());
+            if (testResponse == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy test response Id");
+
+            }
+            request.getQuestion().forEach(submit -> mapToSubmit(submit, testResponse));
             log.info("End Submit answer holland test");
-            List<Integer> questionIds = request.stream()
-                    .map(SubmitRequestDTO::getQuestion_id)
+            List<Integer> questionIds = request.getQuestion().stream()
+                    .map(SubmitQuestionRequestDTO::getQuestion_id)
                     .collect(Collectors.toList());
             List<Question> questions = questionRepository.findQuestionByIds(questionIds);
             Map<Integer, Integer> questionsCountByType = questions.stream()
@@ -390,12 +393,9 @@ public class QuestionServiceImpl implements QuestionService {
                             Question::getType,
                             Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
                     ));
-
             List<SubmitDetailResponse> submitDetail = mapToSubmitDetail(questionsCountByType);
             List<HighestTypeResponse> highestTypeResponses = mapToMaxValue(questionsCountByType);
             List<SuggestJobResponse> suggestMajor = mapToMajor(highestTypeResponses);
-
-
             SubmitResponse result = SubmitResponse.builder()
                     .submitDetail(submitDetail)
                     .highestType(highestTypeResponses)
@@ -462,7 +462,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .collect(Collectors.toList());
     }
 
-    public void mapToSubmit(SubmitRequestDTO submitRequestDTO, TestResponse testResponse) {
+    public void mapToSubmit(SubmitQuestionRequestDTO submitRequestDTO, TestResponse testResponse) {
         TestResponseAnswer testResponseAnswer = new TestResponseAnswer();
         testResponseAnswer.setQuestionId(submitRequestDTO.getQuestion_id());
         testResponseAnswer.setTestResponseId(testResponse.getId());
