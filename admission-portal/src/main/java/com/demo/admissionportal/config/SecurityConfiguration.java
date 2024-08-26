@@ -62,6 +62,7 @@ public class SecurityConfiguration {
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
     private static final String SUBJECT_API = "/api/v1/subject/**";
     private static final String STATISTICS_API = "/api/v1/statistics/**";
+    private static final String FOLLOW_API = "/api/v1/follow/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -132,6 +133,7 @@ public class SecurityConfiguration {
                                         SEARCH_API,
                                         FAVORITE_API,
                                         SUBJECT_API,
+                                        FOLLOW_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
