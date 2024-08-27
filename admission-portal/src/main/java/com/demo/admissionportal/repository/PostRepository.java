@@ -149,7 +149,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      */
     @Query(value = "SELECT * " +
             "FROM [post] p " +
-            "WHERE p.url = :url", nativeQuery = true)
+            "WHERE p.url = :url AND p.status = 'ACTIVE'", nativeQuery = true)
     Post findFirstByUrl(String url);
 
     /**

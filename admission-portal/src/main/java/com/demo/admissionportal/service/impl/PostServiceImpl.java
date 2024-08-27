@@ -1135,13 +1135,13 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResponseData<PostDetailResponseDTO> getPostsByURL(String url) {
         try {
-            log.info("Received request for URL: {}", url); // Add logging here
+            log.info("Received request for URL: {}", url);
             Post posts = postRepository.findFirstByUrl(url);
-            PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
-            if (result != null) {
+            if (posts != null) {
+                PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với url: " + url, result);
             }
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url:" + url);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url: " + url);
 
         } catch (Exception ex) {
             log.error("Error when get posts with url {}:", url);
