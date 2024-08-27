@@ -48,7 +48,13 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(resultOfLike);
     }
 
-    @GetMapping("/{postId}")
+    /**
+     * Gets like.
+     *
+     * @param postId the post id
+     * @return the like
+     */
+    @GetMapping("/postId={postId}")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<LikeResponseDTO>> getLike(@PathVariable(name = "postId") Integer postId) {
         if (postId == null) {
@@ -65,6 +71,12 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }
 
+    /**
+     * Gets total.
+     *
+     * @param postId the post id
+     * @return the total
+     */
     @GetMapping("/total/{postId}")
     public ResponseEntity<ResponseData<TotalLikeResponseDTO>> getTotal(@PathVariable(name = "postId") Integer postId) {
         if (postId == null) {
@@ -77,5 +89,27 @@ public class LikeController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(response);
+    }
+
+    /**
+     * Gets like by university.
+     *
+     * @param universityID the university id
+     * @return the like by university
+     */
+    @GetMapping("/uniId={universityID}")
+    public ResponseEntity<ResponseData<List<LikeResponseDTO>>> getLikeByUniversity(@PathVariable(name = "universityID") Integer universityID) {
+        if (universityID == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
+        }
+        ResponseData<List<LikeResponseDTO>> like = userLikeService.getLikeByUniversity(universityID);
+        if (like.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(like);
+        } else if (like.getStatus() == ResponseCode.C205.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(like);
+        } else if (like.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(like);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(like);
     }
 }
