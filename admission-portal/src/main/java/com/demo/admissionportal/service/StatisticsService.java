@@ -15,5 +15,5 @@ public interface StatisticsService {
      */
     ResponseData<?> getStatistics();
 
-    ResponseData<?> getStatisticsV2(Date startDay, Date endDay, String type, String role, String status);
+    ResponseData<?> getStatisticsV2(Date startDay, Date endDay, String type, String role, String status, String period);
 }
