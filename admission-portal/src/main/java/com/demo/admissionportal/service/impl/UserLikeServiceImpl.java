@@ -89,7 +89,7 @@ public class UserLikeServiceImpl implements UserLikeService {
         UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
         Integer totalCount = userLikeRepository.totalLikeCountPostId(postId).orElse(0);
         TotalLikeResponseDTO totalLikeResponseDTO = new TotalLikeResponseDTO();
-        totalLikeResponseDTO.setCurrentStatus(like != null ? like.getStatus().name : LikeStatus.NONE.name);
+        totalLikeResponseDTO.setCurrentStatus(like != null ? like.getStatus().name : LikeStatus.UNLIKE.name);
         totalLikeResponseDTO.setTotal(totalCount);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy số lượng favorite thành công", totalLikeResponseDTO);
     }
