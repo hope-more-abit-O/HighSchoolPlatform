@@ -1,5 +1,7 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.PostReportActionType;
+import com.demo.admissionportal.constants.isBannedType;
 import com.demo.admissionportal.entity.sub_entity.id.CommentReportId;
 import com.demo.admissionportal.entity.sub_entity.id.PostReportId;
 import jakarta.persistence.*;
@@ -28,6 +30,11 @@ public class CommentReport {
     @Column(name = "content")
     private String commentContent;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "report_action")
-    private String reportAction;
+    private PostReportActionType reportAction;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "isBanned")
+    private isBannedType isBanned;
 }

@@ -1,6 +1,7 @@
 package com.demo.admissionportal.dto.response.report;
 
 
+import com.demo.admissionportal.constants.PostReportActionType;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -25,4 +26,8 @@ public class FindAllReportsResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String commentContent;
     private String reportType;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String reportAction;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String isBanned;
 }

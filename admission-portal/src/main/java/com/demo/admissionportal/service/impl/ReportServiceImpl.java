@@ -96,7 +96,7 @@ public class ReportServiceImpl implements ReportService {
             Report savedReport = reportRepository.save(newReport);
             postReport.setReportId(savedReport.getId());
             postReport.setPostId(post.getId());
-            postReport.setReportAction(PostReportActionType.NONE.name());
+            postReport.setReportAction(PostReportActionType.NONE);
 
 
             PostReport savedPostReport = postReportRepository.save(postReport);
@@ -148,7 +148,7 @@ public class ReportServiceImpl implements ReportService {
             }
             Report report = reportOpt.get();
 
-            postReport.setReportAction(request.getReportAction());
+            postReport.setReportAction(PostReportActionType.valueOf(request.getReportAction()));
             postReportRepository.save(postReport);
 
             if (request.getReportAction().equals(PostReportActionType.DELETE.name())) {
@@ -166,12 +166,14 @@ public class ReportServiceImpl implements ReportService {
             report.setComplete_by(staffId);
             report.setResponse(request.getResponse());
             report.setStatus(ReportStatus.COMPLETED);
+            reportRepository.updateReportStatusByPostId(postReport.getPostId(), ReportStatus.COMPLETED, staffId, request.getResponse());
             reportRepository.save(report);
 
             Optional<Post> postOpt = postRepository.findById(postReport.getPostId());
             if (postOpt.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Bài viết không được tìm thấy !");
             }
+
             Post post = postOpt.get();
 
             ActionerDTO actioner = getUserDetails(report.getCreate_by());
@@ -182,7 +184,7 @@ public class ReportServiceImpl implements ReportService {
             responseDTO.setPostCreateBy(post.getCreateBy());
             responseDTO.setPostCreateTime(post.getCreateTime());
             responseDTO.setCreateBy(actioner);
-            responseDTO.setReportAction(postReport.getReportAction());
+            responseDTO.setReportAction(String.valueOf(postReport.getReportAction()));
             responseDTO.setCompleteBy(staffId);
             responseDTO.setUpdateBy(staffId);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật báo cáo bài viết thành công !", responseDTO);
@@ -191,6 +193,8 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo bài viết");
         }
     }
+
+
     @Override
     public ResponseData<Page<FindAllReportsResponse>> findAllReports(Pageable pageable, Authentication authentication, Integer reportId, String ticketId, Integer createBy, String content, ReportType reportType, ReportStatus status) {
         try {
@@ -206,6 +210,7 @@ public class ReportServiceImpl implements ReportService {
             }
 
             List<FindAllReportsResponse> allReports = new ArrayList<>();
+
             Page<FindAllReportsWithPostDTO> postReports = reportRepository.findAllReportsWithPosts(pageable, reportId, ticketId, createBy, reportType, status);
             postReports.forEach(report -> {
                 ActionerDTO actioner = null;
@@ -214,19 +219,23 @@ public class ReportServiceImpl implements ReportService {
                 }
                 FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
                 response.setCreateBy(actioner);
+                response.setReportAction(report.getReportAction().name);
                 response.setCommentContent(null);
                 response.setPostTitle(null);
                 allReports.add(response);
             });
 
-            Page<FindAllCommentReportsDTO> commentReports = reportRepository.findAllCommentReports(pageable, reportId, ticketId, createBy, status);
+            Page<FindAllCommentReportsDTO> commentReports = reportRepository.findAllCommentReports(pageable, reportId, ticketId, createBy, reportType, status);
             commentReports.forEach(report -> {
                 ActionerDTO actioner = null;
                 if (report.getCreateBy() != null && report.getCreateBy().getId() != null) {
                     actioner = getUserDetails(report.getCreateBy().getId());
                 }
+
                 FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
                 response.setCreateBy(actioner);
+                response.setReportAction(report.getReportAction().name);
+                response.setIsBanned(report.getIsBanned().name);
                 response.setPostUrl(null);
                 allReports.add(response);
             });
@@ -239,11 +248,13 @@ public class ReportServiceImpl implements ReportService {
                 }
                 FindAllReportsResponse response = modelMapper.map(report, FindAllReportsResponse.class);
                 response.setCreateBy(actioner);
+                response.setReportAction(null);
                 response.setCommentContent(null);
                 response.setPostUrl(null);
                 response.setPostTitle(null);
                 allReports.add(response);
             });
+
             Page<FindAllReportsResponse> reportPage = new PageImpl<>(allReports, pageable, postReports.getTotalElements() + commentReports.getTotalElements() + functionReports.getTotalElements());
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Danh sách báo cáo được tìm thấy", reportPage);
@@ -252,6 +263,7 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi tìm kiếm báo cáo");
         }
     }
+
     //Comment Report
     @Override
     @Transactional
@@ -275,6 +287,10 @@ public class ReportServiceImpl implements ReportService {
                 log.info("Comment not found");
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Bình luận không được tìm thấy !");
             }
+            if (existComment.get().getCommenter_id().equals(userId)){
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Không thể tự report bình luận của bản thân");
+            }
+
             Comment comment = existComment.get();
 
             Report newReport = new Report();
@@ -290,7 +306,7 @@ public class ReportServiceImpl implements ReportService {
             commentReport.setReportId(savedReport.getId());
             commentReport.setCommentContent(comment.getContent());
             commentReport.setCommentId(comment.getId());
-            commentReport.setReportAction(PostReportActionType.NONE.name());
+            commentReport.setReportAction(PostReportActionType.valueOf(PostReportActionType.NONE.name()));
 
             if (comment.getCommentParentId() == null) {
                 comment.setComment_type(CommentType.ROOT);
@@ -403,6 +419,7 @@ public class ReportServiceImpl implements ReportService {
         responseDTO.setProofs(functionReport.getProofs());
         return responseDTO;
     }
+
     @Override
     @Transactional
     public ResponseData<UpdateCommentReportResponse> updateCommentReport(Integer reportId, UpdateCommentReportRequest request, Authentication authentication) {
@@ -438,7 +455,9 @@ public class ReportServiceImpl implements ReportService {
             }
             Report report = reportOpt.get();
 
-            commentReport.setReportAction(request.getReportAction());
+            commentReport.setReportAction(PostReportActionType.valueOf(request.getReportAction()));
+            commentReport.setIsBanned(isBannedType.valueOf(request.getIsBanned()));
+            reportRepository.updateReportStatusByCommentId(commentReport.getCommentId(), ReportStatus.COMPLETED, staffId, request.getResponse());
             commentReportRepository.save(commentReport);
 
             if (request.getReportAction().equals(PostReportActionType.DELETE.name())) {
@@ -448,7 +467,7 @@ public class ReportServiceImpl implements ReportService {
                     comment.setComment_status(CommentStatus.DELETE);
                     commentRepository.save(comment);
 
-                    if (Boolean.TRUE.equals(request.getIsBanned())) {
+                    if (request.getIsBanned().equals(isBannedType.TRUE.name())) {
                         Optional<User> commentUserOpt = userRepository.findById(comment.getCommenter_id());
                         if (commentUserOpt.isPresent()) {
                             User commentUser = commentUserOpt.get();
@@ -481,7 +500,7 @@ public class ReportServiceImpl implements ReportService {
             responseDTO.setCommentContent(comment.getContent());
             responseDTO.setCommenterId(comment.getCommenter_id());
             responseDTO.setCommentCreateTime(comment.getCreate_time());
-            responseDTO.setReportAction(PostReportActionType.valueOf(commentReport.getReportAction()));
+            responseDTO.setReportAction(commentReport.getReportAction());
 
             UpdateCommentReportResponse updateCommentReportResponse = modelMapper.map(responseDTO, UpdateCommentReportResponse.class);
             updateCommentReportResponse.setCompleteBy(staffId);
@@ -492,6 +511,8 @@ public class ReportServiceImpl implements ReportService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã xảy ra lỗi khi cập nhật báo cáo bình luận");
         }
     }
+
+
     //Function
     @Override
     @Transactional

@@ -11,10 +11,13 @@ import com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWith
 import com.demo.admissionportal.entity.Report;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 /**
  * The interface Report repository.
@@ -22,36 +25,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
 
-    /**
-     * Find all reports with post page.
-     *
-     * @param pageable the pageable
-     * @param reportId the report id
-     * @param ticketId the ticket id
-     * @param createBy the create by
-     * @param content  the content
-     * @param status   the status
-     * @return the page
-     */
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO(" +
-            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, r.report_type, post.url) " +
-            "FROM Report r " +
-            "JOIN PostReport pr ON r.id = pr.reportId " +
-            "JOIN Post post ON pr.postId = post.id " +
-            "WHERE (:reportId IS NULL OR r.id = :reportId) " +
-            "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
-            "AND (:createBy IS NULL OR r.create_by = :createBy) " +
-            "AND (:content IS NULL OR r.content LIKE %:content%) " +
-            "AND (:status IS NULL OR r.status = :status)")
-    Page<FindAllReportsWithPostDTO> findAllReportsWithPost(Pageable pageable,
-                                                           @Param("reportId") Integer reportId,
-                                                           @Param("ticketId") String ticketId,
-                                                           @Param("createBy") Integer createBy,
-                                                           @Param("content") String content,
-                                                           @Param("status") ReportStatus status);
-
-    @Query("SELECT new com.demo.admissionportal.dto.entity.report.post_report.FindAllReportsWithPostDTO(" +
-            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, r.report_type, post.url) " +
+            "r.id, r.ticket_id, r.create_by, r.create_time, r.content, r.status, r.report_type, post.url, pr.reportAction) " +
             "FROM Report r " +
             "JOIN PostReport pr ON r.id = pr.reportId " +
             "JOIN Post post ON pr.postId = post.id " +
@@ -78,7 +53,7 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
      * @return the page
      */
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsDTO(" +
-            "r.id, r.ticket_id, r.create_by, p.title, r.create_time, r.status, r.report_type, cr.commentContent) " +
+            "r.id, r.ticket_id, r.create_by, p.title, r.create_time, r.status, cr.reportAction, r.report_type, cr.commentContent, cr.isBanned) " +
             "FROM Report r " +
             "JOIN CommentReport cr ON r.id = cr.reportId " +
             "JOIN Comment c ON cr.commentId = c.id " +
@@ -86,11 +61,13 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "WHERE (:reportId IS NULL OR r.id = :reportId) " +
             "AND (:ticketId IS NULL OR r.ticket_id LIKE %:ticketId%) " +
             "AND (:createBy IS NULL OR r.create_by = :createBy) " +
+            "AND (:reportType IS NULL OR r.report_type = :reportType) " +
             "AND (:status IS NULL OR r.status = :status)")
     Page<FindAllCommentReportsDTO> findAllCommentReports(Pageable pageable,
                                                          @Param("reportId") Integer reportId,
                                                          @Param("ticketId") String ticketId,
                                                          @Param("createBy") Integer createBy,
+                                                         @Param("reportType") ReportType reportType,
                                                          @Param("status") ReportStatus status);
 
     @Query("SELECT new com.demo.admissionportal.dto.entity.report.comment_report.FindAllCommentReportsByStatusDTO(" +
@@ -157,4 +134,41 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
                                                                           @Param("ticketId") String ticketId,
                                                                           @Param("createBy") Integer createBy,
                                                                           @Param("reportType") ReportType reportType);
+    @Modifying
+    @Query("""
+    UPDATE Report r 
+    SET r.status = :status, 
+        r.update_time = CURRENT_TIMESTAMP, 
+        r.complete_time = CURRENT_TIMESTAMP,
+        r.update_by = :updateBy,
+        r.response = :response
+    WHERE r.id IN (
+        SELECT pr.reportId 
+        FROM PostReport pr 
+        WHERE pr.postId = :postId
+    ) AND r.status <> :status
+    """)
+    int updateReportStatusByPostId(@Param("postId") Integer postId,
+                                   @Param("status") ReportStatus status,
+                                   @Param("updateBy") Integer updateBy,
+                                   @Param("response") String response);
+
+
+    @Query("""
+    UPDATE Report r 
+    SET r.status = :status, 
+        r.update_time = CURRENT_TIMESTAMP, 
+        r.complete_time = CURRENT_TIMESTAMP,
+        r.update_by = :updateBy,
+        r.response = :response
+    WHERE r.id IN (
+        SELECT cr.reportId 
+        FROM CommentReport cr 
+        WHERE cr.commentId = :commentId
+    ) AND r.status <> :status
+    """)
+    int updateReportStatusByCommentId(@Param("postId") Integer commentId,
+                                      @Param("status") ReportStatus status,
+                                      @Param("updateBy") Integer updateBy,
+                                      @Param("response") String response);
 }

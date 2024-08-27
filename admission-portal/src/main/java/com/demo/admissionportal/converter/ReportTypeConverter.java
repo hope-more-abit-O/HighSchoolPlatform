@@ -11,10 +11,9 @@ public class ReportTypeConverter extends AbstractConverter<ReportType, String> {
         if (type == null) {
             return null;
         }
-
         switch (type) {
             case POST:
-                return "Báo cáo bài viết vi phạm ";
+                return "Báo cáo bài viết vi phạm";
             case COMMENT:
                 return "Báo cáo bình luận vi phạm";
             case FUNCTION:
