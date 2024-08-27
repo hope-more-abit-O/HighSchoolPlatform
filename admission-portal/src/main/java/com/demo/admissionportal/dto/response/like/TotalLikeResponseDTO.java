@@ -12,5 +12,6 @@ import java.io.Serializable;
 @Data
 @Builder
 public class TotalLikeResponseDTO implements Serializable {
+    private String currentStatus;
     private Integer total;
 }
