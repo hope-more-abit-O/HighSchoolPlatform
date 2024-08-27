@@ -19,14 +19,6 @@ public interface UserLikeService {
     ResponseData<LikeResponseDTO> createLike(Integer postID);
 
     /**
-     * Gets like.
-     *
-     * @param postId the post id
-     * @return the like
-     */
-    ResponseData<LikeResponseDTO> getLike(Integer postId);
-
-    /**
      * Gets total like.
      *
      * @param postId the post id
