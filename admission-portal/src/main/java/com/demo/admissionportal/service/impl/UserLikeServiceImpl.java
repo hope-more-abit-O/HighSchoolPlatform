@@ -81,24 +81,15 @@ public class UserLikeServiceImpl implements UserLikeService {
     }
 
     @Override
-    public ResponseData<LikeResponseDTO> getLike(Integer postId) {
-        Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
-        if (like == null) {
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy like với postId: " + postId);
-        }
-        LikeResponseDTO likeResponseDTOS = new LikeResponseDTO();
-        likeResponseDTOS.setCurrentStatus(like.getStatus().name);
-        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTOS);
-    }
-
-    @Override
     public ResponseData<TotalLikeResponseDTO> getTotalLike(Integer postId) {
+        Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         if (postId == null) {
             return new ResponseData<>(ResponseCode.C205.getCode(), "universityID null");
         }
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
         Integer totalCount = userLikeRepository.totalLikeCountPostId(postId).orElse(0);
         TotalLikeResponseDTO totalLikeResponseDTO = new TotalLikeResponseDTO();
+        totalLikeResponseDTO.setCurrentStatus(like != null ? like.getStatus().name : LikeStatus.NONE.name);
         totalLikeResponseDTO.setTotal(totalCount);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy số lượng favorite thành công", totalLikeResponseDTO);
     }

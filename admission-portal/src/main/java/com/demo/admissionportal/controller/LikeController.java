@@ -49,29 +49,6 @@ public class LikeController {
     }
 
     /**
-     * Gets like.
-     *
-     * @param postId the post id
-     * @return the like
-     */
-    @GetMapping("/postId={postId}")
-    @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseData<LikeResponseDTO>> getLike(@PathVariable(name = "postId") Integer postId) {
-        if (postId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
-        }
-        ResponseData<LikeResponseDTO> favorite = userLikeService.getLike(postId);
-        if (favorite.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK.value()).body(favorite);
-        } else if (favorite.getStatus() == ResponseCode.C205.getCode()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(favorite);
-        } else if (favorite.getStatus() == ResponseCode.C203.getCode()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(favorite);
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
-    }
-
-    /**
      * Gets total.
      *
      * @param postId the post id

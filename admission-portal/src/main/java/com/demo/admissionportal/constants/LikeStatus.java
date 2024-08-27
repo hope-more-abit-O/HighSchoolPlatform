@@ -11,10 +11,13 @@ public enum LikeStatus {
     /**
      * Unlike like status.
      */
-    UNLIKE("Bỏ thích");
+    UNLIKE("Bỏ thích"),
+
     /**
      * The Name.
      */
+    NONE("Chưa thích");
+
     public String name;
 
     LikeStatus(String name) {
