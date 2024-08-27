@@ -120,7 +120,7 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<CommentResponseDTO> responseDTOS = new ArrayList<>();
         List<Comment> commentsWithNoParentId = comments.stream()
-                .filter(comment -> comment.getCommentParentId() == null)
+                .filter(comment -> comment.getCommentParentId() == null && comment.getComment_status().equals(CommentStatus.ACTIVE))
                 .sorted(Comparator.comparing(Comment::getCreate_time).reversed())
                 .toList();
         // Get root comments
@@ -128,6 +128,7 @@ public class CommentServiceImpl implements CommentService {
             CommentResponseDTO commentResponseDTO = new CommentResponseDTO();
             // Get child comments
             List<Comment> commentParentId = commentRepository.findByPostIdAndCommentParentId(postId, comment.getId());
+            commentParentId = commentParentId.stream().filter(c -> c.getComment_status().equals(CommentStatus.ACTIVE)).collect(Collectors.toList());
             List<Comment> commentChildren = new ArrayList<>(commentParentId);
             commentResponseDTO.setComment(mapToCommentDetailResponse(comment, commentChildren));
             responseDTOS.add(commentResponseDTO);
