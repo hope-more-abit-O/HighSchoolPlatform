@@ -3,21 +3,17 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
-import com.demo.admissionportal.dto.entity.admission.AdmissionSourceDTO;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
-import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.admission.CreateAdmissionResponse;
-import com.demo.admissionportal.dto.response.admission.GetAdmissionDetailResponse;
 import com.demo.admissionportal.dto.response.admission.SearchAdmissionResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +30,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
+    private final RequestService requestBuilder;
 
     @GetMapping("/score-advice")
     public ResponseEntity advice(@RequestParam(required = false) String majorId,
@@ -67,25 +64,26 @@ public class AdmissionController {
     }
 
     @GetMapping("/score-advice/v2")
-    public ResponseEntity adviceV2(@RequestParam(required = false) String majorId,
-                                 @RequestParam(required = false) Float offset,
-                                 @RequestParam(required = false) Float score,
-                                 @RequestParam(required = false) String subjectGroupId,
-                                 @RequestParam(required = false) String subjectId,
-                                 @RequestParam(required = false) String methodId,
-                                 @RequestParam(required = false) String provinceId){
+    public ResponseEntity adviceV2(
+            @RequestParam(required = true) Integer pageNumber,
+            @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = false) String majorId,
+            @RequestParam(required = false) Float fromScore,
+            @RequestParam(required = false) Float toScore,
+            @RequestParam(required = false) String subjectId,
+            @RequestParam(required = false) String methodId,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String provinceId
+    ){
         try {
             List<Integer> majorIds = null;
-            List<Integer> subjectGroupIds = null;
             List<Integer> subjectIds = null;
             List<Integer> methodIds = null;
             List<Integer> provinceIds = null;
+            List<String> regions = null;
 
             if (majorId != null && !majorId.isEmpty()) {
                 majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
-            }
-            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
-                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
             }
             if (subjectId != null && !subjectId.isEmpty()) {
                 subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
@@ -96,7 +94,10 @@ public class AdmissionController {
             if (provinceId  != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, offset, score, null, subjectGroupIds, subjectIds, methodIds, provinceIds)));
+            if (region  != null && !region.isEmpty()) {
+                regions = Arrays.stream(region.split(",")).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

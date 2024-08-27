@@ -12,6 +12,7 @@ import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.SubjectGroupRepository;
@@ -20,6 +21,8 @@ import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.SubjectGroupService;
 import com.demo.admissionportal.util.impl.NameUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -49,6 +52,8 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     private ModelMapper modelMapper;
     @Autowired
     private StaffInfoRepository staffInfoRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     @Transactional
@@ -318,6 +323,16 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         return result;
     }
 
+//    public List<SubjectGroup> findByAdmissionTrainingProgramIdAndSubjectId(List<Integer> subjectIds, List<Integer> admissionTrainingProgramIds) {
+//        List<SubjectGroup> result = null;
+//        try {
+//            result = subjectGroupRepository.findByAdmissionTrainingProgramIdAndSubjectId(subjectIds, admissionTrainingProgramIds);
+//        } catch (Exception e) {
+//            //TODO: throw exception
+//        }
+//        return result;
+//    }
+
     private ActionerDTO getUserDetails(Integer userId) {
         return userRepository.findById(userId)
                 .map(user -> {
@@ -353,4 +368,62 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> subjectGroupList = subjectGroupRepository.findAll();
         return subjectGroupList.stream().map(SubjectGroupResponseDTO2::new).collect(Collectors.toList());
     }
+
+
+    public List<SubjectGroup> findSubjectGroup(List<Integer> subjectIds, List<Integer> admissionTrainingProgramIds){
+        // 1. Start building the base query
+        StringBuilder queryBuilder = new StringBuilder(
+                "select distinct sg.*\n" +
+                        "from subject_group sg\n" +
+                        "inner join subject_group_subject sgs on sgs.subject_group_id = sg.id\n" +
+                        "inner join admission_training_program_subject_group atpsg on sg.id = atpsg.subject_group_id\n" +
+                        "inner join subject s on s.id = sgs.subject_id\n" +
+                        " where s.status = 'ACTIVE' \n"
+        );
+
+        Map<String, Object> parameters = new HashMap<>();
+
+        if (subjectIds != null && !subjectIds.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < subjectIds.size(); i++) {
+                placeholders.add(":subjectIds" + i);
+            }
+
+            queryBuilder.append(" AND s.id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < subjectIds.size(); i++) {
+                parameters.put("subjectIds" + i, subjectIds.get(i));
+            }
+        }
+
+        if (admissionTrainingProgramIds != null && !admissionTrainingProgramIds.isEmpty()) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 0; i < admissionTrainingProgramIds.size(); i++) {
+                placeholders.add(":admissionTrainingProgramIds" + i);
+            }
+
+            queryBuilder.append(" AND atpsg.admission_training_program_id IN (")
+                    .append(String.join(",", placeholders))
+                    .append(") ");
+
+            for (int i = 0; i < admissionTrainingProgramIds.size(); i++) {
+                parameters.put("admissionTrainingProgramIds" + i, admissionTrainingProgramIds.get(i));
+            }
+        }
+
+        // 5. Create and execute the TypedQuery
+        Query a = entityManager.createNativeQuery(queryBuilder.toString(), SubjectGroup.class);
+
+        // 6. Set the parameters
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            a.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        // 7. Execute and return the results
+        List<SubjectGroup> b = (List<SubjectGroup>) a.getResultList();
+        return b;
+    }
+
 }

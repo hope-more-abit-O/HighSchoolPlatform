@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SchoolAdviceDTO {
     private InfoUniversityResponseDTO universityInfo;
+    private String source;
     private Integer majorCount;
     private List<AdmissionTrainingProgramDTOV2> detail;
-    private String source;
 }

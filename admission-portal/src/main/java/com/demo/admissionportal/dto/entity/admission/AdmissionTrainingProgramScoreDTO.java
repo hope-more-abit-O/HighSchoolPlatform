@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AdmissionTrainingProgramScoreDTO {
     private Integer year;
+    private String methodName;
+    private Integer methodId;
     private List<SubjectGroupResponseDTO2> subjectGroups;
     private Float score;
+    private Integer quota;
 }
