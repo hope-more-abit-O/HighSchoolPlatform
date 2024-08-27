@@ -33,10 +33,11 @@ public interface PostService {
     /**
      * Update post response data.
      *
+     * @param postId     the post id
      * @param requestDTO the request dto
      * @return the response data
      */
-    ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO);
+    ResponseData<String> updatePost(Integer postId, UpdatePostRequestDTO requestDTO);
 
     /**
      * Gets posts.

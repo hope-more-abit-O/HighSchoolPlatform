@@ -443,15 +443,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO) {
+    public ResponseData<String> updatePost(Integer postId, UpdatePostRequestDTO requestDTO) {
         Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
-            if (requestDTO == null || requestDTO.getPostId() == null) {
+            if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            if (postId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "postId null");
             }
 
             // Update post
-            Post existingPost = postRepository.findPostWithNoStatus(requestDTO.getPostId());
+            Post existingPost = postRepository.findPostWithNoStatus(postId);
             if (existingPost == null) {
                 throw new Exception("Không tìm thấy post");
             }
