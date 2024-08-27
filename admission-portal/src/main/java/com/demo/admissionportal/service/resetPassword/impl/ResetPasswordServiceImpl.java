@@ -37,8 +37,8 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static final int MAX_RESET_REQUESTS = 4; //limit user request reset password
-    private static final long RESET_WINDOW_MINUTES = 30; //user can request after 30 minutes
+    private static final int MAX_RESET_REQUESTS = 4;
+    private static final long RESET_WINDOW_MINUTES = 30;
 
     /**
      * Handles the reset password request.
@@ -73,7 +73,7 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
             resetToken = UUID.randomUUID();
             saveObject(existingAccount.getRole(), existingAccount.getId(), resetToken);
 
-            String resetPassLink = "https://localhost:3000/reset-password/" + resetToken;
+            String resetPassLink = "https://main--uap-portal.netlify.app/reset-password/" + resetToken;
             String message = "Bạn hãy nhập vào đường link để tạo lại mật khẩu: " + resetPassLink;
             String subject = "Cổng thông tin tuyển sinh - Tạo lại mật khẩu cho tài khoản: " + existingAccount.getId();
 

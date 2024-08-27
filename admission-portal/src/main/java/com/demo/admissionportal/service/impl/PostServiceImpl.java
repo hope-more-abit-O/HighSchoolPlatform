@@ -278,6 +278,11 @@ public class PostServiceImpl implements PostService {
             if (resultChangeStatusPost == null) {
                 throw new Exception("Xoá post thất bại");
             }
+
+            if (resultChangeStatusPost.isUserReportPostResult() == true) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "Bài viết này đã bị vô hiệu hóa bởi báo cáo của người dùng và không thể kích hoạt lại.");
+            }
+
             // Remove post tag
             List<Integer> tagIds = new ArrayList<>();
             List<PostTag> resultChangeStatusPostTag = changeStatusPostTag(requestDTO, tagIds, createBy);
@@ -325,6 +330,11 @@ public class PostServiceImpl implements PostService {
             if (post == null) {
                 return null;
             }
+
+            if (post.isUserReportPostResult() && post.getStatus() == PostStatus.INACTIVE) {
+                return null;
+            }
+
             if (post.getStatus().equals(PostStatus.INACTIVE)) {
                 post.setStatus(PostStatus.ACTIVE);
                 post.setNote(requestDTO.getNote());

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The interface Subject repository.
@@ -48,5 +49,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
     Optional<Subject> findByName(String name);
 
+    List<Subject> findByIdIn(Set<Integer> subjectIds);
     List<Subject> findAllByStatus(SubjectStatus status);
 }
