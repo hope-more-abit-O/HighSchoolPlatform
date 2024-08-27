@@ -18,7 +18,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UpdatePostRequestDTO implements Serializable {
-    private Integer postId;
     @NotNull(message = "Tiêu đề không được trống")
     private String title;
 

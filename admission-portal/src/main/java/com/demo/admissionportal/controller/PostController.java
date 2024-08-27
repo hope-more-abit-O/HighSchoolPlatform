@@ -77,14 +77,17 @@ public class PostController {
      * @param requestDTO the request dto
      * @return the response entity
      */
-    @PutMapping
+    @PutMapping("/{postId}")
     @PreAuthorize("hasAnyAuthority('STAFF','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<String>> updatePost(@RequestBody @Valid UpdatePostRequestDTO requestDTO) {
+    public ResponseEntity<ResponseData<String>> updatePost(@PathVariable(name = "postId") Integer postId, @RequestBody @Valid UpdatePostRequestDTO requestDTO) {
         if (requestDTO == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Sai request"));
         }
-        ResponseData<String> responseData = postService.updatePost(requestDTO);
+        if (postId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "postId null"));
+        }
+        ResponseData<String> responseData = postService.updatePost(postId, requestDTO);
         if (responseData.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseData);
         }
@@ -251,7 +254,7 @@ public class PostController {
     }
 
     @GetMapping("/has-package")
-    public ResponseEntity<ResponseData<List<PostPackageResponseDTO>>> getPostHasPackage(){
+    public ResponseEntity<ResponseData<List<PostPackageResponseDTO>>> getPostHasPackage() {
         ResponseData<List<PostPackageResponseDTO>> response = postService.getPostHasPackage();
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);

@@ -91,7 +91,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      */
     @Transactional
     public ResponseData createCreateUniversityRequest(CreateUniversityRequestRequest request)
-            throws DataExistedException, StoreDataFailedException{
+            throws DataExistedException, StoreDataFailedException {
         //Get staff's principal
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Staff ID: {}", staffId);
@@ -111,29 +111,29 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 .createBy(staffId)
                 .createTime(new Date())
                 .build();
-        try{
+        try {
             CreateUniversityRequest result = createUniversityRequestRepository.save(createUniversityRequest);
             return ResponseData.ok("Tạo yêu cầu tạo trường thành công.", mapping(result));
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.");
         }
     }
 
     @Transactional
     public ResponseData createUniversity(CreateUniversityRequestRequest request)
-            throws DataExistedException, StoreDataFailedException{
+            throws DataExistedException, StoreDataFailedException {
         //Get staff's principal
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         log.info("Get Staff ID: {}", staffId);
 
         validationService.validateCreateUniversityRequest(request.getUniversityUsername(), request.getUniversityEmail(), request.getUniversityCode());
 
-        try{
-            universityService.createUniversity( request);
+        try {
+            universityService.createUniversity(request);
             return ResponseData.ok("Tạo yêu cầu tạo trường thành công.");
-        } catch (StoreDataFailedException e){
+        } catch (StoreDataFailedException e) {
             throw e;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new StoreDataFailedException("Tạo yêu cầu tạo trường thất bại.", Map.of("error", e.getCause().getMessage()));
         }
     }
@@ -149,12 +149,11 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      * <p>**Note:** This method is transactional, meaning any data modifications either succeed entirely
      * or fail entirely.
      *
-     * @param id The unique identifier (ID) of the university creation request.
+     * @param id     The unique identifier (ID) of the university creation request.
      * @param status The new status of the request (`CreateUniversityRequestStatus`).
      * @return A {@link ResponseData} object indicating success message ("Cập nhật yêu cầu tạo trường thành công.").
      * @throws ResourceNotFoundException If the request with the provided ID is not found.
-     * @throws StoreDataFailedException If data persistence fails during the operation.
-     *
+     * @throws StoreDataFailedException  If data persistence fails during the operation.
      * @see CreateUniversityRequest
      * @see CreateUniversityRequestStatus
      * @see ResponseData
@@ -176,7 +175,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         if (!createUniversityRequest.getStatus().equals(CreateUniversityRequestStatus.PENDING)) {
             log.error("Request status {} not available to update!", createUniversityRequest.getStatus());
             return new ResponseData(ResponseCode.C201.getCode()
-                    ,"Đơn tạo trường đã kết thúc!"
+                    , "Đơn tạo trường đã kết thúc!"
                     , Map.of("createUniversityRequestStauts", createUniversityRequest.getStatus().name()));
         }
 
@@ -184,8 +183,8 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         log.info("Saving to database.");
         User uni = null;
         String password = "";
-        try{
-            if (status.equals(CreateUniversityRequestStatus.ACCEPTED)){
+        try {
+            if (status.equals(CreateUniversityRequestStatus.ACCEPTED)) {
                 validationService.validateCreateUniversity(createUniversityRequest.getUniversityUsername(), createUniversityRequest.getUniversityEmail(), createUniversityRequest.getUniversityCode());
 
                 password = RandomStringUtils.randomAlphanumeric(9);
@@ -225,14 +224,14 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             createUniversityRequestRepository.save(createUniversityRequest);
             log.info("Updating and storing Create university request succeed");
 
-            if (uni != null){
+            if (uni != null) {
                 emailUtil.sendAccountPasswordRegister(uni, password);
                 return ResponseData.ok("Tạo tài khoản trường học thành công.", userServiceImpl.mappingFullResponse(uni));
             }
             return ResponseData.ok("Từ chối yêu cầu tạo tài khoản trường học thành công.");
-        } catch (DataExistedException e){
+        } catch (DataExistedException e) {
             throw new DataExistedException(e.getMessage(), e.getErrors());
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error(e.getMessage());
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");
         }
@@ -250,6 +249,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         campus.setWardId(1);
         campus.setCreateTime(new Date());
         campus.setCreateBy(universityInfo.getId());
+        campus.setPicture("https://firebasestorage.googleapis.com/v0/b/highschoolvn-dev.appspot.com/o/campus-images%2Fcampus-image-default.jpg?alt=media&token=ff47748d-be85-4871-8abd-c214a2ee6f1e");
         campus.setType(CampusType.HEADQUARTERS);
         campus.setStatus(UniversityCampusStatus.ACTIVE);
         return campus;
@@ -281,29 +281,28 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
      * }
      * </pre>
      *
-     * @param id  The unique identifier (ID) of the request.
-     * @return     The {@link CreateUniversityRequest} if found.
-     * @throws ResourceNotFoundException  If no matching university
+     * @param id The unique identifier (ID) of the request.
+     * @return The {@link CreateUniversityRequest} if found.
+     * @throws ResourceNotFoundException If no matching university
      *                                   creation request is found.
-     *
      * @see CreateUniversityRequest
      */
-    public CreateUniversityRequest findById(Integer id) throws ResourceNotFoundException{
-        return createUniversityRequestRepository.findById(id).orElseThrow( () -> {
+    public CreateUniversityRequest findById(Integer id) throws ResourceNotFoundException {
+        return createUniversityRequestRepository.findById(id).orElseThrow(() -> {
             log.error("Create university request with id: {} not found.", id);
             return new ResourceNotFoundException("Không tìm thấy yêu cầu tạo tài khoản trường học với mã: " + id);
         });
     }
 
-    public CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException{
+    public CreateUniversityRequestDTO getById(Integer id) throws ResourceNotFoundException {
         CreateUniversityRequest createUniversityRequest = findById(id);
 
         return mapping(createUniversityRequest);
     }
 
-    public ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable){
+    public ResponseData<Page<CreateUniversityRequestDTO>> getByStaff(Pageable pageable) {
         Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findByCreateBy(staffId , pageable);
+        Page<CreateUniversityRequest> createUniversityRequests = createUniversityRequestRepository.findByCreateBy(staffId, pageable);
 
         List<ActionerDTO> actionerDTOs = this.getActioners(createUniversityRequests.getContent());
 
@@ -312,7 +311,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         return ResponseData.ok("Lấy thông tin yêu cầu tạo trường thành công.", mappedRequests);
     }
 
-    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest){
+    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest) {
         CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
         if (createUniversityRequest.getUpdateBy() == null)
             result.setUpdateBy(null);
@@ -345,7 +344,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         return result;
     }
 
-    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest, List<ActionerDTO> actioners){
+    public CreateUniversityRequestDTO mapping(CreateUniversityRequest createUniversityRequest, List<ActionerDTO> actioners) {
         CreateUniversityRequestDTO result = modelMapper.map(createUniversityRequest, CreateUniversityRequestDTO.class);
         if (createUniversityRequest.getUpdateBy() == null)
             result.setUpdateBy(null);
@@ -378,16 +377,16 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                                                                 List<CreateUniversityRequestStatus> status,
                                                                 Integer createBy,
                                                                 String createByName,
-                                                                Integer confirmBy){
+                                                                Integer confirmBy) {
 
         try {
             List<String> statusStrings = (status == null || status.isEmpty())
                     ? null
                     : status.stream().map(CreateUniversityRequestStatus::name).toList();
 
-            Page<CreateUniversityRequest>  createUniversityRequests;
+            Page<CreateUniversityRequest> createUniversityRequests;
 
-            if (statusStrings != null){
+            if (statusStrings != null) {
                 createUniversityRequests = createUniversityRequestRepository.findAllBy(pageable,
                         id,
                         universityName,
@@ -421,12 +420,12 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
         }
     }
 
-    public List<ActionerDTO> getActioners(List<CreateUniversityRequest> createUniversityRequests){
+    public List<ActionerDTO> getActioners(List<CreateUniversityRequest> createUniversityRequests) {
         Set<Integer> actionerIds = createUniversityRequests.stream()
                 .flatMap((request) -> Stream.of(request.getCreateBy(), request.getUpdateBy(), request.getConfirmBy()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-		List<ActionerDTO> actionerDTOs = userServiceImpl.getActioners(actionerIds.stream().toList());
+        List<ActionerDTO> actionerDTOs = userServiceImpl.getActioners(actionerIds.stream().toList());
         return actionerDTOs;
     }
 }
