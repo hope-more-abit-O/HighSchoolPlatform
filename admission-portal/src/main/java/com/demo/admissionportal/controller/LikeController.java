@@ -59,6 +59,8 @@ public class LikeController {
             return ResponseEntity.status(HttpStatus.OK.value()).body(favorite);
         } else if (favorite.getStatus() == ResponseCode.C205.getCode()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(favorite);
+        } else if (favorite.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(favorite);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }

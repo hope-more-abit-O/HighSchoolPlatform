@@ -84,6 +84,9 @@ public class UserLikeServiceImpl implements UserLikeService {
     public ResponseData<LikeResponseDTO> getLike(Integer postId) {
         Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
+        if (like == null) {
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy like với postId: " + postId);
+        }
         LikeResponseDTO likeResponseDTOS = new LikeResponseDTO();
         likeResponseDTOS.setCurrentStatus(like.getStatus().name);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTOS);
