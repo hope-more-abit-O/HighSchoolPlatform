@@ -2,10 +2,7 @@ package com.demo.admissionportal.dto.request.authen;
 
 import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
-import com.demo.admissionportal.util.enum_validator.EnumName;
-import com.demo.admissionportal.util.enum_validator.EnumPassword;
-import com.demo.admissionportal.util.enum_validator.EnumPhone;
-import com.demo.admissionportal.util.enum_validator.EnumValue;
+import com.demo.admissionportal.util.enum_validator.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
@@ -34,6 +31,7 @@ import java.util.Date;
 @Valid
 public class RegisterUserRequestDTO implements Serializable {
     @NotNull(message = "Username không được để trống")
+    @EnumWhiteSpace(message = "Username không để khoảng trắng ở giữa")
     private String username;
 
     @Email(message = "Email phải đúng định dạng")
