@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.LikeStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.like.LikeResponseDTO;
+import com.demo.admissionportal.dto.response.like.TotalLikeResponseDTO;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserLike;
@@ -80,20 +81,22 @@ public class UserLikeServiceImpl implements UserLikeService {
     }
 
     @Override
-    public ResponseData<List<LikeResponseDTO>> getLike(Integer universityID) {
+    public ResponseData<LikeResponseDTO> getLike(Integer postId) {
         Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        List<UserLike> like = userLikeRepository.findByUserIdAndUniversityId(userId, universityID);
-        List<LikeResponseDTO> likeResponseDTOS = like.stream()
-                .map(this::mapToLike)
-                .collect(Collectors.toList());
-
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
+        LikeResponseDTO likeResponseDTOS = new LikeResponseDTO();
+        likeResponseDTOS.setCurrentStatus(like.getStatus().name);
         return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy like thành công", likeResponseDTOS);
     }
 
-    private LikeResponseDTO mapToLike(UserLike userLike) {
-        LikeResponseDTO likeResponseDTO = new LikeResponseDTO();
-        likeResponseDTO.setPostId(userLike.getPost().getId());
-        likeResponseDTO.setCurrentStatus(userLike.getStatus().name);
-        return likeResponseDTO;
+    @Override
+    public ResponseData<TotalLikeResponseDTO> getTotalLike(Integer postId) {
+        if (postId == null) {
+            return new ResponseData<>(ResponseCode.C205.getCode(), "universityID null");
+        }
+        Integer totalCount = userLikeRepository.totalLikeCountPostId(postId).orElse(0);
+        TotalLikeResponseDTO totalLikeResponseDTO = new TotalLikeResponseDTO();
+        totalLikeResponseDTO.setTotal(totalCount);
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy số lượng favorite thành công", totalLikeResponseDTO);
     }
 }

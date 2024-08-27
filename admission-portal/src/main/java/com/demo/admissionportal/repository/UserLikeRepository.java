@@ -43,6 +43,7 @@ public interface UserLikeRepository extends JpaRepository<UserLike, Integer> {
     /**
      * Total like post optional.
      *
+     * @param universityId the university id
      * @return the optional
      */
     @Query(value = "SELECT COUNT(ul.post_id) " +
@@ -52,4 +53,15 @@ public interface UserLikeRepository extends JpaRepository<UserLike, Integer> {
             "JOIN user_like ul ON p.id = ul.post_id " +
             "WHERE ui.university_id = :universityId", nativeQuery = true)
     Optional<Integer> totalLikePost(Integer universityId);
+
+    /**
+     * Tota like count post id optional.
+     *
+     * @param postId the post id
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM user_like " +
+            "WHERE post_id = :postId AND status = 'LIKE' ", nativeQuery = true)
+    Optional<Integer> totalLikeCountPostId(Integer postId);
 }
