@@ -12,7 +12,7 @@ public class EnumWhiteSpaceValidator implements ConstraintValidator<EnumWhiteSpa
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
         for (char c : s.toCharArray()) {
-            if (!Character.isWhitespace(c)) {
+            if (Character.isWhitespace(c)) {
                 return false;
             }
         }
