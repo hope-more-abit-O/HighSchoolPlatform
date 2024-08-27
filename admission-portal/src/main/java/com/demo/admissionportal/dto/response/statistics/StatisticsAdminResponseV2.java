@@ -14,4 +14,12 @@ import java.util.List;
 public class StatisticsAdminResponseV2 {
     private List<StatisticRevenueByTime> getRevenueStatistics;
     private List<StatisticInteractionByTime> getInteractionStatistics;
+
+    public List<StatisticRevenueByTime> getRevenueStatistics() {
+        return getRevenueStatistics;
+    }
+
+    public List<StatisticInteractionByTime> getInteractionStatistics() {
+        return getInteractionStatistics;
+    }
 }

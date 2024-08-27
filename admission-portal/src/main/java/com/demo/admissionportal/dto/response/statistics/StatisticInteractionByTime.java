@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -12,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
+@SuperBuilder
 public class StatisticInteractionByTime extends StatisticsAdminResponseV3 implements Serializable {
     private Integer interactionCount;
 
@@ -20,4 +21,5 @@ public class StatisticInteractionByTime extends StatisticsAdminResponseV3 implem
         super(date, interactionType);
         this.interactionCount = interactionCount;
     }
+
 }

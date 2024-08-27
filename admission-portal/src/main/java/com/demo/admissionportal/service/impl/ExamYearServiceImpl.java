@@ -1,6 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.ExamYear;
+import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.repository.ExamYearRepository;

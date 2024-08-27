@@ -1,6 +1,6 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.ExamLocal;
+import com.demo.admissionportal.entity.ExamLocal;
 import com.demo.admissionportal.dto.response.ResponseData;
 
 import java.util.List;

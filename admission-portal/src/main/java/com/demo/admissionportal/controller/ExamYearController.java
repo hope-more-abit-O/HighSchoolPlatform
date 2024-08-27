@@ -1,6 +1,6 @@
 package com.demo.admissionportal.controller;
 
-import com.demo.admissionportal.ExamYear;
+import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.ExamYearService;
 import lombok.RequiredArgsConstructor;

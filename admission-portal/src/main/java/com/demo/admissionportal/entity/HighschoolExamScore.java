@@ -1,7 +1,5 @@
 package com.demo.admissionportal.entity;
 
-import com.demo.admissionportal.ExamLocal;
-import com.demo.admissionportal.ExamYear;
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

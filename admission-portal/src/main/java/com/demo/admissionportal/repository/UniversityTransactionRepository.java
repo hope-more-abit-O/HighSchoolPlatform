@@ -4,8 +4,10 @@ import com.demo.admissionportal.dto.response.statistics.StatisticRevenueByTime;
 import com.demo.admissionportal.entity.UniversityTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,107 +105,100 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "WHERE ci.university_id = :universityId AND ut.status = 'PAID'", nativeQuery = true)
     List<UniversityTransaction> findUniversityTransactionByUniversityId(Integer universityId);
 
-    @Query(value = "SELECT CONVERT(DATE, ut.create_time) AS date, SUM(ap.price) AS revenue " +
+    @Query(value = "SELECT FORMAT(ut.create_time, 'yyyy-MM-dd') AS date, SUM(ap.price) AS revenue " +
             "FROM university_transaction ut " +
             "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
-            "WHERE ut.status = 'PAID' AND ut.create_time >= DATEADD(MONTH, -12, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ut.create_time) " +
-            "ORDER BY CONVERT(DATE, ut.create_time)", nativeQuery = true)
-    List<Object[]> findRevenueByLast12MonthsForAllUniversities();
+            "WHERE ut.status = 'PAID' AND ut.create_time BETWEEN :startDay AND :endDay " +
+            "GROUP BY FORMAT(ut.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(ut.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalRevenueByPeriod(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
-    @Query(value = "SELECT CONVERT(DATE, ut.create_time) AS date, SUM(ap.price) AS revenue " +
-            "FROM university_transaction ut " +
-            "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
-            "WHERE ut.status = 'PAID' AND ut.create_time >= DATEADD(MONTH, -6, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ut.create_time) " +
-            "ORDER BY CONVERT(DATE, ut.create_time)", nativeQuery = true)
-    List<Object[]>  findRevenueByLast6MonthsForAllUniversities();
-
-    @Query(value = "SELECT CONVERT(DATE, ut.create_time) AS date, SUM(ap.price) AS revenue " +
-            "FROM university_transaction ut " +
-            "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
-            "WHERE ut.status = 'PAID' AND ut.create_time >= DATEADD(DAY, -30, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ut.create_time) " +
-            "ORDER BY CONVERT(DATE, ut.create_time)", nativeQuery = true)
-    List<Object[]>  findRevenueByLast30DaysForAllUniversities();
-
-    @Query(value = "SELECT CONVERT(DATE, ut.create_time) AS date, SUM(ap.price) AS revenue " +
-            "FROM university_transaction ut " +
-            "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
-            "WHERE ut.status = 'PAID' AND ut.create_time >= DATEADD(DAY, -7, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ut.create_time) " +
-            "ORDER BY CONVERT(DATE, ut.create_time)", nativeQuery = true)
-    List<Object[]> findRevenueByLast7DaysForAllUniversities();
-
-    @Query(value = "SELECT CONVERT(DATE, ul.create_time) AS date, " +
-            "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END) AS like_count, " +
-            "SUM(CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END) AS unlike_count " +
+    @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM-dd') AS month, " +
+            "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END + " +
+            "CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END + " +
+            "CASE WHEN uf.status = 'FOLLOW' THEN 1 ELSE 0 END + " +
+            "CASE WHEN uf.status = 'UNFOLLOW' THEN 1 ELSE 0 END) AS total_interactions " +
             "FROM user_like ul " +
-            "WHERE ul.create_time >= DATEADD(DAY, -7, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ul.create_time) " +
-            "ORDER BY CONVERT(DATE, ul.create_time)", nativeQuery = true)
-    List<Object[]> findLikeAndUnlikeCountByLast7DaysForAllUniversities();
+            "LEFT JOIN user_favorite uf ON ul.create_time = uf.create_time " +
+            "WHERE ul.create_time BETWEEN :startDay AND :endDay " +
+            "GROUP BY FORMAT(ul.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(ul.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalInteractionsByPeriod(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
-    @Query(value = "SELECT CONVERT(DATE, uf.create_time) AS date, " +
-            "SUM(CASE WHEN uf.status = 'FOLLOW' THEN 1 ELSE 0 END) AS follow_count, " +
-            "SUM(CASE WHEN uf.status = 'UNFOLLOW' THEN 1 ELSE 0 END) AS unfollow_count " +
-            "FROM user_favorite uf " +
-            "WHERE uf.create_time >= DATEADD(DAY, -7, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, uf.create_time) " +
-            "ORDER BY CONVERT(DATE, uf.create_time)", nativeQuery = true)
-    List<Object[]> findFollowAndUnfollowCountByLast7DaysForAllUniversities();
+    @Query(value = "SELECT FORMAT(u.create_time, 'yyyy-MM-dd') AS date, COUNT(u.id) AS totalAccount " +
+            "FROM [user] u " +
+            "WHERE u.create_time BETWEEN :startDay AND :endDay " +
+            "AND (:role IS NULL OR u.role = :role) " +
+            "AND (:status IS NULL OR u.status = :status) " +
+            "GROUP BY FORMAT(u.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(u.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalAccountsByPeriod(@Param("startDay") Date startDay,
+                                             @Param("endDay") Date endDay,
+                                             @Param("role") String role,
+                                             @Param("status") String status);
 
-    @Query(value = "SELECT CONVERT(DATE, ul.create_time) AS date, " +
-            "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END) AS like_count, " +
-            "SUM(CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END) AS unlike_count " +
+    @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM-dd') AS date, COUNT(p.id) AS totalPosts " +
+            "FROM post p " +
+            "WHERE p.create_time BETWEEN :startDay AND :endDay " +
+            "AND (:status IS NULL OR p.status = :status) " +
+            "GROUP BY FORMAT(p.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(p.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalPostsByPeriod(@Param("startDay") Date startDay,
+                                          @Param("endDay") Date endDay,
+                                          @Param("status") String status);
+
+    @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM-dd') AS date, COUNT(p.id) AS totalPosts " +
+            "FROM post p " +
+            "JOIN consultant_info c ON p.create_by = c.consultant_id " +
+            "WHERE p.create_time BETWEEN :startDay AND :endDay " +
+            "AND c.university_id = :universityId " +
+            "AND (:status IS NULL OR p.status = :status) " +
+            "GROUP BY FORMAT(p.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(p.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalPostsByPeriodAndUniversity(@Param("startDay") Date startDay,
+                                                       @Param("endDay") Date endDay,
+                                                       @Param("universityId") Integer universityId,
+                                                       @Param("status") String status);
+
+    @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM-dd') AS date, COUNT(ul.user_id) AS totalLikes " +
             "FROM user_like ul " +
-            "WHERE ul.create_time >= DATEADD(DAY, -30, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ul.create_time) " +
-            "ORDER BY CONVERT(DATE, ul.create_time)", nativeQuery = true)
-    List<Object[]> findLikeAndUnlikeCountByLast30DaysForAllUniversities();
+            "JOIN post p ON ul.post_id = p.id " +
+            "JOIN consultant_info c ON p.create_by = c.consultant_id " +
+            "WHERE ul.create_time BETWEEN :startDay AND :endDay " +
+            "AND c.university_id = :universityId " +
+            "AND (:status IS NULL OR ul.status = :status) " +
+            "GROUP BY FORMAT(ul.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(ul.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalLikesByPeriodAndUniversity(@Param("startDay") Date startDay,
+                                                       @Param("endDay") Date endDay,
+                                                       @Param("universityId") Integer universityId,
+                                                       @Param("status") String status);
 
-    @Query(value = "SELECT CONVERT(DATE, uf.create_time) AS date, " +
-            "SUM(CASE WHEN uf.status = 'FOLLOW' THEN 1 ELSE 0 END) AS follow_count, " +
-            "SUM(CASE WHEN uf.status = 'UNFOLLOW' THEN 1 ELSE 0 END) AS unfollow_count " +
+    @Query(value = "SELECT FORMAT(uf.create_time, 'yyyy-MM-dd') AS date, COUNT(uf.user_id) AS totalFavorites " +
             "FROM user_favorite uf " +
-            "WHERE uf.create_time >= DATEADD(DAY, -30, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, uf.create_time) " +
-            "ORDER BY CONVERT(DATE, uf.create_time)", nativeQuery = true)
-    List<Object[]> findFollowAndUnfollowCountByLast30DaysForAllUniversities();
+            "WHERE uf.create_time BETWEEN :startDay AND :endDay " +
+            "AND uf.university_id = :universityId " +
+            "AND (:status IS NULL OR uf.status = :status) " +
+            "GROUP BY FORMAT(uf.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(uf.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalFavoritesByPeriodAndUniversity(@Param("startDay") Date startDay,
+                                                           @Param("endDay") Date endDay,
+                                                           @Param("universityId") Integer universityId,
+                                                           @Param("status") String status);
 
-    @Query(value = "SELECT CONVERT(DATE, ul.create_time) AS date, " +
-            "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END) AS like_count, " +
-            "SUM(CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END) AS unlike_count " +
-            "FROM user_like ul " +
-            "WHERE ul.create_time >= DATEADD(MONTH, -6, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ul.create_time) " +
-            "ORDER BY CONVERT(DATE, ul.create_time)", nativeQuery = true)
-    List<Object[]> findLikeAndUnlikeCountByLast6MonthsForAllUniversities();
+    @Query(value = "SELECT FORMAT(c.create_time, 'yyyy-MM-dd') AS date, COUNT(c.id) AS totalComments " +
+            "FROM comment c " +
+            "JOIN post p ON c.post_id = p.id " +
+            "JOIN consultant_info ci ON p.create_by = ci.consultant_id " +
+            "WHERE c.create_time BETWEEN :startDay AND :endDay " +
+            "AND ci.university_id = :universityId " +
+            "AND (:commentStatus IS NULL OR c.comment_status = :commentStatus) " +
+            "GROUP BY FORMAT(c.create_time, 'yyyy-MM-dd') " +
+            "ORDER BY FORMAT(c.create_time, 'yyyy-MM-dd')", nativeQuery = true)
+    List<Object[]> findTotalCommentsByPeriodAndUniversity(@Param("startDay") Date startDay,
+                                                          @Param("endDay") Date endDay,
+                                                          @Param("universityId") Integer universityId,
+                                                          @Param("commentStatus") String commentStatus);
 
-    @Query(value = "SELECT CONVERT(DATE, uf.create_time) AS date, " +
-            "SUM(CASE WHEN uf.status = 'FOLLOW' THEN 1 ELSE 0 END) AS follow_count, " +
-            "SUM(CASE WHEN uf.status = 'UNFOLLOW' THEN 1 ELSE 0 END) AS unfollow_count " +
-            "FROM user_favorite uf " +
-            "WHERE uf.create_time >= DATEADD(MONTH, -6, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, uf.create_time) " +
-            "ORDER BY CONVERT(DATE, uf.create_time)", nativeQuery = true)
-    List<Object[]> findFollowAndUnfollowCountByLast6MonthsForAllUniversities();
 
-    @Query(value = "SELECT CONVERT(DATE, uf.create_time) AS date, " +
-            "SUM(CASE WHEN uf.status = 'FOLLOW' THEN 1 ELSE 0 END) AS follow_count, " +
-            "SUM(CASE WHEN uf.status = 'UNFOLLOW' THEN 1 ELSE 0 END) AS unfollow_count " +
-            "FROM user_favorite uf " +
-            "WHERE uf.create_time >= DATEADD(MONTH, -12, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, uf.create_time) " +
-            "ORDER BY CONVERT(DATE, uf.create_time)", nativeQuery = true)
-    List<Object[]> findFollowAndUnfollowCountByLast12MonthsForAllUniversities();
-
-    @Query(value = "SELECT CONVERT(DATE, ul.create_time) AS date, " +
-            "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END) AS like_count, " +
-            "SUM(CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END) AS unlike_count " +
-            "FROM user_like ul " +
-            "WHERE ul.create_time >= DATEADD(MONTH, -12, GETDATE()) " +
-            "GROUP BY CONVERT(DATE, ul.create_time) " +
-            "ORDER BY CONVERT(DATE, ul.create_time)", nativeQuery = true)
-    List<Object[]> findLikeAndUnlikeCountByLast12MonthsForAllUniversities();
 }

@@ -5,13 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Date;
+import java.io.Serializable;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @SuperBuilder
-public class StatisticsAdminResponseV3 {
-    private Date date;
-    private String type;
+public class StatisticLikeByTime extends StatisticsAdminResponseV3 implements Serializable {
+    private Integer totalLikes;
 }

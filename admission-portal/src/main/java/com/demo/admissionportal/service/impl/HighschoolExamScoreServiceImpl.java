@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.ExamLocal;
-import com.demo.admissionportal.ExamYear;
+import com.demo.admissionportal.entity.ExamLocal;
+import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
 import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
 import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
