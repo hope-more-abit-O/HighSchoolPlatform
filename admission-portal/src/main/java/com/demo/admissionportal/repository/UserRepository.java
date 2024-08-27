@@ -332,7 +332,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
-            "WHERE u.role = 'USER'", nativeQuery = true)
+            "WHERE u.role IN ('USER', 'UNIVERSITY', 'STAFF', 'CONSULTANT')", nativeQuery = true)
     Optional<Integer> totalAccount();
 
 
@@ -343,7 +343,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
-            "WHERE u.role = 'USER' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+            "WHERE u.role IN ('USER', 'UNIVERSITY', 'STAFF', 'CONSULTANT') AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
     Optional<Integer> currentAccount();
 
     /**
@@ -353,7 +353,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
-            "WHERE u.role = 'USER' AND u.status = 'ACTIVE'", nativeQuery = true)
+            "WHERE u.role IN ('USER', 'UNIVERSITY', 'STAFF', 'CONSULTANT') AND u.status = 'ACTIVE'", nativeQuery = true)
     Optional<Integer> accountActive();
 
     /**
@@ -363,6 +363,166 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     @Query(value = "SELECT COUNT(*) " +
             "FROM [user] u " +
-            "WHERE u.role = 'USER' AND u.status = 'INACTIVE'", nativeQuery = true)
+            "WHERE u.role IN ('USER', 'UNIVERSITY', 'STAFF', 'CONSULTANT') AND u.status = 'INACTIVE'", nativeQuery = true)
     Optional<Integer> accountInactive();
+
+    /**
+     * Total user account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER'", nativeQuery = true)
+    Optional<Integer> totalUserAccount();
+
+    /**
+     * Total user account active optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER' AND u.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> totalUserAccountActive();
+
+    /**
+     * Total user account inactive optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER' AND u.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> totalUserAccountInactive();
+
+    /**
+     * Total staff account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'STAFF'", nativeQuery = true)
+    Optional<Integer> totalStaffAccount();
+
+    /**
+     * Total staff account active optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'STAFF' AND u.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> totalStaffAccountActive();
+
+    /**
+     * Total staff account inactive optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'STAFF' AND u.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> totalStaffAccountInactive();
+
+    /**
+     * Total consultant account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'CONSULTANT'", nativeQuery = true)
+    Optional<Integer> totalConsultantAccount();
+
+    /**
+     * Total consultant account active optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'CONSULTANT' AND u.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> totalConsultantAccountActive();
+
+    /**
+     * Total consultant account inactive optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'CONSULTANT' AND u.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> totalConsultantAccountInactive();
+
+    /**
+     * Total university account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'UNIVERSITY'", nativeQuery = true)
+    Optional<Integer> totalUniversityAccount();
+
+    /**
+     * Total university account active optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'UNIVERSITY' AND u.status = 'ACTIVE'", nativeQuery = true)
+    Optional<Integer> totalUniversityAccountActive();
+
+    /**
+     * Total university account inactive optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'University' AND u.status = 'INACTIVE'", nativeQuery = true)
+    Optional<Integer> totalUniversityAccountInactive();
+
+    /**
+     * Current user account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'USER' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Optional<Integer> currentUserAccount();
+
+    /**
+     * Current staff account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'STAFF' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Optional<Integer> currentStaffAccount();
+
+    /**
+     * Current university account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'UNIVERSITY' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Optional<Integer> currentUniversityAccount();
+
+    /**
+     * Current consultant account optional.
+     *
+     * @return the optional
+     */
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM [user] u " +
+            "WHERE u.role = 'CONSULTANT' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    Optional<Integer> currentConsultantAccount();
 }

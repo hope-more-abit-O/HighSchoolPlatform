@@ -4,6 +4,8 @@ import com.demo.admissionportal.entity.TestResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * The interface Test response repository.
  */
@@ -15,5 +17,13 @@ public interface TestResponseRepository extends JpaRepository<TestResponse, Inte
      * @param userId the user id
      * @return the test response
      */
-    TestResponse findTestResponseByUserId(Integer userId);
+    List<TestResponse> findTestResponseByUserId(Integer userId);
+
+    /**
+     * Find test response by id test response.
+     *
+     * @param id the id
+     * @return the test response
+     */
+    TestResponse findTestResponseById(Integer id);
 }

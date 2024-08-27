@@ -50,7 +50,9 @@ public class StatisticsServiceImpl implements StatisticsService {
                         calculatorStatisticsByUniversity(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
                 default -> throw new Exception();
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu thống kê thành công", user == Role.ADMIN ? calculatorStatisticsByAdmin() : calculatorStatisticsByUniversity(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId()));
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu thống kê thành công", user == Role.ADMIN ?
+                    calculatorStatisticsByAdmin() :
+                    calculatorStatisticsByUniversity(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId()));
         } catch (Exception e) {
             log.error("Failed when get statistics: {} ", e.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy dữ liệu thống kê thất bại");
@@ -122,9 +124,14 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-
     private StatisticsUniversityResponse calculatorStatisticsByUniversity(Integer universityId) {
-        return StatisticsUniversityResponse.builder().totalLike(calculatorLikeResponseByUniversity(universityId)).totalFavorite(calculatorFavoriteResponseByUniversity(universityId)).totalComment(calculatorCommentResponseByUniversity(universityId)).totalPost(calculatorTotalPost(universityId)).transactionDetail(mapToUniversityTransactionDetail(universityId)).build();
+        return StatisticsUniversityResponse.builder()
+                .totalLike(calculatorLikeResponseByUniversity(universityId))
+                .totalFavorite(calculatorFavoriteResponseByUniversity(universityId))
+                .totalComment(calculatorCommentResponseByUniversity(universityId))
+                .totalPost(calculatorTotalPost(universityId))
+                .transactionDetail(mapToUniversityTransactionDetail(universityId))
+                .build();
     }
 
     private Integer calculatorTotalPost(Integer universityId) {
@@ -134,10 +141,15 @@ public class StatisticsServiceImpl implements StatisticsService {
     private List<StatisticsTransactionDetailResponse> mapToUniversityTransactionDetail(Integer universityId) {
         List<UniversityTransaction> universityTransactionList = universityTransactionRepository.findUniversityTransactionByUniversityId(universityId);
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
-        return universityTransactionList.stream().map(transaction -> {
-            AdsPackage adsPackage = packageRepository.findPackageById(transaction.getPackageId());
-            return StatisticsTransactionDetailResponse.builder().createBy(universityInfo != null ? universityInfo.getName() : null).price(adsPackage != null ? adsPackage.getPrice() : 0).build();
-        }).collect(Collectors.toList());
+        return universityTransactionList.stream()
+                .map(transaction -> {
+                    AdsPackage adsPackage = packageRepository.findPackageById(transaction.getPackageId());
+                    return StatisticsTransactionDetailResponse.builder()
+                            .createBy(universityInfo != null ? universityInfo.getName() : null)
+                            .price(adsPackage != null ? adsPackage.getPrice() : 0)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private Integer calculatorCommentResponseByUniversity(Integer universityId) {
@@ -153,13 +165,21 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private StatisticsAdminResponse calculatorStatisticsByAdmin() {
-        return StatisticsAdminResponse.builder().transaction(calculatorTransactionByAdmin()).interact(calculatorInteractResponseByAdmin()).account(calculatorAccountResponseByAdmin()).post(calculatorPostResponseByAdmin()).activityTransaction(calculatorActivityTransaction()).build();
+        return StatisticsAdminResponse.builder()
+                .transaction(calculatorTransactionByAdmin())
+                .interact(calculatorInteractResponseByAdmin())
+                .account(calculatorAccountResponseByAdmin())
+                .post(calculatorPostResponseByAdmin())
+                .activityTransaction(calculatorActivityTransaction())
+                .build();
     }
 
     @Async
     protected List<StatisticsTransactionDetailResponse> calculatorActivityTransaction() {
         List<UniversityTransaction> list = universityTransactionRepository.findAll();
-        return list.parallelStream().map(this::mapToTransactionDetail).collect(Collectors.toList());
+        return list.parallelStream()
+                .map(this::mapToTransactionDetail)
+                .collect(Collectors.toList());
     }
 
     private StatisticsTransactionDetailResponse mapToTransactionDetail(UniversityTransaction universityTransaction) {
@@ -176,7 +196,11 @@ public class StatisticsServiceImpl implements StatisticsService {
                 }
             }
         }
-        responseDTO.setPrice(packageRepository.findById(universityTransaction.getPackageId()).map(AdsPackage::getPrice).orElse(null));
+        responseDTO.setPrice(
+                packageRepository.findById(universityTransaction.getPackageId())
+                        .map(AdsPackage::getPrice)
+                        .orElse(null)
+        );
         return responseDTO;
     }
 
@@ -187,30 +211,86 @@ public class StatisticsServiceImpl implements StatisticsService {
         Integer currentPost = postRepository.currentPost().orElse(0);
         Integer activePost = postRepository.activePost().orElse(0);
         Integer inactivePost = postRepository.inactivePost().orElse(0);
-        return StatisticsPostResponse.builder().totalPost(totalPost).currentPost(currentPost).activePost(activePost).inactivePost(inactivePost).build();
+        return StatisticsPostResponse.builder()
+                .totalPost(totalPost)
+                .currentPost(currentPost)
+                .activePost(activePost)
+                .inactivePost(inactivePost)
+                .build();
     }
 
     @Async
     protected StatisticsAccountResponse calculatorAccountResponseByAdmin() {
-        Integer totalAccount = userRepository.totalAccount().orElse(0);
-        Integer currentAccount = userRepository.currentAccount().orElse(0);
-        Integer accountActive = userRepository.accountActive().orElse(0);
-        Integer accountInactive = userRepository.accountInactive().orElse(0);
-        return StatisticsAccountResponse.builder().totalAccount(totalAccount).accountActive(accountActive).accountInactive(accountInactive).currentAccount(currentAccount).build();
+        return StatisticsAccountResponse.builder()
+                .totalAccount(userRepository.totalAccount().orElse(0))
+                .accountActive(userRepository.accountActive().orElse(0))
+                .accountInactive(userRepository.accountInactive().orElse(0))
+                .currentAccount(userRepository.currentAccount().orElse(0))
+                .user(calculatorUser())
+                .staff(calculatorStaff())
+                .university(calculatorUniversity())
+                .consultant(calculatorConsultant())
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountUserResponse calculatorUser() {
+        return StatisticsAccountResponse.StatisticsAccountUserResponse.builder()
+                .total(userRepository.totalUserAccount().orElse(0))
+                .current(userRepository.currentUserAccount().orElse(0))
+                .active(userRepository.totalUserAccountActive().orElse(0))
+                .inactive(userRepository.totalUserAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountStaffResponse calculatorStaff() {
+        return StatisticsAccountResponse.StatisticsAccountStaffResponse.builder()
+                .total(userRepository.totalStaffAccount().orElse(0))
+                .active(userRepository.totalStaffAccountActive().orElse(0))
+                .current(userRepository.currentStaffAccount().orElse(0))
+                .inactive(userRepository.totalStaffAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountConsultantResponse calculatorConsultant() {
+        return StatisticsAccountResponse.StatisticsAccountConsultantResponse.builder()
+                .total(userRepository.totalConsultantAccount().orElse(0))
+                .active(userRepository.totalConsultantAccountActive().orElse(0))
+                .current(userRepository.currentConsultantAccount().orElse(0))
+                .inactive(userRepository.totalConsultantAccountInactive().orElse(0))
+                .build();
+    }
+
+    @Async
+    protected StatisticsAccountResponse.StatisticsAccountUniversityResponse calculatorUniversity() {
+        return StatisticsAccountResponse.StatisticsAccountUniversityResponse.builder()
+                .total(userRepository.totalUniversityAccount().orElse(0))
+                .active(userRepository.totalUniversityAccountActive().orElse(0))
+                .current(userRepository.currentUniversityAccount().orElse(0))
+                .inactive(userRepository.totalUniversityAccountInactive().orElse(0))
+                .build();
     }
 
     @Async
     protected StatisticsInteractResponse calculatorInteractResponseByAdmin() {
         Integer totalInteraction = userFavoriteRepository.totalInteraction().orElse(0);
         Integer currentInteraction = userFavoriteRepository.currentInteraction().orElse(0);
-        return StatisticsInteractResponse.builder().totalInteraction(totalInteraction).currentInteraction(currentInteraction).build();
+        return StatisticsInteractResponse.builder()
+                .totalInteraction(totalInteraction)
+                .currentInteraction(currentInteraction)
+                .build();
     }
 
     @Async
     protected StatisticsTransactionResponse calculatorTransactionByAdmin() {
         Integer totalTransaction = universityTransactionRepository.calculatorTotalTransaction().orElse(0);
         Integer currentTransaction = universityTransactionRepository.calculatorCurrentTransaction().orElse(0);
-        return StatisticsTransactionResponse.builder().totalTransaction(totalTransaction).currentTransaction(currentTransaction).build();
+        return StatisticsTransactionResponse.builder()
+                .totalTransaction(totalTransaction)
+                .currentTransaction(currentTransaction)
+                .build();
     }
 
     public List<StatisticsAdminResponseV3> getStatistics(Date startDay, Date endDay, String type, String role, String status) throws Exception {

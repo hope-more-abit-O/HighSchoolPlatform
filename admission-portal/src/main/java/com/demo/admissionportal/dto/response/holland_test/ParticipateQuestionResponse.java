@@ -6,16 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
-/**
- * The type Participate response.
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class ParticipateResponse implements Serializable {
-    private Integer testResponseId;
-    private List<ParticipateQuestionResponse> question;
+public class ParticipateQuestionResponse implements Serializable {
+    private Integer question_id;
+    private String content;
 }

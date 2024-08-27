@@ -71,7 +71,7 @@ public interface QuestionService {
      *
      * @return the holland test
      */
-    ResponseData<List<ParticipateResponse>> getHollandTest();
+    ResponseData<ParticipateResponse> getHollandTest();
 
     /**
      * Submit holland test response data.
@@ -79,5 +79,20 @@ public interface QuestionService {
      * @param request the request
      * @return the response data
      */
-    ResponseData<SubmitResponse> submitHollandTest(List<SubmitRequestDTO> request);
+    ResponseData<SubmitResponse> submitHollandTest(SubmitRequestDTO request);
+
+    /**
+     * Gets history by test response id.
+     *
+     * @param testResponseId the test response id
+     * @return the history by test response id
+     */
+    ResponseData<SubmitResponse> getHistoryByTestResponseId(Integer testResponseId);
+
+    /**
+     * Gets history.
+     *
+     * @return the history
+     */
+    ResponseData<List<HistoryParticipateResponse>> getHistory();
 }

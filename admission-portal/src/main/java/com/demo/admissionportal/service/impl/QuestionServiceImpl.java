@@ -2,10 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
-import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
-import com.demo.admissionportal.dto.request.holland_test.SubmitRequestDTO;
-import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
+import com.demo.admissionportal.dto.request.holland_test.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.*;
 import com.demo.admissionportal.entity.*;
@@ -333,12 +330,13 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ResponseData<List<ParticipateResponse>> getHollandTest() {
+    public ResponseData<ParticipateResponse> getHollandTest() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
             // Get questionnaire for user participate
             List<Questionnaire> questionnaires = questionnaireRepository.findAll();
+            TestResponse result = new TestResponse();
             Collections.shuffle(questionnaires, new Random());
             // Save questionnaire for user
             if (!questionnaires.isEmpty()) {
@@ -347,15 +345,18 @@ public class QuestionServiceImpl implements QuestionService {
                 testResponse.setQuestionnaireId(selectedQuestionnaire.getId());
                 testResponse.setUserId(userInfo.getId());
                 testResponse.setCreateTime(new Date());
-                testResponseRepository.save(testResponse);
+                result = testResponseRepository.save(testResponse);
             }
-            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userInfo.getId());
+            TestResponse testResponse = testResponseRepository.findTestResponseById(result.getId());
             List<QuestionnaireQuestion> questionnaireQuestions = questionnaireQuestionRepository.findByQuestionnaireId(testResponse.getQuestionnaireId());
-            List<ParticipateResponse> resultGetHollandTest = questionnaireQuestions.parallelStream()
-                    .map(this::mapToQuestion)
-                    .collect(Collectors.toList());
-            Collections.shuffle(resultGetHollandTest, new Random());
-
+            ParticipateResponse resultGetHollandTest = new ParticipateResponse();
+            resultGetHollandTest.setTestResponseId(testResponse.getId());
+            resultGetHollandTest.setQuestion(
+                    questionnaireQuestions.stream()
+                            .map(this::mapToQuestion)
+                            .collect(Collectors.toList())
+            );
+            Collections.shuffle(resultGetHollandTest.getQuestion(), new Random());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách câu hỏi holland test thành công", resultGetHollandTest);
         } catch (Exception ex) {
             log.error("Error while get holland test : {}", ex.getMessage());
@@ -363,25 +364,28 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    private ParticipateResponse mapToQuestion(QuestionnaireQuestion questionnaireQuestion) {
+    private ParticipateQuestionResponse mapToQuestion(QuestionnaireQuestion questionnaireQuestion) {
         Question question = questionRepository.findById(questionnaireQuestion.getQuestionId()).orElse(null);
         if (question == null) {
             return null;
         }
-        return new ParticipateResponse(question.getId(), question.getContent());
+        return new ParticipateQuestionResponse(question.getId(), question.getContent());
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ResponseData<SubmitResponse> submitHollandTest(List<SubmitRequestDTO> request) {
+    public ResponseData<SubmitResponse> submitHollandTest(SubmitRequestDTO request) {
         try {
             log.info("Start Submit answer holland test");
-            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            TestResponse testResponse = testResponseRepository.findTestResponseByUserId(userId);
-            request.forEach(submit -> mapToSubmit(submit, testResponse));
+            TestResponse testResponse = testResponseRepository.findTestResponseById(request.getTestResponseId());
+            if (testResponse == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy test response Id");
+
+            }
+            request.getQuestion().forEach(submit -> mapToSubmit(submit, testResponse));
             log.info("End Submit answer holland test");
-            List<Integer> questionIds = request.stream()
-                    .map(SubmitRequestDTO::getQuestion_id)
+            List<Integer> questionIds = request.getQuestion().stream()
+                    .map(SubmitQuestionRequestDTO::getQuestion_id)
                     .collect(Collectors.toList());
             List<Question> questions = questionRepository.findQuestionByIds(questionIds);
             Map<Integer, Integer> questionsCountByType = questions.stream()
@@ -389,12 +393,9 @@ public class QuestionServiceImpl implements QuestionService {
                             Question::getType,
                             Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
                     ));
-
             List<SubmitDetailResponse> submitDetail = mapToSubmitDetail(questionsCountByType);
             List<HighestTypeResponse> highestTypeResponses = mapToMaxValue(questionsCountByType);
             List<SuggestJobResponse> suggestMajor = mapToMajor(highestTypeResponses);
-
-
             SubmitResponse result = SubmitResponse.builder()
                     .submitDetail(submitDetail)
                     .highestType(highestTypeResponses)
@@ -422,21 +423,38 @@ public class QuestionServiceImpl implements QuestionService {
                                     .image(job.getImage())
                                     .build());
                 })
+                .distinct()
+                .limit(10)
                 .collect(Collectors.toList());
     }
 
     private List<SubmitDetailResponse> mapToSubmitDetail(Map<Integer, Integer> questionsCountByType) {
-        return questionsCountByType.entrySet().stream()
-                .map(entry -> SubmitDetailResponse.builder()
-                        .typeQuestions(mapToTypeQuestion(entry.getKey()))
-                        .numberOfSubmit(entry.getValue())
-                        .build())
-                .collect(Collectors.toList());
+        List<String> nameOfCharacter = List.of(
+                "Kỹ thuật",
+                "Nghiên cứu",
+                "Nghệ thuật",
+                "Xã hội",
+                "Quản lý",
+                "Nghiệp vụ"
+        );
+        List<SubmitDetailResponse> submitDetailResponses = new ArrayList<>();
+
+        for (String character : nameOfCharacter) {
+            Integer typeId = mapToTypeQuestionId(character);
+            int numberOfSubmit = questionsCountByType.getOrDefault(typeId, 0);
+            submitDetailResponses.add(
+                    SubmitDetailResponse.builder()
+                            .typeQuestions(character)
+                            .numberOfSubmit(numberOfSubmit)
+                            .build()
+            );
+        }
+        return submitDetailResponses;
     }
 
-    private String mapToTypeQuestion(Integer key) {
-        QuestionType questionType = questionTypeRepository.findById(key).orElse(null);
-        return questionType.getName();
+    private Integer mapToTypeQuestionId(String character) {
+        QuestionType questionType = questionTypeRepository.findByName(character);
+        return questionType != null ? questionType.getId() : null;
     }
 
     private List<HighestTypeResponse> mapToMaxValue(Map<Integer, Integer> questionsCountByType) {
@@ -461,10 +479,75 @@ public class QuestionServiceImpl implements QuestionService {
                 .collect(Collectors.toList());
     }
 
-    public void mapToSubmit(SubmitRequestDTO submitRequestDTO, TestResponse testResponse) {
+    public void mapToSubmit(SubmitQuestionRequestDTO submitRequestDTO, TestResponse testResponse) {
         TestResponseAnswer testResponseAnswer = new TestResponseAnswer();
         testResponseAnswer.setQuestionId(submitRequestDTO.getQuestion_id());
         testResponseAnswer.setTestResponseId(testResponse.getId());
         testResponseAnswerRepository.save(testResponseAnswer);
+    }
+
+    public ResponseData<SubmitResponse> getHistoryByTestResponseId(Integer testResponseId) {
+        try {
+            if (testResponseId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "testResponseId null");
+            }
+            List<TestResponseAnswer> responseAnswers = testResponseAnswerRepository.findTestResponseAnswerByTestResponseId(testResponseId);
+            List<Integer> questionIds = responseAnswers.stream()
+                    .map(TestResponseAnswer::getQuestionId)
+                    .collect(Collectors.toList());
+            List<Question> questions = questionRepository.findQuestionByIds(questionIds);
+            Map<Integer, Integer> questionsCountByType = questions.stream()
+                    .collect(Collectors.groupingBy(
+                            Question::getType,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+                    ));
+            List<SubmitDetailResponse> submitDetail = mapToSubmitDetail(questionsCountByType);
+            List<HighestTypeResponse> highestTypeResponses = mapToMaxValue(questionsCountByType);
+            List<SuggestJobResponse> suggestMajor = mapToMajor(highestTypeResponses);
+            SubmitResponse result = SubmitResponse.builder()
+                    .submitDetail(submitDetail)
+                    .highestType(highestTypeResponses)
+                    .suggestJob(suggestMajor)
+                    .build();
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Kết quả holland test", result);
+        } catch (Exception e) {
+            log.error("Error while get holland test by test response Id: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy lịch sử holland test với id: " + testResponseId);
+        }
+    }
+
+    @Override
+    public ResponseData<List<HistoryParticipateResponse>> getHistory() {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<TestResponse> listOfTestResponse = testResponseRepository.findTestResponseByUserId(userId);
+            listOfTestResponse.stream()
+                    .map(this::mapToTestResponse)
+                    .collect(Collectors.toList());
+            List<HistoryParticipateResponse> response = listOfTestResponse.stream()
+                    .map(this::mapToQuestionnaire)
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy lịch sử holland test thành công", response);
+        } catch (Exception ex) {
+            log.error("Error while get holland test by history: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy lịch sử holland test");
+        }
+    }
+
+    private HistoryParticipateResponse mapToTestResponse(TestResponse testResponse) {
+        return HistoryParticipateResponse.builder()
+                .createTime(testResponse.getCreateTime())
+                .testResponseId(testResponse.getId())
+                .build();
+    }
+
+    private HistoryParticipateResponse mapToQuestionnaire(TestResponse testResponse) {
+        Questionnaire questionnaire = questionnaireRepository.findById(testResponse.getQuestionnaireId()).orElse(null);
+        return HistoryParticipateResponse.builder()
+                .code(questionnaire.getCode())
+                .createTime(testResponse.getCreateTime())
+                .testResponseId(testResponse.getId())
+                .name(questionnaire.getName())
+                .build();
     }
 }

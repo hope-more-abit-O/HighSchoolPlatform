@@ -63,6 +63,7 @@ public class SecurityConfiguration {
     private static final String EXAM_LOCAL = "/api/v1/exam-local";
     private static final String SUBJECT_API = "/api/v1/subject/**";
     private static final String STATISTICS_API = "/api/v1/statistics/**";
+    private static final String FOLLOW_API = "/api/v1/follow/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -112,7 +113,6 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY", "CONSULTANT")
-                                .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/all").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
@@ -134,6 +134,8 @@ public class SecurityConfiguration {
                                         SEARCH_API,
                                         FAVORITE_API,
                                         SUBJECT_API,
+                                        FOLLOW_API,
+                                        LIKE_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
