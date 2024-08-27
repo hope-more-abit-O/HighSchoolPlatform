@@ -155,8 +155,7 @@ public class ReportServiceImpl implements ReportService {
                 Optional<Post> postOpt = postRepository.findById(postReport.getPostId());
                 if (postOpt.isPresent()) {
                     Post post = postOpt.get();
-                    post.setStatus(PostStatus.INACTIVE);
-                    post.setUserReportPostResult(true);
+                    post.setStatus(PostStatus.BANNED);
                     postRepository.save(post);
                 }
             }

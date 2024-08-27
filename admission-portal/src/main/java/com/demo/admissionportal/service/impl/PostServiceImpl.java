@@ -279,7 +279,7 @@ public class PostServiceImpl implements PostService {
                 throw new Exception("Xoá post thất bại");
             }
 
-            if (resultChangeStatusPost.isUserReportPostResult() == true) {
+            if (resultChangeStatusPost.equals(PostStatus.BANNED)) {
                 return new ResponseData<>(ResponseCode.C207.getCode(), "Bài viết này đã bị vô hiệu hóa bởi báo cáo của người dùng và không thể kích hoạt lại.");
             }
 
@@ -331,7 +331,7 @@ public class PostServiceImpl implements PostService {
                 return null;
             }
 
-            if (post.isUserReportPostResult() && post.getStatus() == PostStatus.INACTIVE) {
+            if (post.getStatus().equals(PostStatus.BANNED)) {
                 return null;
             }
 

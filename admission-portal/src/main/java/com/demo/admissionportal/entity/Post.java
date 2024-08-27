@@ -84,11 +84,4 @@ public class Post {
     @Column(name = "note")
     private String note;
 
-    @Column(name = "user_report_post_result")
-    private boolean userReportPostResult = false;
-
-    public void userReportPostResult(boolean userReportPostResult) {
-        this.userReportPostResult = userReportPostResult;
-    }
-
 }
