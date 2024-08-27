@@ -1,10 +1,13 @@
 package com.demo.admissionportal.repository;
 
+import com.demo.admissionportal.constants.CampusType;
+import com.demo.admissionportal.constants.UniversityCampusStatus;
 import com.demo.admissionportal.entity.UniversityCampus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,4 +75,6 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
      * @return the list
      */
     List<UniversityCampus> findByUniversityId(Integer universityId);
+
+    List<UniversityCampus> findByUniversityIdInAndStatusAndType(Collection<Integer> universityIds, UniversityCampusStatus status, CampusType type);
 }

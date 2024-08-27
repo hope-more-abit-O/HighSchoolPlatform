@@ -76,13 +76,17 @@ public class HollandQuestionController {
     /**
      * Gets list question.
      *
+     * @param content  the content
+     * @param status   the status
      * @param pageable the pageable
      * @return the list question
      */
     @GetMapping("/question/list")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<QuestionResponse>>> getListQuestion(@PageableDefault(size = 200) Pageable pageable) {
-        ResponseData<Page<QuestionResponse>> resultOfList = questionService.getListQuestion(pageable);
+    public ResponseEntity<ResponseData<Page<QuestionResponse>>> getListQuestion(@RequestParam(required = false) String content,
+                                                                                @RequestParam(required = false) String status,
+                                                                                @PageableDefault(size = 60) Pageable pageable) {
+        ResponseData<Page<QuestionResponse>> resultOfList = questionService.getListQuestion(content, status, pageable);
         if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(resultOfList);
         }
@@ -116,13 +120,17 @@ public class HollandQuestionController {
     /**
      * Gets list job.
      *
+     * @param jobName  the job name
+     * @param status   the status
      * @param pageable the pageable
      * @return the list job
      */
     @GetMapping("/job")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<Page<JobResponse>>> getListJob(@PageableDefault(size = 100) Pageable pageable) {
-        ResponseData<Page<JobResponse>> responseJobList = jobService.getAllJob(pageable);
+    public ResponseEntity<ResponseData<Page<JobResponse>>> getListJob(@RequestParam(required = false) String jobName,
+                                                                      @RequestParam(required = false) String status,
+                                                                      @PageableDefault(size = 60) Pageable pageable) {
+        ResponseData<Page<JobResponse>> responseJobList = jobService.getAllJob(jobName, status, pageable);
         if (responseJobList.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(responseJobList);
         }
@@ -329,6 +337,11 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
     }
 
+    /**
+     * Gets history.
+     *
+     * @return the history
+     */
     @GetMapping("/history")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<List<HistoryParticipateResponse>>> getHistory() {

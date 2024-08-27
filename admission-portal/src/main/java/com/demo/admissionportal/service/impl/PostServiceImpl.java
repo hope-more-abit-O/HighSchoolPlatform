@@ -443,15 +443,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseData<String> updatePost(UpdatePostRequestDTO requestDTO) {
+    public ResponseData<String> updatePost(Integer postId, UpdatePostRequestDTO requestDTO) {
         Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         try {
-            if (requestDTO == null || requestDTO.getPostId() == null) {
+            if (requestDTO == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Sai request");
+            }
+            if (postId == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "postId null");
             }
 
             // Update post
-            Post existingPost = postRepository.findPostWithNoStatus(requestDTO.getPostId());
+            Post existingPost = postRepository.findPostWithNoStatus(postId);
             if (existingPost == null) {
                 throw new Exception("Không tìm thấy post");
             }
@@ -1135,13 +1138,13 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResponseData<PostDetailResponseDTO> getPostsByURL(String url) {
         try {
-            log.info("Received request for URL: {}", url); // Add logging here
+            log.info("Received request for URL: {}", url);
             Post posts = postRepository.findFirstByUrl(url);
-            PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
-            if (result != null) {
+            if (posts != null) {
+                PostDetailResponseDTO result = mapToPostDetailResponseDTO(posts);
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy post với url: " + url, result);
             }
-            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url:" + url);
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy post với url: " + url);
 
         } catch (Exception ex) {
             log.error("Error when get posts with url {}:", url);

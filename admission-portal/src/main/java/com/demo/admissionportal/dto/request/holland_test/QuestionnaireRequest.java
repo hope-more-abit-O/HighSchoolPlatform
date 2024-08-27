@@ -1,6 +1,5 @@
 package com.demo.admissionportal.dto.request.holland_test;
 
-import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -26,5 +25,5 @@ public class QuestionnaireRequest implements Serializable {
     @NotNull(message = "Background ảnh câu hỏi không được trống")
     private String coverImage;
     @Size(min = 60 , max = 60, message = "Số câu hỏi bắt buộc là 60 câu")
-    private List<QuestionResponse> questions;
+    private List<QuestionCreateRequestDTO> questions;
 }

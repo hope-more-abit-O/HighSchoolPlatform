@@ -13,11 +13,13 @@ public class TrainingProgramDTO {
     private Integer mainSubjectId;
     private String language;
     private String trainingSpecific;
+    private Integer quota;
 
     public TrainingProgramDTO(CreateAdmissionQuotaRequest request) {
         this.majorId = request.getMajorId();
         this.mainSubjectId = request.getMainSubjectId();
         this.language = request.getLanguage();
         this.trainingSpecific = request.getTrainingSpecific();
+        this.quota = request.getQuota();
     }
 }

@@ -100,11 +100,20 @@ public class AdmissionTrainingProgramServiceImpl {
     public List<AdmissionTrainingProgram> saveAdmissionTrainingProgram(Integer admissionId, List<CreateAdmissionQuotaRequest> quotas, List<Major> majors) throws StoreDataFailedException{
         List<AdmissionTrainingProgram> result;
         List<TrainingProgramDTO> trainingProgramDTOs = quotas.stream().map(TrainingProgramDTO::new).distinct().toList();
+        Set<String> seen = new LinkedHashSet<>();
 
         List<AdmissionTrainingProgram> admissionTrainingPrograms = trainingProgramDTOs.stream()
                 .map(quota -> {
-                    return new AdmissionTrainingProgram(admissionId, quota);
+                    String trainingProgramString = quota.getMajorId() + "-" +
+                            (quota.getMainSubjectId() != null ? quota.getMainSubjectId() : "null") + "-" +
+                            (quota.getLanguage() != null ? quota.getLanguage() : "null") + "-" +
+                            (quota.getTrainingSpecific() != null ? quota.getTrainingSpecific() : "null");
+                    if (seen.add(trainingProgramString)) {
+                        return new AdmissionTrainingProgram(admissionId, quota);
+                    }
+                    return null;
                 })
+                .filter(Objects::nonNull)
                 .toList();
 
         result = this.saveAllAdmissionTrainingProgram(admissionTrainingPrograms);

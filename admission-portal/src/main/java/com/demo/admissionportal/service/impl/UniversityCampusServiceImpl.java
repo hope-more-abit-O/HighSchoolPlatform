@@ -339,4 +339,8 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
             return new ResponseData<>(ResponseCode.C201.getCode(), "Cập nhật trạng thái thất bại", null);
         }
     }
+
+    public List<UniversityCampus> findHeadQuarterByUniversityIds(List<Integer> uniIds) {
+        return universityCampusRepository.findByUniversityIdInAndStatusAndType(uniIds, UniversityCampusStatus.ACTIVE, CampusType.HEADQUARTERS);
+    }
 }

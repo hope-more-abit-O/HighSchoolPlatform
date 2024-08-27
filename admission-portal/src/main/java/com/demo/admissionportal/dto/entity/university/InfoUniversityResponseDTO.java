@@ -3,6 +3,8 @@ package com.demo.admissionportal.dto.entity.university;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
+import com.demo.admissionportal.entity.Province;
+import com.demo.admissionportal.entity.UniversityCampus;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
 import lombok.*;
@@ -27,4 +29,19 @@ public class InfoUniversityResponseDTO {
     private String type;
     private String description;
     private String coverImage;
+    private String provinceName;
+    private Integer provinceId;
+
+    public static InfoUniversityResponseDTO fromEntity(UniversityInfo universityInfo, Province province) {
+        return InfoUniversityResponseDTO.builder()
+                .id(universityInfo.getId())
+                .name(universityInfo.getName())
+                .code(universityInfo.getCode())
+                .type(universityInfo.getType().name())
+                .description(universityInfo.getDescription())
+                .coverImage(universityInfo.getCoverImage())
+                .provinceName(province.getName())
+                .provinceId(province.getId())
+                .build();
+    }
 }
