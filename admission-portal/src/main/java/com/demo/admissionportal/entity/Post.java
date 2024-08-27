@@ -83,4 +83,5 @@ public class Post {
 
     @Column(name = "note")
     private String note;
+
 }

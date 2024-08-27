@@ -121,7 +121,7 @@ public class EmailUtil {
                 log.error("Error sending email to {}: {}", to, e.getMessage());
             }
         });
-        return true; // Assuming the task submission is successful
+        return true;
     }
 
     // Optional: Shutdown executor service gracefully

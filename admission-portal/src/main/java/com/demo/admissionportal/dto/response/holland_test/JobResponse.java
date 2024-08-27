@@ -18,4 +18,5 @@ public class JobResponse implements Serializable {
     private String name;
     private String createBy;
     private Date createTime;
+    private String status;
 }

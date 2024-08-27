@@ -1,14 +1,13 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.constants.CreateUniversityRequestStatus;
-import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.controller.CreateUniversityController;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.create_university_request.CreateUniversityRequestDTO;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.CreateUniversityRequest;
+import com.demo.admissionportal.entity.UniversityCampus;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
@@ -16,6 +15,7 @@ import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.CreateUniversityRequestRepository;
+import com.demo.admissionportal.repository.UniversityCampusRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.service.CreateUniversityService;
@@ -52,6 +52,7 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
     private final UserServiceImpl userServiceImpl;
     private final CreateUniversityController createUniversityController;
     private final UniversityService universityService;
+    private final UniversityCampusRepository universityCampusRepository;
 
     /**
      * Handles the creation of a university creation request.
@@ -207,6 +208,11 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
                 universityInfoRepository.save(universityInfo);
                 log.info("Creating and storing University Information succeed");
                 log.info("Password: {}", password);
+
+                log.info("Start process create university campus");
+                UniversityCampus campus = getUniversityCampus(universityInfo);
+                universityCampusRepository.save(campus);
+                log.info("End process create university campus");
             }
 
             log.info("Updating and storing Create university request");
@@ -231,6 +237,22 @@ public class CreateUniversityServiceImpl implements CreateUniversityService {
             throw new StoreDataFailedException("Tạo tài khoản trường học thất bại.");
         }
 
+    }
+
+    private static UniversityCampus getUniversityCampus(UniversityInfo universityInfo) {
+        UniversityCampus campus = new UniversityCampus();
+        campus.setUniversityId(universityInfo.getId());
+        campus.setCampusName("N/A");
+        campus.setEmail("N/A");
+        campus.setSpecificAddress("N/A");
+        campus.setProvinceId(1);
+        campus.setDistrictId(1);
+        campus.setWardId(1);
+        campus.setCreateTime(new Date());
+        campus.setCreateBy(universityInfo.getId());
+        campus.setType(CampusType.HEADQUARTERS);
+        campus.setStatus(UniversityCampusStatus.ACTIVE);
+        return campus;
     }
 
     /**

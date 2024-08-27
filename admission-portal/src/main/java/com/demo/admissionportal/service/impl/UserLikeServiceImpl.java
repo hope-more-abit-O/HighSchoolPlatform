@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.LikeStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.like.LikeResponseDTO;
+import com.demo.admissionportal.dto.response.like.TotalLikeResponseDTO;
 import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.UserLike;
@@ -80,9 +81,26 @@ public class UserLikeServiceImpl implements UserLikeService {
     }
 
     @Override
-    public ResponseData<List<LikeResponseDTO>> getLike(Integer universityID) {
+    public ResponseData<TotalLikeResponseDTO> getTotalLike(Integer postId) {
+        Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        if (postId == null) {
+            return new ResponseData<>(ResponseCode.C205.getCode(), "universityID null");
+        }
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId);
+        Integer totalCount = userLikeRepository.totalLikeCountPostId(postId).orElse(0);
+        TotalLikeResponseDTO totalLikeResponseDTO = new TotalLikeResponseDTO();
+        totalLikeResponseDTO.setCurrentStatus(like != null ? like.getStatus().name : LikeStatus.UNLIKE.name);
+        totalLikeResponseDTO.setTotal(totalCount);
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy số lượng favorite thành công", totalLikeResponseDTO);
+    }
+
+    @Override
+    public ResponseData<List<LikeResponseDTO>> getLikeByUniversity(Integer universityID) {
         Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         List<UserLike> like = userLikeRepository.findByUserIdAndUniversityId(userId, universityID);
+        if (like == null) {
+            return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy like với uniId: " + universityID);
+        }
         List<LikeResponseDTO> likeResponseDTOS = like.stream()
                 .map(this::mapToLike)
                 .collect(Collectors.toList());

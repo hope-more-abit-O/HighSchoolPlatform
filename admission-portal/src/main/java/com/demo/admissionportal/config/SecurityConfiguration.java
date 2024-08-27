@@ -60,6 +60,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
+    private static final String EXAM_LOCAL = "/api/v1/exam-local";
     private static final String SUBJECT_API = "/api/v1/subject/**";
     private static final String STATISTICS_API = "/api/v1/statistics/**";
     private static final String FOLLOW_API = "/api/v1/follow/**";
@@ -113,7 +114,6 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY", "CONSULTANT")
-                                .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/all").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
@@ -121,6 +121,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(UNIVERSITY_TRAINING_PROGRAM).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(STATISTICS_API).hasAnyAuthority("UNIVERSITY","ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        EXAM_LOCAL,
                                         HOLLAND_TEST_API,
                                         CHATBOT_API,
                                         EXAM_SCORE_API,
@@ -135,6 +136,7 @@ public class SecurityConfiguration {
                                         FAVORITE_API,
                                         SUBJECT_API,
                                         FOLLOW_API,
+                                        LIKE_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

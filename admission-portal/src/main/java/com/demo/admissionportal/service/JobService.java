@@ -16,10 +16,12 @@ public interface JobService {
     /**
      * Gets all job.
      *
+     * @param jobName  the job name
+     * @param status   the status
      * @param pageable the pageable
      * @return the all job
      */
-    ResponseData<Page<JobResponse>> getAllJob(Pageable pageable);
+    ResponseData<Page<JobResponse>> getAllJob(String jobName, String status, Pageable pageable);
 
     /**
      * Create job response data.
