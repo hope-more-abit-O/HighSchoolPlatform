@@ -19,7 +19,9 @@ public enum PostStatus {
     /**
      * Inactive post status.
      */
-    INACTIVE("Không hoạt động");
+    INACTIVE("Không hoạt động"),
+
+    BANNED("Bị Xóa");
 
     /**
      * -- GETTER --
