@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.entity.report.function_report;
 
+import com.demo.admissionportal.constants.PostReportActionType;
 import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
@@ -19,6 +20,7 @@ public class FindAllFuntionReportDTO {
     private ReportType reportType;
     private Date createTime;
     private ReportStatus status;
+    private PostReportActionType reportActionType;
 
     public FindAllFuntionReportDTO(Integer reportId, ReportStatus status, Date createTime, ReportType reportType, Integer createById, String ticketId) {
         this.reportId = reportId;

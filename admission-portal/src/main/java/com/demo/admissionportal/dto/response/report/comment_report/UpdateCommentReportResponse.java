@@ -28,4 +28,5 @@ public class UpdateCommentReportResponse {
     private String reportAction;
     private String response;
     private String status;
+    private String isBanned;
 }

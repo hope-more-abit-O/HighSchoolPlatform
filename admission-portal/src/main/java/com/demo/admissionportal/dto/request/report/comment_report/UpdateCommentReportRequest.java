@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.request.report.comment_report;
 
+import com.demo.admissionportal.constants.isBannedType;
 import com.demo.admissionportal.util.enum_validator.EnumReportAction;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,6 @@ public class UpdateCommentReportRequest {
     @EnumReportAction
     private String reportAction;
     private String response;
-    private Boolean isBanned;
+    private String isBanned;
 }
 

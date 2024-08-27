@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.sub_entity;
 
+import com.demo.admissionportal.constants.PostReportActionType;
 import com.demo.admissionportal.entity.sub_entity.id.PostReportId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class PostReport {
     @Column(name = "post_id")
     private Integer postId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "report_action")
-    private String reportAction;
+    private PostReportActionType reportAction;
 }
