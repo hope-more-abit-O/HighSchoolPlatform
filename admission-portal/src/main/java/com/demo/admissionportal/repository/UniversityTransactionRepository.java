@@ -199,6 +199,4 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                                           @Param("endDay") Date endDay,
                                                           @Param("universityId") Integer universityId,
                                                           @Param("commentStatus") String commentStatus);
-
-
 }

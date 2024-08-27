@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -60,12 +62,34 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public ResponseData<?> getStatisticsV2(Date startDay, Date endDay, String type, String role, String status) {
+    public ResponseData<?> getStatisticsV2(Date startDay, Date endDay, String type, String role, String status, String period) {
         try {
             Role user = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
             Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             List<StatisticsAdminResponseV3> statistics;
             String normalizedType = type.toLowerCase();
+
+            LocalDate now = LocalDate.now();
+            switch (period) {
+                case "12 months":
+                    startDay = Date.from(LocalDate.of(now.getYear(), 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    endDay = Date.from(LocalDate.of(now.getYear(), 12, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    break;
+                case "6 months":
+                    startDay = Date.from(now.minusMonths(6).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    break;
+                case "30 days":
+                    startDay = Date.from(now.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    break;
+                case "7 days":
+                    startDay = Date.from(now.minusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Chu kỳ không hợp lệ: " + period);
+            }
 
             switch (user) {
                 case ADMIN -> statistics = getStatistics(startDay, endDay, type, role, status);
