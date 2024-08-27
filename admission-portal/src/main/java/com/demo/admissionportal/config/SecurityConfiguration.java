@@ -112,7 +112,6 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY", "CONSULTANT")
-                                .requestMatchers(LIKE_API).hasAuthority("USER")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/all").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
@@ -134,6 +133,7 @@ public class SecurityConfiguration {
                                         FAVORITE_API,
                                         SUBJECT_API,
                                         FOLLOW_API,
+                                        LIKE_API,
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",

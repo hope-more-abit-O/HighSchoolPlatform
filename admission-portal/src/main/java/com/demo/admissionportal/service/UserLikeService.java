@@ -2,8 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.like.LikeResponseDTO;
-
-import java.util.List;
+import com.demo.admissionportal.dto.response.like.TotalLikeResponseDTO;
 
 /**
  * The interface User like service.
@@ -20,8 +19,16 @@ public interface UserLikeService {
     /**
      * Gets like.
      *
-     * @param universityID the university id
+     * @param postId the post id
      * @return the like
      */
-    ResponseData<List<LikeResponseDTO>> getLike(Integer universityID);
+    ResponseData<LikeResponseDTO> getLike(Integer postId);
+
+    /**
+     * Gets total like.
+     *
+     * @param postId the post id
+     * @return the total like
+     */
+    ResponseData<TotalLikeResponseDTO> getTotalLike(Integer postId);
 }

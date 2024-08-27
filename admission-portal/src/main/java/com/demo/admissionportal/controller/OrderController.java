@@ -1,17 +1,16 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.request.payment.CreatePaymentLinkRequestBody;
 import com.demo.admissionportal.dto.request.payment.CreateQrRequestDTO;
 import com.demo.admissionportal.dto.request.payment.PaymentRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.CreateQrResponseDTO;
 import com.demo.admissionportal.dto.response.payment.PaymentResponseDTO;
-import com.demo.admissionportal.entity.AdsPackage;
-import com.demo.admissionportal.entity.UniversityPackage;
-import com.demo.admissionportal.entity.UniversityTransaction;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.PackageRepository;
+import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UniversityTransactionRepository;
 import com.demo.admissionportal.service.UniversityPackageService;
 import com.demo.admissionportal.service.UniversityTransactionService;
@@ -50,6 +49,7 @@ public class OrderController {
     private final UniversityTransactionService universityTransactionService;
     private final UniversityPackageService universityPackageService;
     private final UniversityTransactionRepository universityTransactionRepository;
+    private final UniversityInfoRepository universityInfoRepository;
 
     /**
      * Create qr object node.
@@ -60,7 +60,8 @@ public class OrderController {
     @PostMapping("/create-QR/")
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<ResponseData<CreateQrResponseDTO>> createQR(@RequestBody List<CreateQrRequestDTO> requestDTO) {
-        Integer universityId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Role role = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
         AdsPackage adsPackage;
         List<AdsPackage> listAdsPackage = new ArrayList<>();
         UniversityTransaction universityTransaction;
@@ -68,7 +69,12 @@ public class OrderController {
         List<CreateQrResponseDTO.InfoTransactionDTO> infoTransactionDTOList = new ArrayList<>();
         for (CreateQrRequestDTO request : requestDTO) {
             adsPackage = packageRepository.findPackageById(request.getPackageId());
-            universityTransaction = universityTransactionService.createTransaction(universityId, adsPackage);
+            if (role.equals(Role.UNIVERSITY)) {
+                universityTransaction = universityTransactionService.createTransaction(userId, adsPackage);
+            } else {
+                UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(userId);
+                universityTransaction = universityTransactionService.createTransaction(universityInfo.getId(), adsPackage);
+            }
             universityPackage = universityPackageService.createUniPackage(adsPackage, universityTransaction, request.getPostId());
             CreateQrResponseDTO.InfoTransactionDTO transactionDTO = new CreateQrResponseDTO.InfoTransactionDTO();
             transactionDTO.setPostId(request.getPostId());
