@@ -36,10 +36,12 @@ public interface QuestionService {
     /**
      * Gets list question.
      *
+     * @param content  the content
+     * @param status   the status
      * @param pageable the pageable
      * @return the list question
      */
-    ResponseData<Page<QuestionResponse>> getListQuestion(Pageable pageable);
+    ResponseData<Page<QuestionResponse>> getListQuestion(String content, String status, Pageable pageable);
 
     /**
      * Update question question reponse.

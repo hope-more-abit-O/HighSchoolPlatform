@@ -39,14 +39,15 @@ public class JobServiceImpl implements JobService {
     private final StaffInfoRepository staffInfoRepository;
 
     @Override
-    public ResponseData<Page<JobResponse>> getAllJob(Pageable pageable) {
+    public ResponseData<Page<JobResponse>> getAllJob(String jobName, String status, Pageable pageable) {
         try {
-            Page<Job> jobResponses = jobRepository.findJobs(pageable);
+            Page<Job> jobResponses = jobRepository.findJobs(jobName, status, pageable);
             Page<JobResponse> jobResponseList = jobResponses
                     .map(job -> {
                         StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(job.getCreateBy());
                         JobResponse mappedJob = modelMapper.map(job, JobResponse.class);
                         mappedJob.setCreateBy(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
+                        mappedJob.setStatus(job.getStatus().name);
                         return mappedJob;
                     });
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách nghề nghiệp", jobResponseList);

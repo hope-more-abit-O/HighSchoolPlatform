@@ -178,9 +178,9 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseData<Page<QuestionResponse>> getListQuestion(Pageable pageable) {
+    public ResponseData<Page<QuestionResponse>> getListQuestion(String content, String status, Pageable pageable) {
         try {
-            Page<Question> questionList = questionRepository.findListQuestion(pageable);
+            Page<Question> questionList = questionRepository.findListQuestion(content, status, pageable);
             Page<QuestionResponse> questionResponses = questionList.map(this::mapToListQuestionResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách question thành công", questionResponses);
         } catch (Exception e) {
@@ -298,10 +298,11 @@ public class QuestionServiceImpl implements QuestionService {
             questionnaireRepository.save(questionnaire);
 
             // Create questionnaire with 60 question
-            for (QuestionResponse question : request.getQuestions()) {
+            for (QuestionCreateRequestDTO question : request.getQuestions()) {
                 QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
                 questionnaireQuestion.setQuestionId(question.getQuestionId());
                 questionnaireQuestion.setQuestionnaireId(questionnaire.getId());
+                questionnaireQuestion.setStatus(QuestionStatus.ACTIVE);
                 questionnaireQuestionRepository.save(questionnaireQuestion);
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo bộ câu hỏi thành công");
@@ -311,16 +312,16 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    public boolean checkQuestionIsEnough(List<QuestionResponse> question) {
+    public boolean checkQuestionIsEnough(List<QuestionCreateRequestDTO> question) {
         // Group questions by their type
-        Map<String, List<QuestionResponse>> questionsByType = question.stream()
-                .collect(Collectors.groupingBy(QuestionResponse::getQuestionType));
+        Map<String, List<QuestionCreateRequestDTO>> questionsByType = question.stream()
+                .collect(Collectors.groupingBy(QuestionCreateRequestDTO::getQuestionType));
 
         // Check if all 6 types have exactly 10 questions
         if (questionsByType.size() != 6) {
             return false;
         }
-        for (Map.Entry<String, List<QuestionResponse>> entry : questionsByType.entrySet()) {
+        for (Map.Entry<String, List<QuestionCreateRequestDTO>> entry : questionsByType.entrySet()) {
             if (entry.getValue().size() != 10) {
                 return false;
             }
