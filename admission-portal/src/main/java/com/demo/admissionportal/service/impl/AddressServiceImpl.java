@@ -47,6 +47,10 @@ public class AddressServiceImpl implements AddressService {
         });
     }
 
+    public List<Province> findProvinceByIds(List<Integer> ids) throws ResourceNotFoundException {
+        return provinceRepository.findAllById(ids);
+    }
+
     @Override
     public ResponseData<List<Province>> findProvince(List<String> regions) {
         List<Region> regionList = new ArrayList<>();

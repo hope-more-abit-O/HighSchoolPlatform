@@ -59,6 +59,7 @@ public class AdmissionTrainingProgram {
         this.mainSubjectId = trainingProgramDTOs.getMainSubjectId();
         this.language = trainingProgramDTOs.getLanguage();
         this.trainingSpecific = trainingProgramDTOs.getTrainingSpecific();
+        this.quota = trainingProgramDTOs.getQuota();
     }
 
     public AdmissionTrainingProgram(Integer admissionId, CreateAdmissionQuotaRequest request) {

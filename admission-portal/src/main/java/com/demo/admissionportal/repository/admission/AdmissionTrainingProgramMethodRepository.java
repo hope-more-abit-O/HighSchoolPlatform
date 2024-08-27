@@ -53,4 +53,9 @@ AND (a.year = (:year - 2) OR a.year = (:year - 1) OR a.year = (2024));
                                                                                 @Param("majorCode") String majorCode,
                                                                                 @Param("provinceId") Integer provinceId,
                                                                                 @Param("year") Integer year);
+
+    @Query(value = """
+    SELECT COUNT(*) FROM [admission_training_program_method]
+    """, nativeQuery = true)
+    Integer countAll();
 }

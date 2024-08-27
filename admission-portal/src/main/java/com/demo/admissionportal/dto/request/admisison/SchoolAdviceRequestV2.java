@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SchoolAdviceRequestV2 {
     private List<Integer> majorId;
-    private Float offset;
-    private Float score;
+    private Float fromScore;
+    private Float toScore;
     private List<String> region;
-    private List<Integer> subjectGroupId;
     private List<Integer> subjectId;
     private List<Integer> methodId;
     private List<Integer> provinceId;
+    private Integer pageNumber;
+    private Integer rowsPerPage;
 }

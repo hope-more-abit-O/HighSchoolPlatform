@@ -101,6 +101,7 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/search").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice/v2").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/a").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/university/{id}/latest-training-program").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission").permitAll()
