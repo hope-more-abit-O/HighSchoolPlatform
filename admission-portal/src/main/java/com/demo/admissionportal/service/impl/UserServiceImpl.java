@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
             userProfileResponseDTO.setGender(userInfo.getGender().name);
 
             // Convert dd-MM-YYYY
-            Date date = new Date();
+            Date date = userInfo.getBirthday();
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
             String dateUserProfile = formatter.format(date);
             userProfileResponseDTO.setBirthday(dateUserProfile);
