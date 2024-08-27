@@ -17,13 +17,16 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
     /**
      * Find jobs page.
      *
+     * @param jobName  the job name
+     * @param status   the status
      * @param pageable the pageable
      * @return the page
      */
     @Query(value = "SELECT * " +
             "FROM job j " +
-            "WHERE j.status = N'ACTIVE'", nativeQuery = true)
-    Page<Job> findJobs(Pageable pageable);
+            "WHERE (:jobName IS NULL OR j.name LIKE N'%' + :jobName + '%')" +
+            "AND (:status IS NULL OR j.status = :status)", nativeQuery = true)
+    Page<Job> findJobs(@Param("jobName") String jobName, String status, Pageable pageable);
 
     /**
      * Find job by content job.
