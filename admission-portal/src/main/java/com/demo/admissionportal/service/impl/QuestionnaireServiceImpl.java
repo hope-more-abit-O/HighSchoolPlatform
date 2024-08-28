@@ -7,10 +7,7 @@ import com.demo.admissionportal.dto.request.holland_test.QuestionCreateRequestDT
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.QuestionnaireResponse;
-import com.demo.admissionportal.entity.Question;
-import com.demo.admissionportal.entity.QuestionType;
-import com.demo.admissionportal.entity.Questionnaire;
-import com.demo.admissionportal.entity.StaffInfo;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
 import com.demo.admissionportal.entity.sub_entity.QuestionnaireQuestion;
 import com.demo.admissionportal.repository.QuestionRepository;
@@ -26,8 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,18 +77,26 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     }
 
     @Override
-    public ResponseData<String> deleteQuestionFromQuestionnaireId(DeleteQuestionQuestionnaireRequest request) {
+    public ResponseData<String> deleteQuestionnaireId(Integer questionnaireId) {
         try {
-            if (request == null) {
+            Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (questionnaireId == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "request null");
             }
-            QuestionnaireQuestion questionnaireQuestion = questionnaireQuestionRepository.findByQuestionnaireQuestionId(request.getQuestionnaireId(), request.getQuestionId());
-            if (questionnaireQuestion == null) {
+            Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId).orElse(null);
+            if (questionnaire == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question");
             }
-            questionnaireQuestion.setStatus(QuestionStatus.INACTIVE);
-            questionnaireQuestionRepository.save(questionnaireQuestion);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá question thành công");
+            if (questionnaire.getStatus().equals(QuestionStatus.ACTIVE)) {
+                questionnaire.setStatus(QuestionStatus.INACTIVE);
+
+            } else {
+                questionnaire.setStatus(QuestionStatus.ACTIVE);
+            }
+            questionnaire.setUpdateBy(updateBy);
+            questionnaire.setUpdateTime(new Date());
+            questionnaireRepository.save(questionnaire);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái questionnaire thành công");
         } catch (Exception ex) {
             log.error("Error when delete questionnaire with ID: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi xoá câu hỏi", null);
