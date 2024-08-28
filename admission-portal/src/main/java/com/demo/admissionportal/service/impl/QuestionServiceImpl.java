@@ -137,6 +137,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
         try {
+            Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             if (questionId == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
             }
@@ -147,6 +148,11 @@ public class QuestionServiceImpl implements QuestionService {
             List<QuestionnaireQuestion> questionnaireQuestion = questionnaireQuestionRepository.findByQuestionnaireId(questionId);
             if (questionnaireQuestion != null) {
                 return new ResponseData<>(ResponseCode.C207.getCode(), "Câu hỏi đã tồn tại trong bộ câu hỏi");
+            } else {
+                questionExisted.setUpdateBy(updateBy);
+                questionExisted.setUpdateTime(new Date());
+                questionExisted.setStatus(QuestionStatus.INACTIVE);
+                questionRepository.save(questionExisted);
             }
             DeleteQuestionResponse response = new DeleteQuestionResponse();
             response.setCurrentStatus(questionExisted.getStatus().name);
