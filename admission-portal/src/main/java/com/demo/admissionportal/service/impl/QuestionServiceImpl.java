@@ -235,6 +235,7 @@ public class QuestionServiceImpl implements QuestionService {
         try {
             List<Question> allQuestions = questionRepository.findAll();
             Map<Integer, List<Question>> questionsByType = allQuestions.stream()
+                    .filter(question -> question.getStatus().equals(QuestionStatus.ACTIVE))
                     .collect(Collectors.groupingBy(Question::getType));
 
             List<QuestionResponse> resultOfRandom = new ArrayList<>();
