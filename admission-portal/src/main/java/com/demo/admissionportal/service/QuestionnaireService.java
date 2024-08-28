@@ -36,10 +36,10 @@ public interface QuestionnaireService {
     /**
      * Delete question from questionnaire id response data.
      *
-     * @param request the request
+     * @param questionnaireId the questionnaire id
      * @return the response data
      */
-    ResponseData<String> deleteQuestionFromQuestionnaireId(DeleteQuestionQuestionnaireRequest request);
+    ResponseData<String> deleteQuestionnaireId(Integer questionnaireId);
 
     /**
      * Update questionnaire response data.

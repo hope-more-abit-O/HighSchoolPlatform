@@ -260,16 +260,16 @@ public class HollandQuestionController {
     /**
      * Delete question from questionnaire response entity.
      *
-     * @param request the request
+     * @param questionnaireId the questionnaire id
      * @return the response entity
      */
-    @DeleteMapping("/questionnaire")
+    @DeleteMapping("/questionnaire/{questionnaireId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<String>> deleteQuestionFromQuestionnaire(@RequestBody @Valid DeleteQuestionQuestionnaireRequest request) {
-        if (request == null) {
+    public ResponseEntity<ResponseData<String>> deleteQuestionFromQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId) {
+        if (questionnaireId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
         }
-        ResponseData<String> resultOfDelete = questionnaireService.deleteQuestionFromQuestionnaireId(request);
+        ResponseData<String> resultOfDelete = questionnaireService.deleteQuestionnaireId(questionnaireId);
         if (resultOfDelete.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(resultOfDelete);
         } else if (resultOfDelete.getStatus() == ResponseCode.C205.getCode()) {
@@ -352,6 +352,13 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
     }
 
+    /**
+     * Update questionnaire response entity.
+     *
+     * @param questionnaireId the questionnaire id
+     * @param request         the request
+     * @return the response entity
+     */
     @PutMapping("/questionnaire/{questionnaireId}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<String>> updateQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId, @RequestBody @Valid List<QuestionCreateRequestDTO> request) {
@@ -365,17 +372,27 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfUpdate);
     }
 
+    /**
+     * Gets list job.
+     *
+     * @return the list job
+     */
     @GetMapping("/job/list")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<List<JobResponse>>> getListJob(){
+    public ResponseEntity<ResponseData<List<JobResponse>>> getListJob() {
         ResponseData<List<JobResponse>> jobList = jobService.getListJob();
-        if(jobList.getStatus() == ResponseCode.C200.getCode()) {
+        if (jobList.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(jobList);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jobList);
     }
 
 
+    /**
+     * Gets list question no pageable.
+     *
+     * @return the list question no pageable
+     */
     @GetMapping("/question/list/v2")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestionNoPageable() {
