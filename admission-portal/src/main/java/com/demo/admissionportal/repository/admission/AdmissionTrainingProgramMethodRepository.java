@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository.admission;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -58,4 +59,22 @@ AND (a.year = (:year - 2) OR a.year = (:year - 1) OR a.year = (2024));
     SELECT COUNT(*) FROM [admission_training_program_method]
     """, nativeQuery = true)
     Integer countAll();
+
+    @Query(value = """
+SELECT atpm.*
+FROM [admission_training_program_method] atpm
+INNER JOIN [admission_training_program] atp ON atp.id = atpm.admission_training_program_id
+INNER JOIN [admission] a ON a.id = atp.admission_id
+WHERE a.university_id = :id AND a.year = :year AND a.status = :admissionStatus
+""", nativeQuery = true)
+    List<AdmissionTrainingProgramMethod> findByUniversityIdAndYearAndStatus(Integer id, int year, String admissionStatus);
+
+    @Query(value = """
+SELECT atpm.*
+FROM [admission_training_program_method] atpm
+INNER JOIN [admission_training_program] atp ON atp.id = atpm.admission_training_program_id
+INNER JOIN [admission] a ON a.id = atp.admission_id
+WHERE a.university_id in (:id) AND a.year = :year AND a.status = :admissionStatus
+""", nativeQuery = true)
+    List<AdmissionTrainingProgramMethod> findByUniversityIdAndYearAndStatus(List<Integer> id, int year, String admissionStatus);
 }

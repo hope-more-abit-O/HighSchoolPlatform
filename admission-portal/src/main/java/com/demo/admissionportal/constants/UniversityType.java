@@ -11,13 +11,19 @@ public enum UniversityType {
     /**
      * Public university.
      */
-    PUBLIC,
+    PUBLIC("Công lập"),
     /**
      * Private university.
      */
-    PRIVATE,
+    PRIVATE("Tư thục"),
     /**
      * Military university.
      */
-    MILITARY
+    MILITARY("Quân đội");
+
+    public final String name;
+
+    UniversityType(String name) {
+        this.name = name;
+    }
 }

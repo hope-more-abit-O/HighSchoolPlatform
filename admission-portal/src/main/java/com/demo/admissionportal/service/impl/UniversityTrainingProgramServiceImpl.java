@@ -2,19 +2,18 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityTrainingProgramStatus;
+import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.university_training_program.FullUniversityTrainingProgramDTO;
 import com.demo.admissionportal.dto.entity.university_training_program.InfoUniversityTrainingProgramDTO;
 import com.demo.admissionportal.dto.response.university_training_program.GetFullUniversityTrainingProgramResponse;
 import com.demo.admissionportal.dto.response.university_training_program.GetInfoUniversityTrainingProgramResponse;
-import com.demo.admissionportal.entity.ConsultantInfo;
-import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.entity.UniversityTrainingProgram;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
+import com.demo.admissionportal.service.MajorService;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
@@ -34,6 +33,26 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     private final UniversityTrainingProgramRepository universityTrainingProgramRepository;
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
     private final UniversityInfoService universityInfoService;
+    private final MajorService majorService;
+
+    public static void removeAllMatching(List<UniversityTrainingProgram> universityTrainingPrograms, List<UniversityTrainingProgram> activeUniversityTrainingPrograms) {
+        Iterator<UniversityTrainingProgram> iterator = universityTrainingPrograms.iterator();
+        while (iterator.hasNext()) {
+            UniversityTrainingProgram program = iterator.next();
+            for (UniversityTrainingProgram activeProgram : activeUniversityTrainingPrograms) {
+                if (isMatching(program, activeProgram)) {
+                    iterator.remove();
+                    break; // Break to avoid removing the same item multiple times
+                }
+            }
+        }
+    }
+
+    private static boolean isMatching(UniversityTrainingProgram program, UniversityTrainingProgram activeProgram) {
+        return program.getMajorId().equals(activeProgram.getMajorId())
+                && (program.getTrainingSpecific() == null ? activeProgram.getTrainingSpecific() == null : program.getTrainingSpecific().equals(activeProgram.getTrainingSpecific()))
+                && (program.getLanguage() == null ? activeProgram.getLanguage() == null : program.getLanguage().equals(activeProgram.getLanguage()));
+    }
 
     public List<UniversityTrainingProgram> findByUniversityId(Integer universityId) {
         return universityTrainingProgramRepository.findByUniversityId(universityId);
@@ -44,15 +63,15 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     }
 
     public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId) {
-        List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityId(universityId);
-
-        return new GetFullUniversityTrainingProgramResponse(fullMapping(universityTrainingPrograms));
+        List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityIdWithStatus(universityId, UniversityTrainingProgramStatus.ACTIVE);
+        List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
+        return new GetFullUniversityTrainingProgramResponse(fullMapping(universityTrainingPrograms, majors));
     }
 
     public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(Integer universityId) {
         List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityId(universityId);
-
-        return new GetInfoUniversityTrainingProgramResponse(infoMapping(universityTrainingPrograms));
+        List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
+        return new GetInfoUniversityTrainingProgramResponse(infoMapping(universityTrainingPrograms, majors));
     }
 
     @Override
@@ -70,7 +89,7 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
             }
         }
 
-        if (user.getRole().equals(Role.STAFF)){
+        if (user.getRole().equals(Role.STAFF)) {
             UniversityInfo universityInfo = universityInfoService.findById(universityId);
             if (!universityInfo.getStaffId().equals(user.getId())) {
                 throw new BadRequestException("Trường này không thuộc thẩm quyền của bạn", Map.of("universityId", universityId.toString()));
@@ -159,14 +178,14 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         }
     }
 
-    public FullUniversityTrainingProgramDTO fullMapping(UniversityTrainingProgram universityTrainingProgram) {
+    public FullUniversityTrainingProgramDTO fullMappingFull(UniversityTrainingProgram universityTrainingProgram, List<Major> majors) {
         return new FullUniversityTrainingProgramDTO(
                 universityTrainingProgram.getId(),
                 universityTrainingProgram.getUniversityId(),
-                universityTrainingProgram.getMajorId(),
+                majors.stream().filter(major -> major.getId().equals(universityTrainingProgram.getMajorId())).findFirst().map(InfoMajorDTO::new).orElseThrow(() -> new BadRequestException("Không tìm thấy ngành học", Map.of("majorId", universityTrainingProgram.getMajorId().toString()))),
                 universityTrainingProgram.getTrainingSpecific(),
                 universityTrainingProgram.getLanguage(),
-                universityTrainingProgram.getStatus().name(),
+                universityTrainingProgram.getStatus().name,
                 universityTrainingProgram.getCreateTime(),
                 universityTrainingProgram.getCreateBy(),
                 universityTrainingProgram.getUpdateTime(),
@@ -174,23 +193,28 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         );
     }
 
-    public List<FullUniversityTrainingProgramDTO> fullMapping(List<UniversityTrainingProgram> universityTrainingPrograms) {
-        return universityTrainingPrograms.stream().map(this::fullMapping).collect(Collectors.toList());
+    public List<FullUniversityTrainingProgramDTO> fullMapping(List<UniversityTrainingProgram> universityTrainingPrograms, List<Major> majors) {
+        return universityTrainingPrograms.stream()
+                .map(universityTrainingProgram -> fullMappingFull(universityTrainingProgram, majors))
+                .collect(Collectors.toList());
     }
 
-    public InfoUniversityTrainingProgramDTO infoMapping(UniversityTrainingProgram universityTrainingProgram) {
+    public InfoUniversityTrainingProgramDTO infoMapping(UniversityTrainingProgram universityTrainingProgram, List<Major> majors) {
         return new InfoUniversityTrainingProgramDTO(
                 universityTrainingProgram.getId(),
                 universityTrainingProgram.getUniversityId(),
-                universityTrainingProgram.getMajorId(),
+                majors.stream().filter(major -> major.getId().equals(universityTrainingProgram.getMajorId())).findFirst().map(InfoMajorDTO::new).orElseThrow(() -> new BadRequestException("Không tìm thấy ngành học", Map.of("majorId", universityTrainingProgram.getMajorId().toString()))),
                 universityTrainingProgram.getTrainingSpecific(),
                 universityTrainingProgram.getLanguage(),
-                universityTrainingProgram.getStatus().name()
+                universityTrainingProgram.getStatus().name
         );
     }
 
-    public List<InfoUniversityTrainingProgramDTO> infoMapping(List<UniversityTrainingProgram> universityTrainingPrograms) {
-        return universityTrainingPrograms.stream().map(this::infoMapping).collect(Collectors.toList());
+    public List<InfoUniversityTrainingProgramDTO> infoMapping(List<UniversityTrainingProgram> universityTrainingPrograms, List<Major> majors) {
+        return universityTrainingPrograms
+                .stream()
+                .map((element) -> infoMapping(element, majors))
+                .collect(Collectors.toList());
     }
 
     public void inactiveAll(Integer universityId, Integer updateBy) {
@@ -205,22 +229,7 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         universityTrainingProgramRepository.saveAll(universityTrainingPrograms);
     }
 
-    public static void removeAllMatching(List<UniversityTrainingProgram> universityTrainingPrograms, List<UniversityTrainingProgram> activeUniversityTrainingPrograms) {
-        Iterator<UniversityTrainingProgram> iterator = universityTrainingPrograms.iterator();
-        while (iterator.hasNext()) {
-            UniversityTrainingProgram program = iterator.next();
-            for (UniversityTrainingProgram activeProgram : activeUniversityTrainingPrograms) {
-                if (isMatching(program, activeProgram)) {
-                    iterator.remove();
-                    break; // Break to avoid removing the same item multiple times
-                }
-            }
-        }
-    }
-
-    private static boolean isMatching(UniversityTrainingProgram program, UniversityTrainingProgram activeProgram) {
-        return program.getMajorId().equals(activeProgram.getMajorId())
-                && (program.getTrainingSpecific() == null ? activeProgram.getTrainingSpecific() == null : program.getTrainingSpecific().equals(activeProgram.getTrainingSpecific()))
-                && (program.getLanguage() == null ? activeProgram.getLanguage() == null : program.getLanguage().equals(activeProgram.getLanguage()));
+    public List<UniversityTrainingProgram> findByUniversityIdsWithStatus(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus) {
+        return universityTrainingProgramRepository.findByUniversityIdInAndStatus(universityIds, universityTrainingProgramStatus);
     }
 }

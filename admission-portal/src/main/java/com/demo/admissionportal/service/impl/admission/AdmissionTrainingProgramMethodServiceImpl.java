@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.dto.AdmissionTrainingProgramMethodDTOV2;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionTrainingProgramMethodRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
@@ -369,11 +370,19 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         if (pageNumber == null || rowsPerPage == null) {
             return queryBuilder.toString();
         }
-        queryBuilder.append("ORDER BY atpm.admission_training_program_id\n" +
+        queryBuilder.append("ORDER BY atpm.admission_training_program_id desc\n" +
                 "OFFSET :PageNumber * :RowsPerPage ROWS\n" +
                 "FETCH NEXT :RowsPerPage ROWS ONLY");
         parameters.put("PageNumber", pageNumber);
         parameters.put("RowsPerPage", rowsPerPage);
         return queryBuilder.toString();
+    }
+
+    public List<AdmissionTrainingProgramMethod> findByUniversityIdAndYearAndStatus(Integer id, int year, AdmissionStatus admissionStatus) {
+        return admissionTrainingProgramMethodRepository.findByUniversityIdAndYearAndStatus(id, year, admissionStatus.name());
+    }
+
+    public List<AdmissionTrainingProgramMethod> findByUniversityIdInAndYearAndStatus(List<Integer> id, int year, AdmissionStatus admissionStatus) {
+        return admissionTrainingProgramMethodRepository.findByUniversityIdAndYearAndStatus(id, year, admissionStatus.name());
     }
 }
