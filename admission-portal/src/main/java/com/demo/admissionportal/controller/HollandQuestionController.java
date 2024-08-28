@@ -351,4 +351,18 @@ public class HollandQuestionController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
     }
+
+    @PutMapping("/questionnaire/{questionnaireId}")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<String>> updateQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId, @RequestBody @Valid List<QuestionCreateRequestDTO> request) {
+        if (questionnaireId == null || request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
+        }
+        ResponseData<String> resultOfUpdate = questionnaireService.updateQuestionnaire(questionnaireId, request);
+        if (resultOfUpdate.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfUpdate);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfUpdate);
+    }
+
 }
