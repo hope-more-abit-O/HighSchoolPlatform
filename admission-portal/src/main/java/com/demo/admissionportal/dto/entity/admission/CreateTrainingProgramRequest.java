@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.entity.admission;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateTrainingProgramRequest {
-    @NotBlank
+    @NotNull
     private Integer majorId;
 
     private Integer mainSubjectId;

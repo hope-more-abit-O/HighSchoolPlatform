@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request.post;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +15,11 @@ import java.io.Serializable;
 @Builder
 @Valid
 public class TypePostUpdateRequestDTO implements Serializable {
-    @NotBlank(message = "Loại bài đăng không được để trống")
+    @NotNull(message = "Loại bài đăng không được để trống")
     private String name;
-    @NotBlank(message = "Người đăng bài không được để trống")
+    @NotNull(message = "Người đăng bài không được để trống")
     private Integer create_by;
-    @NotBlank(message = "Người cập nhật loại bài đăng không được để trống")
+    @NotNull(message = "Người cập nhật loại bài đăng không được để trống")
     private Integer update_by;
 
     public void setName(String name) {

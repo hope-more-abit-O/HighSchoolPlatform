@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +20,7 @@ public class RequestSubjectDTO implements Serializable {
     /**
      * The Name.
      */
-    @NotBlank(message = "Tên môn học trống hoặc rỗng")
+    @NotNull(message = "Tên môn học trống hoặc rỗng")
     private String name;
 
     public void setName(String name) {

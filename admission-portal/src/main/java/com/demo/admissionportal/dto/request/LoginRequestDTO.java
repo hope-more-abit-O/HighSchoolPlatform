@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginRequestDTO {
-    @NotBlank(message = "Username không thể để trống")
+    @NotNull(message = "Username không thể để trống")
     private String username;
-    @NotBlank(message = "Mật khẩu không thể để trống !")
+    @NotNull(message = "Mật khẩu không thể để trống !")
     private String password;
 }

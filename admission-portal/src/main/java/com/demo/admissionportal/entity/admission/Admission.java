@@ -4,7 +4,7 @@ import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +27,7 @@ public class Admission {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotBlank
+    @NotNull
     @Column(name = "\"year\"", nullable = false, length = 4)
     private Integer year;
 
@@ -41,11 +41,11 @@ public class Admission {
     @Column(name = "source", length = 400)
     private String source;
 
-    @NotBlank
+    @NotNull
     @Column(name = "university_id", nullable = false)
     private Integer universityId;
 
-    @NotBlank
+    @NotNull
     @Column(name = "create_time", nullable = false)
     private Date createTime;
 
@@ -60,21 +60,21 @@ public class Admission {
     @Column(name = "update_time")
     private Date updateTime;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @ColumnDefault("'PENDING'")
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AdmissionStatus admissionStatus;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @ColumnDefault("'EMPTY'")
     @Enumerated(EnumType.STRING)
     @Column(name = "score_status", nullable = false)
     private AdmissionScoreStatus scoreStatus;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @ColumnDefault("'PENDING'")
     @Enumerated(EnumType.STRING)
