@@ -7,6 +7,7 @@ import com.demo.admissionportal.dto.entity.university_training_program.InfoUnive
 import com.demo.admissionportal.dto.response.university_training_program.GetFullUniversityTrainingProgramResponse;
 import com.demo.admissionportal.dto.response.university_training_program.GetInfoUniversityTrainingProgramResponse;
 import com.demo.admissionportal.entity.ConsultantInfo;
+import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.UniversityTrainingProgram;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
@@ -14,6 +15,7 @@ import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
+import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ import java.util.stream.Stream;
 public class UniversityTrainingProgramServiceImpl implements UniversityTrainingProgramService {
     private final UniversityTrainingProgramRepository universityTrainingProgramRepository;
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
+    private final UniversityInfoService universityInfoService;
 
     public List<UniversityTrainingProgram> findByUniversityId(Integer universityId) {
         return universityTrainingProgramRepository.findByUniversityId(universityId);
@@ -56,10 +59,21 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     public GetFullUniversityTrainingProgramResponse getFullUniversityTrainingPrograms(Integer universityId) {
         User user = ServiceUtils.getUser();
 
-        if (!user.getId().equals(universityId)) {
+        if (user.getRole().equals(Role.UNIVERSITY) && !user.getId().equals(universityId)) {
+            throw new BadRequestException("Không thể truy cập thông tin chương trình đào tạo của trường khác", Map.of("universityId", universityId.toString()));
+        }
+
+        if (user.getRole().equals(Role.CONSULTANT)) {
             ConsultantInfo consultantInfo = consultantInfoServiceImpl.findById(user.getId());
             if (!consultantInfo.getUniversityId().equals(universityId)) {
                 throw new BadRequestException("Không thể truy cập thông tin chương trình đào tạo của trường khác", Map.of("universityId", universityId.toString()));
+            }
+        }
+
+        if (user.getRole().equals(Role.STAFF)){
+            UniversityInfo universityInfo = universityInfoService.findById(universityId);
+            if (!universityInfo.getStaffId().equals(user.getId())) {
+                throw new BadRequestException("Trường này không thuộc thẩm quyền của bạn", Map.of("universityId", universityId.toString()));
             }
         }
 
