@@ -125,4 +125,24 @@ public class JobServiceImpl implements JobService {
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá danh sách nghề nghiệp");
         }
     }
+
+    @Override
+    public ResponseData<List<JobResponse>> getListJob() {
+        try {
+            List<Job> jobs = jobRepository.findAll();
+            List<JobResponse> jobResponseList = jobs.stream()
+                    .map(job -> {
+                        StaffInfo staffInfo = staffInfoRepository.findStaffInfoById(job.getCreateBy());
+                        JobResponse mappedJob = modelMapper.map(job, JobResponse.class);
+                        mappedJob.setCreateBy(staffInfo.getFirstName() + " " + staffInfo.getMiddleName() + " " + staffInfo.getLastName());
+                        mappedJob.setStatus(job.getStatus().name);
+                        return mappedJob;
+                    })
+                    .collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách nghề nghiệp thành công", jobResponseList);
+        } catch (Exception e) {
+            log.error("Error while get list job v2: {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi lấy danh sách nghề nghiệp thành công");
+        }
+    }
 }

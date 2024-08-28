@@ -38,4 +38,11 @@ public interface JobService {
      * @return the response data
      */
     ResponseData<String> deleteJob(Integer jobId);
+
+    /**
+     * Gets list job.
+     *
+     * @return the list job
+     */
+    ResponseData<List<JobResponse>> getListJob();
 }
