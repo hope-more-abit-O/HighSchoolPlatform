@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.SubjectStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.Nationalized;
@@ -22,7 +22,7 @@ public class Subject {
     private Integer id;
 
     @Size(max = 40)
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "name")
     private String name;

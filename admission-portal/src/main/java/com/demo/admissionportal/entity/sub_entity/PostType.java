@@ -5,7 +5,7 @@ import com.demo.admissionportal.entity.Post;
 import com.demo.admissionportal.entity.Type;
 import com.demo.admissionportal.entity.sub_entity.id.PostTypeId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,7 +44,7 @@ public class PostType {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotBlank
+    @NotNull
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PostPropertiesStatus status;

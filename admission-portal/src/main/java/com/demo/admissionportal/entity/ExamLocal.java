@@ -1,7 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
@@ -18,7 +18,7 @@ public class ExamLocal {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "name", nullable = false)
     private String name;

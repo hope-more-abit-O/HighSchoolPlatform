@@ -3,7 +3,7 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.FavoriteStatus;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowUniversityMajorId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +27,7 @@ public class UserFollowUniversityMajor {
     @JoinColumn(name = "university_major")
     private UniversityTrainingProgram universityMajor;
 
-    @NotBlank
+    @NotNull
     @Column(name = "create_time")
     private Date createTime;
 

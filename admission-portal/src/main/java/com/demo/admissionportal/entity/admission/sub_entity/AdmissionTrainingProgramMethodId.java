@@ -4,7 +4,7 @@ import com.demo.admissionportal.dto.entity.admission.AdmissionScoreDTO;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,11 +21,11 @@ import java.util.Objects;
 @Embeddable
 public class AdmissionTrainingProgramMethodId implements Serializable {
 
-    @NotBlank
+    @NotNull
     @Column(name = "admission_training_program_id", nullable = false)
     private Integer admissionTrainingProgramId;
 
-    @NotBlank
+    @NotNull
     @Column(name = "admission_method_id", nullable = false)
     private Integer admissionMethodId;
 

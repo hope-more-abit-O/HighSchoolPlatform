@@ -7,7 +7,7 @@ import com.demo.admissionportal.entity.resetPassword.ResetPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.Transient;
@@ -34,15 +34,15 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "id")
     private Integer id;
 
-    @NotBlank
+    @NotNull
     @Column(name = "username")
     private String username;
 
-    @NotBlank
+    @NotNull
     @Column(name = "email")
     private String email;
 
-    @NotBlank
+    @NotNull
     @Column(name = "password")
     private String password;
 
@@ -65,7 +65,7 @@ public class User implements UserDetails, ResetPassword {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotBlank
+    @NotNull
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

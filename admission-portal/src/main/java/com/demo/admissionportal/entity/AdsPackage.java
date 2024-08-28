@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.PackageStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
@@ -19,33 +19,33 @@ public class AdsPackage {
     @Column(name = "id")
     private Integer id;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "name")
     private String name;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "description")
     private String description;
 
-    @NotBlank
+    @NotNull
     @Column(name = "image")
     private String image;
 
-    @NotBlank
+    @NotNull
     @Column(name = "view_boost_value")
     private Integer viewBoostValue;
 
-    @NotBlank
+    @NotNull
     @Column(name = "price")
     private int price;
 
-    @NotBlank
+    @NotNull
     @Column(name = "create_by")
     private Integer createBy;
 
-    @NotBlank
+    @NotNull
     @Column(name = "create_time")
     private Date createTime;
 
@@ -55,7 +55,7 @@ public class AdsPackage {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotBlank
+    @NotNull
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PackageStatus status;

@@ -5,6 +5,7 @@ import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
+import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.SearchAdmissionResponse;
@@ -254,4 +255,35 @@ public class AdmissionController {
         }
     }
 
+
+    @GetMapping("/schoolDirectory")
+    public ResponseEntity schoolDirectory(
+            @RequestParam(required = false) String subjectGroupId,
+            @RequestParam(required = false) String methodId,
+            @RequestParam(required = false) String universityCode,
+            @RequestParam(required = false) String provinceId
+    ){
+        try {
+            List<Integer> subjectGroupIds = null;
+            List<Integer> methodIds = null;
+            List<String> universityCodes = null;
+            List<Integer> provinceIds = null;
+
+            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (universityCode != null && !universityCode.isEmpty()) {
+                universityCodes = Arrays.stream(universityCode.split(",")).toList();
+            }
+            if (provinceId  != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(admissionService.schoolDirectory(new SchoolDirectoryRequest(subjectGroupIds, methodIds, universityCodes, provinceIds)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
