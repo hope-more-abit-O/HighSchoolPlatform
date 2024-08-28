@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.student_report;
 import com.demo.admissionportal.constants.SemesterType;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SemesterMarkDTO {
-    @NotBlank
+    @NotNull
     private SemesterType semester;
     private Float mark;
 }

@@ -1,18 +1,18 @@
 package com.demo.admissionportal.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class UpdateStaffRequestDTO {
-    @NotBlank
+    @NotNull
     private String firstName;
     private String middleName;
-    @NotBlank
+    @NotNull
     private String lastName;
     private String avatar;
-    @NotBlank
+    @NotNull
     private String phone;
-    @NotBlank
+    @NotNull
     private Integer provinceId;
 }

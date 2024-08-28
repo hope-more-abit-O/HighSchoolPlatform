@@ -1,16 +1,16 @@
 package com.demo.admissionportal.dto.entity.admission;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 public class AdmissionScoreDTO {
-    @NotBlank
+    @NotNull
     private Integer admissionTrainingProgramId;
-    @NotBlank
+    @NotNull
     private Integer admissionMethodId;
-    @NotBlank
+    @NotNull
     private Float admissionScore;
 }

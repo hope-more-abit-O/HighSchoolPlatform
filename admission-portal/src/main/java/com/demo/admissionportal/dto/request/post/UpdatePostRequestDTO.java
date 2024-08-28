@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.post;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,24 +18,24 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UpdatePostRequestDTO implements Serializable {
-    @NotBlank(message = "Tiêu đề không được trống")
+    @NotNull(message = "Tiêu đề không được trống")
     private String title;
 
-    @NotBlank(message = "Nội dung không được trống")
+    @NotNull(message = "Nội dung không được trống")
     private String content;
 
-    @NotBlank(message = "Thumnail không được trống")
+    @NotNull(message = "Thumnail không được trống")
     private String thumnail;
 
-    @NotBlank(message = "Quote không được trống")
+    @NotNull(message = "Quote không được trống")
     private String quote;
 
-    @NotBlank(message = "Loại post không được trống")
+    @NotNull(message = "Loại post không được trống")
     @Size(min = 1, message = "Tối thiểu từ 1 loại post")
     @Size(max = 3, message = "Tối đa 3 loại post")
     private List<Integer> listType;
 
-    @NotBlank(message = "Tag của post không được trống")
+    @NotNull(message = "Tag của post không được trống")
     @Size(min = 1, message = "Tối thiểu 1 tag post")
     @Size(max = 3, message = "Tối đa 3 tag post")
     private List<String> listTag;

@@ -2,7 +2,7 @@ package com.demo.admissionportal.dto.request.major;
 
 import com.demo.admissionportal.util.enum_validator.EnumMajorCode;
 import com.demo.admissionportal.util.enum_validator.EnumName;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateMajorRequest {
-    @NotBlank
+    @NotNull
     private Integer majorId;
     @EnumName
     private String majorName;

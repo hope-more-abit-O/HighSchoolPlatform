@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request.report.post_report;
 
 import com.demo.admissionportal.util.enum_validator.EnumReportAction;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdatePostReportRequest {
-    @NotBlank(message = "Hành động không được để trống !")
+    @NotNull(message = "Hành động không được để trống !")
     @EnumReportAction
     private String reportAction;
     private String response;

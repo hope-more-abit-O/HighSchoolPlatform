@@ -5,7 +5,7 @@ import com.demo.admissionportal.util.enum_validator.EnumName;
 import com.demo.admissionportal.util.enum_validator.EnumPhone;
 import com.demo.admissionportal.util.enum_validator.EnumSpecificAddress;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateConsultantInfoByIdRequest extends ConsultantInfoRequest{
-    @NotBlank(message = "Id nhân viên không được để trống.")
+    @NotNull(message = "Id nhân viên không được để trống.")
     private Integer id;
 
 }
