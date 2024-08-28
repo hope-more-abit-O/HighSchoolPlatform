@@ -551,4 +551,17 @@ public class QuestionServiceImpl implements QuestionService {
                 .name(questionnaire.getName())
                 .build();
     }
+
+
+    @Override
+    public ResponseData<List<QuestionResponse>> getListQuestionV2() {
+        try {
+            List<Question> questionList = questionRepository.findAll();
+            List<QuestionResponse> questionResponses = questionList.parallelStream().map(this::mapToListQuestionResponse).collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách question v2 thành công", questionResponses);
+        } catch (Exception e) {
+            log.error("Error while get list question v2 : {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy danh sách question v2", null);
+        }
+    }
 }

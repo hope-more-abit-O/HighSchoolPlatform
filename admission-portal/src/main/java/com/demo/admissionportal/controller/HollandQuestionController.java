@@ -374,4 +374,15 @@ public class HollandQuestionController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jobList);
     }
+
+
+    @GetMapping("/question/list/v2")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestionNoPageable() {
+        ResponseData<List<QuestionResponse>> resultOfList = questionService.getListQuestionV2();
+        if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
+    }
 }

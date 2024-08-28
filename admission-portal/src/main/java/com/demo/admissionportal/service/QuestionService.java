@@ -102,4 +102,11 @@ public interface QuestionService {
      * @return the boolean
      */
     boolean checkQuestionIsEnough(List<QuestionCreateRequestDTO> question);
+
+    /**
+     * Gets list question v 2.
+     *
+     * @return the list question v 2
+     */
+    ResponseData<List<QuestionResponse>> getListQuestionV2();
 }
