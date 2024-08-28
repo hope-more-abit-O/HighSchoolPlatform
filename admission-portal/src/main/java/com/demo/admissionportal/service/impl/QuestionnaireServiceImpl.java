@@ -87,11 +87,16 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
             if (questionnaire == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question");
             }
-            questionnaire.setStatus(QuestionStatus.INACTIVE);
+            if (questionnaire.getStatus().equals(QuestionStatus.ACTIVE)) {
+                questionnaire.setStatus(QuestionStatus.INACTIVE);
+
+            } else {
+                questionnaire.setStatus(QuestionStatus.ACTIVE);
+            }
             questionnaire.setUpdateBy(updateBy);
             questionnaire.setUpdateTime(new Date());
             questionnaireRepository.save(questionnaire);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá questionnaire thành công");
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái questionnaire thành công");
         } catch (Exception ex) {
             log.error("Error when delete questionnaire with ID: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi xoá câu hỏi", null);

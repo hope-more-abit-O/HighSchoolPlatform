@@ -56,7 +56,7 @@ public class HollandQuestionController {
      * @param questionId the question id
      * @return the response entity
      */
-    @PostMapping("/question/change-status/{questionId}")
+    @DeleteMapping("/question/{questionId}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
         if (questionId == null) {
@@ -265,7 +265,7 @@ public class HollandQuestionController {
      */
     @DeleteMapping("/questionnaire/{questionnaireId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<String>> deleteQuestionFromQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId) {
+    public ResponseEntity<ResponseData<String>> deleteQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId) {
         if (questionnaireId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
         }
