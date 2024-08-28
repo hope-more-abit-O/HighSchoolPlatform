@@ -100,6 +100,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/search").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/schoolDirectory").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice/v2").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/a").permitAll()

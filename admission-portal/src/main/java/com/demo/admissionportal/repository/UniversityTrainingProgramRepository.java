@@ -15,4 +15,6 @@ public interface UniversityTrainingProgramRepository extends JpaRepository<Unive
     List<UniversityTrainingProgram> findByIdInAndUniversityId(Collection<Integer> ids, Integer universityId);
 
     List<UniversityTrainingProgram> findByUniversityIdAndStatus(Integer universityId, UniversityTrainingProgramStatus status);
+
+    List<UniversityTrainingProgram> findByUniversityIdInAndStatus(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus);
 }
