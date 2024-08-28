@@ -3,7 +3,7 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.EducationLevel;
 import com.demo.admissionportal.constants.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,17 +27,17 @@ public class UserInfo implements Serializable {
     @Column(name = "user_id")
     private Integer id;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "first_name")
     private String firstName;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "middle_name")
     private String middleName;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "last_name")
     private String lastName;
@@ -45,7 +45,7 @@ public class UserInfo implements Serializable {
     @Column(name = "phone")
     private String phone;
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
@@ -54,7 +54,7 @@ public class UserInfo implements Serializable {
     @Column(name = "specific_address")
     private String specificAddress;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "education_level")
     @Enumerated(EnumType.STRING)

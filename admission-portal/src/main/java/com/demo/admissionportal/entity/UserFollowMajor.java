@@ -3,7 +3,7 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.FavoriteStatus;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowMajorId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;

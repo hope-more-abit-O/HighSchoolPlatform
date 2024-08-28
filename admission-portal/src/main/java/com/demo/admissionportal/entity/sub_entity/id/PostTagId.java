@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.sub_entity.id;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
@@ -18,11 +18,11 @@ import java.util.Objects;
 @Embeddable
 public class PostTagId implements Serializable {
     private static final long serialVersionUID = -6383899975370948995L;
-    @NotBlank
+    @NotNull
     @Column(name = "post_id", nullable = false)
     private Integer postId;
 
-    @NotBlank
+    @NotNull
     @Column(name = "tag_id", nullable = false)
     private Integer tagId;
 

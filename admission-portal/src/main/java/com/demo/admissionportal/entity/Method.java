@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.MethodStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,17 +26,17 @@ public class Method {
     private Integer id;
 
     @Size(max = 20)
-    @NotBlank
+    @NotNull
     @Column(name = "code", nullable = false, length = 20)
     private String code;
 
     @Size(max = 300)
-    @NotBlank
+    @NotNull
     @Nationalized
     @Column(name = "name", nullable = false, length = 300)
     private String name;
 
-    @NotBlank
+    @NotNull
     @Column(name = "create_time", nullable = false)
     private Date createTime;
 
@@ -51,7 +51,7 @@ public class Method {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotBlank
+    @NotNull
     @Nationalized
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

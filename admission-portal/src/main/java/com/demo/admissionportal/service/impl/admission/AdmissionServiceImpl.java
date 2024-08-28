@@ -1612,4 +1612,14 @@ public class AdmissionServiceImpl implements AdmissionService {
         admission.setUpdateTime(new Date());
         admission.setUpdateBy(ServiceUtils.getId());
     }
+
+    public Object schoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest) {
+        return null;
+    }
+
+    public String schoolDirectoryQueryBuilder(SchoolDirectoryRequest schoolDirectoryRequest) {
+
+        return null;
+    }
+
 }
