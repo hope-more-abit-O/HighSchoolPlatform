@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,10 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestRequestDTO {
-    @NotNull(message = "id")
+    @NotBlank(message = "id")
     private int id;
-    @NotNull(message = "name")
+    @NotBlank(message = "name")
     private String name;
-    @NotNull(message = "")
+    @NotBlank(message = "")
     private String documents;
 }

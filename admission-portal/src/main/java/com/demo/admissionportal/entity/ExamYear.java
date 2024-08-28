@@ -1,7 +1,7 @@
 package com.demo.admissionportal.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +17,7 @@ public class ExamYear {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotNull
+    @NotBlank
     @Column(name = "year", nullable = false)
     private Integer year;
 

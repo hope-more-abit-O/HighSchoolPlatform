@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.TokenType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 /**
@@ -20,24 +20,24 @@ public class UserToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
+    @NotBlank
     @Column(name = "token")
     private String token;
 
-    @NotNull
+    @NotBlank
     @Column(name = "token_type")
     @Enumerated(EnumType.STRING)
     private TokenType tokenType;
 
-    @NotNull
+    @NotBlank
     @Column(name = "expired")
     private boolean expired;
 
-    @NotNull
+    @NotBlank
     @Column(name = "revoked")
     private boolean revoked;
 
-    @NotNull
+    @NotBlank
     @Column(name = "refresh_token")
     private String refreshToken;
 

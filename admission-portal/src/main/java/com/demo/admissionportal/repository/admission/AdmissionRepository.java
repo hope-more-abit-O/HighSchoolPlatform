@@ -300,4 +300,8 @@ and (:staffId IS NULL OR ui.staff_id = :staffId)
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(Integer universityId, AdmissionStatus admissionStatus);
 
     Optional<Admission> findByUniversityIdAndYearAndAdmissionStatus(Integer universityId, Integer year, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusAndYearOrderByYearDesc(Integer universityId, AdmissionStatus admissionStatus, Integer year);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusAndYearLessThanEqualOrderByYearDesc(Integer universityId, AdmissionStatus admissionStatus, Integer year);
 }

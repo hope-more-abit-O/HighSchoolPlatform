@@ -1,7 +1,6 @@
 package com.demo.admissionportal.dto.request.ads_package;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,10 +20,10 @@ public class CreatePackageRequestDTO implements Serializable {
     private String name;
     @NotBlank(message = "Mô tả quảng cáo không được trống")
     private String description;
-    @NotNull(message = "Ảnh quảng cáo không được trống")
+    @NotBlank(message = "Ảnh quảng cáo không được trống")
     private String image;
-    @NotNull(message = "Số lượng tiếp cận không được trống")
+    @NotBlank(message = "Số lượng tiếp cận không được trống")
     private int viewBoostValue;
-    @NotNull(message = "Giá tiền gói quảng cáo không được trống")
+    @NotBlank(message = "Giá tiền gói quảng cáo không được trống")
     private float price;
 }

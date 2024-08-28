@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.sub_entity.id;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,11 +22,11 @@ import java.util.Objects;
 @NoArgsConstructor
 public class PostTypeId implements Serializable {
     private static final long serialVersionUID = 8141192545096837742L;
-    @NotNull
+    @NotBlank
     @Column(name = "post_id", nullable = false)
     private Integer postId;
 
-    @NotNull
+    @NotBlank
     @Column(name = "type_id", nullable = false)
     private Integer typeId;
 

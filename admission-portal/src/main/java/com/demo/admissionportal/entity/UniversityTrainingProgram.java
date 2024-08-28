@@ -58,15 +58,17 @@ public class UniversityTrainingProgram {
 
     public UniversityTrainingProgram(AdmissionTrainingProgram admissionTrainingProgram, Integer universityId, Integer createBy) {
         this.universityId = universityId;
+        this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
+        this.language = admissionTrainingProgram.getLanguage();
         this.majorId = admissionTrainingProgram.getMajorId();
         this.status = UniversityTrainingProgramStatus.ACTIVE;
         this.createTime = new Date();
         this.createBy = createBy;
     }
 
-    public boolean compareWithAdmissionTrainingProgram(AdmissionTrainingProgram admissionTrainingProgram){
+    public boolean compareWithAdmissionTrainingProgram(AdmissionTrainingProgram admissionTrainingProgram) {
         return this.majorId.equals(admissionTrainingProgram.getMajorId())
-                && this.trainingSpecific.equals(admissionTrainingProgram.getTrainingSpecific())
-                && this.language.equals(admissionTrainingProgram.getLanguage());
+                && (this.trainingSpecific == null ? admissionTrainingProgram.getTrainingSpecific() == null : this.trainingSpecific.equals(admissionTrainingProgram.getTrainingSpecific()))
+                && (this.language == null ? admissionTrainingProgram.getLanguage() == null : this.language.equals(admissionTrainingProgram.getLanguage()));
     }
 }

@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.admission.sub_entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,11 +19,11 @@ import java.util.Objects;
 @Embeddable
 public class AdmissionTrainingProgramSubjectGroupId implements Serializable {
     private static final long serialVersionUID = -3712121789938142964L;
-    @NotNull
+    @NotBlank
     @Column(name = "admission_training_program_id", nullable = false)
     private Integer admissionTrainingProgramId;
 
-    @NotNull
+    @NotBlank
     @Column(name = "subject_group_id", nullable = false)
     private Integer subjectGroupId;
 

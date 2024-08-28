@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.sub_entity.id;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
@@ -15,11 +15,11 @@ import java.util.Objects;
 @Embeddable
 public class ProvinceDistrictId implements Serializable {
     private static final long serialVersionUID = 7699717991516447467L;
-    @NotNull
+    @NotBlank
     @Column(name = "province_id", nullable = false)
     private Integer provinceId;
 
-    @NotNull
+    @NotBlank
     @Column(name = "district_id", nullable = false)
     private Integer districtId;
 

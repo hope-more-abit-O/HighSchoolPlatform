@@ -3,7 +3,7 @@ package com.demo.admissionportal.dto.request.admisison;
 import com.demo.admissionportal.util.enum_validator.EnumId;
 import com.demo.admissionportal.util.enum_validator.EnumIdList;
 import com.demo.admissionportal.util.enum_validator.EnumQuota;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateAdmissionQuotaRequest implements Serializable {
-    @NotNull(message = "Mã ngành phải không được để trống")
+    @NotBlank(message = "Mã ngành phải không được để trống")
     @EnumId(message = "Mã ngành phải là số và phải lớn hơn 0")
     private Integer majorId;
 
@@ -27,17 +27,17 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     private String language;
     private String trainingSpecific;
 
-    @NotNull(message = "Mã phương thức phải không được để trống")
+    @NotBlank(message = "Mã phương thức phải không được để trống")
     @EnumId(message = "Mã phương thức phải là số và phải lớn hơn 0")
     private Integer methodId;
     private String methodName;
     private String methodCode;
 
-    @NotNull(message = "Mã nhóm môn học phải không được để trống")
+    @NotBlank(message = "Mã nhóm môn học phải không được để trống")
     @EnumIdList(message = "Mã nhóm môn học phải là số lớn hơn 0 và có ít nhất 1 phần tử")
     private List<Integer> subjectGroupIds;
 
-    @NotNull(message = "Số chỉ tiêu phải không được để trống")
+    @NotBlank(message = "Số chỉ tiêu phải không được để trống")
     @EnumQuota(message = "Số chỉ tiêu phải là số và phải lớn hơn 0")
     private Integer quota;
 }
