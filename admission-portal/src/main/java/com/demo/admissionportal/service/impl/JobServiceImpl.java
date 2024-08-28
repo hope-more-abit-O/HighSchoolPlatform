@@ -9,9 +9,11 @@ import com.demo.admissionportal.dto.response.holland_test.JobResponse;
 import com.demo.admissionportal.entity.Job;
 import com.demo.admissionportal.entity.StaffInfo;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.sub_entity.QuestionJob;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.repository.JobRepository;
 import com.demo.admissionportal.repository.StaffInfoRepository;
+import com.demo.admissionportal.repository.sub_repository.QuestionJobRepository;
 import com.demo.admissionportal.service.JobService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
     private final ModelMapper modelMapper;
     private final StaffInfoRepository staffInfoRepository;
+    private final QuestionJobRepository questionJobRepository;
 
     @Override
     public ResponseData<Page<JobResponse>> getAllJob(String jobName, String status, Pageable pageable) {
@@ -104,7 +107,6 @@ public class JobServiceImpl implements JobService {
     @Override
     public ResponseData<String> deleteJob(Integer jobId) {
         try {
-            Integer staffId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             if (jobId == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "jobId null");
             }
@@ -112,11 +114,12 @@ public class JobServiceImpl implements JobService {
             if (job == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy job với id:" + jobId);
             }
-            job.setStatus(JobStatus.INACTIVE);
-            job.setUpdateBy(staffId);
-            job.setUpdateTime(new Date());
-            jobRepository.save(job);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã xoá job thành công");
+            QuestionJob questionJob = questionJobRepository.findQuestionJobByJobId(jobId);
+            if (questionJob == null) {
+                jobRepository.delete(job);
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá job thành công");
+            }
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Job đã có question khác sử dụng");
         } catch (Exception ex) {
             log.error("Error while delete job: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá danh sách nghề nghiệp");
