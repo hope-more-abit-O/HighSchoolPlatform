@@ -10,8 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchoolDirectoryRequest {
+    private Integer pageNumber;
+    private Integer pageSize;
     private List<Integer> subjectGroupIds;
     private List<Integer> methodIds;
-    private List<String> universityCodes;
+    private List<Integer> majorIds;
+    private List<String> universityIds;
     private List<Integer> provinceIds;
 }

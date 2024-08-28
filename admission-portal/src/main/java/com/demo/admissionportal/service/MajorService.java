@@ -32,4 +32,5 @@ public interface MajorService {
 
     ResponseData<InfoMajorDTO> updateMajorStatus(UpdateMajorStatusRequest request);
     List<InfoMajorDTO> findAll();
+    List<Major> findByIds(List<Integer> ids);
 }

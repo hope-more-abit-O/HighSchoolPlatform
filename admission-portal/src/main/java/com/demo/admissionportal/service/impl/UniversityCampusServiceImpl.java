@@ -343,4 +343,8 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
     public List<UniversityCampus> findHeadQuarterByUniversityIds(List<Integer> uniIds) {
         return universityCampusRepository.findByUniversityIdInAndStatusAndType(uniIds, UniversityCampusStatus.ACTIVE, CampusType.HEADQUARTERS);
     }
+
+    public List<UniversityCampus> findByUniversityIds(List<Integer> universityIds) {
+        return universityCampusRepository.findByUniversityIdInAndStatus(universityIds, UniversityCampusStatus.ACTIVE);
+    }
 }

@@ -23,6 +23,7 @@ public class SearchAdmissionDTO {
     private Integer admissionYear;
     private String admissionStatus;
     private String scoreStatus;
+    private String confirmStatus;
 
     public SearchAdmissionDTO(Admission admission, List<UniversityInfo> universityInfos) {
         UniversityInfo universityInfo = universityInfos
@@ -38,5 +39,6 @@ public class SearchAdmissionDTO {
         this.admissionYear = admission.getYear();
         this.admissionStatus = admission.getAdmissionStatus().name;
         this.scoreStatus = admission.getScoreStatus().name;
+        this.confirmStatus = admission.getConfirmStatus().name;
     }
 }
