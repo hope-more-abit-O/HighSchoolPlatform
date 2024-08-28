@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.holland_test;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,8 +14,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeleteQuestionQuestionnaireRequest implements Serializable {
-    @NotNull(message = "ID bộ câu hỏi không được trống")
+    @NotBlank(message = "ID bộ câu hỏi không được trống")
     private Integer questionnaireId;
-    @NotNull(message = "ID câu hỏi không được trống")
+    @NotBlank(message = "ID câu hỏi không được trống")
     private Integer questionId;
 }

@@ -3,7 +3,7 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.MajorStatus;
 import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -27,12 +27,12 @@ public class Major {
     private Integer id;
 
     @Size(max = 20)
-    @NotNull
+    @NotBlank
     @Column(name = "code", nullable = false, length = 20)
     private String code;
 
     @Size(max = 300)
-    @NotNull
+    @NotBlank
     @Nationalized
     @Column(name = "name", nullable = false, length = 300)
     private String name;
@@ -42,7 +42,7 @@ public class Major {
     @Column(name = "note", length = 300)
     private String note;
 
-    @NotNull
+    @NotBlank
     @Column(name = "create_time", nullable = false)
     private Date createTime;
 
@@ -57,7 +57,7 @@ public class Major {
     @Column(name = "update_by")
     private Integer updateBy;
 
-    @NotNull
+    @NotBlank
     @Nationalized
     @ColumnDefault("'ACTIVE'")
     @Enumerated(EnumType.STRING)

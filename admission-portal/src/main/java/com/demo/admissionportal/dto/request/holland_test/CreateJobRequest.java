@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request.holland_test;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +16,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Valid
 public class CreateJobRequest implements Serializable {
-    @NotNull(message = "Tên nghề nghiệp không được trống")
+    @NotBlank(message = "Tên nghề nghiệp không được trống")
     private String name;
-    @NotNull(message = "Ảnh nghề nghiệp không được trống")
+    @NotBlank(message = "Ảnh nghề nghiệp không được trống")
     private String image;
 }

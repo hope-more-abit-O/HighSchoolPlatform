@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.sub_entity.id;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
@@ -15,11 +15,11 @@ import java.util.Objects;
 @Embeddable
 public class UserFollowMajorId implements Serializable {
     private static final long serialVersionUID = -4611420264454352563L;
-    @NotNull
+    @NotBlank
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @NotNull
+    @NotBlank
     @Column(name = "major_id", nullable = false)
     private Integer majorId;
 

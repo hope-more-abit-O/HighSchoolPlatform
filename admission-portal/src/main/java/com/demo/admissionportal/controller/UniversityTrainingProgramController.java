@@ -27,27 +27,6 @@ public class UniversityTrainingProgramController {
     private final UniversityTrainingProgramService universityTrainingProgramService;
 
 
-    @GetMapping("/info/{universityId}")
-    public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(@PathVariable Integer universityId) {
-        return universityTrainingProgramService.getInfoUniversityTrainingPrograms(universityId);
-    }
-
-    @GetMapping("/full/{universityId}")
-    @SecurityRequirement(name = "BearerAuth")
-    public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(@PathVariable Integer universityId) {
-        User user = ServiceUtils.getUser();
-
-        if (user.getRole().equals(Role.UNIVERSITY))
-            return universityTrainingProgramService.getUniversityTrainingPrograms(user.getId());
-        else if (user.getRole().equals(Role.CONSULTANT)) {
-            if (!user.getCreateBy().equals(universityId))
-                throw new NotAllowedException(Map.of("universityId", universityId.toString()));
-            return universityTrainingProgramService.getUniversityTrainingPrograms(user.getCreateBy());
-        }
-        else
-            return universityTrainingProgramService.getUniversityTrainingPrograms(universityId);
-    }
-
     @GetMapping("/full/{university-id}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<GetFullUniversityTrainingProgramResponse>> universityGetUniversityTrainingPrograms(@PathVariable("university-id") Integer universityId) {

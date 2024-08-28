@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.report.function_report;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,8 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateFunctionReportRequest {
-    @NotNull(message = "Nội dung không thể để trống!")
+    @NotBlank(message = "Nội dung không thể để trống!")
     private String content;
-    @NotNull(message = "Lý do báo cáo không được để trống !")
+    @NotBlank(message = "Lý do báo cáo không được để trống !")
     private MultipartFile[] proofs;
 }

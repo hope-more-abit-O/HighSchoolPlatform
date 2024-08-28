@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.holland_test;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,11 +18,11 @@ import java.util.List;
 @Builder
 @Data
 public class QuestionnaireRequest implements Serializable {
-    @NotNull(message = "Tên bộ câu hỏi không được trống")
+    @NotBlank(message = "Tên bộ câu hỏi không được trống")
     private String name;
-    @NotNull(message = "Mô tả bộ câu hỏi không được trống")
+    @NotBlank(message = "Mô tả bộ câu hỏi không được trống")
     private String description;
-    @NotNull(message = "Background ảnh câu hỏi không được trống")
+    @NotBlank(message = "Background ảnh câu hỏi không được trống")
     private String coverImage;
     @Size(min = 60 , max = 60, message = "Số câu hỏi bắt buộc là 60 câu")
     private List<QuestionCreateRequestDTO> questions;

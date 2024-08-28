@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request.post;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +19,7 @@ import java.io.Serializable;
 @Builder
 @Valid
 public class TagRequestDTO implements Serializable {
-    @NotNull(message = "Tag bài đăng không được để trống")
+    @NotBlank(message = "Tag bài đăng không được để trống")
     private String name;
     private Integer create_by;
 }

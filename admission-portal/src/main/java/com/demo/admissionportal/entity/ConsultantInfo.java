@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity;
 
 import com.demo.admissionportal.constants.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -56,21 +56,21 @@ public class ConsultantInfo {
     @Column(name = "consultant_id", nullable = false)
     private Integer id;
 
-    @NotNull
+    @NotBlank
     @Column
     private Integer universityId;
 
-    @NotNull
+    @NotBlank
     @Nationalized
     @Column(name = "first_name", nullable = false, length = 30)
     private String firstName;
 
-    @NotNull
+    @NotBlank
     @Nationalized
     @Column(name = "middle_name", nullable = false, length = 30)
     private String middleName;
 
-    @NotNull
+    @NotBlank
     @Nationalized
     @Column(name = "last_name", nullable = false, length = 30)
     private String lastName;
@@ -86,7 +86,7 @@ public class ConsultantInfo {
     @Temporal(TemporalType.DATE)
     private Date birthday;
 
-    @NotNull
+    @NotBlank
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
     private Gender gender;

@@ -4,7 +4,7 @@ package com.demo.admissionportal.entity;
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.request.create_univeristy_request.CreateUniversityRequestRequest;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import javax.annotation.Nullable;
@@ -49,11 +49,11 @@ public class UniversityInfo{
     @Column
     private Integer createUniversityRequestId;
 
-    @NotNull
+    @NotBlank
     @Column(nullable = false)
     private String name;
 
-    @NotNull
+    @NotBlank
     @Column(nullable = false)
     private String code;
 
@@ -66,7 +66,7 @@ public class UniversityInfo{
     @Column(name = "staff_id")
     private Integer staffId;
 
-    @NotNull
+    @NotBlank
     @Column
     @Enumerated(EnumType.STRING)
     private UniversityType type;

@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.admission;
 
 import com.demo.admissionportal.entity.Method;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,11 +20,11 @@ public class AdmissionMethod {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotNull
+    @NotBlank
     @Column(name = "method_id", nullable = false)
     private Integer methodId;
 
-    @NotNull
+    @NotBlank
     @Column(name = "admission_id", nullable = false)
     private Integer admissionId;
 

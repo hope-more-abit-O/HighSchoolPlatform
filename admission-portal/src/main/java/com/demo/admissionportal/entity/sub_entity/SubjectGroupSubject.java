@@ -2,7 +2,7 @@ package com.demo.admissionportal.entity.sub_entity;
 
 import com.demo.admissionportal.entity.sub_entity.id.SubjectGroupSubjectId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,7 +46,7 @@ public class SubjectGroupSubject implements Serializable {
 
 
     @Size(max = 255)
-    @NotNull
+    @NotBlank
     @Nationalized
     @ColumnDefault("ACTIVE")
     @Column(name = "status")

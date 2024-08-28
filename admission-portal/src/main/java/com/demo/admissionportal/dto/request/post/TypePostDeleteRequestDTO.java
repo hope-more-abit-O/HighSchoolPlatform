@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.post;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +14,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TypePostDeleteRequestDTO implements Serializable {
-    @NotNull(message = "PostId không được để trống")
+    @NotBlank(message = "PostId không được để trống")
     private Integer postId;
 }

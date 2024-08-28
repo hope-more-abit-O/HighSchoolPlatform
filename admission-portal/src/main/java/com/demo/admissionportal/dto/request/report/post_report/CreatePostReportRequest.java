@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.report.post_report;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,8 +11,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreatePostReportRequest {
-    @NotNull(message = "Bài viết không thể để trống !")
+    @NotBlank(message = "Bài viết không thể để trống !")
     private Integer postId;
-    @NotNull(message = "Lý do báo cáo không được để trống !")
+    @NotBlank(message = "Lý do báo cáo không được để trống !")
     private String content;
 }

@@ -1,6 +1,6 @@
 package com.demo.admissionportal.dto.request.payment;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +14,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 public class PaymentRequestDTO implements Serializable {
-    @NotNull(message = "Mã orderCode PayOS bị trống")
+    @NotBlank(message = "Mã orderCode PayOS bị trống")
     private long orderCode;
 }
