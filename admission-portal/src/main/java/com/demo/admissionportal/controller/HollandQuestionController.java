@@ -365,4 +365,13 @@ public class HollandQuestionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfUpdate);
     }
 
+    @GetMapping("/job/list")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<JobResponse>>> getListJob(){
+        ResponseData<List<JobResponse>> jobList = jobService.getListJob();
+        if(jobList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(jobList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jobList);
+    }
 }
