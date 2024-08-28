@@ -6,4 +6,5 @@ import com.demo.admissionportal.dto.response.university_training_program.GetInfo
 public interface UniversityTrainingProgramService {
     GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId);
     GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(Integer universityId);
+    GetFullUniversityTrainingProgramResponse getFullUniversityTrainingPrograms(Integer universityId);
 }

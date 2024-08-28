@@ -8,12 +8,16 @@ import com.demo.admissionportal.dto.request.consultant.PatchConsultantStatusRequ
 import com.demo.admissionportal.dto.request.university.UpdateUniversityInfoRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.payment.OrderResponseDTO;
+import com.demo.admissionportal.dto.response.university_training_program.GetFullUniversityTrainingProgramResponse;
+import com.demo.admissionportal.dto.response.university_training_program.GetInfoUniversityTrainingProgramResponse;
+import com.demo.admissionportal.entity.UniversityTrainingProgram;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.UniversityService;
+import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.service.UniversityTransactionService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -157,4 +161,5 @@ public class UniversityController {
     public ResponseEntity<ResponseData<List<OrderResponseDTO>>> getOrderByUniID() {
         return ResponseEntity.ok(universityTransactionService.getOrderByUniId());
     }
+
 }

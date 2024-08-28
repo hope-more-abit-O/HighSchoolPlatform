@@ -42,6 +42,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -894,16 +895,16 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Cập nhật điểm thành công.");
     }
 
-    protected void updateUniversityTrainingProgram(AdmissionStatus status,  Admission admission, Integer admissionId, User user, Integer universityId) {
+    protected void updateUniversityTrainingProgram(User user, Integer universityId) {
 
-        Admission admission1 = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(admission.getUniversityId(), AdmissionStatus.ACTIVE)
+        Admission admission1 = admissionRepository.findFirstByUniversityIdAndAdmissionStatusAndYearLessThanEqualOrderByYearDesc(universityId, AdmissionStatus.ACTIVE, LocalDate.now().getYear())
                 .orElse(null);
         if (admission1 == null){
             universityTrainingProgramService.inactiveAll(universityId, user.getId());
             return;
         }
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admissionId);
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admission1.getId());
         universityTrainingProgramService.createFromAdmission(admissionTrainingPrograms, universityId, user.getId());
     }
 
@@ -915,9 +916,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (admission.getAdmissionStatus().equals(AdmissionStatus.STAFF_INACTIVE)){
             throw new NotAllowedException("Đề án này đã bị ngưng hoạt động bới staff.");
         }
-        if (user.getRole().equals(Role.UNIVERSITY) && !admission.getUniversityId().equals(user.getId())) {
+        if (user.getRole().equals(Role.UNIVERSITY)) {
+            if (!admission.getUniversityId().equals(user.getId()))
+                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
             uniId = user.getId();
-            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
         }
 
         if (user.getRole().equals(Role.CONSULTANT)) {
@@ -955,7 +957,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         admission.setUpdateBy(user.getId());
         admission.setUpdateTime(new Date());
 
-        updateUniversityTrainingProgram(request.getStatus(), admission, id, user, uniId);
+        updateUniversityTrainingProgram(user, uniId);
 
         try {
             admissionRepository.save(admission);
@@ -1011,6 +1013,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                 if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
                     throw new BadRequestException("Đề án này phải được chấp nhận trước.");
                 admission.setAdmissionStatus(AdmissionStatus.ACTIVE);
+                updateUniversityTrainingProgram(user, admission.getUniversityId());
             }
         }
 
