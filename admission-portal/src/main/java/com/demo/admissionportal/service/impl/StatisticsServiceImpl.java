@@ -2,6 +2,7 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.constants.UniversityTransactionStatus;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.StatisticsPostResponse;
 import com.demo.admissionportal.dto.response.statistics.*;
@@ -197,7 +198,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Async
     protected List<StatisticsTransactionDetailResponse> calculatorActivityTransaction() {
-        List<UniversityTransaction> list = universityTransactionRepository.findAll();
+        List<UniversityTransaction> list = universityTransactionRepository.findAll().stream().filter(e -> e.getStatus().equals(UniversityTransactionStatus.PAID)).toList();
         return list.parallelStream()
                 .map(this::mapToTransactionDetail)
                 .sorted(Comparator.comparing(StatisticsTransactionDetailResponse::getCreateTime).reversed())
@@ -223,7 +224,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                         .map(AdsPackage::getPrice)
                         .orElse(null)
         );
-        responseDTO.setCreateTime(universityTransaction.getCreateTime());
+        responseDTO.setCreateTime(universityTransaction.getCompleteTime());
         return responseDTO;
     }
 
