@@ -31,6 +31,8 @@ public class SchoolDirectoryInfo {
     private Integer campusCount;
     private Integer totalQuota;
     private List<CampusProvinceDTO> campus;
+    private List<Integer> admissionTrainingProgramIds;
+    private List<Integer> admissionMethodIds;
 
     public SchoolDirectoryInfo(User user,
                                UniversityInfo universityInfo,
@@ -54,5 +56,33 @@ public class SchoolDirectoryInfo {
         this.campus = campus;
         this.methodCount = methodCount;
         this.majorCount = majorCount;
+    }
+
+    public SchoolDirectoryInfo(User user,
+                               UniversityInfo universityInfo,
+                               List<UniversityTrainingProgram> universityTrainingPrograms,
+                               List<CampusProvinceDTO> campus, Integer totalQuota,
+                               Admission admission,
+                               Integer methodCount,
+                               Integer majorCount,
+                               List<Integer> admissionTrainingProgramIds,
+                               List<Integer> admissionMethodIds) {
+        this.id = user.getId();
+        this.admissionId = admission.getId();
+        this.year = admission.getYear();
+        this.avatar = user.getAvatar();
+        this.name = universityInfo.getName();
+        this.code = universityInfo.getCode();
+        this.type = universityInfo.getType().name;
+        this.description = universityInfo.getDescription();
+        this.coverImage = universityInfo.getCoverImage();
+        this.universityTrainingProgramCount = universityTrainingPrograms.size();
+        this.campusCount = campus.size();
+        this.totalQuota = totalQuota;
+        this.campus = campus;
+        this.methodCount = methodCount;
+        this.majorCount = majorCount;
+        this.admissionTrainingProgramIds = admissionTrainingProgramIds;
+        this.admissionMethodIds = admissionMethodIds;
     }
 }

@@ -9,7 +9,7 @@ import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.admission.SearchAdmissionResponse;
+import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,7 +17,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -290,6 +289,28 @@ public class AdmissionController {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
             return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds))));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/school-directory-detail")
+    public ResponseEntity schoolDirectoryDetail(
+            @RequestParam(required = true) String admissionTrainingProgramId,
+            @RequestParam(required = true) String admissionMethodId
+    ){
+        try {
+            List<Integer> admissionTrainingProgramIds = null;
+            List<Integer> admissionMethodIds = null;
+
+            if (admissionTrainingProgramId != null && !admissionTrainingProgramId.isEmpty()) {
+                admissionTrainingProgramIds = Arrays.stream(admissionTrainingProgramId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (admissionMethodId != null && !admissionMethodId.isEmpty()) {
+                admissionMethodIds = Arrays.stream(admissionMethodId.split(",")).map(Integer::parseInt).toList();
+            }
+
+            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectoryDetail(new SchoolDirectoryDetailRequest(admissionTrainingProgramIds, admissionMethodIds))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
