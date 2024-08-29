@@ -146,6 +146,7 @@ public class OrderController {
      */
     @Transactional(rollbackOn = Exception.class)
     public ObjectNode createPaymentLink(List<AdsPackage> adsPackage, List<CreateQrResponseDTO.InfoTransactionDTO> infoTransactionDTOList) {
+        Role role = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
         CreatePaymentLinkRequestBody requestBody = new CreatePaymentLinkRequestBody();
@@ -163,9 +164,16 @@ public class OrderController {
             requestBody.setProductName(productName);
             requestBody.setDescription("Ma don hang " + productTransactionId);
             requestBody.setPrice(totalAmount);
-            requestBody.setReturnUrl("https://main--uap-portal.netlify.app/university/manage-campaign");
-            requestBody.setCancelUrl("https://main--uap-portal.netlify.app/university/manage-campaign");
-
+            String returnUrl, cancelUrl;
+            if (role.equals(Role.UNIVERSITY)) {
+                returnUrl = "https://main--uap-portal.netlify.app/university/manage-transaction";
+                cancelUrl = "https://main--uap-portal.netlify.app/university/manage-transaction";
+            } else {
+                returnUrl = "https://main--uap-portal.netlify.app/consultant/manage-transaction";
+                cancelUrl = "https://main--uap-portal.netlify.app/consultant/manage-transaction";
+            }
+            requestBody.setReturnUrl(returnUrl);
+            requestBody.setCancelUrl(cancelUrl);
             // Gen order code
             String currentTimeString = String.valueOf(new Date().getTime());
             long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
