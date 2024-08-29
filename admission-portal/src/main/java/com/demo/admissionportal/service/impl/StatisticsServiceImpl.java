@@ -20,7 +20,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -68,25 +71,36 @@ public class StatisticsServiceImpl implements StatisticsService {
             String normalizedType = type.toLowerCase();
 
             LocalDate now = LocalDate.now();
-            switch (period) {
-                case "12 months":
-                    startDay = Date.from(LocalDate.of(now.getYear(), 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    endDay = Date.from(LocalDate.of(now.getYear(), 12, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                case "6 months":
-                    startDay = Date.from(now.minusMonths(6).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                case "30 days":
-                    startDay = Date.from(now.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                case "7 days":
-                    startDay = Date.from(now.minusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                default:
-                    throw new IllegalArgumentException("Chu kỳ không hợp lệ: " + period);
+
+            if (period != null) {
+                if (startDay != null && endDay != null) {
+                    throw new IllegalArgumentException("Không thể truyền cùng lúc period cùng với startDay và endDay.");
+                }
+
+                switch (period) {
+                    case "12 months":
+                        startDay = Date.from(LocalDate.of(now.getYear(), 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        endDay = Date.from(LocalDate.of(now.getYear(), 12, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        break;
+                    case "6 months":
+                        startDay = Date.from(now.minusMonths(6).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        break;
+                    case "30 days":
+                        startDay = Date.from(now.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        break;
+                    case "7 days":
+                        startDay = Date.from(now.minusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        endDay = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Chu kỳ không hợp lệ: " + period);
+                }
+            } else if (startDay == null || endDay == null) {
+                throw new IllegalArgumentException("Either period or both startDay and endDay must be provided.");
+            } else if (startDay.after(endDay)) {
+                throw new IllegalArgumentException("startDay must be before or equal to endDay.");
             }
 
             switch (user) {
@@ -164,16 +178,13 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<UniversityTransaction> universityTransactionList = universityTransactionRepository.findUniversityTransactionByUniversityId(universityId);
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
         return universityTransactionList.stream()
-                .filter(e -> e.getStatus().equals(UniversityTransactionStatus.PAID))
                 .map(transaction -> {
                     AdsPackage adsPackage = packageRepository.findPackageById(transaction.getPackageId());
                     return StatisticsTransactionDetailResponse.builder()
                             .createBy(universityInfo != null ? universityInfo.getName() : null)
                             .price(adsPackage != null ? adsPackage.getPrice() : 0)
-                            .createTime(transaction.getCompleteTime())
                             .build();
                 })
-                .sorted(Comparator.comparing(StatisticsTransactionDetailResponse::getCreateTime).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -328,7 +339,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         switch (normalizedType) {
             case "interaction":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalInteractionsByDay(startDay, endDay);
                         for (Object[] record : data) {
@@ -341,11 +352,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                                 } else {
                                     throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
                                 }
-                                statistics.add(StatisticInteractionByTime.builder()
-                                        .date(date)
-                                        .interactionCount((Integer) record[1])
-                                        .type("Tương tác")
-                                        .build());
+                                statistics.add(StatisticInteractionByTime.builder().date(date).interactionCount((Integer) record[1]).type("Tương tác").build());
                             } catch (ParseException e) {
                                 throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
@@ -353,36 +360,33 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
                     }
-                } else {
-                        try {
-                            data = universityTransactionRepository.findTotalInteractionsByPeriod(startDay, endDay);
-                            SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
-                            for (Object[] record : data) {
-                                try {
-                                    if (record[0] instanceof Date) {
-                                        date = (Date) record[0];
-                                    } else if (record[0] instanceof String dateString) {
-                                            date = monthFormat.parse(dateString);
-                                    } else {
-                                        throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
-                                    }
-                                    statistics.add(StatisticInteractionByTime.builder()
-                                            .date(date)
-                                            .interactionCount((Integer) record[1])
-                                            .type("Tương tác")
-                                            .build());
-                                } catch (ParseException e) {
-                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
+                    try {
+                        data = universityTransactionRepository.findTotalInteractionsByPeriod(startDay, endDay);
+                        SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    date = monthFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
                                 }
+                                statistics.add(StatisticInteractionByTime.builder().date(date).interactionCount((Integer) record[1]).type("Tương tác").build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
                             }
-                        } catch (Exception e) {
-                            throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
+                    }
                 }
                 break;
 
             case "revenue":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalRevenueByDay(startDay, endDay);
                         for (Object[] record : data) {
@@ -396,11 +400,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                                     throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
                                 }
 
-                                statistics.add(StatisticRevenueByTime.builder()
-                                        .date(date)
-                                        .revenue((Integer) record[1])
-                                        .type("Doanh Thu")
-                                        .build());
+                                statistics.add(StatisticRevenueByTime.builder().date(date).revenue((Integer) record[1]).type("Doanh Thu").build());
                             } catch (ParseException e) {
                                 throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd" + e.getMessage());
                             }
@@ -409,7 +409,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê doanh thu: " + e.getMessage());
                     }
                 }
-                else {
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalRevenueByPeriod(startDay, endDay);
                         for (Object[] record : data) {
@@ -422,11 +422,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                                 } else {
                                     throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
                                 }
-                                statistics.add(StatisticRevenueByTime.builder()
-                                        .date(date)
-                                        .revenue((Integer) record[1])
-                                        .type("Doanh Thu")
-                                        .build());
+                                statistics.add(StatisticRevenueByTime.builder().date(date).revenue((Integer) record[1]).type("Doanh Thu").build());
                             } catch (ParseException e) {
                                 throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
                             }
@@ -462,7 +458,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê tài khoản: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalAccountsByPeriod(startDay, endDay, role, status);
                         for (Object[] record : data) {
@@ -491,7 +488,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 break;
 
             case "post":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalPostsByDay(startDay, endDay, status);
                         for (Object[] record : data) {
@@ -516,7 +513,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalPostsByPeriod(startDay, endDay, status);
                         for (Object[] record : data) {
@@ -560,7 +558,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         switch (type.toLowerCase()) {
             case "post":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalPostsByDayAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -585,7 +583,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalPostsByPeriodAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -614,7 +613,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 break;
 
             case "like":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalLikesByDayAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -639,7 +638,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt thích: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalLikesByPeriodAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -668,7 +668,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 break;
 
             case "favourite":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalFavoritesByDayAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -693,7 +693,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt theo dõi: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalFavoritesByPeriodAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -722,7 +723,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 break;
 
             case "comment":
-                if (period.equals("30 days") || period.equals("7 days")) {
+                if (period != null && (period.equals("30 days") || period.equals("7 days")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalCommentsByDayAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
@@ -747,7 +748,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt bình luận: " + e.getMessage());
                     }
-                } else {
+                }
+                if (period != null && (period.equals("6 months") || period.equals("12 months")) || startDay != null && endDay != null) {
                     try {
                         data = universityTransactionRepository.findTotalCommentsByPeriodAndUniversity(startDay, endDay, universityId, status);
                         for (Object[] record : data) {
