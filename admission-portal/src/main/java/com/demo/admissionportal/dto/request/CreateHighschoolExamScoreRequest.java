@@ -1,6 +1,8 @@
 package com.demo.admissionportal.dto.request;
 
 import com.demo.admissionportal.dto.response.SubjectScoreDTO;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,15 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateHighschoolExamScoreRequest {
     @NotNull(message = "Số báo danh không được để trống")
-    private Integer identificationNumber;
+    private String identificationNumber;
     @NotNull(message = "Địa phương không được để trống")
-    private String local;
+    private String localName;
+    @NotNull(message = "Năm không được để trống")
+    private Integer year;
     @NotNull(message = "Hội đồng thi không được để trống")
-    private String examinationBoard;
-    @NotNull(message = "Ngày tháng năm sinh không được để trống")
-    private String dateOfBirth;
-    @NotNull(message = "Thí sinh không được để trống")
-    private String examiner;
-    @NotNull(message = "Điểm thi không được để trống")
     private List<SubjectScoreDTO> subjectScores;
 }

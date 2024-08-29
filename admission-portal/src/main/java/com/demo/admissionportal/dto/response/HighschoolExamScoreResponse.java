@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HighschoolExamScoreResponse {
-    private Integer identificationNumber;
+    private String identificationNumber;
     private String local;
     private Integer year;
     private List<SubjectScoreDTO> subjectScores;

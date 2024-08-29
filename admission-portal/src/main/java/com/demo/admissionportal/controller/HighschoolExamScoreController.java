@@ -32,7 +32,7 @@ public class HighschoolExamScoreController {
 
     @GetMapping
     public ResponseEntity<ResponseData<List<HighschoolExamScoreResponse>>> getAllExamScores(
-            @RequestParam(required = true) Integer identificationNumber,
+            @RequestParam(required = true) String identificationNumber,
             @RequestParam(required = true) Integer year
     ) {
         ResponseData<List<HighschoolExamScoreResponse>> response = highschoolExamScoreService.findAllWithFilter(identificationNumber, year);
@@ -133,7 +133,7 @@ public class HighschoolExamScoreController {
     public ResponseEntity<ResponseData<?>> getScoreDistributionBySubjectGroup(
             @RequestParam(required = false) String local,
             @RequestParam(required = false) String subjectGroup,
-            @RequestParam(required = false) Integer identificationNumber) {
+            @RequestParam(required = false) String identificationNumber) {
 
         if (identificationNumber != null) {
             ResponseData<String> response = highschoolExamScoreServiceImpl.getRankingBySubjectGroupAndLocal(identificationNumber, subjectGroup, local);
