@@ -12,6 +12,7 @@ import com.demo.admissionportal.service.UniversityTransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -75,12 +76,10 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     @Override
-    public ResponseData<List<PackageResponseDTO>> getListPackage(String adsName, String status, Pageable pageable) {
+    public ResponseData<Page<PackageResponseDTO>> getListPackage(String adsName, String status, Pageable pageable) {
         try {
-            List<UniversityTransaction> list = universityTransactionRepository.findListTransaction(adsName, status, pageable);
-            List<PackageResponseDTO> responseDTOList = list.stream()
-                    .map(this::mapToPackageResponse)
-                    .collect(Collectors.toList());
+            Page<UniversityTransaction> list = universityTransactionRepository.findListTransaction(adsName, status, pageable);
+            Page<PackageResponseDTO> responseDTOList = list.map(this::mapToPackageResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách giao dịch thành công", responseDTOList);
 
         } catch (Exception ex) {
@@ -93,6 +92,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
         PackageResponseDTO responseDTO = modelMapper.map(universityTransaction, PackageResponseDTO.class);
         responseDTO.setInfoUniversity(mapToInfoUniversity(universityTransaction.getUniversityId()));
         AdsPackage infoPackage = mapToInfoPackage(universityTransaction.getPackageId());
+        responseDTO.setPrice(infoPackage.getPrice());
         responseDTO.setInfoPackage(modelMapper.map(infoPackage, PackageResponseDTO.InfoPackage.class));
         responseDTO.setStatus(universityTransaction.getStatus().name);
         return responseDTO;
