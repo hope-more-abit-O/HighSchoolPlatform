@@ -53,8 +53,9 @@ public interface UniversityTransactionService {
      * Gets order by uni id.
      *
      * @param orderCode the order code
+     * @param status    the status
      * @param pageable  the pageable
      * @return the order by uni id
      */
-    ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, Pageable pageable);
+    ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, String status, Pageable pageable);
 }

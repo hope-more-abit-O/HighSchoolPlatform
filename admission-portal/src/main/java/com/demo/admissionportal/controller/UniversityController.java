@@ -218,6 +218,7 @@ public class UniversityController {
      * Gets order by uni id.
      *
      * @param orderCode the order code
+     * @param status    the status
      * @param pageable  the pageable
      * @return the order by uni id
      */
@@ -225,8 +226,9 @@ public class UniversityController {
     @PreAuthorize("hasAnyAuthority('UNIVERSITY','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<Page<OrderResponseDTO>>> getOrderByUniID(@RequestParam(name = "orderCode", required = false) String orderCode,
+                                                                                @RequestParam(name = "status", required = false) String status,
                                                                                 Pageable pageable) {
-        return ResponseEntity.ok(universityTransactionService.getOrderByUniId(orderCode, pageable));
+        return ResponseEntity.ok(universityTransactionService.getOrderByUniId(orderCode, status, pageable));
     }
 
 }

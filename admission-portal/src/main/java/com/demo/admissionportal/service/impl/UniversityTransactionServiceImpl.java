@@ -124,7 +124,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     @Override
-    public ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, Pageable pageable) {
+    public ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, String status, Pageable pageable) {
         Page<OrderResponseDTO> responseDTOS;
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -133,7 +133,7 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
                 ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
                 userId = consultantInfo.getUniversityId();
             }
-            Page<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(userId, orderCode, pageable);
+            Page<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(userId, orderCode, status, pageable);
             responseDTOS = list.map(this::mapToOrderResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách giao dịch với university thành công", responseDTOS);
         } catch (Exception ex) {

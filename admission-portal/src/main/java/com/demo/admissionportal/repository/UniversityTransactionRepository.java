@@ -66,13 +66,19 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
      * Find by university id list.
      *
      * @param universityId the university id
+     * @param orderCode    the order code
+     * @param status       the status
+     * @param pageable     the pageable
      * @return the list
      */
     @Query(value = "SELECT * " +
             "FROM university_transaction ut " +
             "WHERE ut.university_id = :universityId " +
-            "AND (:orderCode IS NULL OR ut.order_code  LIKE N'%' + :orderCode + '%')", nativeQuery = true)
-    Page<UniversityTransaction> findByUniversityId(Integer universityId, @Param("orderCode") String orderCode, Pageable pageable);
+            "AND (:orderCode IS NULL OR ut.order_code  LIKE N'%' + :orderCode + '%')" +
+            "AND (:status IS NULL OR ut.status = :status)", nativeQuery = true)
+    Page<UniversityTransaction> findByUniversityId(Integer universityId,
+                                                   @Param("orderCode") String orderCode,
+                                                   @Param("status") String status, Pageable pageable);
 
     /**
      * Calculator total transaction integer.
@@ -108,6 +114,13 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "WHERE ci.university_id = :universityId AND ut.status = 'PAID'", nativeQuery = true)
     List<UniversityTransaction> findUniversityTransactionByUniversityId(Integer universityId);
 
+    /**
+     * Find total revenue by day list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ut.complete_time, 'yyyy-MM-dd') AS date, SUM(ap.price) AS revenue " +
             "FROM university_transaction ut " +
             "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
@@ -116,6 +129,13 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "ORDER BY FORMAT(ut.complete_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalRevenueByDay(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
+    /**
+     * Find total revenue by period list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ut.complete_time, 'yyyy-MM') AS date, SUM(ap.price) AS revenue " +
             "FROM university_transaction ut " +
             "INNER JOIN ads_package ap ON ut.ads_package_id = ap.id " +
@@ -124,6 +144,13 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "ORDER BY FORMAT(ut.complete_time, 'yyyy-MM')", nativeQuery = true)
     List<Object[]> findTotalRevenueByPeriod(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
+    /**
+     * Find total interactions by day list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM-dd') AS month, " +
             "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END + " +
             "CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END + " +
@@ -136,6 +163,13 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "ORDER BY FORMAT(ul.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalInteractionsByDay(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
+    /**
+     * Find total interactions by period list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM') AS month, " +
             "SUM(CASE WHEN ul.status = 'LIKE' THEN 1 ELSE 0 END + " +
             "CASE WHEN ul.status = 'UNLIKE' THEN 1 ELSE 0 END + " +
@@ -148,6 +182,15 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "ORDER BY FORMAT(ul.create_time, 'yyyy-MM')", nativeQuery = true)
     List<Object[]> findTotalInteractionsByPeriod(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
+    /**
+     * Find total accounts by day list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @param role     the role
+     * @param status   the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(u.create_time, 'yyyy-MM-dd') AS date, COUNT(u.id) AS totalAccount " +
             "FROM [user] u " +
             "WHERE u.create_time BETWEEN :startDay AND :endDay " +
@@ -156,10 +199,19 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(u.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(u.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalAccountsByDay(@Param("startDay") Date startDay,
-                                             @Param("endDay") Date endDay,
-                                             @Param("role") String role,
-                                             @Param("status") String status);
+                                          @Param("endDay") Date endDay,
+                                          @Param("role") String role,
+                                          @Param("status") String status);
 
+    /**
+     * Find total accounts by period list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @param role     the role
+     * @param status   the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(u.create_time, 'yyyy-MM') AS date, COUNT(u.id) AS totalAccount " +
             "FROM [user] u " +
             "WHERE u.create_time BETWEEN :startDay AND :endDay " +
@@ -172,6 +224,14 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                              @Param("role") String role,
                                              @Param("status") String status);
 
+    /**
+     * Find total posts by day list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @param status   the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM-dd') AS date, COUNT(p.id) AS totalPosts " +
             "FROM post p " +
             "WHERE p.create_time BETWEEN :startDay AND :endDay " +
@@ -179,9 +239,17 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(p.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(p.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalPostsByDay(@Param("startDay") Date startDay,
-                                          @Param("endDay") Date endDay,
-                                          @Param("status") String status);
+                                       @Param("endDay") Date endDay,
+                                       @Param("status") String status);
 
+    /**
+     * Find total posts by period list.
+     *
+     * @param startDay the start day
+     * @param endDay   the end day
+     * @param status   the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM') AS date, COUNT(p.id) AS totalPosts " +
             "FROM post p " +
             "WHERE p.create_time BETWEEN :startDay AND :endDay " +
@@ -192,6 +260,15 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                           @Param("endDay") Date endDay,
                                           @Param("status") String status);
 
+    /**
+     * Find total posts by day and university list.
+     *
+     * @param startDay     the start day
+     * @param endDay       the end day
+     * @param universityId the university id
+     * @param status       the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM-dd') AS date, COUNT(p.id) AS totalPosts " +
             "FROM post p " +
             "JOIN consultant_info c ON p.create_by = c.consultant_id " +
@@ -201,10 +278,19 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(p.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(p.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalPostsByDayAndUniversity(@Param("startDay") Date startDay,
-                                                       @Param("endDay") Date endDay,
-                                                       @Param("universityId") Integer universityId,
-                                                       @Param("status") String status);
+                                                    @Param("endDay") Date endDay,
+                                                    @Param("universityId") Integer universityId,
+                                                    @Param("status") String status);
 
+    /**
+     * Find total posts by period and university list.
+     *
+     * @param startDay     the start day
+     * @param endDay       the end day
+     * @param universityId the university id
+     * @param status       the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(p.create_time, 'yyyy-MM') AS date, COUNT(p.id) AS totalPosts " +
             "FROM post p " +
             "JOIN consultant_info c ON p.create_by = c.consultant_id " +
@@ -218,6 +304,15 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                                        @Param("universityId") Integer universityId,
                                                        @Param("status") String status);
 
+    /**
+     * Find total likes by day and university list.
+     *
+     * @param startDay     the start day
+     * @param endDay       the end day
+     * @param universityId the university id
+     * @param status       the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM-dd') AS date, COUNT(ul.user_id) AS totalLikes " +
             "FROM user_like ul " +
             "JOIN post p ON ul.post_id = p.id " +
@@ -228,10 +323,19 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(ul.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(ul.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalLikesByDayAndUniversity(@Param("startDay") Date startDay,
-                                                       @Param("endDay") Date endDay,
-                                                       @Param("universityId") Integer universityId,
-                                                       @Param("status") String status);
+                                                    @Param("endDay") Date endDay,
+                                                    @Param("universityId") Integer universityId,
+                                                    @Param("status") String status);
 
+    /**
+     * Find total likes by period and university list.
+     *
+     * @param startDay     the start day
+     * @param endDay       the end day
+     * @param universityId the university id
+     * @param status       the status
+     * @return the list
+     */
     @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM') AS date, COUNT(ul.user_id) AS totalLikes " +
             "FROM user_like ul " +
             "JOIN post p ON ul.post_id = p.id " +
@@ -254,9 +358,9 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(uf.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(uf.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalFavoritesByDayAndUniversity(@Param("startDay") Date startDay,
-                                                           @Param("endDay") Date endDay,
-                                                           @Param("universityId") Integer universityId,
-                                                           @Param("status") String status);
+                                                        @Param("endDay") Date endDay,
+                                                        @Param("universityId") Integer universityId,
+                                                        @Param("status") String status);
 
     @Query(value = "SELECT FORMAT(uf.create_time, 'yyyy-MM') AS date, COUNT(uf.user_id) AS totalFavorites " +
             "FROM user_favorite uf " +
@@ -280,9 +384,9 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "GROUP BY FORMAT(c.create_time, 'yyyy-MM-dd') " +
             "ORDER BY FORMAT(c.create_time, 'yyyy-MM-dd')", nativeQuery = true)
     List<Object[]> findTotalCommentsByDayAndUniversity(@Param("startDay") Date startDay,
-                                                          @Param("endDay") Date endDay,
-                                                          @Param("universityId") Integer universityId,
-                                                          @Param("commentStatus") String commentStatus);
+                                                       @Param("endDay") Date endDay,
+                                                       @Param("universityId") Integer universityId,
+                                                       @Param("commentStatus") String commentStatus);
 
     @Query(value = "SELECT FORMAT(c.create_time, 'yyyy-MM') AS date, COUNT(c.id) AS totalComments " +
             "FROM comment c " +
