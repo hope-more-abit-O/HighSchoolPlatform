@@ -8,8 +8,6 @@ import com.demo.admissionportal.entity.UniversityTransaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 /**
  * The interface University transaction service.
  */
@@ -43,16 +41,20 @@ public interface UniversityTransactionService {
     /**
      * Gets list package.
      *
-     * @param adsName  the ads name
-     * @param pageable the pageable
+     * @param adsName   the ads name
+     * @param status    the status
+     * @param orderCode the order code
+     * @param pageable  the pageable
      * @return the list package
      */
-    ResponseData<Page<PackageResponseDTO>> getListPackage(String adsName, String status, Pageable pageable);
+    ResponseData<Page<PackageResponseDTO>> getListPackage(String adsName, String status, String orderCode, Pageable pageable);
 
     /**
      * Gets order by uni id.
      *
+     * @param orderCode the order code
+     * @param pageable  the pageable
      * @return the order by uni id
      */
-    ResponseData<List<OrderResponseDTO>> getOrderByUniId();
+    ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, Pageable pageable);
 }

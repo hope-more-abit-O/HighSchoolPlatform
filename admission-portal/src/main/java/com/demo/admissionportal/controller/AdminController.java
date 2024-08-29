@@ -318,8 +318,9 @@ public class AdminController {
     @GetMapping("/package/list")
     public ResponseEntity<ResponseData<Page<PackageResponseDTO>>> getListPackageHistory(@RequestParam(name = "adsName", required = false) String adsName,
                                                                                         @RequestParam(name = "status", required = false) String status,
+                                                                                        @RequestParam(name = "orderCode", required = false) String orderCode,
                                                                                         Pageable pageable) {
-        ResponseData<Page<PackageResponseDTO>> result = universityTransactionService.getListPackage(adsName, status, pageable);
+        ResponseData<Page<PackageResponseDTO>> result = universityTransactionService.getListPackage(adsName, status, orderCode, pageable);
         if (result.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
