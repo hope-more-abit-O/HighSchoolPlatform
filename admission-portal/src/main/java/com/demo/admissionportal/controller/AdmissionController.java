@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +47,6 @@ public class AdmissionController {
             List<Integer> subjectGroupIds = null;
             List<Integer> methodIds = null;
             List<Integer> provinceIds = null;
-
             if (majorId != null && !majorId.isEmpty()) {
                 majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
             }
@@ -257,7 +257,7 @@ public class AdmissionController {
     }
 
 
-    @GetMapping("/schoolDirectory")
+    @GetMapping("/school-directory")
     public ResponseEntity schoolDirectory(
             @RequestParam(required = true) Integer pageNumber,
             @RequestParam(required = true) Integer pageSize,
@@ -289,7 +289,7 @@ public class AdmissionController {
             if (provinceId  != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds)));
+            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

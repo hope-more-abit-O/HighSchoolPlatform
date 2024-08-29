@@ -11,5 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetFullUniversityTrainingProgramResponse {
-    List<FullUniversityTrainingProgramDTO> universityTrainingPrograms;
+    private Integer year;
+    private List<FullUniversityTrainingProgramDTO> universityTrainingPrograms;
 }
