@@ -100,7 +100,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(UNIVERSITY_CAMPUS_API).hasAuthority("UNIVERSITY")
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/search").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/schoolDirectory").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/school-directory").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice/v2").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/a").permitAll()
@@ -108,6 +108,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/{id}").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score").permitAll()
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/admission/score").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")

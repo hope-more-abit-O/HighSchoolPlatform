@@ -6,7 +6,6 @@ import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramReques
 import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceDTO;
 import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceMajorDetailDTO;
-import com.demo.admissionportal.dto.entity.chat.UserDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
@@ -32,10 +31,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -868,7 +864,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         Integer admissionId = admissionIds.iterator().next();
 
         Admission admission = findById(admissionId);
-        if (!admission.getUniversityId().equals(ServiceUtils.getUser().getCreateBy()))
+        User user = ServiceUtils.getUser();
+        if (user.getRole().equals(Role.UNIVERSITY) && !admission.getUniversityId().equals(user.getId()))
+            throw new NotAllowedException("Bạn không có quyền thực hiện chức năng này");
+        if (user.getRole().equals(Role.CONSULTANT) && !admission.getUniversityId().equals(user.getCreateBy()))
             throw new NotAllowedException("Bạn không có quyền thực hiện chức năng này");
 
         List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getAdmissionScores().stream().map(AdmissionTrainingProgramMethodId::new).toList();
@@ -1623,8 +1622,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         admission.setUpdateBy(ServiceUtils.getId());
     }
 
-    public List<SchoolDirectoryInfo> schoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest) {
+    public Page<SchoolDirectoryInfo> schoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest) {
         List<Admission> admissions = schoolDirectoryGetAdmission(schoolDirectoryRequest);
+
+        Integer countAll = countSchoolDirectoryGetAdmission(schoolDirectoryRequest);
 
         List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).toList();
 
@@ -1683,7 +1684,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryInfos.add(new SchoolDirectoryInfo(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor));
         }
 
-        return schoolDirectoryInfos;
+        return new PageImpl<>(schoolDirectoryInfos, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll);
     }
 
     private String buildQueryForSchoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest, Map<String, Object> parameters, Integer year) {
@@ -1736,6 +1737,48 @@ public class AdmissionServiceImpl implements AdmissionService {
         return queryBuilder.toString();
     }
 
+    private String buildCountQueryForSchoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest, Map<String, Object> parameters, Integer year) {
+
+        StringBuilder queryBuilder = new StringBuilder("select count(distinct a.id)\n" +
+                "from university_info ui\n" +
+                "inner join university_campus uc on uc.university_id = ui.university_id\n" +
+                "inner join admission a on a.university_id = ui.university_id\n" +
+                "inner join admission_training_program atp on atp.admission_id = a.id\n" +
+                "inner join admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id\n" +
+                "inner join admission_method am on a.id = am.admission_id\n" +
+                "inner join admission_training_program_method atpm on atpm.admission_training_program_id = atp.id\n"+
+                "where a.status = 'ACTIVE'\n" +
+                "and a.year = :year\n");
+
+        parameters.put("year", year);
+
+        if (schoolDirectoryRequest.getUniversityIds() != null && !schoolDirectoryRequest.getUniversityIds().isEmpty()) {
+            queryBuilder.append("and ui.university_id in (:universityIds)\n");
+            parameters.put("universityIds", schoolDirectoryRequest.getUniversityIds());
+        }
+
+        if (schoolDirectoryRequest.getSubjectGroupIds() != null && !schoolDirectoryRequest.getSubjectGroupIds().isEmpty()) {
+            queryBuilder.append("and atpsg.subject_group_id in (:subjectGroupIds)\n");
+            parameters.put("subjectGroupIds", schoolDirectoryRequest.getSubjectGroupIds());
+        }
+
+        if (schoolDirectoryRequest.getMethodIds() != null && !schoolDirectoryRequest.getMethodIds().isEmpty()) {
+            queryBuilder.append("and am.method_id in (:methodIds)\n");
+            parameters.put("methodIds", schoolDirectoryRequest.getMethodIds());
+        }
+
+        if (schoolDirectoryRequest.getProvinceIds() != null && !schoolDirectoryRequest.getProvinceIds().isEmpty()) {
+            queryBuilder.append("and uc.province_id in (:provinceIds)\n");
+            parameters.put("provinceIds", schoolDirectoryRequest.getProvinceIds());
+        }
+
+        if (schoolDirectoryRequest.getPageNumber() == null || schoolDirectoryRequest.getPageSize() == null) {
+            return queryBuilder.toString();
+        }
+
+        return queryBuilder.toString();
+    }
+
     public List<Admission> schoolDirectoryGetAdmission(SchoolDirectoryRequest schoolDirectoryRequest) {
         Map<String, Object> parameters = new HashMap<>();
 
@@ -1748,6 +1791,20 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
 
         return executeQuery.getResultList();
+    }
+
+    public Integer countSchoolDirectoryGetAdmission(SchoolDirectoryRequest schoolDirectoryRequest) {
+        Map<String, Object> parameters = new HashMap<>();
+
+        String query = buildCountQueryForSchoolDirectory(schoolDirectoryRequest, parameters, LocalDateTime.now().getYear());
+
+        Query executeQuery = entityManager.createNativeQuery(query.toString(), Integer.class);
+
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            executeQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        return (Integer) executeQuery.getSingleResult();
     }
 
 }
