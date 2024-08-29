@@ -93,14 +93,17 @@ public class OrderController {
         JsonNode dataNode = result.get("data");
         String statusPayment = dataNode.get("status").asText();
         long orderCode = dataNode.get("orderCode").asLong();
+        String description = dataNode.get("description").asText();
         for (CreateQrResponseDTO.InfoTransactionDTO transaction : infoTransactionDTOList) {
             UniversityTransaction serviceTransaction = universityTransactionService.findTransaction(transaction.getUniversityTransactionId());
             serviceTransaction.setOrderCode(orderCode);
+            serviceTransaction.setDescription(description);
         }
         String checkoutUrl = dataNode.get("checkoutUrl").asText();
         responseDTO.setOrderCode(orderCode);
         responseDTO.setCheckoutURL(checkoutUrl);
         responseDTO.setStatusPayment(statusPayment);
+        responseDTO.setDescription(description);
         return ResponseEntity.status(HttpStatus.OK.value()).body(new ResponseData<>(ResponseCode.C200.getCode(), "Lấy QR thành công", responseDTO));
     }
 

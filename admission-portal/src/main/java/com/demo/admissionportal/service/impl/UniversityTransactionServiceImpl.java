@@ -12,6 +12,7 @@ import com.demo.admissionportal.service.UniversityTransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -74,9 +75,9 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     @Override
-    public ResponseData<List<PackageResponseDTO>> getListPackage() {
+    public ResponseData<List<PackageResponseDTO>> getListPackage(String adsName, String status, Pageable pageable) {
         try {
-            List<UniversityTransaction> list = universityTransactionRepository.findAll();
+            List<UniversityTransaction> list = universityTransactionRepository.findListTransaction(adsName, status, pageable);
             List<PackageResponseDTO> responseDTOList = list.stream()
                     .map(this::mapToPackageResponse)
                     .collect(Collectors.toList());
@@ -90,20 +91,22 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
 
     private PackageResponseDTO mapToPackageResponse(UniversityTransaction universityTransaction) {
         PackageResponseDTO responseDTO = modelMapper.map(universityTransaction, PackageResponseDTO.class);
-        var result = modelMapper.map(responseDTO, PackageResponseDTO.class);
         responseDTO.setInfoUniversity(mapToInfoUniversity(universityTransaction.getUniversityId()));
         AdsPackage infoPackage = mapToInfoPackage(universityTransaction.getPackageId());
         responseDTO.setInfoPackage(modelMapper.map(infoPackage, PackageResponseDTO.InfoPackage.class));
-        responseDTO.setStatus(infoPackage.getStatus().name);
-        return result;
+        responseDTO.setStatus(universityTransaction.getStatus().name);
+        return responseDTO;
     }
 
     private AdsPackage mapToInfoPackage(Integer packageId) {
         return packageRepository.findPackageById(packageId);
     }
 
-    private PackageResponseDTO.InfoUniversity mapToInfoUniversity(Integer universityId) {
-        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
+    private PackageResponseDTO.InfoUniversity mapToInfoUniversity(Integer userId) {
+        UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(userId);
+        if (universityInfo == null) {
+            universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(userId);
+        }
         return PackageResponseDTO.InfoUniversity.builder()
                 .id(universityInfo.getId())
                 .name(universityInfo.getName())
