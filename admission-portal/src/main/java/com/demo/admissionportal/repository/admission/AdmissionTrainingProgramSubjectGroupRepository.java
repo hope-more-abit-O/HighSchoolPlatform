@@ -11,4 +11,6 @@ import java.util.List;
 @Repository
 public interface AdmissionTrainingProgramSubjectGroupRepository extends JpaRepository<AdmissionTrainingProgramSubjectGroup, AdmissionTrainingProgramSubjectGroupId> {
     List<AdmissionTrainingProgramSubjectGroup> findById_AdmissionTrainingProgramIdIn(Collection<Integer> admissionTrainingProgramIds);
+
+    List<AdmissionTrainingProgramSubjectGroup> findById_AdmissionTrainingProgramIdInAndId_SubjectGroupIdIn(List<Integer> admissionTrainingProgramIds, List<Integer> subjectGroupIds);
 }

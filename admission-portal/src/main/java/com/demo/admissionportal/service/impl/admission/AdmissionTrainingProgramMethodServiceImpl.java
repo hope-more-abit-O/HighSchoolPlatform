@@ -1,17 +1,14 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.AdmissionStatus;
-import com.demo.admissionportal.dto.entity.admission.dto.AdmissionTrainingProgramMethodDTOV2;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionTrainingProgramMethodRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
-import com.demo.admissionportal.entity.admission.AdmissionMethod;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -384,5 +381,9 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
     public List<AdmissionTrainingProgramMethod> findByUniversityIdInAndYearAndStatus(List<Integer> id, int year, AdmissionStatus admissionStatus) {
         return admissionTrainingProgramMethodRepository.findByUniversityIdAndYearAndStatus(id, year, admissionStatus.name());
+    }
+
+    public List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdInAndMethodIds(List<Integer> admissionTrainingProgramIds, List<Integer> methodIds) {
+        return admissionTrainingProgramMethodRepository.findByAdmissionTrainingProgramIdInAndMethodIds(admissionTrainingProgramIds, methodIds);
     }
 }
