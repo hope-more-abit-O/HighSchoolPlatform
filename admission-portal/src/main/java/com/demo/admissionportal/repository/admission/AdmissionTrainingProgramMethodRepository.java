@@ -85,4 +85,6 @@ WHERE am.method_id in (:methodIds)
 AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
 """, nativeQuery = true)
     List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdInAndMethodIds(List<Integer> admissionTrainingProgramIds, List<Integer> methodIds);
+
+    List<AdmissionTrainingProgramMethod> findById_AdmissionTrainingProgramIdInAndId_AdmissionMethodIdIn(Collection<Integer> admissionTrainingProgramIds, Collection<Integer> admissionMethodIds);
 }

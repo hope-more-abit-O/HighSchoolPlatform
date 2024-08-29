@@ -16,6 +16,8 @@ import com.demo.admissionportal.service.impl.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionTrainingProgramMethodServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,7 @@ import java.util.List;
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class TestController {
+    private static final Logger log = LoggerFactory.getLogger(TestController.class);
     private final ConsultantService consultantService;
     private final ValidationServiceImpl validationServiceImpl;
     private final AdmissionServiceImpl admissionService;
@@ -139,5 +142,10 @@ public class TestController {
             return ResponseEntity.ok(result);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @GetMapping("/test2")
+    public void testtest(@RequestParam List<Integer> a){
+        log.info("{}", a);
     }
 }

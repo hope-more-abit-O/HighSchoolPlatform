@@ -65,6 +65,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final EntityManager entityManager;
     private final UniversityInfoRepository universityInfoRepository;
     private final AddressServiceImpl addressServiceImpl;
+    private final SubjectServiceImpl subjectService;
 
     public Admission save(Admission admission) {
         try {
@@ -1686,6 +1687,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                     .toList();
             Integer totalQuota = 0, totalMethod = 0, totalMajor = 0;
             Admission admission = admissions.stream().filter((element) -> element.getUniversityId().equals(user.getId())).findFirst().orElse(null);
+            List<Integer> admissionTrainingProgramIds = null, admissionMethodIds = null;
             if (admission != null){
                 List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms.stream().filter((element) -> element.getAdmissionId().equals(admission.getId())).toList();
                 List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream().filter((element) -> admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList().contains(element.getId().getAdmissionTrainingProgramId())).toList();
@@ -1705,6 +1707,10 @@ public class AdmissionServiceImpl implements AdmissionService {
                         .map(AdmissionTrainingProgram::getMajorId)
                         .distinct()
                         .toList().size();
+
+                admissionTrainingProgramIds = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
+                admissionMethodIds = admissionTrainingProgramMethods1.stream().map(AdmissionTrainingProgramMethod::getId).map(AdmissionTrainingProgramMethodId::getAdmissionMethodId).distinct().toList();
+
             } else {
                 continue;
             }
@@ -1716,7 +1722,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                             schoolDirectoryRequest.getProvinceIds()
                     ))
                     .toList();
-            schoolDirectoryInfos.add(new SchoolDirectoryInfo(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor));
+            schoolDirectoryInfos.add(new SchoolDirectoryInfo(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor, admissionTrainingProgramIds, admissionMethodIds));
         }
 
         return new PageImpl<>(schoolDirectoryInfos, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll);
@@ -1766,7 +1772,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             return queryBuilder.toString();
         }
 
-        if (schoolDirectoryRequest.getPageNumber() != null && schoolDirectoryRequest.getPageSize() != null) {
+        if (schoolDirectoryRequest.getPageNumber() != null && schoolDirectoryRequest.getPageSize() != null ) {
             queryBuilder.append("ORDER BY a.id desc\n")
                     .append("OFFSET :PageNumber * :PageSize ROWS\n")
                     .append("FETCH NEXT :PageSize ROWS ONLY");
@@ -1847,4 +1853,30 @@ public class AdmissionServiceImpl implements AdmissionService {
         return (Integer) executeQuery.getSingleResult();
     }
 
+    public List<SchoolDirectoryDetailDTO> schoolDirectoryDetail(SchoolDirectoryDetailRequest request) {
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIdsAndAdmissionMethodIds(request.getAdmissionTrainingProgramIds(), request.getAdmissionMethodIds());
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(request.getAdmissionMethodIds());
+        List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList());
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByIds(request.getAdmissionTrainingProgramIds());
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(request.getAdmissionTrainingProgramIds());
+        List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(admissionTrainingProgramSubjectGroups.stream().map(AdmissionTrainingProgramSubjectGroup::getId).map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId).distinct().toList());
+        List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList());
+        List<Subject> subjects = subjectService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMainSubjectId).filter(Objects::nonNull).distinct().toList());
+
+        List<SchoolDirectoryDetailDTO> schoolDirectoryDetailDTOS = new ArrayList<>();
+        for (AdmissionTrainingProgramMethod admissionTrainingProgramMethod : admissionTrainingProgramMethods) {
+            AdmissionMethod admissionMethod = admissionMethods.stream().filter((element) -> element.getId().equals(admissionTrainingProgramMethod.getId().getAdmissionMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Admission Method."));
+            Method method = methods.stream().filter((element) -> element.getId().equals(admissionMethod.getMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh."));
+            AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms.stream().filter((element) -> element.getId().equals(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chương trình đào tạo."));
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups1 = admissionTrainingProgramSubjectGroups.stream().filter((element) -> element.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId())).distinct().toList();
+            Major major = majors.stream().filter((element) -> element.getId().equals(admissionTrainingProgram.getMajorId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ngành học."));
+            List<Integer> subjectGroupIds =admissionTrainingProgramSubjectGroups1 .stream().map(AdmissionTrainingProgramSubjectGroup::getId).map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId).toList();
+            List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((element) -> subjectGroupIds.contains(element.getId())).toList();
+            Subject subject = subjects.stream().filter((element) -> element.getId().equals(admissionTrainingProgram.getMainSubjectId())).findFirst().orElse(null);
+
+            schoolDirectoryDetailDTOS.add(new SchoolDirectoryDetailDTO(admissionTrainingProgramMethod, admissionTrainingProgram, method, major, subjectGroups1, subject));
+        }
+
+        return schoolDirectoryDetailDTOS;
+    }
 }
