@@ -172,9 +172,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 List<HighschoolExamScoreResponse> yearResponses = new ArrayList<>();
 
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
-                    ExamLocal examLocal = examLocalRepository.findByName(request.getLocal());
+                    ExamLocal examLocal = examLocalRepository.findByName(request.getLocalName());
                     if (examLocal == null) {
-                        return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocal());
+                        return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocalName());
                     }
 
                     List<String> existingIdentificationNumbers = highschoolExamScoreRepository
@@ -205,7 +205,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         return examScore;
                     }).toList();
 
-                    allExamScores.addAll(examScores);
+                    List<HighschoolExamScore> savedExamScores = highschoolExamScoreRepository.saveAll(examScores);
+                    allExamScores.addAll(savedExamScores);
 
                     ListExamScoreByYear finalListExamScoreByYear = listExamScoreByYear;
                     examScores.forEach(savedExamScore -> {
@@ -265,8 +266,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
                 yearlyResponses.add(new YearlyExamScoreResponse(listExamScoreByYear.getTitle(), examYear.getYear(), yearResponses));
             }
-
-            highschoolExamScoreRepository.saveAll(allExamScores);
             listExamScoreHighSchoolExamScoreRepository.saveAll(allListExamScores);
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo điểm thi thành công!", yearlyResponses);
@@ -308,9 +307,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
                     String identificationNumber = request.getIdentificationNumber();
                     if (identificationNumber != null) {
-                        ExamLocal examLocal = examLocalRepository.findByName(request.getLocal());
+                        ExamLocal examLocal = examLocalRepository.findByName(request.getLocalName());
                         if (examLocal == null) {
-                            return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocal());
+                            return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocalName());
                         }
 
                         List<HighschoolExamScore> existingScores = highschoolExamScoreRepository.findByIdentificationNumberAndExamYear_Id(
