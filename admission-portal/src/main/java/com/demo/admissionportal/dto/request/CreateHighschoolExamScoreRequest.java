@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateHighschoolExamScoreRequest {
     @NotBlank(message = "Số báo danh không được để trống")
-    private Integer identificationNumber;
+    private String identificationNumber;
     @NotBlank(message = "Địa phương không được để trống")
     private String local;
     @NotBlank(message = "Hội đồng thi không được để trống")

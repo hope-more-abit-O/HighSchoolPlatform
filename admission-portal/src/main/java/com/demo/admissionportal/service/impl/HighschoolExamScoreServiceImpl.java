@@ -61,7 +61,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private ExamYearRepository examYearRepository;
 
     @Override
-    public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber, Integer examYearId) {
+    public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer examYearId) {
         try {
             List<HighschoolExamScore> examScores = highschoolExamScoreRepository.findAll(identificationNumber, examYearId);
             if (identificationNumber == null || highschoolExamScoreRepository.countByIdentificationNumberAndExamYear(identificationNumber, examYearId) == 0) {
@@ -75,11 +75,11 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Điểm thi chưa được công bố!");
             }
 
-            Map<Integer, List<HighschoolExamScore>> groupedById = examScores.stream()
+            Map<String, List<HighschoolExamScore>> groupedById = examScores.stream()
                     .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
 
             List<HighschoolExamScoreResponse> responseList = new ArrayList<>();
-            for (Map.Entry<Integer, List<HighschoolExamScore>> entry : groupedById.entrySet()) {
+            for (Map.Entry<String, List<HighschoolExamScore>> entry : groupedById.entrySet()) {
                 List<SubjectScoreDTO> subjectScores = new ArrayList<>();
                 Integer resultYear = null;
                 String local = null;
@@ -177,7 +177,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocal());
                     }
 
-                    List<Integer> existingIdentificationNumbers = highschoolExamScoreRepository
+                    List<String> existingIdentificationNumbers = highschoolExamScoreRepository
                             .findByIdentificationNumberAndExamYear_Id(request.getIdentificationNumber(), examYear.getYear())
                             .stream()
                             .map(HighschoolExamScore::getIdentificationNumber)
@@ -306,7 +306,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 List<HighschoolExamScoreResponse> yearResponses = new ArrayList<>();
 
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
-                    Integer identificationNumber = request.getIdentificationNumber();
+                    String identificationNumber = request.getIdentificationNumber();
                     if (identificationNumber != null) {
                         ExamLocal examLocal = examLocalRepository.findByName(request.getLocal());
                         if (examLocal == null) {
@@ -679,7 +679,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         return scoreDistribution;
     }
 
-    public ResponseData<String> getRankingBySubjectGroupAndLocal(Integer identificationNumber, String subjectGroup, String local) {
+    public ResponseData<String> getRankingBySubjectGroupAndLocal(String identificationNumber, String subjectGroup, String local) {
         try {
             Integer localId = resolveLocalId(local);
 
@@ -817,7 +817,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             Map<Integer, Subject> subjectMap = subjects.stream()
                     .collect(Collectors.toMap(Subject::getId, Function.identity()));
 
-            Map<Integer, List<SubjectScoreDTO>> scoresByStudent = new HashMap<>();
+            Map<String, List<SubjectScoreDTO>> scoresByStudent = new HashMap<>();
             for (HighschoolExamScore score : allScores) {
                 Subject subject = subjectMap.get(score.getSubjectId());
                 SubjectScoreDTO subjectScoreDTO = new SubjectScoreDTO(
@@ -957,7 +957,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             List<HighschoolExamScore> highschoolExamScores = highschoolExamScoreRepository.findAllByExamYearAndStatus(
                     listExamScoreByYear.getYear(), HighschoolExamScoreStatus.ACTIVE);
 
-            Set<Integer> scoreIdentificationNumbers = highschoolExamScores.stream()
+            Set<String> scoreIdentificationNumbers = highschoolExamScores.stream()
                     .map(HighschoolExamScore::getIdentificationNumber)
                     .collect(Collectors.toSet());
 
@@ -1072,7 +1072,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 PageRequest pageRequest = PageRequest.of(page, size);
                 Page<HighschoolExamScore> highschoolExamScoresPage = highschoolExamScoreRepository.findByExamYear(listExamScore.getYear(), pageRequest);
 
-                Set<Integer> identificationNumbers = highschoolExamScoresPage
+                Set<String> identificationNumbers = highschoolExamScoresPage
                         .stream()
                         .map(HighschoolExamScore::getIdentificationNumber)
                         .collect(Collectors.toSet());
@@ -1099,11 +1099,11 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 Map<Integer, ExamLocal> examLocalMap = examLocals.stream()
                         .collect(Collectors.toMap(ExamLocal::getId, Function.identity()));
 
-                Map<Integer, List<HighschoolExamScore>> scoresGroupedById = allScores.stream()
+                Map<String, List<HighschoolExamScore>> scoresGroupedById = allScores.stream()
                         .collect(Collectors.groupingBy(HighschoolExamScore::getIdentificationNumber));
 
                 List<HighschoolExamScoreResponse> examScoreResponses = new ArrayList<>();
-                Set<Integer> seenIdentificationNumbers = new HashSet<>();
+                Set<String> seenIdentificationNumbers = new HashSet<>();
 
                 for (HighschoolExamScore score : highschoolExamScoresPage) {
                     if (seenIdentificationNumbers.contains(score.getIdentificationNumber())) {

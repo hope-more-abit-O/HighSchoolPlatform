@@ -20,7 +20,7 @@ public class HighschoolExamScore {
     @Column(name = "id")
     private Integer id;
     @Column(name = "identification_number")
-    private Integer identificationNumber;
+    private String identificationNumber;
     @Column(name = "subject_id")
     private Integer subjectId;
     @Column(name = "score")
