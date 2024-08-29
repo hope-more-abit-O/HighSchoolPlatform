@@ -16,6 +16,7 @@ import java.util.Date;
 @Data
 @Builder
 public class UserFollowUniversityMajorResponseDTO implements Serializable {
+    private Integer universityId;
     private Integer universityMajorId;
     private String universityName;
     private String avatar;
