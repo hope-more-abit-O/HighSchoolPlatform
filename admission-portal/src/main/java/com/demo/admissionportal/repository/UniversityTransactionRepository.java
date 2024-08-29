@@ -2,6 +2,8 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.dto.response.statistics.StatisticRevenueByTime;
 import com.demo.admissionportal.entity.UniversityTransaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -68,8 +70,9 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
      */
     @Query(value = "SELECT * " +
             "FROM university_transaction ut " +
-            "WHERE ut.university_id = :universityId ", nativeQuery = true)
-    List<UniversityTransaction> findByUniversityId(Integer universityId);
+            "WHERE ut.university_id = :universityId " +
+            "AND (:orderCode IS NULL OR ut.order_code  LIKE N'%' + :orderCode + '%')", nativeQuery = true)
+    Page<UniversityTransaction> findByUniversityId(Integer universityId, @Param("orderCode") String orderCode, Pageable pageable);
 
     /**
      * Calculator total transaction integer.
@@ -145,7 +148,6 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "ORDER BY FORMAT(ul.create_time, 'yyyy-MM')", nativeQuery = true)
     List<Object[]> findTotalInteractionsByPeriod(@Param("startDay") Date startDay, @Param("endDay") Date endDay);
 
-
     @Query(value = "SELECT FORMAT(u.create_time, 'yyyy-MM-dd') AS date, COUNT(u.id) AS totalAccount " +
             "FROM [user] u " +
             "WHERE u.create_time BETWEEN :startDay AND :endDay " +
@@ -215,7 +217,6 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                                        @Param("endDay") Date endDay,
                                                        @Param("universityId") Integer universityId,
                                                        @Param("status") String status);
-
 
     @Query(value = "SELECT FORMAT(ul.create_time, 'yyyy-MM-dd') AS date, COUNT(ul.user_id) AS totalLikes " +
             "FROM user_like ul " +
@@ -296,4 +297,24 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
                                                           @Param("endDay") Date endDay,
                                                           @Param("universityId") Integer universityId,
                                                           @Param("commentStatus") String commentStatus);
+
+    /**
+     * Find list transaction page.
+     *
+     * @param adsName   the ads name
+     * @param status    the status
+     * @param orderCode the order code
+     * @param pageable  the pageable
+     * @return the page
+     */
+    @Query(value = "SELECT ut.*, ad.name " +
+            "FROM university_transaction ut " +
+            "JOIN ads_package ad on ut.ads_package_id = ad.id " +
+            "WHERE (:adsName IS NULL OR ad.name  LIKE N'%' + :adsName + '%') " +
+            "AND (:orderCode IS NULL OR ut.order_code  LIKE N'%' + :orderCode + '%')" +
+            "AND (:status IS NULL OR ut.status = :status)", nativeQuery = true)
+    Page<UniversityTransaction> findListTransaction(@Param(value = "adsName") String adsName,
+                                                    @Param(value = "status") String status,
+                                                    @Param(value = "orderCode") String orderCode,
+                                                    Pageable pageable);
 }

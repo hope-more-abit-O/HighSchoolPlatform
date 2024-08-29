@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.holland_test.DeleteQuestionQuestionnaireRequest;
+import com.demo.admissionportal.dto.request.holland_test.QuestionCreateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.QuestionnaireResponse;
@@ -35,8 +36,18 @@ public interface QuestionnaireService {
     /**
      * Delete question from questionnaire id response data.
      *
-     * @param request the request
+     * @param questionnaireId the questionnaire id
      * @return the response data
      */
-    ResponseData<String> deleteQuestionFromQuestionnaireId(DeleteQuestionQuestionnaireRequest request);
+    ResponseData<String> deleteQuestionnaireId(Integer questionnaireId);
+
+    /**
+     * Update questionnaire response data.
+     *
+     * @param questionnaireId the questionnaire id
+     * @param request         the request
+     * @return the response data
+     */
+    ResponseData<String> updateQuestionnaire(Integer questionnaireId, List<QuestionCreateRequestDTO> request);
+
 }

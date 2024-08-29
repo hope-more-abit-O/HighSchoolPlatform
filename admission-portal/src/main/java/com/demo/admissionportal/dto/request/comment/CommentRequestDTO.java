@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request.comment;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +16,6 @@ import java.io.Serializable;
 public class CommentRequestDTO implements Serializable {
     @NotNull(message = "postId không đuợc trống")
     private Integer post_id;
-    @NotBlank(message = "Nội dung bình luận không đuợc trống")
+    @NotNull(message = "Nội dung bình luận không đuợc trống")
     private String content;
 }

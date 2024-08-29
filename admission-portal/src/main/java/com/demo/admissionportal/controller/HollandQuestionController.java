@@ -56,7 +56,7 @@ public class HollandQuestionController {
      * @param questionId the question id
      * @return the response entity
      */
-    @PostMapping("/question/change-status/{questionId}")
+    @DeleteMapping("/question/{questionId}")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<DeleteQuestionResponse>> deleteQuestion(@PathVariable(name = "questionId") Integer questionId) {
         if (questionId == null) {
@@ -260,16 +260,16 @@ public class HollandQuestionController {
     /**
      * Delete question from questionnaire response entity.
      *
-     * @param request the request
+     * @param questionnaireId the questionnaire id
      * @return the response entity
      */
-    @DeleteMapping("/questionnaire")
+    @DeleteMapping("/questionnaire/{questionnaireId}")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ResponseData<String>> deleteQuestionFromQuestionnaire(@RequestBody @Valid DeleteQuestionQuestionnaireRequest request) {
-        if (request == null) {
+    public ResponseEntity<ResponseData<String>> deleteQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId) {
+        if (questionnaireId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
         }
-        ResponseData<String> resultOfDelete = questionnaireService.deleteQuestionFromQuestionnaireId(request);
+        ResponseData<String> resultOfDelete = questionnaireService.deleteQuestionnaireId(questionnaireId);
         if (resultOfDelete.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(resultOfDelete);
         } else if (resultOfDelete.getStatus() == ResponseCode.C205.getCode()) {
@@ -350,5 +350,56 @@ public class HollandQuestionController {
             return ResponseEntity.status(HttpStatus.OK).body(resultOfHistory);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfHistory);
+    }
+
+    /**
+     * Update questionnaire response entity.
+     *
+     * @param questionnaireId the questionnaire id
+     * @param request         the request
+     * @return the response entity
+     */
+    @PutMapping("/questionnaire/{questionnaireId}")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<String>> updateQuestionnaire(@PathVariable(name = "questionnaireId") Integer questionnaireId, @RequestBody @Valid List<QuestionCreateRequestDTO> request) {
+        if (questionnaireId == null || request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "request null"));
+        }
+        ResponseData<String> resultOfUpdate = questionnaireService.updateQuestionnaire(questionnaireId, request);
+        if (resultOfUpdate.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfUpdate);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfUpdate);
+    }
+
+    /**
+     * Gets list job.
+     *
+     * @return the list job
+     */
+    @GetMapping("/job/list")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<JobResponse>>> getListJob() {
+        ResponseData<List<JobResponse>> jobList = jobService.getListJob();
+        if (jobList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(jobList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jobList);
+    }
+
+
+    /**
+     * Gets list question no pageable.
+     *
+     * @return the list question no pageable
+     */
+    @GetMapping("/question/list/v2")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ResponseData<List<QuestionResponse>>> getListQuestionNoPageable() {
+        ResponseData<List<QuestionResponse>> resultOfList = questionService.getListQuestionV2();
+        if (resultOfList.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultOfList);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultOfList);
     }
 }

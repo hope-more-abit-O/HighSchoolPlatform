@@ -3,13 +3,11 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.QuestionStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.holland_test.DeleteQuestionQuestionnaireRequest;
+import com.demo.admissionportal.dto.request.holland_test.QuestionCreateRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.QuestionResponse;
 import com.demo.admissionportal.dto.response.holland_test.QuestionnaireResponse;
-import com.demo.admissionportal.entity.Question;
-import com.demo.admissionportal.entity.QuestionType;
-import com.demo.admissionportal.entity.Questionnaire;
-import com.demo.admissionportal.entity.StaffInfo;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.QuestionQuestionType;
 import com.demo.admissionportal.entity.sub_entity.QuestionnaireQuestion;
 import com.demo.admissionportal.repository.QuestionRepository;
@@ -18,15 +16,19 @@ import com.demo.admissionportal.repository.StaffInfoRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionQuestionTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionTypeRepository;
 import com.demo.admissionportal.repository.sub_repository.QuestionnaireQuestionRepository;
+import com.demo.admissionportal.service.QuestionService;
 import com.demo.admissionportal.service.QuestionnaireService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -41,6 +43,7 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     private final QuestionQuestionTypeRepository questionQuestionTypeRepository;
     private final QuestionTypeRepository questionTypeRepository;
     private final QuestionRepository questionRepository;
+    private final QuestionService questionService;
 
     @Override
     public ResponseData<Page<QuestionnaireResponse>> getListQuestionnaire(String code, String name, String status, Pageable pageable) {
@@ -74,18 +77,26 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     }
 
     @Override
-    public ResponseData<String> deleteQuestionFromQuestionnaireId(DeleteQuestionQuestionnaireRequest request) {
+    public ResponseData<String> deleteQuestionnaireId(Integer questionnaireId) {
         try {
-            if (request == null) {
+            Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (questionnaireId == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "request null");
             }
-            QuestionnaireQuestion questionnaireQuestion = questionnaireQuestionRepository.findByQuestionnaireQuestionId(request.getQuestionnaireId(), request.getQuestionId());
-            if (questionnaireQuestion == null) {
+            Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId).orElse(null);
+            if (questionnaire == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question");
             }
-            questionnaireQuestion.setStatus(QuestionStatus.INACTIVE);
-            questionnaireQuestionRepository.save(questionnaireQuestion);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Xoá question thành công");
+            if (questionnaire.getStatus().equals(QuestionStatus.ACTIVE)) {
+                questionnaire.setStatus(QuestionStatus.INACTIVE);
+
+            } else {
+                questionnaire.setStatus(QuestionStatus.ACTIVE);
+            }
+            questionnaire.setUpdateBy(updateBy);
+            questionnaire.setUpdateTime(new Date());
+            questionnaireRepository.save(questionnaire);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái questionnaire thành công");
         } catch (Exception ex) {
             log.error("Error when delete questionnaire with ID: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi xoá câu hỏi", null);
@@ -103,5 +114,50 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
                 .createTime(question.getCreateTime())
                 .questionType(questionType.getName())
                 .build();
+    }
+
+    @Override
+    public ResponseData<String> updateQuestionnaire(Integer questionnaireId, List<QuestionCreateRequestDTO> request) {
+        try {
+            if (questionnaireId == null || request == null || request.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "request null or empty");
+            }
+            boolean checkValidate = questionService.checkQuestionIsEnough(request);
+            if (!checkValidate) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Question không đủ");
+            }
+            // Get existing questions in the questionnaire
+            List<QuestionnaireQuestion> existingQuestions = questionnaireQuestionRepository.findByQuestionnaireId(questionnaireId);
+            Set<Integer> existingQuestionIds = existingQuestions.stream()
+                    .map(QuestionnaireQuestion::getQuestionId)
+                    .collect(Collectors.toSet());
+
+            // Get new question IDs from the request
+            Set<Integer> newQuestionIds = request.stream()
+                    .map(QuestionCreateRequestDTO::getQuestionId)
+                    .collect(Collectors.toSet());
+
+            // Delete questions that are not in the new request
+            for (QuestionnaireQuestion existingQuestion : existingQuestions) {
+                if (!newQuestionIds.contains(existingQuestion.getQuestionId())) {
+                    questionnaireQuestionRepository.delete(existingQuestion);
+                }
+            }
+
+            // Add new questions that are not in the existing questions
+            for (Integer questionId : newQuestionIds) {
+                if (!existingQuestionIds.contains(questionId)) {
+                    QuestionnaireQuestion newQuestionnaireQuestion = new QuestionnaireQuestion();
+                    newQuestionnaireQuestion.setQuestionId(questionId);
+                    newQuestionnaireQuestion.setQuestionnaireId(questionnaireId);
+                    newQuestionnaireQuestion.setStatus(QuestionStatus.ACTIVE);
+                    questionnaireQuestionRepository.save(newQuestionnaireQuestion);
+                }
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật bộ câu hỏi thành công");
+        } catch (Exception ex) {
+            log.error("Error when updating questionnaire with ID {}: {}", questionnaireId, ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi cập nhật câu hỏi");
+        }
     }
 }

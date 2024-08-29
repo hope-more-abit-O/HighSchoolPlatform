@@ -1,7 +1,7 @@
 package com.demo.admissionportal.dto.request;
 
 import com.demo.admissionportal.constants.SubjectStatus;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;

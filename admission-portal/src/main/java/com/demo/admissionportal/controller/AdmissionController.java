@@ -5,6 +5,8 @@ import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
+import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
+import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.SearchAdmissionResponse;
@@ -15,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +47,6 @@ public class AdmissionController {
             List<Integer> subjectGroupIds = null;
             List<Integer> methodIds = null;
             List<Integer> provinceIds = null;
-
             if (majorId != null && !majorId.isEmpty()) {
                 majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
             }
@@ -137,7 +139,7 @@ public class AdmissionController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ResponseData<SearchAdmissionResponse>> searchAdmission(
+    public ResponseEntity<ResponseData<Page<SearchAdmissionDTO>>> searchAdmission(
             Pageable pageable,
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String universityCode,
@@ -151,7 +153,7 @@ public class AdmissionController {
             List<String> universityCodes = null;
             if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
             if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
-            return ResponseEntity.ok( ResponseData.ok("Lấy tài liệu thành công.", new SearchAdmissionResponse(admissionService.searchAdmission(pageable, years, universityCodes, staffId, status))));
+            return ResponseEntity.ok( ResponseData.ok("Lấy tài liệu thành công.", admissionService.searchAdmission(pageable, years, universityCodes, staffId, status)));
         } catch (ResourceNotFoundException | QueryException e) {
             throw e;
         }
@@ -170,7 +172,7 @@ public class AdmissionController {
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
         try {
-            admissionService.universityAndConsultantUpdateAdmissionStatus(id, request);
+            admissionService.universityAndConsultantUpdateAdmissionStatusAndUpdateUniversityTrainingProgram(id, request);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
         }catch (NotAllowedException | BadRequestException e){
             throw e;
@@ -188,7 +190,7 @@ public class AdmissionController {
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
         try {
-            admissionService.staffUpdateAdmissionConfirmStatus(id, request);
+            admissionService.staffUpdateAdmissionConfirmStatusAndUpdateUniversityTrainingProgram(id, request);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
         }catch (NotAllowedException | BadRequestException e){
             throw e;
@@ -254,4 +256,42 @@ public class AdmissionController {
         }
     }
 
+
+    @GetMapping("/school-directory")
+    public ResponseEntity schoolDirectory(
+            @RequestParam(required = true) Integer pageNumber,
+            @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = false) String subjectGroupId,
+            @RequestParam(required = false) String methodId,
+            @RequestParam(required = false) String majorId,
+            @RequestParam(required = false) String universityId,
+            @RequestParam(required = false) String provinceId
+    ){
+        try {
+            List<Integer> subjectGroupIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> majorIds = null;
+            List<String> universityIds = null;
+            List<Integer> provinceIds = null;
+
+            if (subjectGroupId != null && !subjectGroupId.isEmpty()) {
+                subjectGroupIds = Arrays.stream(subjectGroupId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (majorId != null && !majorId.isEmpty()) {
+                majorIds = Arrays.stream(majorId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (universityId != null && !universityId.isEmpty()) {
+                universityIds = Arrays.stream(universityId.split(",")).toList();
+            }
+            if (provinceId  != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds))));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

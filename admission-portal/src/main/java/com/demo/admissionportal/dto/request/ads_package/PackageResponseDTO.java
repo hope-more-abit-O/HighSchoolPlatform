@@ -1,6 +1,5 @@
 package com.demo.admissionportal.dto.request.ads_package;
 
-import com.demo.admissionportal.constants.UniversityTransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,10 +19,13 @@ public class PackageResponseDTO implements Serializable {
     private InfoUniversity infoUniversity;
     private InfoPackage infoPackage;
     private Integer postId;
+    private String url;
     private Date createTime;
     private Date completeTime;
     private String status;
     private Long orderCode;
+    private String description;
+    private Integer price;
 
     /**
      * The type Info university.

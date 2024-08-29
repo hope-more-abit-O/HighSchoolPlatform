@@ -44,4 +44,7 @@ public class UniversityTransaction {
 
     @Column(name = "order_code")
     private Long orderCode;
+
+    @Column(name = "description")
+    private String description;
 }

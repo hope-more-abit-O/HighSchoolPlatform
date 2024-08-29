@@ -137,6 +137,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public ResponseData<DeleteQuestionResponse> deleteQuestion(Integer questionId) {
         try {
+            Integer updateBy = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             if (questionId == null) {
                 return new ResponseData<>(ResponseCode.C205.getCode(), "questionId null");
             }
@@ -144,33 +145,18 @@ public class QuestionServiceImpl implements QuestionService {
             if (questionExisted == null) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy question với Id: " + questionId);
             }
-            List<QuestionJob> questionJob = questionJobRepository.findQuestionJobByQuestionId(questionExisted.getId());
-            for (QuestionJob qj : questionJob) {
-                if (qj.getStatus().equals(QuestionStatus.ACTIVE)) {
-                    qj.setStatus(QuestionStatus.INACTIVE);
-
-                } else {
-                    qj.setStatus(QuestionStatus.ACTIVE);
-                }
-                questionJobRepository.save(qj);
-            }
-            QuestionQuestionType questionType = questionQuestionTypeRepository.findQuestionQuestionTypeByQuestionId(questionExisted.getId());
-            if (questionType.getStatus().equals(QuestionStatus.ACTIVE)) {
-                questionType.setStatus(QuestionStatus.INACTIVE);
+            List<QuestionnaireQuestion> questionnaireQuestion = questionnaireQuestionRepository.findByQuestionnaireId(questionId);
+            if (questionnaireQuestion != null) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "Câu hỏi đã tồn tại trong bộ câu hỏi");
             } else {
-                questionType.setStatus(QuestionStatus.ACTIVE);
-            }
-            questionQuestionTypeRepository.save(questionType);
-            if (questionExisted.getStatus().equals(QuestionStatus.ACTIVE)) {
+                questionExisted.setUpdateBy(updateBy);
+                questionExisted.setUpdateTime(new Date());
                 questionExisted.setStatus(QuestionStatus.INACTIVE);
-
-            } else {
-                questionExisted.setStatus(QuestionStatus.ACTIVE);
+                questionRepository.save(questionExisted);
             }
-            questionRepository.save(questionExisted);
             DeleteQuestionResponse response = new DeleteQuestionResponse();
             response.setCurrentStatus(questionExisted.getStatus().name);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công", response);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật trạng thái question thành công");
         } catch (Exception e) {
             log.error("Error while delete question Id: {}", questionId);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi xoá question id: " + questionId);
@@ -249,6 +235,7 @@ public class QuestionServiceImpl implements QuestionService {
         try {
             List<Question> allQuestions = questionRepository.findAll();
             Map<Integer, List<Question>> questionsByType = allQuestions.stream()
+                    .filter(question -> question.getStatus().equals(QuestionStatus.ACTIVE))
                     .collect(Collectors.groupingBy(Question::getType));
 
             List<QuestionResponse> resultOfRandom = new ArrayList<>();
@@ -550,5 +537,18 @@ public class QuestionServiceImpl implements QuestionService {
                 .testResponseId(testResponse.getId())
                 .name(questionnaire.getName())
                 .build();
+    }
+
+
+    @Override
+    public ResponseData<List<QuestionResponse>> getListQuestionV2() {
+        try {
+            List<Question> questionList = questionRepository.findAll();
+            List<QuestionResponse> questionResponses = questionList.parallelStream().map(this::mapToListQuestionResponse).collect(Collectors.toList());
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách question v2 thành công", questionResponses);
+        } catch (Exception e) {
+            log.error("Error while get list question v2 : {}", e.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi lấy danh sách question v2", null);
+        }
     }
 }

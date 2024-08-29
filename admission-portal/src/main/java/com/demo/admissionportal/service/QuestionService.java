@@ -1,9 +1,6 @@
 package com.demo.admissionportal.service;
 
-import com.demo.admissionportal.dto.request.holland_test.CreateQuestionRequest;
-import com.demo.admissionportal.dto.request.holland_test.QuestionnaireRequest;
-import com.demo.admissionportal.dto.request.holland_test.SubmitRequestDTO;
-import com.demo.admissionportal.dto.request.holland_test.UpdateQuestionRequest;
+import com.demo.admissionportal.dto.request.holland_test.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.holland_test.*;
 import org.springframework.data.domain.Page;
@@ -97,4 +94,19 @@ public interface QuestionService {
      * @return the history
      */
     ResponseData<List<HistoryParticipateResponse>> getHistory();
+
+    /**
+     * Check question is enough boolean.
+     *
+     * @param question the question
+     * @return the boolean
+     */
+    boolean checkQuestionIsEnough(List<QuestionCreateRequestDTO> question);
+
+    /**
+     * Gets list question v 2.
+     *
+     * @return the list question v 2
+     */
+    ResponseData<List<QuestionResponse>> getListQuestionV2();
 }

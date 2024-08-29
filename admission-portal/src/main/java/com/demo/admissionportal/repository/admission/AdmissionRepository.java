@@ -141,8 +141,15 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     WHERE (ui.code IN (:universityId))
     AND (ad.year IN (:year))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListYearAndListUniversityCodeV2(Pageable pageable , List<Integer> year, List<String> universityId, Integer staffId);
+    """,countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ad.university_id = ui.university_id
+    WHERE (ui.code IN (:universityId))
+    AND (ad.year IN (:year))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListYearAndListUniversityCodeV2(Pageable pageable , List<Integer> year, List<String> universityId, Integer staffId);
 
     @Query(value = """
     SELECT ad.*
@@ -152,8 +159,16 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     AND (ad.year IN (:year))
     AND (ad.status IN (:status))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListYearAndListUniversityCodeAndListStatus(Pageable pageable , List<Integer> year, List<String> universityId, List<String> status, Integer staffId);
+    """,countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ad.university_id = ui.university_id
+    WHERE (ui.code IN (:universityId))
+    AND (ad.year IN (:year))
+    AND (ad.status IN (:status))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListYearAndListUniversityCodeAndListStatus(Pageable pageable , List<Integer> year, List<String> universityId, List<String> status, Integer staffId);
 
 
     @Query(value = """
@@ -170,8 +185,14 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ad.year IN (:year))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListYearV2(Pageable pageable ,List<Integer> year, Integer staffId);
+    """, countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
+    WHERE (ad.year IN (:year))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListYearV2(Pageable pageable ,List<Integer> year, Integer staffId);
 
     @Query(value = """
     SELECT ad.*
@@ -180,8 +201,15 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     WHERE (ad.year IN (:year))
     AND (ad.status IN (:status))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListYearAndListStatus(Pageable pageable, List<Integer> year, List<String> status, Integer staffId);
+    """,countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
+    WHERE (ad.year IN (:year))
+    AND (ad.status IN (:status))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListYearAndListStatus(Pageable pageable, List<Integer> year, List<String> status, Integer staffId);
 
 
     @Query(value = """
@@ -208,8 +236,14 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     INNER JOIN university_info ui on ui.university_id = ad.university_id
     WHERE (ui.code in (:universityCode))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListUniversityCodeV2(Pageable pageable , List<String> universityCode, Integer staffId);
+    """, countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
+    WHERE (ui.code in (:universityCode))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListUniversityCodeV2(Pageable pageable , List<String> universityCode, Integer staffId);
 
     @Query(value = """
     SELECT ad.*
@@ -218,8 +252,15 @@ public interface AdmissionRepository extends JpaRepository<Admission, Integer> {
     WHERE (ui.code in (:universityCode))
     AND (ad.status in (:status))
     AND (:staffId IS NULL OR ui.staff_id = :staffId)
-    """, nativeQuery = true)
-    List<Admission> findAllByListUniversityCodeAndListStatus(Pageable pageable , List<String> universityCode, List<String> status, Integer staffId);
+    """,countQuery = """
+    SELECT count(ad.id)
+    FROM admission ad
+    INNER JOIN university_info ui on ui.university_id = ad.university_id
+    WHERE (ui.code in (:universityCode))
+    AND (ad.status in (:status))
+    AND (:staffId IS NULL OR ui.staff_id = :staffId)
+""", nativeQuery = true)
+    Page<Admission> findAllByListUniversityCodeAndListStatus(Pageable pageable , List<String> universityCode, List<String> status, Integer staffId);
 
     @Query(value = """
     SELECT ad.*
@@ -283,8 +324,13 @@ select a.*
 from admission a
 inner join university_info ui on ui.university_id = a.university_id
 where (:staffId IS NULL OR ui.staff_id = :staffId)
+""", countQuery = """
+select count(a.id)
+from admission a
+inner join university_info ui on ui.university_id = a.university_id
+where (:staffId IS NULL OR ui.staff_id = :staffId)
 """, nativeQuery = true)
-    List<Admission> find(Pageable pageable, Integer staffId);
+    Page<Admission> find(Pageable pageable, Integer staffId);
 
     @Query(value = """
 select a.*
@@ -292,12 +338,32 @@ from admission a
 inner join university_info ui on ui.university_id = a.university_id
 where a.status in (:status)
 and (:staffId IS NULL OR ui.staff_id = :staffId)
+""" ,countQuery = """
+select count(a.id)
+from admission a
+inner join university_info ui on ui.university_id = a.university_id
+where a.status in (:status)
+and (:staffId IS NULL OR ui.staff_id = :staffId)
 """, nativeQuery = true)
-    List<Admission> findWithPageableAndListStatus(Pageable pageable, List<String> status, Integer staffId);
+    Page<Admission> findWithPageableAndListStatus(Pageable pageable, List<String> status, Integer staffId);
 
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatus(Integer universityId, AdmissionStatus admissionStatus);
 
     Optional<Admission> findFirstByUniversityIdAndAdmissionStatusOrderByYearAsc(Integer universityId, AdmissionStatus admissionStatus);
 
     Optional<Admission> findByUniversityIdAndYearAndAdmissionStatus(Integer universityId, Integer year, AdmissionStatus admissionStatus);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusAndYearOrderByYearDesc(Integer universityId, AdmissionStatus admissionStatus, Integer year);
+
+    Optional<Admission> findFirstByUniversityIdAndAdmissionStatusAndYearLessThanEqualOrderByYearDesc(Integer universityId, AdmissionStatus admissionStatus, Integer year);
+
+
+    @Query(value = """
+SELECT *
+FROM admission
+WHERE university_id IN (:universityIds)
+AND year = :year
+AND status = :admissionStatus
+""",nativeQuery = true)
+    List<Admission> findByUniversityIdAndYearAndStatus(List<Integer> universityIds, int year, String admissionStatus);
 }

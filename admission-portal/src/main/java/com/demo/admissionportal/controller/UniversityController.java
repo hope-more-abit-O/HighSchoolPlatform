@@ -27,6 +27,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * The type University controller.
+ */
 @RestController
 @RequestMapping("/api/v1/university")
 @RequiredArgsConstructor
@@ -35,6 +38,12 @@ public class UniversityController {
     private final ConsultantService consultantService;
     private final UniversityTransactionService universityTransactionService;
 
+    /**
+     * Update info response entity.
+     *
+     * @param updateUniversityInfoRequest the update university info request
+     * @return the response entity
+     */
     @PutMapping("/info")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity updateInfo(@RequestBody @Valid UpdateUniversityInfoRequest updateUniversityInfoRequest) {
@@ -54,12 +63,11 @@ public class UniversityController {
      * the creation logic to the service layer, and returns a
      * response indicating success or failure.
      *
-     * @param request The consultant creation request data, expected
-     *                as a JSON object in the request body.
-     * @return A ResponseEntity containing the result of the operation
-     * with a suitable HTTP status code (e.g., 201 Created for success).
-     * @throws DataExistedException If the provided data conflicts
-     *                              with existing records.
+     * @param request The consultant creation request data, expected                as a JSON object in the request body.
+     * @return A ResponseEntity containing the result of the operation with a suitable HTTP status code (e.g., 201 Created for success).
+     * @throws DataExistedException      If the provided data conflicts                              with existing records.
+     * @throws StoreDataFailedException  the store data failed exception
+     * @throws ResourceNotFoundException the resource not found exception
      */
     @PostMapping("/consultant")
     @SecurityRequirement(name = "BearerAuth")
@@ -75,9 +83,9 @@ public class UniversityController {
      * their unique identifier and returns the data as a response.
      *
      * @param id The unique identifier of the consultant to retrieve.
-     * @return A ResponseEntity containing consultant details with
-     * a suitable HTTP status (e.g., 200 OK for success, 404 Not Found
-     * if the consultant is not found).
+     * @return A ResponseEntity containing consultant details with a suitable HTTP status (e.g., 200 OK for success, 404 Not Found if the consultant is not found).
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
      */
     @GetMapping("/consultant/{id}")
     @SecurityRequirement(name = "BearerAuth")
@@ -85,6 +93,21 @@ public class UniversityController {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin tư vấn viên thành công.", consultantService.getFullConsultantByIdByUniversity(id)));
     }
 
+    /**
+     * Gets consultants.
+     *
+     * @param pageable       the pageable
+     * @param id             the id
+     * @param name           the name
+     * @param universityName the university name
+     * @param universityId   the university id
+     * @param username       the username
+     * @param status         the status
+     * @param updateBy       the update by
+     * @return the consultants
+     * @throws NotAllowedException       the not allowed exception
+     * @throws ResourceNotFoundException the resource not found exception
+     */
     @GetMapping("/consultants")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> getConsultants(
@@ -107,12 +130,24 @@ public class UniversityController {
         );
     }
 
+    /**
+     * Gets self profile.
+     *
+     * @return the self profile
+     */
     @GetMapping("/info")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> getSelfProfile() {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công.", universityService.getSelfProfile()));
     }
 
+    /**
+     * Find full university by id response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     * @throws Exception the exception
+     */
     @GetMapping("/full/{id}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<UniversityFullResponseDTO>> findFullUniversityById(@PathVariable Integer id) throws Exception {
@@ -120,12 +155,25 @@ public class UniversityController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Find info university by id response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     * @throws Exception the exception
+     */
     @GetMapping("/info/{id}")
     public ResponseEntity<ResponseData<UniversityInfoResponseDTO>> findInfoUniversityById(@PathVariable Integer id) throws Exception {
         var result = ResponseData.ok("Lấy thông tin trường thành công", universityService.getUniversityInfoResponseById(id));
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Update consultant status response entity.
+     *
+     * @param request the request
+     * @return the response entity
+     */
     @PutMapping("/consultant")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateConsultantStatus(@RequestBody @Valid PatchConsultantStatusRequest request) {
@@ -133,6 +181,21 @@ public class UniversityController {
     }
 
 
+    /**
+     * Gets university management.
+     *
+     * @param pageable     the pageable
+     * @param id           the id
+     * @param code         the code
+     * @param username     the username
+     * @param name         the name
+     * @param phone        the phone
+     * @param email        the email
+     * @param status       the status
+     * @param createBy     the create by
+     * @param createByName the create by name
+     * @return the university management
+     */
     @GetMapping()
     public ResponseEntity<ResponseData<Page<UniversityFullResponseDTO>>> getUniversityManagement(
             Pageable pageable,
@@ -151,10 +214,19 @@ public class UniversityController {
                         email, status, createBy, createByName));
     }
 
+    /**
+     * Gets order by uni id.
+     *
+     * @param orderCode the order code
+     * @param pageable  the pageable
+     * @return the order by uni id
+     */
     @GetMapping("/transaction")
     @PreAuthorize("hasAnyAuthority('UNIVERSITY','CONSULTANT')")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<List<OrderResponseDTO>>> getOrderByUniID() {
-        return ResponseEntity.ok(universityTransactionService.getOrderByUniId());
+    public ResponseEntity<ResponseData<Page<OrderResponseDTO>>> getOrderByUniID(@RequestParam(name = "orderCode", required = false) String orderCode,
+                                                                                Pageable pageable) {
+        return ResponseEntity.ok(universityTransactionService.getOrderByUniId(orderCode, pageable));
     }
+
 }

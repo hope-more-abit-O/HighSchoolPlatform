@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.util.enum_validator.EnumName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,8 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateUniversityRequestRequest {
-    @NotNull(message = "Tên trường đại học không được để trống!")
     @EnumName(message = "Tên trường đại học không được có số!")
+    @NotNull(message = "Tên trường đại học không được để trống!")
     private String universityName;
     @Email(message = "Email phải đúng định dạng")
     @NotNull(message = "Email trường đại học không được để trống!")

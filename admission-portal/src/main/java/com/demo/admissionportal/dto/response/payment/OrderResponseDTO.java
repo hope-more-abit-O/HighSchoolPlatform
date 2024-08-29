@@ -15,6 +15,8 @@ import java.util.Date;
 public class OrderResponseDTO implements Serializable {
     private long orderCode;
     private Integer postId;
+    private String title;
+    private String url;
     private String packageName;
     private int price;
     private Date createTime;
