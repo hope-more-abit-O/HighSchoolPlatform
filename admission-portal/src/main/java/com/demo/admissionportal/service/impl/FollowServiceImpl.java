@@ -8,12 +8,14 @@ import com.demo.admissionportal.dto.response.follow.FollowUniMajorResponseDTO;
 import com.demo.admissionportal.dto.response.follow.UserFollowMajorResponseDTO;
 import com.demo.admissionportal.dto.response.follow.UserFollowUniversityMajorResponseDTO;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowMajorId;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowUniversityMajorId;
 import com.demo.admissionportal.repository.MajorRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
 import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowUniversityMajorRepository;
 import com.demo.admissionportal.service.FollowService;
@@ -36,6 +38,7 @@ public class FollowServiceImpl implements FollowService {
     private final FollowUniversityMajorRepository followUniversityMajorRepository;
     private final UniversityTrainingProgramRepository universityTrainingProgramRepository;
     private final UniversityInfoRepository universityInfoRepository;
+    private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
 
     @Override
     public ResponseData<FollowResponseDTO> createFollowMajor(Integer majorId) {
@@ -182,7 +185,7 @@ public class FollowServiceImpl implements FollowService {
     public ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            List<UserFollowUniversityMajor> listFollowUniMajor = followUniversityMajorRepository.findByUserId(userId);
+            List<UserFollowUniversityMajor> listFollowUniMajor = followUniversityMajorRepository.findByUserId(userId).stream().filter(userFollowUniversityMajor -> userFollowUniversityMajor.getStatus().equals(FavoriteStatus.FOLLOW)).toList();
             List<UserFollowUniversityMajorResponseDTO> result = listFollowUniMajor.stream()
                     .map(this::mapUserFollowUniversityMajor)
                     .collect(Collectors.toList());
@@ -194,7 +197,8 @@ public class FollowServiceImpl implements FollowService {
     }
 
     private UserFollowUniversityMajorResponseDTO mapUserFollowUniversityMajor(UserFollowUniversityMajor userFollowUniversityMajor) {
-        Major major = majorRepository.findById(userFollowUniversityMajor.getUniversityMajor().getId()).orElse(null);
+        UniversityTrainingProgram universityTrainingProgram = universityTrainingProgramRepository.findById(userFollowUniversityMajor.getId().getUniversityMajor()).orElse(null);
+        Major major = majorRepository.findById(universityTrainingProgram.getMajorId()).orElse(null);
         User university = userRepository.findUserById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UniversityInfo userUniversityInfo = universityInfoRepository.findUniversityInfoById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UserFollowUniversityMajorResponseDTO response = new UserFollowUniversityMajorResponseDTO();
