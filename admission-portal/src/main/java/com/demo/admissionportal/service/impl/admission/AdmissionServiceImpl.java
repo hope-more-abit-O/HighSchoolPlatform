@@ -1680,7 +1680,10 @@ public class AdmissionServiceImpl implements AdmissionService {
             UniversityInfo universityInfo = universityInfos.stream().filter((element) -> element.getId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
             List<UniversityCampus> universityCampuses1 = universityCampuses.stream().filter((element) -> element.getUniversityId().equals(user.getId())).toList();
             List<Province> provinces1 = provinces.stream().filter((element) -> universityCampuses1.stream().map(UniversityCampus::getProvinceId).toList().contains(element.getId())).toList();
-            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((element) -> element.getUniversityId().equals(user.getId())).toList();
+            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(user.getId()) && (schoolDirectoryRequest.getMajorIds() == null || schoolDirectoryRequest.getMajorIds().contains(element.getMajorId())))
+                    .toList();
             Integer totalQuota = 0, totalMethod = 0, totalMajor = 0;
             Admission admission = admissions.stream().filter((element) -> element.getUniversityId().equals(user.getId())).findFirst().orElse(null);
             if (admission != null){
