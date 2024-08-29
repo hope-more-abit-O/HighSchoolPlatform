@@ -25,6 +25,7 @@ public class PackageResponseDTO implements Serializable {
     private String status;
     private Long orderCode;
     private String description;
+    private Integer price;
 
     /**
      * The type Info university.

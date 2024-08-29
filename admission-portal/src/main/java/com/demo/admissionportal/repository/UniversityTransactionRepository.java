@@ -2,6 +2,7 @@ package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.dto.response.statistics.StatisticRevenueByTime;
 import com.demo.admissionportal.entity.UniversityTransaction;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -206,7 +207,7 @@ public interface UniversityTransactionRepository extends JpaRepository<Universit
             "JOIN ads_package ad on ut.ads_package_id = ad.id " +
             "WHERE (:adsName IS NULL OR ad.name  LIKE N'%' + :adsName + '%')" +
             "AND (:status IS NULL OR ut.status = :status)", nativeQuery = true)
-    List<UniversityTransaction> findListTransaction(@Param(value = "adsName") String adsName,
+    Page<UniversityTransaction> findListTransaction(@Param(value = "adsName") String adsName,
                                                     @Param(value = "status") String status,
                                                     Pageable pageable);
 }
