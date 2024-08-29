@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 
 /**
@@ -20,6 +19,7 @@ public class CreateQrResponseDTO {
     private long orderCode;
     private String statusPayment;
     private String checkoutURL;
+    private String description;
 
     /**
      * The type Info transaction dto.

@@ -19,10 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -203,6 +200,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<UniversityTransaction> list = universityTransactionRepository.findAll();
         return list.parallelStream()
                 .map(this::mapToTransactionDetail)
+                .sorted(Comparator.comparing(StatisticsTransactionDetailResponse::getCreateTime).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -225,6 +223,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                         .map(AdsPackage::getPrice)
                         .orElse(null)
         );
+        responseDTO.setCreateTime(universityTransaction.getCreateTime());
         return responseDTO;
     }
 

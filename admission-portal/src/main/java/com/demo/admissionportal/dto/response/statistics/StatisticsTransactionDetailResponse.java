@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * The type Statistics transaction detail response.
@@ -17,4 +18,5 @@ import java.io.Serializable;
 public class StatisticsTransactionDetailResponse implements Serializable {
     private String createBy;
     private Integer price;
+    private Date createTime;
 }
