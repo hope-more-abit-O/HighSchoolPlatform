@@ -289,7 +289,7 @@ public class AdmissionController {
             if (provinceId  != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds)));
+            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

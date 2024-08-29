@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityTrainingProgramStatus;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
@@ -8,14 +9,18 @@ import com.demo.admissionportal.dto.entity.university_training_program.InfoUnive
 import com.demo.admissionportal.dto.response.university_training_program.GetFullUniversityTrainingProgramResponse;
 import com.demo.admissionportal.dto.response.university_training_program.GetInfoUniversityTrainingProgramResponse;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
+import com.demo.admissionportal.repository.admission.AdmissionRepository;
 import com.demo.admissionportal.service.MajorService;
 import com.demo.admissionportal.service.UniversityInfoService;
 import com.demo.admissionportal.service.UniversityTrainingProgramService;
+import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +39,7 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     private final ConsultantInfoServiceImpl consultantInfoServiceImpl;
     private final UniversityInfoService universityInfoService;
     private final MajorService majorService;
+    private final AdmissionRepository admissionRepository;
 
     public static void removeAllMatching(List<UniversityTrainingProgram> universityTrainingPrograms, List<UniversityTrainingProgram> activeUniversityTrainingPrograms) {
         Iterator<UniversityTrainingProgram> iterator = universityTrainingPrograms.iterator();
@@ -42,7 +48,7 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
             for (UniversityTrainingProgram activeProgram : activeUniversityTrainingPrograms) {
                 if (isMatching(program, activeProgram)) {
                     iterator.remove();
-                    break; // Break to avoid removing the same item multiple times
+                    break;
                 }
             }
         }
@@ -58,20 +64,26 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         return universityTrainingProgramRepository.findByUniversityId(universityId);
     }
 
+    public List<UniversityTrainingProgram> findActiveByUniversityId(Integer universityId) {
+        return universityTrainingProgramRepository.findByUniversityIdAndStatus(universityId, UniversityTrainingProgramStatus.ACTIVE);
+    }
+
     public List<UniversityTrainingProgram> findByUniversityIdWithStatus(Integer universityId, UniversityTrainingProgramStatus status) {
         return universityTrainingProgramRepository.findByUniversityIdAndStatus(universityId, status);
     }
 
     public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId) {
+        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhập danh sách các chương trình giảng dạy."));
         List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityIdWithStatus(universityId, UniversityTrainingProgramStatus.ACTIVE);
         List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
-        return new GetFullUniversityTrainingProgramResponse(fullMapping(universityTrainingPrograms, majors));
+        return new GetFullUniversityTrainingProgramResponse(admission.getYear(), fullMapping(universityTrainingPrograms, majors));
     }
 
     public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(Integer universityId) {
-        List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityId(universityId);
+        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhập danh sách các chương trình giảng dạy."));
+        List<UniversityTrainingProgram> universityTrainingPrograms = findActiveByUniversityId(universityId);
         List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
-        return new GetInfoUniversityTrainingProgramResponse(infoMapping(universityTrainingPrograms, majors));
+        return new GetInfoUniversityTrainingProgramResponse(admission.getYear(), infoMapping(universityTrainingPrograms, majors));
     }
 
     @Override
