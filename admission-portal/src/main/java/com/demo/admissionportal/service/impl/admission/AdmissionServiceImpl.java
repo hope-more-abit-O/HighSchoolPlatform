@@ -1625,6 +1625,10 @@ public class AdmissionServiceImpl implements AdmissionService {
     public Page<SchoolDirectoryInfo> schoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest) {
         List<Admission> admissions = schoolDirectoryGetAdmission(schoolDirectoryRequest);
 
+        if (admissions.isEmpty()) {
+            throw new ResourceNotFoundException("Không có trường đại học phù hợp.");
+        }
+
         Integer countAll = countSchoolDirectoryGetAdmission(schoolDirectoryRequest);
 
         List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).toList();
@@ -1720,6 +1724,11 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (schoolDirectoryRequest.getProvinceIds() != null && !schoolDirectoryRequest.getProvinceIds().isEmpty()) {
             queryBuilder.append("and uc.province_id in (:provinceIds)\n");
             parameters.put("provinceIds", schoolDirectoryRequest.getProvinceIds());
+        }
+
+        if (schoolDirectoryRequest.getMajorIds() != null && !schoolDirectoryRequest.getMajorIds().isEmpty()) {
+            queryBuilder.append("and atp.major_id in (:majorIds)\n");
+            parameters.put("majorIds", schoolDirectoryRequest.getMajorIds());
         }
 
         if (schoolDirectoryRequest.getPageNumber() == null || schoolDirectoryRequest.getPageSize() == null) {
