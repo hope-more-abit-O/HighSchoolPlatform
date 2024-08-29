@@ -1633,9 +1633,35 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).toList();
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIds(admissions.stream().map(Admission::getId).toList());
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = null;
 
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+        if (schoolDirectoryRequest.getMajorIds() == null || schoolDirectoryRequest.getMajorIds().isEmpty()) {
+            admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIds(admissions.stream().map(Admission::getId).toList());
+        } else {
+            admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIdsAndMajorIds(admissions.stream().map(Admission::getId).toList(), schoolDirectoryRequest.getMajorIds());
+        }
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = null;
+        if (schoolDirectoryRequest.getSubjectGroupIds() != null && !schoolDirectoryRequest.getSubjectGroupIds().isEmpty()) {
+            admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramIdsAndSubjectGroupIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList(), schoolDirectoryRequest.getSubjectGroupIds());
+        }
+
+        if (admissionTrainingProgramSubjectGroups != null && !admissionTrainingProgramSubjectGroups.isEmpty()) {
+            List<Integer> admissionTrainingProgramIds = admissionTrainingProgramSubjectGroups.stream().map(AdmissionTrainingProgramSubjectGroup::getId).map(AdmissionTrainingProgramSubjectGroupId::getAdmissionTrainingProgramId).toList();
+
+            admissionTrainingPrograms = admissionTrainingPrograms
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds.contains(element.getId()))
+                    .toList();
+        }
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = null;
+
+        if (schoolDirectoryRequest.getMethodIds() != null && !schoolDirectoryRequest.getMethodIds().isEmpty()) {
+            admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIdInAndMethodIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList(), schoolDirectoryRequest.getMethodIds());
+        } else {
+            admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+        }
 
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatus(universityIds, UniversityTrainingProgramStatus.ACTIVE);
 
@@ -1683,7 +1709,9 @@ public class AdmissionServiceImpl implements AdmissionService {
                     .stream()
                     .map((element) -> new CampusProvinceDTO(
                             element,
-                            universityCampuses1.stream().filter((ele) -> ele.getProvinceId().equals(element.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy campus trường học."))))
+                            universityCampuses1.stream().filter((ele) -> ele.getProvinceId().equals(element.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy campus trường học.")),
+                            schoolDirectoryRequest.getProvinceIds()
+                    ))
                     .toList();
             schoolDirectoryInfos.add(new SchoolDirectoryInfo(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor));
         }

@@ -24,4 +24,6 @@ public interface AdmissionTrainingProgramRepository extends JpaRepository<Admiss
     List<Integer> findAdmissionIdByAdmissionTrainingProgramIds(@Param("admissionTrainingProgramIds") List<Integer> admissionTrainingProgramIds);
 
     List<AdmissionTrainingProgram> findByAdmissionIdIn(Collection<Integer> admissionIds);
+
+    List<AdmissionTrainingProgram> findByAdmissionIdInAndMajorIdIn(Collection<Integer> admissionIds, Collection<Integer> majorIds);
 }

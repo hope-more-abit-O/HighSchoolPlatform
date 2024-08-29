@@ -25,4 +25,8 @@ public class AdmissionTrainingProgramSubjectGroupServiceImpl {
     public List<AdmissionTrainingProgramSubjectGroup> findByAdmissionTrainingProgramId(List<Integer> admissionTrainingProgramIds) {
         return admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
     }
+
+    public List<AdmissionTrainingProgramSubjectGroup> findByAdmissionTrainingProgramIdsAndSubjectGroupIds(List<Integer> admissionTrainingProgramIds, List<Integer> subjectGroupIds) {
+        return admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdInAndId_SubjectGroupIdIn(admissionTrainingProgramIds, subjectGroupIds);
+    }
 }
