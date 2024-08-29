@@ -148,4 +148,8 @@ public class AdmissionTrainingProgramServiceImpl {
 
         return methods;
     }
+
+    public List<AdmissionTrainingProgram> findByAdmissionIdsAndMajorIds(List<Integer> admissionIds, List<Integer> majorIds) {
+        return admissionTrainingProgramRepository.findByAdmissionIdInAndMajorIdIn(admissionIds, majorIds);
+    }
 }

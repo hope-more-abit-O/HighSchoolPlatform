@@ -1625,13 +1625,43 @@ public class AdmissionServiceImpl implements AdmissionService {
     public Page<SchoolDirectoryInfo> schoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest) {
         List<Admission> admissions = schoolDirectoryGetAdmission(schoolDirectoryRequest);
 
+        if (admissions.isEmpty()) {
+            throw new ResourceNotFoundException("Không có trường đại học phù hợp.");
+        }
+
         Integer countAll = countSchoolDirectoryGetAdmission(schoolDirectoryRequest);
 
         List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).toList();
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIds(admissions.stream().map(Admission::getId).toList());
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = null;
 
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+        if (schoolDirectoryRequest.getMajorIds() == null || schoolDirectoryRequest.getMajorIds().isEmpty()) {
+            admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIds(admissions.stream().map(Admission::getId).toList());
+        } else {
+            admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionIdsAndMajorIds(admissions.stream().map(Admission::getId).toList(), schoolDirectoryRequest.getMajorIds());
+        }
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = null;
+        if (schoolDirectoryRequest.getSubjectGroupIds() != null && !schoolDirectoryRequest.getSubjectGroupIds().isEmpty()) {
+            admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramIdsAndSubjectGroupIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList(), schoolDirectoryRequest.getSubjectGroupIds());
+        }
+
+        if (admissionTrainingProgramSubjectGroups != null && !admissionTrainingProgramSubjectGroups.isEmpty()) {
+            List<Integer> admissionTrainingProgramIds = admissionTrainingProgramSubjectGroups.stream().map(AdmissionTrainingProgramSubjectGroup::getId).map(AdmissionTrainingProgramSubjectGroupId::getAdmissionTrainingProgramId).toList();
+
+            admissionTrainingPrograms = admissionTrainingPrograms
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds.contains(element.getId()))
+                    .toList();
+        }
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = null;
+
+        if (schoolDirectoryRequest.getMethodIds() != null && !schoolDirectoryRequest.getMethodIds().isEmpty()) {
+            admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIdInAndMethodIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList(), schoolDirectoryRequest.getMethodIds());
+        } else {
+            admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+        }
 
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatus(universityIds, UniversityTrainingProgramStatus.ACTIVE);
 
@@ -1650,7 +1680,10 @@ public class AdmissionServiceImpl implements AdmissionService {
             UniversityInfo universityInfo = universityInfos.stream().filter((element) -> element.getId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
             List<UniversityCampus> universityCampuses1 = universityCampuses.stream().filter((element) -> element.getUniversityId().equals(user.getId())).toList();
             List<Province> provinces1 = provinces.stream().filter((element) -> universityCampuses1.stream().map(UniversityCampus::getProvinceId).toList().contains(element.getId())).toList();
-            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((element) -> element.getUniversityId().equals(user.getId())).toList();
+            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(user.getId()) && (schoolDirectoryRequest.getMajorIds() == null || schoolDirectoryRequest.getMajorIds().contains(element.getMajorId())))
+                    .toList();
             Integer totalQuota = 0, totalMethod = 0, totalMajor = 0;
             Admission admission = admissions.stream().filter((element) -> element.getUniversityId().equals(user.getId())).findFirst().orElse(null);
             if (admission != null){
@@ -1679,7 +1712,9 @@ public class AdmissionServiceImpl implements AdmissionService {
                     .stream()
                     .map((element) -> new CampusProvinceDTO(
                             element,
-                            universityCampuses1.stream().filter((ele) -> ele.getProvinceId().equals(element.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy campus trường học."))))
+                            universityCampuses1.stream().filter((ele) -> ele.getProvinceId().equals(element.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy campus trường học.")),
+                            schoolDirectoryRequest.getProvinceIds()
+                    ))
                     .toList();
             schoolDirectoryInfos.add(new SchoolDirectoryInfo(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor));
         }
@@ -1720,6 +1755,11 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (schoolDirectoryRequest.getProvinceIds() != null && !schoolDirectoryRequest.getProvinceIds().isEmpty()) {
             queryBuilder.append("and uc.province_id in (:provinceIds)\n");
             parameters.put("provinceIds", schoolDirectoryRequest.getProvinceIds());
+        }
+
+        if (schoolDirectoryRequest.getMajorIds() != null && !schoolDirectoryRequest.getMajorIds().isEmpty()) {
+            queryBuilder.append("and atp.major_id in (:majorIds)\n");
+            parameters.put("majorIds", schoolDirectoryRequest.getMajorIds());
         }
 
         if (schoolDirectoryRequest.getPageNumber() == null || schoolDirectoryRequest.getPageSize() == null) {

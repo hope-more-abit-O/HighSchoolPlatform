@@ -1,6 +1,5 @@
 package com.demo.admissionportal.repository.admission;
 
-import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -77,4 +76,13 @@ INNER JOIN [admission] a ON a.id = atp.admission_id
 WHERE a.university_id in (:id) AND a.year = :year AND a.status = :admissionStatus
 """, nativeQuery = true)
     List<AdmissionTrainingProgramMethod> findByUniversityIdAndYearAndStatus(List<Integer> id, int year, String admissionStatus);
+
+    @Query(value = """
+SELECT atpm.*
+FROM [admission_training_program_method] atpm
+INNER JOIN [admission_method] am ON am.id = atpm.admission_method_id
+WHERE am.method_id in (:methodIds)
+AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
+""", nativeQuery = true)
+    List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdInAndMethodIds(List<Integer> admissionTrainingProgramIds, List<Integer> methodIds);
 }
