@@ -305,6 +305,7 @@ public class ReportServiceImpl implements ReportService {
             CommentReport commentReport = new CommentReport();
             commentReport.setReportId(savedReport.getId());
             commentReport.setCommentContent(comment.getContent());
+            commentReport.setIsBanned(isBannedType.FALSE);
             commentReport.setCommentId(comment.getId());
             commentReport.setReportAction(PostReportActionType.valueOf(PostReportActionType.NONE.name()));
 

@@ -199,16 +199,17 @@ public class FollowServiceImpl implements FollowService {
     private UserFollowUniversityMajorResponseDTO mapUserFollowUniversityMajor(UserFollowUniversityMajor userFollowUniversityMajor) {
         UniversityTrainingProgram universityTrainingProgram = universityTrainingProgramRepository.findById(userFollowUniversityMajor.getId().getUniversityMajor()).orElse(null);
         Major major = majorRepository.findById(universityTrainingProgram.getMajorId()).orElse(null);
-        User university = userRepository.findUserById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
+        User user = userRepository.findUserById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UniversityInfo userUniversityInfo = universityInfoRepository.findUniversityInfoById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UserFollowUniversityMajorResponseDTO response = new UserFollowUniversityMajorResponseDTO();
+        response.setUniversityId(user.getId());
         response.setMajorName(major.getName());
         response.setUniversityMajorId(userFollowUniversityMajor.getUniversityMajor().getId());
         response.setUniversityName(userUniversityInfo.getName());
         response.setLanguage(userFollowUniversityMajor.getUniversityMajor().getLanguage());
         response.setTraining_specific(userFollowUniversityMajor.getUniversityMajor().getTrainingSpecific());
         response.setCreateTime(userFollowUniversityMajor.getCreateTime());
-        response.setAvatar(university.getAvatar());
+        response.setAvatar(user.getAvatar());
         return response;
     }
 }

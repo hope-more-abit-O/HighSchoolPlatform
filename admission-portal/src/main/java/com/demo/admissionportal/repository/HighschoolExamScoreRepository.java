@@ -22,15 +22,14 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "JOIN h.examYear ey " +
             "WHERE (:identificationNumber IS NULL OR h.identificationNumber = :identificationNumber) " +
             "AND (:year IS NULL OR ey.year = :year)")
-    List<HighschoolExamScore> findAll(@Param("identificationNumber") Integer identificationNumber, @Param("year") Integer year);
+    List<HighschoolExamScore> findAll(@Param("identificationNumber") String identificationNumber, @Param("year") Integer year);
 
     @Query("SELECT COUNT(h) FROM HighschoolExamScore h " +
             "JOIN h.examYear ey " +
             "WHERE h.identificationNumber = :identificationNumber AND ey.year = :year")
-    int countByIdentificationNumberAndExamYear(@Param("identificationNumber") Integer identificationNumber, @Param("year") Integer year);
+    int countByIdentificationNumberAndExamYear(@Param("identificationNumber") String identificationNumber, @Param("year") Integer year);
 
-    List<HighschoolExamScore> findByIdentificationNumber(Integer identificationNumber);
-    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(Integer identificationNumber, Integer examYearId);
+    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(String identificationNumber, Integer examYearId);
 
 
     @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.exam_local_id FROM highschool_exam_score h " +
@@ -88,13 +87,13 @@ List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer 
 //    @Query("SELECT h FROM HighschoolExamScore h WHERE h.identificationNumber IN :identificationNumbers AND h.year = :year")
 //    List<HighschoolExamScore> findByIdentificationNumberAndYearIn(@Param("identificationNumbers") List<Integer> identificationNumbers, @Param("year") Integer year);
 
-    List<HighschoolExamScore> findByIdentificationNumberIn(Set<Integer> identificationNumbers);
+    List<HighschoolExamScore> findByIdentificationNumberIn(Set<String> identificationNumbers);
 
-    List<HighschoolExamScore> findByIdentificationNumberAndSubjectIdIn(Integer identificationNumber, List<Integer> subjectIds);
+    List<HighschoolExamScore> findByIdentificationNumberAndSubjectIdIn(String identificationNumber, List<Integer> subjectIds);
 
-    boolean existsByIdentificationNumber(Integer identificationNumber);
+    boolean existsByIdentificationNumber(String identificationNumber);
 
-    boolean existsByIdentificationNumberAndExamLocalId(Integer identificationNumber, Integer examLocalId);
+    boolean existsByIdentificationNumberAndExamLocalId(String identificationNumber, Integer examLocalId);
 
     @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.exam_local_id FROM highschool_exam_score h " +
             "WHERE h.exam_year_id = 4 AND " +

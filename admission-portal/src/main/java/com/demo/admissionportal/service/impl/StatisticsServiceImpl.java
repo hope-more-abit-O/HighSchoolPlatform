@@ -89,8 +89,8 @@ public class StatisticsServiceImpl implements StatisticsService {
             }
 
             switch (user) {
-                case ADMIN -> statistics = getStatistics(startDay, endDay, type, role, status);
-                case UNIVERSITY -> statistics = getStatisticsByUniversity(startDay, endDay, type, status);
+                case ADMIN -> statistics = getStatistics(startDay, endDay, type, role, status, period);
+                case UNIVERSITY -> statistics = getStatisticsByUniversity(startDay, endDay, type, status, period);
                 default -> throw new UnsupportedOperationException("Người dùng không được phép truy cập.");
             }
 
@@ -316,7 +316,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .build();
     }
 
-    public List<StatisticsAdminResponseV3> getStatistics(Date startDay, Date endDay, String type, String role, String status) throws Exception {
+    public List<StatisticsAdminResponseV3> getStatistics(Date startDay, Date endDay, String type, String role, String status, String period) throws Exception {
         List<StatisticsAdminResponseV3> statistics = new ArrayList<>();
         String normalizedType = type.toLowerCase();
         List<Object[]> data;
@@ -324,110 +324,219 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         switch (normalizedType) {
             case "interaction":
-                try {
-                    data = universityTransactionRepository.findTotalInteractionsByPeriod(startDay, endDay);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalInteractionsByDay(startDay, endDay);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticInteractionByTime.builder()
+                                        .date(date)
+                                        .interactionCount((Integer) record[1])
+                                        .type("Tương tác")
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticInteractionByTime.builder()
-                                    .date(date)
-                                    .interactionCount((Integer) record[1])
-                                    .type("Tương tác")
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
+                } else {
+                        try {
+                            data = universityTransactionRepository.findTotalInteractionsByPeriod(startDay, endDay);
+                            SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
+                            for (Object[] record : data) {
+                                try {
+                                    if (record[0] instanceof Date) {
+                                        date = (Date) record[0];
+                                    } else if (record[0] instanceof String dateString) {
+                                            date = monthFormat.parse(dateString);
+                                    } else {
+                                        throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                    }
+                                    statistics.add(StatisticInteractionByTime.builder()
+                                            .date(date)
+                                            .interactionCount((Integer) record[1])
+                                            .type("Tương tác")
+                                            .build());
+                                } catch (ParseException e) {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
+                                }
+                            }
+                        } catch (Exception e) {
+                            throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt tương tác: " + e.getMessage());
+                        }
                 }
                 break;
 
             case "revenue":
-                try {
-                    data = universityTransactionRepository.findTotalRevenueByPeriod(startDay, endDay);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
-                            }
-                            statistics.add(StatisticRevenueByTime.builder()
-                                    .date(date)
-                                    .revenue((Integer) record[1])
-                                    .type("Doanh Thu")
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-ddDate parsing error in revenue data: " + e.getMessage());
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê doanh thu: " + e.getMessage());
-                }
-                break;
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalRevenueByDay(startDay, endDay);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
 
-            case "account":
-                try {
-                    data = universityTransactionRepository.findTotalAccountsByPeriod(startDay, endDay, role, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                statistics.add(StatisticRevenueByTime.builder()
+                                        .date(date)
+                                        .revenue((Integer) record[1])
+                                        .type("Doanh Thu")
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd" + e.getMessage());
                             }
-                            statistics.add(StatisticAccountByTime.builder()
-                                    .date(date)
-                                    .type("Tài khoản")
-                                    .totalAccount((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd" + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê doanh thu: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê tài khoản: " + e.getMessage());
+                }
+                else {
+                    try {
+                        data = universityTransactionRepository.findTotalRevenueByPeriod(startDay, endDay);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticRevenueByTime.builder()
+                                        .date(date)
+                                        .revenue((Integer) record[1])
+                                        .type("Doanh Thu")
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê doanh thu: " + e.getMessage());
+                    }
+                    break;
+                }
+            case "account":
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalAccountsByDay(startDay, endDay, role, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticAccountByTime.builder()
+                                        .date(date)
+                                        .type("Tài khoản")
+                                        .totalAccount((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd" + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê tài khoản: " + e.getMessage());
+                    }
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalAccountsByPeriod(startDay, endDay, role, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticAccountByTime.builder()
+                                        .date(date)
+                                        .type("Tài khoản")
+                                        .totalAccount((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM" + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê tài khoản: " + e.getMessage());
+                    }
                 }
                 break;
 
             case "post":
-                try {
-                    data = universityTransactionRepository.findTotalPostsByPeriod(startDay, endDay, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalPostsByDay(startDay, endDay, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticPostByTime.builder()
+                                        .date(date)
+                                        .type("Bài viết")
+                                        .totalPosts((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticPostByTime.builder()
-                                    .date(date)
-                                    .type("Bài viết")
-                                    .totalPosts((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalPostsByPeriod(startDay, endDay, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticPostByTime.builder()
+                                        .date(date)
+                                        .type("Bài viết")
+                                        .totalPosts((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
+                    }
                 }
                 break;
 
@@ -438,7 +547,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         return statistics;
     }
 
-    public List<StatisticsAdminResponseV3> getStatisticsByUniversity(Date startDay, Date endDay, String type, String status) throws Exception {
+    public List<StatisticsAdminResponseV3> getStatisticsByUniversity(Date startDay, Date endDay, String type, String status, String period) throws Exception {
         List<StatisticsAdminResponseV3> statistics = new ArrayList<>();
         List<Object[]> data;
         Date date;
@@ -447,110 +556,218 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         switch (type.toLowerCase()) {
             case "post":
-                try {
-                    data = universityTransactionRepository.findTotalPostsByPeriodAndUniversity(startDay, endDay, universityId, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalPostsByDayAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticPostByTime.builder()
+                                        .date(date)
+                                        .type("Bài viết")
+                                        .totalPosts((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticPostByTime.builder()
-                                    .date(date)
-                                    .type("Bài viết")
-                                    .totalPosts((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalPostsByPeriodAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticPostByTime.builder()
+                                        .date(date)
+                                        .type("Bài viết")
+                                        .totalPosts((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê bài viết: " + e.getMessage());
+                    }
                 }
                 break;
 
             case "like":
-                try {
-                    data = universityTransactionRepository.findTotalLikesByPeriodAndUniversity(startDay, endDay, universityId, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalLikesByDayAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticLikeByTime.builder()
+                                        .date(date)
+                                        .type("Lượt thích")
+                                        .totalLikes((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticLikeByTime.builder()
-                                    .date(date)
-                                    .type("Lượt thích")
-                                    .totalLikes((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt thích: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt thích: " + e.getMessage());
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalLikesByPeriodAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticLikeByTime.builder()
+                                        .date(date)
+                                        .type("Lượt thích")
+                                        .totalLikes((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt thích: " + e.getMessage());
+                    }
                 }
                 break;
 
             case "favourite":
-                try {
-                    data = universityTransactionRepository.findTotalFavoritesByPeriodAndUniversity(startDay, endDay, universityId, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalFavoritesByDayAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticFavoriteByTime.builder()
+                                        .date(date)
+                                        .type("Lượt theo dõi")
+                                        .totalFavorites((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticFavoriteByTime.builder()
-                                    .date(date)
-                                    .type("Lượt theo dõi")
-                                    .totalFavorites((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt theo dõi: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt theo dõi: " + e.getMessage());
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalFavoritesByPeriodAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticFavoriteByTime.builder()
+                                        .date(date)
+                                        .type("Lượt theo dõi")
+                                        .totalFavorites((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt theo dõi: " + e.getMessage());
+                    }
                 }
                 break;
 
             case "comment":
-                try {
-                    data = universityTransactionRepository.findTotalCommentsByPeriodAndUniversity(startDay, endDay, universityId, status);
-                    for (Object[] record : data) {
-                        try {
-                            if (record[0] instanceof Date) {
-                                date = (Date) record[0];
-                            } else if (record[0] instanceof String dateString) {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                date = dateFormat.parse(dateString);
-                            } else {
-                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                if (period.equals("30 days") || period.equals("7 days")) {
+                    try {
+                        data = universityTransactionRepository.findTotalCommentsByDayAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd.");
+                                }
+                                statistics.add(StatisticCommentByTime.builder()
+                                        .date(date)
+                                        .type("Lượt bình luận")
+                                        .totalComments((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                             }
-                            statistics.add(StatisticCommentByTime.builder()
-                                    .date(date)
-                                    .type("Lượt bình luận")
-                                    .totalComments((Integer) record[1])
-                                    .build());
-                        } catch (ParseException e) {
-                            throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt bình luận: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt bình luận: " + e.getMessage());
+                } else {
+                    try {
+                        data = universityTransactionRepository.findTotalCommentsByPeriodAndUniversity(startDay, endDay, universityId, status);
+                        for (Object[] record : data) {
+                            try {
+                                if (record[0] instanceof Date) {
+                                    date = (Date) record[0];
+                                } else if (record[0] instanceof String dateString) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
+                                    date = dateFormat.parse(dateString);
+                                } else {
+                                    throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM.");
+                                }
+                                statistics.add(StatisticCommentByTime.builder()
+                                        .date(date)
+                                        .type("Lượt bình luận")
+                                        .totalComments((Integer) record[1])
+                                        .build());
+                            } catch (ParseException e) {
+                                throw new Exception("Dữ liệu start day và end day phải là: yyyy-MM-dd: " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new Exception("Có lỗi xảy ra khi lấy thống kê lượt bình luận: " + e.getMessage());
+                    }
                 }
                 break;
 

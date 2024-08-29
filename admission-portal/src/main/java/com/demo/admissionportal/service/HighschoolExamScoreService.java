@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface HighschoolExamScoreService {
-    ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(Integer identificationNumber, Integer year);
+    ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer year);
 
     ResponseData<List<YearlyExamScoreResponse>> createExamScores(List<ExamYearData> examYearDataList);
 
