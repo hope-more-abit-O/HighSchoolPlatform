@@ -18,8 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The type University transaction service.
@@ -33,6 +31,8 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     private final UniversityInfoRepository universityInfoRepository;
     private final PackageRepository packageRepository;
     private final ConsultantInfoRepository consultantInfoRepository;
+    private final UniversityPackageRepository universityPackageRepository;
+    private final PostRepository postRepository;
 
     public UniversityTransaction createTransaction(Integer universityId, AdsPackage adsPackage) {
         try {
@@ -76,9 +76,9 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     @Override
-    public ResponseData<Page<PackageResponseDTO>> getListPackage(String adsName, String status, Pageable pageable) {
+    public ResponseData<Page<PackageResponseDTO>> getListPackage(String adsName, String status, String orderCode, Pageable pageable) {
         try {
-            Page<UniversityTransaction> list = universityTransactionRepository.findListTransaction(adsName, status, pageable);
+            Page<UniversityTransaction> list = universityTransactionRepository.findListTransaction(adsName, status, orderCode, pageable);
             Page<PackageResponseDTO> responseDTOList = list.map(this::mapToPackageResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách giao dịch thành công", responseDTOList);
 
@@ -90,12 +90,22 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
 
     private PackageResponseDTO mapToPackageResponse(UniversityTransaction universityTransaction) {
         PackageResponseDTO responseDTO = modelMapper.map(universityTransaction, PackageResponseDTO.class);
+        responseDTO.setUrl(mapToPost(universityTransaction.getId()));
         responseDTO.setInfoUniversity(mapToInfoUniversity(universityTransaction.getUniversityId()));
         AdsPackage infoPackage = mapToInfoPackage(universityTransaction.getPackageId());
         responseDTO.setPrice(infoPackage.getPrice());
         responseDTO.setInfoPackage(modelMapper.map(infoPackage, PackageResponseDTO.InfoPackage.class));
         responseDTO.setStatus(universityTransaction.getStatus().name);
         return responseDTO;
+    }
+
+    private String mapToPost(Integer id) {
+        UniversityPackage universityPackage = universityPackageRepository.findUniversityPackageByTransactionId(id);
+        if (universityPackage == null) {
+            return null;
+        }
+        Post post = postRepository.findById(universityPackage.getPostId()).orElse(null);
+        return post.getUrl();
     }
 
     private AdsPackage mapToInfoPackage(Integer packageId) {
@@ -114,8 +124,8 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     }
 
     @Override
-    public ResponseData<List<OrderResponseDTO>> getOrderByUniId() {
-        List<OrderResponseDTO> responseDTOS = null;
+    public ResponseData<Page<OrderResponseDTO>> getOrderByUniId(String orderCode, Pageable pageable) {
+        Page<OrderResponseDTO> responseDTOS;
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             Role role = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
@@ -123,10 +133,8 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
                 ConsultantInfo consultantInfo = consultantInfoRepository.findConsultantInfoById(userId);
                 userId = consultantInfo.getUniversityId();
             }
-            List<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(userId);
-            responseDTOS = list.stream()
-                    .map(this::mapToOrderResponse)
-                    .collect(Collectors.toList());
+            Page<UniversityTransaction> list = universityTransactionRepository.findByUniversityId(userId, orderCode, pageable);
+            responseDTOS = list.map(this::mapToOrderResponse);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách giao dịch với university thành công", responseDTOS);
         } catch (Exception ex) {
             log.error("Error when get list transaction by University Id: {}", ex.getMessage());
@@ -137,9 +145,17 @@ public class UniversityTransactionServiceImpl implements UniversityTransactionSe
     private OrderResponseDTO mapToOrderResponse(UniversityTransaction universityTransaction) {
         OrderResponseDTO responseDTO = modelMapper.map(universityTransaction, OrderResponseDTO.class);
         AdsPackage adsPackage = packageRepository.findPackageById(universityTransaction.getPackageId());
+        Post post = mapToPostURLAndTitle(universityTransaction.getId());
         responseDTO.setPackageName(adsPackage.getName());
         responseDTO.setPrice(adsPackage.getPrice());
         responseDTO.setStatus(universityTransaction.getStatus().name);
+        responseDTO.setTitle(post.getTitle());
+        responseDTO.setUrl(post.getUrl());
         return responseDTO;
+    }
+
+    private Post mapToPostURLAndTitle(Integer id) {
+        UniversityPackage universityPackage = universityPackageRepository.findUniversityPackageByTransactionId(id);
+        return postRepository.findById(universityPackage.getPostId()).orElse(null);
     }
 }

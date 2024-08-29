@@ -104,7 +104,7 @@ public class FollowServiceImpl implements FollowService {
     public ResponseData<List<UserFollowMajorResponseDTO>> getListFollowMajor() {
         try {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-            List<UserFollowMajor> listFavoriteUser = followRepository.findByUserId(userId);
+            List<UserFollowMajor> listFavoriteUser = followRepository.findByUserId(userId).stream().filter(userFollowMajor -> userFollowMajor.getStatus().equals(FavoriteStatus.FOLLOW)).collect(Collectors.toList());
             List<UserFollowMajorResponseDTO> result = listFavoriteUser.stream()
                     .map(this::mapUserFollow)
                     .collect(Collectors.toList());
