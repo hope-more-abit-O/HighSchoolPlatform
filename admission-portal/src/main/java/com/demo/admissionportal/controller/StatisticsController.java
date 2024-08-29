@@ -37,24 +37,20 @@ public class StatisticsController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
     }
-    @GetMapping("/v2")
-    public ResponseEntity<ResponseData<?>> getStatisticsV2(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDay,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDay,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String period
+        @GetMapping("/v2")
+        public ResponseEntity<ResponseData<?>> getStatisticsV2(
+                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDay,
+                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDay,
+                @RequestParam(required = false) String type,
+                @RequestParam(required = false) String role,
+                @RequestParam(required = false) String status,
+                @RequestParam(required = false) String period
 
-    ) {
-//        if (startDay == null || endDay == null) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(ResponseCode.C205.getCode(), "Ngày bắt đầu và ngày kết thúc phải được cung cấp."));
-//        }
-        ResponseData<?> responseData = statisticsService.getStatisticsV2(startDay, endDay, type, role, status, period);
-        if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-            return ResponseEntity.status(HttpStatus.OK).body(responseData);
+        ) {
+            ResponseData<?> responseData = statisticsService.getStatisticsV2(startDay, endDay, type, role, status, period);
+            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
+                return ResponseEntity.status(HttpStatus.OK).body(responseData);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
-    }
-
 }
