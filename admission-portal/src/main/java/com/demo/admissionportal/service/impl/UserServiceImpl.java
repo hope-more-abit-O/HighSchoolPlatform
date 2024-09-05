@@ -159,8 +159,9 @@ public class UserServiceImpl implements UserService {
             }
             // Update profile
             boolean isChanged = false;
-            boolean isPhoneChange = ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);;
-            if(isPhoneChange){
+            boolean isPhoneChange = ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);
+            ;
+            if (isPhoneChange) {
                 validationService.validatePhoneNumber(requestDTO.getPhone());
             }
             ValidationService.updateIfChanged(requestDTO.getFirstName(), userInfo.getFirstName(), userInfo::setFirstName);
@@ -642,6 +643,53 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("Error registering identification number", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình đăng kí số báo danh, vui lòng thử lại sau.");
+        }
+    }
+
+    @Override
+    public ResponseData<UserProfileResponseDTO> getUserProfileById(Integer id) {
+        try {
+            if (id == null) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "id null");
+            }
+            UserInfo userInfoV2 = userInfoRepository.findUserInfoById(id);
+            User userV2 = userRepository.findUserById(id);
+            if (userInfoV2 == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+            } else if (userV2.getStatus().equals(AccountStatus.INACTIVE)) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Tài khoản đã bị khoá");
+            }
+            Ward ward = wardRepository.findWardById(userInfoV2.getWard().getId());
+            District district = districtRepository.findDistrictById(userInfoV2.getDistrict().getId());
+            Province province = provinceRepository.findProvinceById(userInfoV2.getProvince().getId());
+
+            UserProfileResponseDTO userProfileResponseDTOV2 = new UserProfileResponseDTO();
+            userProfileResponseDTOV2.setId(userV2.getId());
+            userProfileResponseDTOV2.setEmail(userV2.getEmail());
+            userProfileResponseDTOV2.setUsername(userV2.getUsername());
+            userProfileResponseDTOV2.setFirstname(userInfoV2.getFirstName());
+            userProfileResponseDTOV2.setMiddle_name(userInfoV2.getMiddleName());
+            userProfileResponseDTOV2.setLastname(userInfoV2.getLastName());
+            userProfileResponseDTOV2.setGender(userInfoV2.getGender().name);
+
+            // Convert dd-MM-YYYY
+            Date date = userInfoV2.getBirthday();
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+            String dateUserProfile = formatter.format(date);
+            userProfileResponseDTOV2.setBirthday(dateUserProfile);
+
+            userProfileResponseDTOV2.setPhone(userInfoV2.getPhone());
+            userProfileResponseDTOV2.setSpecificAddress(userInfoV2.getSpecificAddress());
+            userProfileResponseDTOV2.setEducation_level(userInfoV2.getEducationLevel().name);
+            userProfileResponseDTOV2.setWard(ward);
+            userProfileResponseDTOV2.setDistrict(district);
+            userProfileResponseDTOV2.setProvince(province);
+            userProfileResponseDTOV2.setAvatar(userV2.getAvatar());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy user", userProfileResponseDTOV2);
+        } catch (Exception ex) {
+            log.error("Error getting user by id: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user id");
         }
     }
 

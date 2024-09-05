@@ -72,6 +72,7 @@ public class SecurityConfiguration {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
+                                .requestMatchers(HttpMethod.GET,"/api/v1/user/profile/{id}").permitAll()
                                 .requestMatchers(USER_API).hasAnyAuthority("STAFF", "USER")
 
                                 .requestMatchers(STAFF_API).hasAuthority("STAFF")

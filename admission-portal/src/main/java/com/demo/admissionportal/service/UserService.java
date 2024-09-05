@@ -258,8 +258,17 @@ public interface UserService extends UserDetailsService {
      * Update identification number response data.
      *
      * @param userId               the user id
+     * @param identificationNumber the identification number
      * @param authentication       the authentication
      * @return the response data
      */
     ResponseData<String> registerIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
+
+    /**
+     * Gets user profile by id.
+     *
+     * @param id the id
+     * @return the user profile by id
+     */
+    ResponseData<UserProfileResponseDTO> getUserProfileById(Integer id);
 }
