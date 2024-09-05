@@ -657,10 +657,10 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private Map<Float, Integer> calculateScoresDistribution(Integer localId, List<Integer> subjectIds) {
         List<Object[]> scoresData = highschoolExamScoreRepository.findScoresForSubjects(subjectIds, localId);
 
-        Map<Integer, Float> totalScoresByStudent = new HashMap<>();
+        Map<String, Float> totalScoresByStudent = new HashMap<>();
         for (Object[] data : scoresData) {
             if (data[0] != null && data[2] != null) {
-                Integer identificationNumber = (Integer) data[0];
+                String identificationNumber = (String) data[0];
                 Float score = ((Number) data[2]).floatValue();
 
                 totalScoresByStudent.merge(identificationNumber, score, Float::sum);
@@ -790,7 +790,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 examLocalId = examLocal.getId();
             }
 
-            List<Integer> topStudents;
+            List<String> topStudents;
             boolean isKHTN = "KHTN".equalsIgnoreCase(subjectName);
             boolean isKHXH = "KHXH".equalsIgnoreCase(subjectName);
 
@@ -818,7 +818,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             Map<String, List<SubjectScoreDTO>> scoresByStudent = new HashMap<>();
             for (HighschoolExamScore score : allScores) {
-                Subject subject = subjectMap.get(score.getSubjectId());
+                 Subject subject = subjectMap.get(score.getSubjectId());
                 SubjectScoreDTO subjectScoreDTO = new SubjectScoreDTO(
                         score.getSubjectId(),
                         subject != null ? subject.getName() : null,
@@ -839,7 +839,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 subjectOrder.add(0, mainSubject.getSubjectId());
             }
 
-            for (Integer identificationNumber : topStudents) {
+            for (String identificationNumber : topStudents) {
                 HighschoolExamScore firstScore = allScores.stream()
                         .filter(score -> score.getIdentificationNumber().equals(identificationNumber))
                         .findFirst()
@@ -945,16 +945,21 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Dữ liệu điểm thi năm " + listExamScoreByYear.getYear() + " đã được công bố từ trước đó.");
             }
 
-            activeScores.forEach(activeScore -> activeScore.setStatus(ListExamScoreByYearStatus.INACTIVE));
+            activeScores.forEach(activeScore -> activeScore.setStatus(ListExamScoreByYearStatus.ACTIVE));
             listExamScoreByYearRepository.saveAll(activeScores);
 
-            highschoolExamScoreRepository.updateStatusByExamYear(HighschoolExamScoreStatus.ACTIVE, listExamScoreByYear.getYear(), HighschoolExamScoreStatus.INACTIVE);
+            ExamYear examYear = examYearRepository.findByYear(listExamScoreByYear.getYear());
+            if (examYear == null) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Dữ liệu năm thi không tồn tại.");
+            }
+
+            highschoolExamScoreRepository.updateStatusByExamYear(HighschoolExamScoreStatus.ACTIVE, examYear, HighschoolExamScoreStatus.INACTIVE);
 
             listExamScoreByYear.setStatus(ListExamScoreByYearStatus.ACTIVE);
             listExamScoreByYearRepository.save(listExamScoreByYear);
 
             List<HighschoolExamScore> highschoolExamScores = highschoolExamScoreRepository.findAllByExamYearAndStatus(
-                    listExamScoreByYear.getYear(), HighschoolExamScoreStatus.ACTIVE);
+                    examYear, HighschoolExamScoreStatus.ACTIVE);
 
             Set<String> scoreIdentificationNumbers = highschoolExamScores.stream()
                     .map(HighschoolExamScore::getIdentificationNumber)
