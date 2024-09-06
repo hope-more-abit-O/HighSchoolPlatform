@@ -8,7 +8,7 @@ public class MethodCodeValidator implements ConstraintValidator<EnumMethodCode, 
 
     @Override
     public boolean isValid(String code, ConstraintValidatorContext constraintValidatorContext) {
-        if (code == null || code.length() != 3) {
+        if (code == null || code.length() < 3 || code.length() > 9) {
             return false;
         }
         for (char c : code.toCharArray()) {

@@ -1830,7 +1830,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         String query = buildQueryForSchoolDirectory(schoolDirectoryRequest, parameters, LocalDateTime.now().getYear());
 
-        Query executeQuery = entityManager.createNativeQuery(query.toString(), Admission.class);
+        Query executeQuery = entityManager.createNativeQuery(query, Admission.class);
 
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             executeQuery.setParameter(entry.getKey(), entry.getValue());
@@ -1844,7 +1844,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         String query = buildCountQueryForSchoolDirectory(schoolDirectoryRequest, parameters, LocalDateTime.now().getYear());
 
-        Query executeQuery = entityManager.createNativeQuery(query.toString(), Integer.class);
+        Query executeQuery = entityManager.createNativeQuery(query, Integer.class);
 
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             executeQuery.setParameter(entry.getKey(), entry.getValue());
@@ -1853,7 +1853,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return (Integer) executeQuery.getSingleResult();
     }
 
-    public List<SchoolDirectoryDetailDTO> schoolDirectoryDetail(SchoolDirectoryDetailRequest request) {
+    public SchoolDirectoryResponse schoolDirectoryDetail(SchoolDirectoryDetailRequest request) {
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIdsAndAdmissionMethodIds(request.getAdmissionTrainingProgramIds(), request.getAdmissionMethodIds());
         List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(request.getAdmissionMethodIds());
         List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList());
@@ -1862,6 +1862,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(admissionTrainingProgramSubjectGroups.stream().map(AdmissionTrainingProgramSubjectGroup::getId).map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId).distinct().toList());
         List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList());
         List<Subject> subjects = subjectService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMainSubjectId).filter(Objects::nonNull).distinct().toList());
+        Admission admission = this.findById(request.getAdmissionId());
 
         List<SchoolDirectoryDetailDTO> schoolDirectoryDetailDTOS = new ArrayList<>();
         for (AdmissionTrainingProgramMethod admissionTrainingProgramMethod : admissionTrainingProgramMethods) {
@@ -1877,6 +1878,6 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryDetailDTOS.add(new SchoolDirectoryDetailDTO(admissionTrainingProgramMethod, admissionTrainingProgram, method, major, subjectGroups1, subject));
         }
 
-        return schoolDirectoryDetailDTOS;
+        return new SchoolDirectoryResponse(LocalDateTime.now().getYear(), admission.getSource(), schoolDirectoryDetailDTOS);
     }
 }

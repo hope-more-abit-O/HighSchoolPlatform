@@ -13,21 +13,25 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CampusProvinceDTO {
-    private Integer id;
-    private String name;
+    private Integer provinceId;
+    private Integer campusId;
+    private String campusName;
+    private String provinceName;
     private String type;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private boolean isChosen;
 
     public CampusProvinceDTO(Province province, UniversityCampus universityCampus) {
-        this.id = province.getId();
-        this.name = province.getName();
+        this.provinceId = province.getId();
+        this.provinceName = province.getName();
         this.type = universityCampus.getType().name;
     }
 
     public CampusProvinceDTO(Province province, UniversityCampus universityCampus, List<Integer> provinceIds) {
-        this.id = province.getId();
-        this.name = province.getName();
+        this.provinceId = province.getId();
+        this.campusId = universityCampus.getId();
+        this.campusName = universityCampus.getCampusName();
+        this.provinceName = province.getName();
         this.type = universityCampus.getType().name;
         if (provinceIds == null) {
             this.isChosen = false;

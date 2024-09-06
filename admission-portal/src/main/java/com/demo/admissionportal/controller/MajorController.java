@@ -6,6 +6,7 @@ import com.demo.admissionportal.dto.request.major.UpdateMajorRequest;
 import com.demo.admissionportal.dto.request.major.UpdateMajorStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Major;
+import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.service.MajorService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -60,5 +61,18 @@ public class MajorController {
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData> updateMajorStatus(@RequestBody @Valid UpdateMajorStatusRequest request){
         return ResponseEntity.ok(majorService.updateMajorStatus(request));
+    }
+
+    @PostMapping("/request")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData> createMajorRequest(@RequestBody @Valid CreateMajorRequest request){
+        try {
+            majorService.createMajorRequest(request);
+            return ResponseEntity.ok(ResponseData.ok("Tạo yêu cầu ngành thành công."));
+        } catch (DataExistedException e) {
+            throw e;
+        } catch (Exception e){
+            return ResponseEntity.ok(ResponseData.error("Tạo yêu cầu ngành thất bại."));
+        }
     }
 }
