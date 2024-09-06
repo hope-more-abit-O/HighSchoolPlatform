@@ -62,12 +62,27 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
     /**
      * Find by name list.
      *
+     * @param uniName the uni name
      * @return the list
      */
-    @Query(value = "SELECT ui.*, u.avatar " +
-            "FROM university_info ui " +
-            "JOIN [user] u ON ui.university_id = u.id " +
-            "WHERE u.status = 'ACTIVE' " +
-            "AND ui.name LIKE CONCAT('%', :uniName, '%')", nativeQuery = true)
-    List<UniversityInfo> findByName(@Param(value = "uniName") String uniName);
+    @Query(value = "WITH MatchedUniversities AS (" +
+            "    SELECT ui.*, u.avatar " +
+            "    FROM university_info ui " +
+            "    JOIN [user] u ON ui.university_id = u.id " +
+            "    WHERE u.status = 'ACTIVE' " +
+            "    AND ui.name LIKE N'%' + :uniName + '%' " +
+            "), " +
+            "RandomUniversities AS (" +
+            "    SELECT TOP (GREATEST(0, 5 - (SELECT COUNT(*) FROM MatchedUniversities))) ui.*, u.avatar " +
+            "    FROM university_info ui " +
+            "    JOIN [user] u ON ui.university_id = u.id " +
+            "    WHERE u.status = 'ACTIVE' " +
+            "    AND ui.name NOT LIKE N'%' + :uniName + '%' " +
+            "    ORDER BY NEWID()" +
+            ") " +
+            "SELECT * FROM MatchedUniversities " +
+            "UNION ALL " +
+            "SELECT * FROM RandomUniversities", nativeQuery = true)
+    List<UniversityInfo> findByName(@Param("uniName") String uniName);
+
 }
