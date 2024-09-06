@@ -64,9 +64,21 @@ public class SearchPostServiceImpl implements SearchPostService {
     public ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId, Pageable pageable) {
         try {
             log.info("Start retrieve search post by filter");
-            List<PostSearchDTO> resultOfSearch = new ArrayList<>();
             List<PostSearchDTO> postRequestDTOS;
-
+            List<UniversityInfo> infoUniversity = new ArrayList<>();
+            if (content != null && !content.trim().isEmpty()) {
+                infoUniversity = universityInfoRepository.findByName(content);
+            }
+            List<PostSearchDTO> resultOfSearch = infoUniversity.stream()
+                    .map(university -> {
+                        PostSearchDTO.InfoUniversitySearchDTO dto = modelMapper.map(university, PostSearchDTO.InfoUniversitySearchDTO.class);
+                        User user = userRepository.findUserById(dto.getId());
+                        PostSearchDTO postSearchDTO = new PostSearchDTO();
+                        postSearchDTO.setInfoUniversity(List.of(dto));
+                        dto.setAvatar(user.getAvatar());
+                        return postSearchDTO;
+                    })
+                    .collect(Collectors.toList());
             if (typeId != null && typeId.contains(999)) {
                 postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
                 resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
@@ -77,12 +89,11 @@ public class SearchPostServiceImpl implements SearchPostService {
             } else {
                 postRequestDTOS = searchEngineRepository.searchPostByFilter(content, typeId, locationId, startDate, endDate, authorId);
                 resultOfSearch.addAll(postRequestDTOS.stream()
-                                .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
+                        .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
                         .map(this::enhancePostSearchDTO)
                         .distinct()
-                        .collect(Collectors.toList()));
+                        .toList());
             }
-
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
             if (order != null) {
                 Comparator<PostSearchDTO> comparator = Comparator.comparing(PostSearchDTO::getCreateTime);
@@ -93,7 +104,6 @@ public class SearchPostServiceImpl implements SearchPostService {
                         .sorted(comparator)
                         .collect(Collectors.toList());
             }
-
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), resultOfSearch.size());
             Page<PostSearchDTO> page = new PageImpl<>(resultOfSearch.subList(start, end), pageable, resultOfSearch.size());
