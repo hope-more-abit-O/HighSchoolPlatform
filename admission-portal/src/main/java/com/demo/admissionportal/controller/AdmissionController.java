@@ -297,7 +297,8 @@ public class AdmissionController {
     @GetMapping("/school-directory-detail")
     public ResponseEntity schoolDirectoryDetail(
             @RequestParam(required = true) String admissionTrainingProgramId,
-            @RequestParam(required = true) String admissionMethodId
+            @RequestParam(required = true) String admissionMethodId,
+            @RequestParam(required = false) Integer admissionId
     ){
         try {
             List<Integer> admissionTrainingProgramIds = null;
@@ -310,7 +311,7 @@ public class AdmissionController {
                 admissionMethodIds = Arrays.stream(admissionMethodId.split(",")).map(Integer::parseInt).toList();
             }
 
-            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectoryDetail(new SchoolDirectoryDetailRequest(admissionTrainingProgramIds, admissionMethodIds))));
+            return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectoryDetail(new SchoolDirectoryDetailRequest(admissionTrainingProgramIds, admissionMethodIds, admissionId))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

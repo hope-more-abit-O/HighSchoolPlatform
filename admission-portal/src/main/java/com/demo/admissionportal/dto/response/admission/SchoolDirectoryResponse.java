@@ -1,5 +1,6 @@
 package com.demo.admissionportal.dto.response.admission;
 
+import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryDetailDTO;
 import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryInfo;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchoolDirectoryResponse {
-    private List<SchoolDirectoryInfo> universities;
-
+    private Integer year;
+    private String source;
+    private List<SchoolDirectoryDetailDTO> detail;
 }

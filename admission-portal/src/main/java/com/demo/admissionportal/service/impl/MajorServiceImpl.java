@@ -65,6 +65,42 @@ public class MajorServiceImpl implements MajorService {
         return majors;
     }
 
+    @Override
+    public void createMajorRequest(CreateMajorRequest request) {
+        log.info("Received request to create major with name: '{}' and code: '{}'", request.getMajorName(), request.getMajorCode());
+
+        List<Major> majorsExisted = majorRepository.findByNameOrCode(request.getMajorName(), request.getMajorCode());
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (!majorsExisted.isEmpty()){
+            log.info("Found existing majors with the same name or code.");
+
+            for (Major major : majorsExisted) {
+                if ((major.getName().equals(request.getMajorName())) && (errors.get("majorName") == null)) {
+                    log.error("Major name '{}' already exists.", request.getMajorName());
+                    errors.put("majorName", "Tên ngành đã tồn tại.");
+                }
+                if ((major.getCode().equals(request.getMajorCode())) && (errors.get("code") == null)) {
+                    log.error("Major code '{}' already exists.", request.getMajorCode());
+                    errors.put("majorCode", "Mã ngành đã tồn tại.");
+                }
+            }
+
+            log.error("Major already exists with errors: {}", errors);
+            throw new DataExistedException("Ngành đã tồn tại.", errors);
+        }
+
+        try {
+            log.info("Saving new major with name: '{}' and code: '{}'", request.getMajorName(), request.getMajorCode());
+            Major savedMajor = majorRepository.save(new Major(request.getMajorName(), request.getMajorCode(), request.getNote(), ServiceUtils.getId()));
+            log.info("Successfully saved new major with id: {}", savedMajor.getId());
+        } catch (Exception e){
+            log.error("Error occurred while saving major: {}", e.getMessage(), e);
+            throw new QueryException(e.getMessage());
+        }
+    }
+
     public boolean checkMajorName(String majorName) {
         return majorRepository.findByName(majorName).isPresent();
     }
