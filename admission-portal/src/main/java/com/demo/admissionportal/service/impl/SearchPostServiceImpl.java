@@ -125,17 +125,7 @@ public class SearchPostServiceImpl implements SearchPostService {
     private PostSearchDTO.InfoUniversitySearchDTO mapToUniversityInfo(UniversityInfo universityInfo) {
         PostSearchDTO.InfoUniversitySearchDTO response = modelMapper.map(universityInfo, PostSearchDTO.InfoUniversitySearchDTO.class);
         User user = userRepository.findUserById(universityInfo.getId());
-        UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityInfo.getId());
-        Ward ward = wardRepository.findWardById(universityCampus.getWardId());
-        Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
-        District district = districtRepository.findDistrictById(universityCampus.getDistrictId());
-        response.setSpecificAddress(universityCampus.getSpecificAddress());
-        response.setWard(ward.getName());
-        response.setDistrict(district.getName());
-        response.setProvince(province.getName());
         response.setAvatar(user.getAvatar());
-        response.setEmail(universityCampus.getEmail());
-        response.setPhone(universityCampus.getPhone());
         return response;
     }
 
