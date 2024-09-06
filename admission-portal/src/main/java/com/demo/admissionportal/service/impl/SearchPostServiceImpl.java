@@ -4,9 +4,7 @@ import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.Post;
-import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.SearchPostService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +34,10 @@ public class SearchPostServiceImpl implements SearchPostService {
     private final ConsultantInfoRepository consultantInfoRepository;
     private final UserRepository userRepository;
     private final UniversityInfoRepository universityInfoRepository;
+    private final UniversityCampusRepository universityCampusRepository;
+    private final WardRepository wardRepository;
+    private final ProvinceRepository provinceRepository;
+    private final DistrictRepository districtRepository;
 
     @Override
     public ResponseData<Page<PostSearchDTO.PostSearch>> searchPost(String content, Pageable pageable) {
@@ -123,7 +125,17 @@ public class SearchPostServiceImpl implements SearchPostService {
     private PostSearchDTO.InfoUniversitySearchDTO mapToUniversityInfo(UniversityInfo universityInfo) {
         PostSearchDTO.InfoUniversitySearchDTO response = modelMapper.map(universityInfo, PostSearchDTO.InfoUniversitySearchDTO.class);
         User user = userRepository.findUserById(universityInfo.getId());
+        UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(universityInfo.getId());
+        Ward ward = wardRepository.findWardById(universityCampus.getWardId());
+        Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
+        District district = districtRepository.findDistrictById(universityCampus.getDistrictId());
+        response.setSpecificAddress(universityCampus.getSpecificAddress());
+        response.setWard(ward.getName());
+        response.setDistrict(district.getName());
+        response.setProvince(province.getName());
         response.setAvatar(user.getAvatar());
+        response.setEmail(universityCampus.getEmail());
+        response.setPhone(universityCampus.getPhone());
         return response;
     }
 
