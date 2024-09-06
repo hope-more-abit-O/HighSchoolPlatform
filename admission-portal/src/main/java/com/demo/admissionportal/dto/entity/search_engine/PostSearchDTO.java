@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 
 @SqlResultSetMapping(
@@ -38,6 +39,7 @@ import java.util.Date;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PostSearchDTO implements Serializable {
+    private List<InfoUniversitySearchDTO> infoUniversity;
     private Integer id;
     private String title;
     private Date createTime;
@@ -49,4 +51,15 @@ public class PostSearchDTO implements Serializable {
     private String fullName;
     private String avatar;
     private PostStatus status;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class InfoUniversitySearchDTO implements Serializable {
+        private Integer id;
+        private String avatar;
+        private String code;
+        private String name;
+    }
 }

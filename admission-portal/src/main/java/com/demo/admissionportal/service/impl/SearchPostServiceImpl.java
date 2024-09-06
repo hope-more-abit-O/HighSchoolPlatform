@@ -64,44 +64,67 @@ public class SearchPostServiceImpl implements SearchPostService {
     public ResponseData<Page<PostSearchDTO>> searchFilterPost(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId, Pageable pageable) {
         try {
             log.info("Start retrieve search post by filter");
-            List<PostSearchDTO> resultOfSearch = new ArrayList<>();
             List<PostSearchDTO> postRequestDTOS;
-
             if (typeId != null && typeId.contains(999)) {
                 postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
-                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             } else if (typeId != null && typeId.contains(1000)) {
                 postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
                 Collections.shuffle(postRequestDTOS, new Random());
-                resultOfSearch.addAll(postRequestDTOS.stream().distinct().toList());
             } else {
                 postRequestDTOS = searchEngineRepository.searchPostByFilter(content, typeId, locationId, startDate, endDate, authorId);
-                resultOfSearch.addAll(postRequestDTOS.stream()
-                                .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
-                        .map(this::enhancePostSearchDTO)
-                        .distinct()
-                        .collect(Collectors.toList()));
             }
-
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
             if (order != null) {
-                Comparator<PostSearchDTO> comparator = Comparator.comparing(PostSearchDTO::getCreateTime);
+                Comparator<PostSearchDTO> comparator = Comparator.comparing(
+                        PostSearchDTO::getCreateTime,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                );
                 if (order.getDirection() == Sort.Direction.DESC) {
                     comparator = comparator.reversed();
                 }
-                resultOfSearch = resultOfSearch.stream()
+                postRequestDTOS = postRequestDTOS.stream()
                         .sorted(comparator)
                         .collect(Collectors.toList());
             }
-
+            List<PostSearchDTO> resultOfSearch = postRequestDTOS.stream()
+                    .map(post -> {
+                        PostSearchDTO postSearchDTO = new PostSearchDTO();
+                        postSearchDTO.setId(post.getId());
+                        postSearchDTO.setTitle(post.getTitle());
+                        postSearchDTO.setCreateTime(post.getCreateTime());
+                        postSearchDTO.setQuote(post.getQuote());
+                        postSearchDTO.setThumnail(post.getThumnail());
+                        postSearchDTO.setUrl(post.getUrl());
+                        postSearchDTO.setFullName(post.getFullName());
+                        postSearchDTO.setAvatar(post.getAvatar());
+                        postSearchDTO.setStatus(post.getStatus());
+                        if (content != null && !content.trim().isEmpty()) {
+                            List<UniversityInfo> infoUniversity = universityInfoRepository.findByName(content);
+                            List<PostSearchDTO.InfoUniversitySearchDTO> universityDTOs = infoUniversity.stream()
+                                    .map(this::mapToUniversityInfo)
+                                    .collect(Collectors.toList());
+                            postSearchDTO.setInfoUniversity(universityDTOs);
+                        }
+                        return postSearchDTO;
+                    })
+                    .distinct()
+                    .collect(Collectors.toList());
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), resultOfSearch.size());
             Page<PostSearchDTO> page = new PageImpl<>(resultOfSearch.subList(start, end), pageable, resultOfSearch.size());
+
             return new ResponseData<>(ResponseCode.C200.getCode(), "Đã tìm thấy danh sách post by filter", page);
         } catch (Exception ex) {
-            log.info("Error when search post by filter: {}", ex.getMessage());
+            log.error("Error when search post by filter: {}", ex.getMessage(), ex);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lỗi khi tìm danh sách post by filter");
         }
+    }
+
+    private PostSearchDTO.InfoUniversitySearchDTO mapToUniversityInfo(UniversityInfo universityInfo) {
+        PostSearchDTO.InfoUniversitySearchDTO response = modelMapper.map(universityInfo, PostSearchDTO.InfoUniversitySearchDTO.class);
+        User user = userRepository.findUserById(universityInfo.getId());
+        response.setAvatar(user.getAvatar());
+        return response;
     }
 
     private List<PostSearchDTO> mapToPostResponseDTO(List<Post> posts) {
