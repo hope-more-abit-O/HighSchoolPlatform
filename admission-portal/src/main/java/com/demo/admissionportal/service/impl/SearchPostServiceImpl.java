@@ -1,10 +1,11 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.Post;
+import com.demo.admissionportal.entity.UniversityInfo;
+import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.SearchPostService;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,7 @@ public class SearchPostServiceImpl implements SearchPostService {
         try {
             log.info("Start retrieve search post by filter");
             List<PostSearchDTO> postRequestDTOS;
+            int currentPage = pageable.getPageNumber();
             if (typeId != null && typeId.contains(999)) {
                 postRequestDTOS = mapToPostResponseDTO(postRepository.findPost());
             } else if (typeId != null && typeId.contains(1000)) {
@@ -98,7 +100,7 @@ public class SearchPostServiceImpl implements SearchPostService {
                         postSearchDTO.setFullName(post.getFullName());
                         postSearchDTO.setAvatar(post.getAvatar());
                         postSearchDTO.setStatus(post.getStatus());
-                        if (content != null && !content.trim().isEmpty()) {
+                        if (currentPage == 0 && content != null && !content.trim().isEmpty()) {
                             List<UniversityInfo> infoUniversity = universityInfoRepository.findByName(content);
                             List<PostSearchDTO.InfoUniversitySearchDTO> universityDTOs = infoUniversity.stream()
                                     .map(this::mapToUniversityInfo)
