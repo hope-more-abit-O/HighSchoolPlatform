@@ -88,7 +88,7 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
 
     public List<UniversityCampusProperties> mapToListCampusV2(Integer universityId) {
         log.info("Start mapToListCampusV2");
-        List<UniversityCampus> universityCampus = universityCampusRepository.findByUniversityId(universityId);
+        List<UniversityCampus> universityCampus = universityCampusRepository.findByUniversityIdAndStatus(universityId, UniversityCampusStatus.ACTIVE);
         List<Integer> provincesIds = universityCampus.stream().map(UniversityCampus::getProvinceId).distinct().toList();
         List<Integer> districtIds = universityCampus.stream().map(UniversityCampus::getDistrictId).distinct().toList();
         List<Integer> wardIds = universityCampus.stream().map(UniversityCampus::getWardId).distinct().toList();

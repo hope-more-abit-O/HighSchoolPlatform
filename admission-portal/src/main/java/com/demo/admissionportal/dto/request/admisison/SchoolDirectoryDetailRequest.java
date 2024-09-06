@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class SchoolDirectoryDetailRequest {
     private List<Integer> admissionTrainingProgramIds;
     private List<Integer> admissionMethodIds;
+    private Integer admissionId;
 }

@@ -87,7 +87,7 @@ public class Major {
         this.note = note;
         this.createBy = createBy;
         this.createTime = new Date();
-        this.status = MajorStatus.ACTIVE;
+        this.status = MajorStatus.PENDING;
     }
 
     public Major(Integer id, String code, String name, Integer createBy) {
