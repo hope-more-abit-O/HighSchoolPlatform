@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
+import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.entity.HighschoolExamScore;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,7 +54,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "WHERE s.name = :subjectName AND h.exam_year_id = 4 " +
             "AND (:local IS NULL OR h.exam_local_id = :local) AND h.status = 'ACTIVE'" +
             "ORDER BY h.score DESC ", nativeQuery = true)
-    List<Integer> findTop100StudentsBySubject(@Param("subjectName") String subjectName, @Param("local") Integer localId);
+    List<String> findTop100StudentsBySubject(@Param("subjectName") String subjectName, @Param("local") Integer localId);
 
     @Query(value = "SELECT TOP 100 h.identification_number " +
             "FROM highschool_exam_score h " +
@@ -62,18 +63,18 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "h.subject_id IN (:subjectIds) " +
             "GROUP BY h.identification_number " +
             "ORDER BY SUM(h.score) DESC", nativeQuery = true)
-    List<Integer> findTop100StudentsBySubjects(@Param("subjectIds") List<Integer> subjectIds, @Param("local") Integer localId);
+    List<String> findTop100StudentsBySubjects(@Param("subjectIds") List<Integer> subjectIds, @Param("local") Integer localId);
 
 
     @Query(value = "SELECT h.* " +
             "FROM highschool_exam_score h " +
             "WHERE h.identification_number IN :identificationNumbers " +
             "ORDER BY h.identification_number, h.subject_id", nativeQuery = true)
-    List<HighschoolExamScore> findScoresByIdentificationNumbers(@Param("identificationNumbers") List<Integer> identificationNumbers);
+    List<HighschoolExamScore> findScoresByIdentificationNumbers(@Param("identificationNumbers") List<String> identificationNumbers);
 
 
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear = :examYear AND h.status = :status")
-    List<HighschoolExamScore> findAllByExamYearAndStatus(@Param("examYear") Integer examYear, @Param("status") HighschoolExamScoreStatus status);
+    List<HighschoolExamScore> findAllByExamYearAndStatus(@Param("examYear") ExamYear examYear, @Param("status") HighschoolExamScoreStatus status);
 
 //    Page<HighschoolExamScore> findByYear(Integer examYearId, Pageable pageable);
 @Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear.year = :year AND h.examLocal.name = :local AND h.status = :status")
@@ -82,7 +83,7 @@ List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer 
     @Modifying
     @Transactional
     @Query("UPDATE HighschoolExamScore h SET h.status = :status WHERE h.examYear = :examYear AND h.status = :oldStatus")
-    int updateStatusByExamYear(@Param("status") HighschoolExamScoreStatus status, @Param("examYear") Integer examYear, @Param("oldStatus") HighschoolExamScoreStatus oldStatus);
+    int updateStatusByExamYear(@Param("status") HighschoolExamScoreStatus status, @Param("examYear") ExamYear examYear, @Param("oldStatus") HighschoolExamScoreStatus oldStatus);
 
 //    @Query("SELECT h FROM HighschoolExamScore h WHERE h.identificationNumber IN :identificationNumbers AND h.year = :year")
 //    List<HighschoolExamScore> findByIdentificationNumberAndYearIn(@Param("identificationNumbers") List<Integer> identificationNumbers, @Param("year") Integer year);
