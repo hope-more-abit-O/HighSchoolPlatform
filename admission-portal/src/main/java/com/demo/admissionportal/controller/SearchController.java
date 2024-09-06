@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Search controller.
@@ -38,9 +39,9 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchPost(@RequestParam(required = false, name = "content") String content,
-                                                                        @PageableDefault(size = 10) Pageable pageable) {
-        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchPost(content, pageable);
+    public ResponseEntity<ResponseData<Page<PostSearchDTO.PostSearch>>> searchPost(@RequestParam(required = false, name = "content") String content,
+                                                                                   @PageableDefault(size = 10) Pageable pageable) {
+        ResponseData<Page<PostSearchDTO.PostSearch>> response = searchPostService.searchPost(content, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -60,7 +61,7 @@ public class SearchController {
      * @return the response entity
      */
     @PostMapping("/post/filter")
-    public ResponseEntity<ResponseData<Page<PostSearchDTO>>> searchFilterPost(@RequestParam(required = false, name = "content") String content,
+    public ResponseEntity<ResponseData<Map<String, Object>>> searchFilterPost(@RequestParam(required = false, name = "content") String content,
                                                                               @RequestParam(required = false, name = "typeId") List<Integer> typeId,
                                                                               @RequestParam(required = false, name = "locationId") List<Integer> locationId,
                                                                               @RequestParam(required = false, name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -73,7 +74,7 @@ public class SearchController {
             startDate = startDateTime.toLocalDate();
             endDate = endDateTime.toLocalDate();
         }
-        ResponseData<Page<PostSearchDTO>> response = searchPostService.searchFilterPost(content, typeId, locationId, startDate, endDate, authorId, pageable);
+        ResponseData<Map<String, Object>> response = searchPostService.searchFilterPostV2(content, typeId, locationId, startDate, endDate, authorId, pageable);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }

@@ -19,7 +19,7 @@ import java.util.List;
 @SqlResultSetMapping(
         name = "PostSearchDTOResult",
         classes = @ConstructorResult(
-                targetClass = PostSearchDTO.class,
+                targetClass = PostSearchDTO.PostSearch.class,
                 columns = {
                         @ColumnResult(name = "id", type = Integer.class),
                         @ColumnResult(name = "title", type = String.class),
@@ -39,18 +39,8 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PostSearchDTO implements Serializable {
-    private List<InfoUniversitySearchDTO> infoUniversity;
-    private Integer id;
-    private String title;
-    private Date createTime;
-    private String quote;
-    private String thumnail;
-    private String url;
-    @JsonIgnore
-    private Integer createBy;
-    private String fullName;
-    private String avatar;
-    private PostStatus status;
+    private List<InfoUniversitySearchDTO> university;
+    private List<PostSearch> post;
 
     @Data
     @AllArgsConstructor
@@ -61,5 +51,23 @@ public class PostSearchDTO implements Serializable {
         private String avatar;
         private String code;
         private String name;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class PostSearch implements Serializable {
+        private Integer id;
+        private String title;
+        private Date createTime;
+        private String quote;
+        private String thumnail;
+        private String url;
+        @JsonIgnore
+        private Integer createBy;
+        private String fullName;
+        private String avatar;
+        private PostStatus status;
     }
 }
