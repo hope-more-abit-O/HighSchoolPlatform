@@ -98,6 +98,7 @@ public class SearchPostServiceImpl implements SearchPostService {
 
             postRequestDTOS = postRequestDTOS.stream()
                     .map(this::enhancePostSearchDTO)
+                    .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
                     .distinct()
                     .collect(Collectors.toList());
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
