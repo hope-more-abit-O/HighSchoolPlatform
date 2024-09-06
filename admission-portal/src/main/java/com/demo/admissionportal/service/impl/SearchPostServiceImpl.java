@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.PostStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.entity.search_engine.PostSearchDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
@@ -74,6 +75,11 @@ public class SearchPostServiceImpl implements SearchPostService {
                 Collections.shuffle(postRequestDTOS, new Random());
             } else {
                 postRequestDTOS = searchEngineRepository.searchPostByFilter(content, typeId, locationId, startDate, endDate, authorId);
+                postRequestDTOS.stream()
+                        .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
+                        .map(this::enhancePostSearchDTO)
+                        .distinct()
+                        .toList();
             }
             Sort.Order order = pageable.getSort().getOrderFor("create_time");
             if (order != null) {
