@@ -48,9 +48,18 @@ public class PostSearchDTO implements Serializable {
     @Builder
     public static class InfoUniversitySearchDTO implements Serializable {
         private Integer id;
-        private String avatar;
         private String code;
         private String name;
+        private String avatar;
+        private String description;
+        private String type;
+        private String specificAddress;
+        private String phone;
+        private String email;
+        private String province;
+        private String district;
+        private String ward;
+        private String coverImage;
     }
 
     @Data
