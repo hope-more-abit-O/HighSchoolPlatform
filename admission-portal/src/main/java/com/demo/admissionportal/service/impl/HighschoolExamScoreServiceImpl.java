@@ -682,7 +682,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         try {
             Integer localId = resolveLocalId(local);
 
-            Map<Integer, Float> totalScoresByStudent = calculateScoresForStudent(localId, subjectGroup);
+            Map<String, Float> totalScoresByStudent = calculateScoresForStudent(localId, subjectGroup);
 
             if (localId == null) {
                 boolean existsInAnyLocal = highschoolExamScoreRepository.existsByIdentificationNumber(identificationNumber);
@@ -722,7 +722,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
     }
 
-    private void filterStudentsWithoutCompleteScores(Map<Integer, Float> totalScoresByStudent, String subjectGroup, Integer localId) {
+    private void filterStudentsWithoutCompleteScores(Map<String, Float> totalScoresByStudent, String subjectGroup, Integer localId) {
         List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(subjectGroup);
         List<Integer> subjectIds = new ArrayList<>();
 
@@ -731,7 +731,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
 
         totalScoresByStudent.entrySet().removeIf(entry -> {
-            Integer idNumber = entry.getKey();
+            String idNumber = entry.getKey();
             List<Object[]> scores = localId == null
                     ? highschoolExamScoreRepository.findScoresForSubjectsOnly(subjectIds)
                     : highschoolExamScoreRepository.findScoresForSubjects(subjectIds, localId);
@@ -744,9 +744,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         });
     }
 
-    private Map<Integer, Float> calculateScoresForStudent(Integer localId, String subjectGroup) {
+    private Map<String, Float> calculateScoresForStudent(Integer localId, String subjectGroup) {
         List<SubjectGroup> subjectGroups = subjectGroupRepository.findByNameGroup(subjectGroup);
-        Map<Integer, Float> totalScoresByStudent = new HashMap<>();
+        Map<String, Float> totalScoresByStudent = new HashMap<>();
 
         for (SubjectGroup sg : subjectGroups) {
             List<Integer> subjectIds = getSubjectIdsForGroup(sg.getId());
@@ -756,7 +756,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             for (Object[] data : scoresData) {
                 if (data[0] != null && data[2] != null) {
-                    Integer idNumber = (Integer) data[0];
+                    String idNumber = (String) data[0];
                     Float score = ((Number) data[2]).floatValue();
 
                     totalScoresByStudent.merge(idNumber, score, Float::sum);

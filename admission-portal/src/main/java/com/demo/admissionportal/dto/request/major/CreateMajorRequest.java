@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @Data
 public class CreateMajorRequest {
     @NotNull
-    @EnumName
+    @EnumName(message = "Tên ngành không hợp lệ")
     private String majorName;
     @NotNull
-    @EnumMajorCode
+    @EnumMajorCode(message = "Mã ngành không hợp lệ")
     private String majorCode;
     private String note;
 }
