@@ -65,24 +65,30 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
      * @param uniName the uni name
      * @return the list
      */
-    @Query(value = "WITH MatchedUniversities AS (" +
+    @Query(value = "WITH MatchedUniversities AS ( " +
             "    SELECT ui.*, u.avatar " +
             "    FROM university_info ui " +
             "    JOIN [user] u ON ui.university_id = u.id " +
             "    WHERE u.status = 'ACTIVE' " +
-            "    AND ui.name LIKE N'%' + :uniName + '%' " +
+            "    AND ui.name COLLATE Latin1_General_CI_AI LIKE N'%' + :uniName + '%' COLLATE Latin1_General_CI_AI " +
             "), " +
-            "RandomUniversities AS (" +
-            "    SELECT TOP (GREATEST(0, 5 - (SELECT COUNT(*) FROM MatchedUniversities))) ui.*, u.avatar " +
+            "RandomUniversities AS ( " +
+            "    SELECT TOP ( " +
+            "        CASE  " +
+            "            WHEN (SELECT COUNT(*) FROM MatchedUniversities) < 5  " +
+            "            THEN 5 - (SELECT COUNT(*) FROM MatchedUniversities)  " +
+            "            ELSE 0  " +
+            "        END " +
+            "    ) ui.*, u.avatar " +
             "    FROM university_info ui " +
             "    JOIN [user] u ON ui.university_id = u.id " +
             "    WHERE u.status = 'ACTIVE' " +
-            "    AND ui.name NOT LIKE N'%' + :uniName + '%' " +
-            "    ORDER BY NEWID()" +
+            "    AND ui.name COLLATE Latin1_General_CI_AI NOT LIKE N'%' + :uniName + '%' COLLATE Latin1_General_CI_AI " +
+            "    ORDER BY NEWID() " +
             ") " +
             "SELECT * FROM MatchedUniversities " +
             "UNION ALL " +
-            "SELECT * FROM RandomUniversities", nativeQuery = true)
+            "SELECT * FROM RandomUniversities; ", nativeQuery = true)
     List<UniversityInfo> findByName(@Param("uniName") String uniName);
 
 }
