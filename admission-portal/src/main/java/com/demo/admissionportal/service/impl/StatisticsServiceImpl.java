@@ -183,8 +183,10 @@ public class StatisticsServiceImpl implements StatisticsService {
                     return StatisticsTransactionDetailResponse.builder()
                             .createBy(universityInfo != null ? universityInfo.getName() : null)
                             .price(adsPackage != null ? adsPackage.getPrice() : 0)
+                            .createTime(transaction.getCompleteTime())
                             .build();
                 })
+                .sorted(Comparator.comparing(StatisticsTransactionDetailResponse::getCreateTime).reversed())
                 .collect(Collectors.toList());
     }
 
