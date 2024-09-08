@@ -33,4 +33,16 @@ public interface FollowUniversityMajorRepository extends JpaRepository<UserFollo
      * @return the list
      */
     List<UserFollowUniversityMajor> findByUserId(Integer userId);
+
+    /**
+     * List users follow list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT ufum.* , utp.major_id " +
+            "FROM user_follow_university_major ufum " +
+            "JOIN dbo.university_training_program utp on ufum.university_major = utp.id " +
+            "WHERE utp.university_id = :universityId AND ufum.status = 'FOLLOW'", nativeQuery = true)
+    List<UserFollowUniversityMajor> listUsersFollow(Integer universityId);
 }
