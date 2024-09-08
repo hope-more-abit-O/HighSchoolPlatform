@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisteredIdentificationNumberDTO {
-    private Integer identificationNumber;
+    private String identificationNumber;
     private Integer year;
     private String status;
 }

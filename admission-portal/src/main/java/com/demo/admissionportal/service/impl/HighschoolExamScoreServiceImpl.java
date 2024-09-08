@@ -63,6 +63,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     @Override
     public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer examYearId) {
         try {
+            if (identificationNumber == null || !identificationNumber.matches("\\d+")) {
+                return new ResponseData<>(ResponseCode.C205.getCode(), "Số báo danh chứa kí tự không hợp lệ.");
+            }
             List<HighschoolExamScore> examScores = highschoolExamScoreRepository.findAll(identificationNumber, examYearId);
             if (identificationNumber == null || highschoolExamScoreRepository.countByIdentificationNumberAndExamYear(identificationNumber, examYearId) == 0) {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy số báo danh này !");
@@ -1182,7 +1185,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
 
     @Override
-    public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, Integer identificationNumber) {
+    public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, String identificationNumber) {
         try {
             List<UserIdentificationNumberRegister> registers;
 

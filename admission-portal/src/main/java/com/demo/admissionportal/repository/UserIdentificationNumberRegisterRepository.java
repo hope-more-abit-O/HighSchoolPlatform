@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UserIdentificationNumberRegisterRepository extends JpaRepository<UserIdentificationNumberRegister, Integer> {
     List<UserIdentificationNumberRegister> findByIdUserId(Integer userId);
-    boolean existsByIdIdentificationNumber(Integer identificationNumber);
-    List<UserIdentificationNumberRegister> findByIdIdentificationNumber(Integer identificationNumber);
-    List<UserIdentificationNumberRegister> findByIdUserIdAndIdIdentificationNumber(Integer userId, Integer identificationNumber);
+    boolean existsByIdIdentificationNumber(String identificationNumber);
+    List<UserIdentificationNumberRegister> findByIdIdentificationNumber(String identificationNumber);
+    List<UserIdentificationNumberRegister> findByIdUserIdAndIdIdentificationNumber(Integer userId, String identificationNumber);
 }
