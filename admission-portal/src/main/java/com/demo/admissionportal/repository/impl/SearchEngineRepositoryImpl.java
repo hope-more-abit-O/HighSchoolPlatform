@@ -29,7 +29,7 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
         super(Post.class, entityManager);
     }
 
-    public List<PostSearchDTO> searchPost(String content) {
+    public List<PostSearchDTO.PostSearch> searchPost(String content) {
         String sql = """
                 SELECT DISTINCT p.id AS id,
                               p.title AS title,
@@ -63,7 +63,7 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
     }
 
     @Override
-    public List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId) {
+    public List<PostSearchDTO.PostSearch> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId) {
         StringBuilder sql = new StringBuilder("""
                 SELECT p.id AS id,
                     p.title AS title,
@@ -75,8 +75,7 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
                     p.status AS status,
                     p.create_by AS createBy,
                     p.title AS orderByTitle,
-                    CONCAT(ui.name, ' ', uc.campus_name) AS orderByName,
-                    t.name AS orderByTypeName,
+                    STRING_AGG(t.name, ', ') AS orderByTypeName,
                     ui.code AS orderByCode
                 FROM [post] p
                 JOIN [post_type] pt ON p.id = pt.post_id
@@ -126,6 +125,7 @@ public class SearchEngineRepositoryImpl extends SimpleJpaRepository<Post, Intege
             sql.append(" p.create_time <= :endDate");
         }
 
+        sql.append(" GROUP BY p.id, p.title, p.create_time, p.quote, p.thumnail, p.url, u.avatar, p.status, p.create_by, p.title, ui.code, ui.name, t.name ");
         sql.append(" ORDER BY CASE WHEN p.title LIKE :content OR ui.name LIKE :content OR t.name LIKE :content OR ui.code LIKE :content THEN 0 ELSE 1 END, p.create_time DESC");
         Query query = entityManager.createNativeQuery(sql.toString(), "PostSearchDTOResult");
 

@@ -323,7 +323,13 @@ public class QuestionServiceImpl implements QuestionService {
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
             // Get questionnaire for user participate
-            List<Questionnaire> questionnaires = questionnaireRepository.findAll();
+            List<Questionnaire> questionnaires = questionnaireRepository.findAll()
+                    .stream()
+                    .filter(q -> q.getStatus().equals(QuestionStatus.ACTIVE))
+                    .collect(Collectors.toList());
+            if (questionnaires == null || questionnaires.size() == 0) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "Không còn bộ câu hỏi trên hệ thống");
+            }
             TestResponse result = new TestResponse();
             Collections.shuffle(questionnaires, new Random());
             // Save questionnaire for user

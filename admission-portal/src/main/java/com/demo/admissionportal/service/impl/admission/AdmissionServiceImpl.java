@@ -2009,7 +2009,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
-        List<UniversityInfo> universityList = universityInfoRepository.findByName(request.getUniversity());
+        List<UniversityInfo> universityList = universityInfoRepository.findByUniversityName(request.getUniversity());
         if (universityList.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy trường đại học với tên: " + request.getUniversity());
         }

@@ -1037,6 +1037,9 @@ public class PostServiceImpl implements PostService {
             LocalDate today = LocalDate.now();
             // Case 1 : If not pass 1 day, will get old result
             if (lastRandomDate != null && !(ChronoUnit.DAYS.between(lastRandomDate, today) >= 1) && (locationId == lastSearch)) {
+                lastRandomPosts = lastRandomPosts.stream()
+                        .map(this::refreshPost)
+                        .collect(Collectors.toList());
                 int start = (int) pageable.getOffset();
                 int end = Math.min((start + pageable.getPageSize()), lastRandomPosts.size());
                 Page<PostRandomResponseDTO> page = new PageImpl<>(lastRandomPosts.subList(start, end), pageable, lastRandomPosts.size());
@@ -1246,5 +1249,10 @@ public class PostServiceImpl implements PostService {
             log.info("Error when map post has package: {}", ex.getMessage());
             return null;
         }
+    }
+
+    private PostRandomResponseDTO refreshPost(PostRandomResponseDTO postRandomResponseDTO) {
+        Post post = postRepository.findById(postRandomResponseDTO.getId()).orElse(null);
+        return mapToRandomPost(post);
     }
 }
