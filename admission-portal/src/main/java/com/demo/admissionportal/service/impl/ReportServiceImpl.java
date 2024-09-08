@@ -90,6 +90,7 @@ public class ReportServiceImpl implements ReportService {
             newReport.setTicket_id(generateTicketId());
             newReport.setCreate_by(userId);
             newReport.setCreate_time(new Date());
+            newReport.setContent(request.getContent());
             newReport.setReport_type(ReportType.POST);
             newReport.setStatus(ReportStatus.PENDING);
 
