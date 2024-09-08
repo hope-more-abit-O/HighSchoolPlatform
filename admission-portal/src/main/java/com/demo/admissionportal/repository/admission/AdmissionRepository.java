@@ -366,4 +366,10 @@ AND year = :year
 AND status = :admissionStatus
 """,nativeQuery = true)
     List<Admission> findByUniversityIdAndYearAndStatus(List<Integer> universityIds, int year, String admissionStatus);
+
+
+    @Query("SELECT a FROM Admission a WHERE a.universityId = :universityId AND a.year = :year")
+    List<Admission> findByUniversityAndYear(@Param("universityId") Integer universityId, @Param("year") Integer year);
+
+
 }

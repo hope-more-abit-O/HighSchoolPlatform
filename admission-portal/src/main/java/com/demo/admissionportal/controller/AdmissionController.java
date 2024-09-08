@@ -3,10 +3,13 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
+import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
@@ -18,14 +21,12 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/admission")
@@ -40,7 +41,7 @@ public class AdmissionController {
                                  @RequestParam(required = false) Float score,
                                  @RequestParam(required = false) String subjectGroupId,
                                  @RequestParam(required = false) String methodId,
-                                 @RequestParam(required = false) String provinceId){
+                                 @RequestParam(required = false) String provinceId) {
         try {
             List<Integer> majorIds = null;
             List<Integer> subjectGroupIds = null;
@@ -55,7 +56,7 @@ public class AdmissionController {
             if (methodId != null && !methodId.isEmpty()) {
                 methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
             }
-            if (provinceId  != null && !provinceId.isEmpty()) {
+            if (provinceId != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
             return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
@@ -75,7 +76,7 @@ public class AdmissionController {
             @RequestParam(required = false) String methodId,
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String provinceId
-    ){
+    ) {
         try {
             List<Integer> majorIds = null;
             List<Integer> subjectIds = null;
@@ -92,10 +93,10 @@ public class AdmissionController {
             if (methodId != null && !methodId.isEmpty()) {
                 methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
             }
-            if (provinceId  != null && !provinceId.isEmpty()) {
+            if (provinceId != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            if (region  != null && !region.isEmpty()) {
+            if (region != null && !region.isEmpty()) {
                 regions = Arrays.stream(region.split(",")).toList();
             }
             return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize)));
@@ -107,11 +108,11 @@ public class AdmissionController {
     @PostMapping("/create")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity createAdmission(@RequestBody @Valid CreateAdmissionRequest request)
-        throws DataExistedException{
-        try{
+            throws DataExistedException {
+        try {
             admissionService.createAdmission(request);
             return ResponseEntity.ok(ResponseData.ok("Tạo đề án thành công."));
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new DataExistedException(e.getMessage());
         }
     }
@@ -150,107 +151,107 @@ public class AdmissionController {
         try {
             List<Integer> years = null;
             List<String> universityCodes = null;
-            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
-            if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
-            return ResponseEntity.ok( ResponseData.ok("Lấy tài liệu thành công.", admissionService.searchAdmission(pageable, years, universityCodes, staffId, status)));
+            if (year != null && !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCode != null && !universityCode.isEmpty())
+                universityCodes = Arrays.stream(universityCode.split(",")).toList();
+            ;
+            return ResponseEntity.ok(ResponseData.ok("Lấy tài liệu thành công.", admissionService.searchAdmission(pageable, years, universityCodes, staffId, status)));
         } catch (ResourceNotFoundException | QueryException e) {
             throw e;
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id){
+    public ResponseEntity<ResponseData<FullAdmissionDTO>> getAdmission(@PathVariable Integer id) {
         return ResponseEntity.ok(admissionService.getByIdV2(id));
     }
 
     @PutMapping("/university/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity universityUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionStatusRequest request){
-        if (id == null){
+    public ResponseEntity universityUpdateAdmissionStatus(@PathVariable Integer id, @RequestBody @Valid UpdateAdmissionStatusRequest request) {
+        if (id == null) {
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
         try {
             admissionService.universityAndConsultantUpdateAdmissionStatusAndUpdateUniversityTrainingProgram(id, request);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
-        }catch (NotAllowedException | BadRequestException e){
+        } catch (NotAllowedException | BadRequestException e) {
             throw e;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
         }
     }
 
     @PutMapping("/staff/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity staffUpdateAdmissionStatus(@PathVariable Integer id ,@RequestBody @Valid UpdateAdmissionConfirmStatusRequest request){
-        if (id == null){
+    public ResponseEntity staffUpdateAdmissionStatus(@PathVariable Integer id, @RequestBody @Valid UpdateAdmissionConfirmStatusRequest request) {
+        if (id == null) {
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
         try {
             admissionService.staffUpdateAdmissionConfirmStatusAndUpdateUniversityTrainingProgram(id, request);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
-        }catch (NotAllowedException | BadRequestException e){
+        } catch (NotAllowedException | BadRequestException e) {
             throw e;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
         }
     }
 
     @PutMapping("/test/{id}")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity consultantUpdateAdmission(@PathVariable Integer id){
-        if (id == null){
+    public ResponseEntity consultantUpdateAdmission(@PathVariable Integer id) {
+        if (id == null) {
             throw new BadRequestException("Id đề án không được để trống.", Map.of("error", "Id is null"));
         } else if (id <= 0)
             throw new BadRequestException("Id đề án không hợp lệ.", Map.of("error", id.toString()));
         try {
             admissionService.consultantUpdateAdmission(id);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
-        }catch (NotAllowedException | BadRequestException e){
+        } catch (NotAllowedException | BadRequestException e) {
             throw e;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
         }
     }
 
 
-
     @PutMapping("/score")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity updateAdmissionScore(@RequestBody UpdateAdmissionScoreRequest request){
+    public ResponseEntity updateAdmissionScore(@RequestBody UpdateAdmissionScoreRequest request) {
         return ResponseEntity.ok(admissionService.updateAdmissionScore(request));
     }
 
     @GetMapping("/score")
     public ResponseEntity<ResponseData<GetAdmissionScoreResponse>> getAdmissionScoreByYearAndUniversityCode(Pageable pageable,
                                                                                                             @RequestParam(required = false) String year,
-                                                                                                            @RequestParam(required = false) String universityCode){
+                                                                                                            @RequestParam(required = false) String universityCode) {
         try {
             List<Integer> years = null;
             List<String> universityCodes = null;
-            if (year != null &&  !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
-            if (universityCode != null && !universityCode.isEmpty()) universityCodes = Arrays.stream(universityCode.split(",")).toList();;
-            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable , years, universityCodes)));
-        } catch (SQLException e){
+            if (year != null && !year.isEmpty()) years = Arrays.stream(year.split(",")).map(Integer::parseInt).toList();
+            if (universityCode != null && !universityCode.isEmpty())
+                universityCodes = Arrays.stream(universityCode.split(",")).toList();
+            ;
+            return ResponseEntity.ok(ResponseData.ok("Lấy điểm xét tuyển thành công.", admissionService.getAdmissionScoreResponse(pageable, years, universityCodes)));
+        } catch (SQLException e) {
             throw new QueryException("Lỗi Query", Map.of("error", e.getMessage()));
         }
     }
 
     @GetMapping("/university/{id}/latest-training-program")
-    public ResponseEntity getLatestTrainingProgram(@PathVariable Integer id){
-        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chuyên ngành giảng dạy mới nhất thành công.",admissionService.getLatestTrainingProgramByUniversityId(id)));
+    public ResponseEntity getLatestTrainingProgram(@PathVariable Integer id) {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chuyên ngành giảng dạy mới nhất thành công.", admissionService.getLatestTrainingProgramByUniversityId(id)));
     }
 
     @PutMapping("/auto/update-score-status")
-    public ResponseEntity autoUpdateAdmissionScoreStatus(){
+    public ResponseEntity autoUpdateAdmissionScoreStatus() {
         try {
             admissionService.updateAdmissionScoreStatuses();
             return ResponseEntity.ok(ResponseData.ok("Cập nhật thông tin điểm của tất cả đề án thành công."));
-        } catch (Exception e){
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -265,7 +266,7 @@ public class AdmissionController {
             @RequestParam(required = false) String majorId,
             @RequestParam(required = false) String universityId,
             @RequestParam(required = false) String provinceId
-    ){
+    ) {
         try {
             List<Integer> subjectGroupIds = null;
             List<Integer> methodIds = null;
@@ -285,7 +286,7 @@ public class AdmissionController {
             if (universityId != null && !universityId.isEmpty()) {
                 universityIds = Arrays.stream(universityId.split(",")).toList();
             }
-            if (provinceId  != null && !provinceId.isEmpty()) {
+            if (provinceId != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
             return ResponseEntity.ok(ResponseData.ok("Lấy thông tin trường thành công", admissionService.schoolDirectory(new SchoolDirectoryRequest(pageNumber, pageSize, subjectGroupIds, methodIds, majorIds, universityIds, provinceIds))));
@@ -299,7 +300,7 @@ public class AdmissionController {
             @RequestParam(required = true) String admissionTrainingProgramId,
             @RequestParam(required = true) String admissionMethodId,
             @RequestParam(required = false) Integer admissionId
-    ){
+    ) {
         try {
             List<Integer> admissionTrainingProgramIds = null;
             List<Integer> admissionMethodIds = null;
@@ -315,5 +316,22 @@ public class AdmissionController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    @PostMapping("/forecast")
+    public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
+        List<Object> responseList = new ArrayList<>();
+        for (AdmissionAnalysisRequest requests : request.getAspirations()) {
+            ResponseData<?> responseData = admissionService.forecastScore2024(requests);
+            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
+                responseList.add(responseData.getData());
+            } else if (requests.getMajor() == null || requests.getMajor().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy ngành học của trường: " + requests.getUniversity() + " hoặc ngành học không hợp lệ: " +requests.getMajor()));
+            } else if (requests.getSubjectGroup() == null || requests.getSubjectGroup().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy tổ hợp môn hoặc tổ hợp môn học không hợp lệ: " + requests.getSubjectGroup()));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy điểm chuẩn của năm 2023 với trường: " + requests.getUniversity() + " cho tổ hợp môn và ngành đã chọn."));
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
     }
 }

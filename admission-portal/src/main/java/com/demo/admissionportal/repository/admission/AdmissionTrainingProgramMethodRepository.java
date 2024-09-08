@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AdmissionTrainingProgramMethodRepository extends JpaRepository<AdmissionTrainingProgramMethod, AdmissionTrainingProgramMethodId> {
@@ -87,4 +88,62 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
     List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdInAndMethodIds(List<Integer> admissionTrainingProgramIds, List<Integer> methodIds);
 
     List<AdmissionTrainingProgramMethod> findById_AdmissionTrainingProgramIdInAndId_AdmissionMethodIdIn(Collection<Integer> admissionTrainingProgramIds, Collection<Integer> admissionMethodIds);
+
+    @Query(value = """
+    SELECT a.year, atpm.addmission_score, atpm.quota, a.university_id
+    FROM admission_training_program_method atpm
+    JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+    JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+    JOIN admission_method am ON atpm.admission_method_id = am.id
+    JOIN admission a ON atp.admission_id = a.id
+    WHERE atpsg.subject_group_id = :subjectGroupId
+      AND am.method_id = 1
+      AND a.university_id = :universityId
+      AND atp.major_id IN :majorId
+      AND a.year IN (2023, 2024)
+    ORDER BY a.year ASC
+    """, nativeQuery = true)
+    List<Object[]> findAdmissionDataFor2023And2024WithMajor(
+            @Param("universityId") int universityId,
+            @Param("subjectGroupId") int subjectGroupId,
+            @Param("majorId") List<Integer> majorId);
+
+    @Query(value = """
+    SELECT a.year, atpm.addmission_score, atpm.quota, a.university_id
+    FROM admission_training_program_method atpm
+    JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+    JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+    JOIN admission_method am ON atpm.admission_method_id = am.id
+    JOIN admission a ON atp.admission_id = a.id
+    WHERE atpsg.subject_group_id = :subjectGroupId
+      AND am.method_id = 1
+      AND a.university_id = :universityId
+      AND a.year IN (2023, 2024)
+    ORDER BY a.year ASC
+    """, nativeQuery = true)
+    List<Object[]> findAdmissionDataFor2023And2024WithoutMajor(
+            @Param("universityId") int universityId,
+            @Param("subjectGroupId") int subjectGroupId);
+
+
+    @Query(value = "SELECT atpm.addmission_score " +
+            "FROM admission_training_program_method atpm " +
+            "JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id " +
+            "JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id " +
+            "JOIN admission a ON atp.admission_id = a.id " +
+            "JOIN university_info u ON a.university_id = u.university_id " +
+            "JOIN major m ON atp.major_id = m.id " +
+            "JOIN subject_group sg ON atpsg.subject_group_id = sg.id " +
+            "WHERE a.year = 2023 " +
+            "AND u.name = :universityName " +
+            "AND m.name = :majorName " +
+            "AND sg.name = :subjectGroupName",
+            nativeQuery = true)
+    Float findScoreFor2023(@Param("universityName") String universityName,
+                           @Param("majorName") String majorName,
+                           @Param("subjectGroupName") String subjectGroupName);
+
 }
+
+
+
