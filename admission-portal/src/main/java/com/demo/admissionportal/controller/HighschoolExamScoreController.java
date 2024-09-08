@@ -195,7 +195,7 @@ public class HighschoolExamScoreController {
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ResponseData<List<UserIdentificationResponseDTO>>> getAllRegisteredIdentificationNumbers(
             @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) Integer identificationNumber
+            @RequestParam(required = false) String identificationNumber
     ) {
         ResponseData<List<UserIdentificationResponseDTO>> response = highschoolExamScoreService.getAllRegisteredIdentificationNumbers(userId, identificationNumber);
         if (response.getStatus() == ResponseCode.C200.getCode()) {

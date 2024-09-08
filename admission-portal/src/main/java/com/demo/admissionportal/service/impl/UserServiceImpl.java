@@ -589,7 +589,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseData<String> registerIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication) {
+    public ResponseData<String> registerIdentificationNumber(Integer userId, String identificationNumber, Authentication authentication) {
         try {
             String username = authentication.getName();
             Optional<User> authenticatedUserOpt = userRepository.findByUsername(username);

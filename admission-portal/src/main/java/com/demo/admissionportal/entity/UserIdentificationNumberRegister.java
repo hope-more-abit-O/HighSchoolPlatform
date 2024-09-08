@@ -44,11 +44,11 @@ public class UserIdentificationNumberRegister {
         }
         this.id.setUserId(userId);
     }
-    public Integer getIdentificationNumber() {
+    public String getIdentificationNumber() {
         return id != null ? id.getIdentificationNumber() : null;
     }
 
-    public void setIdentificationNumber(Integer identificationNumber) {
+    public void setIdentificationNumber(String identificationNumber) {
         if (this.id == null) {
             this.id = new UserIdentificationNumberId();
         }

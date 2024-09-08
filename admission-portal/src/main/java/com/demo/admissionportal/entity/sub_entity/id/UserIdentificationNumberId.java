@@ -15,6 +15,6 @@ public class UserIdentificationNumberId implements Serializable {
     private Integer userId;
 
     @Column(name = "identification_number")
-    private Integer identificationNumber;
+    private String identificationNumber;
 
 }
