@@ -2,10 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.follow.FollowResponseDTO;
-import com.demo.admissionportal.dto.response.follow.FollowUniMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowUniversityMajorResponseDTO;
+import com.demo.admissionportal.dto.response.follow.*;
 import com.demo.admissionportal.service.FollowService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -110,6 +107,12 @@ public class FollowController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(favorite);
     }
 
+    /**
+     * Gets follow university major.
+     *
+     * @param universityMajorId the university major id
+     * @return the follow university major
+     */
     @GetMapping("/university/major/{universityMajorId}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<FollowUniMajorResponseDTO>> getFollowUniversityMajor(@PathVariable(name = "universityMajorId") Integer universityMajorId) {
@@ -125,10 +128,31 @@ public class FollowController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(followUniMajor);
     }
 
+    /**
+     * Gets follow uni major by user id.
+     *
+     * @return the follow uni major by user id
+     */
     @GetMapping("/university/major/list")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ResponseData<List<UserFollowUniversityMajorResponseDTO>>> getFollowUniMajorByUserId() {
         ResponseData<List<UserFollowUniversityMajorResponseDTO>> list = followService.getListFollowUniMajor();
+        if (list.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(list);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
+    }
+
+    /**
+     * Gets list user follow major.
+     *
+     * @return the list user follow major
+     */
+    @GetMapping("/university/major/list-users")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAnyAuthority('UNIVERSITY','CONSULTANT')")
+    public ResponseEntity<ResponseData<List<UsersFollowMajorResponseDTO>>> getListUserFollowMajor() {
+        ResponseData<List<UsersFollowMajorResponseDTO>> list = followService.getListUserFollowMajor();
         if (list.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(list);
         }

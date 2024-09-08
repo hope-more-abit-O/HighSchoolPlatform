@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdmissionAnalysisResponse {
     private String advice;
-    private Float ScoreChange;
-    private Integer QuotaChange;
+    private String avgDiffMessage;
+    private String quotaDiffMessage;
 }

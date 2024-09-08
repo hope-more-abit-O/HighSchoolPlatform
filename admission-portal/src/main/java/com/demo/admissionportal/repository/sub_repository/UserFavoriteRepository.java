@@ -42,7 +42,7 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
      */
     @Query(value = "SELECT * " +
             "FROM user_favorite uf " +
-            "WHERE uf.user_id = :userId AND uf.status = 'FOLLOW'",nativeQuery = true)
+            "WHERE uf.user_id = :userId AND uf.status = 'FOLLOW'", nativeQuery = true)
     List<UserFavorite> findByUserId(Integer userId);
 
     /**
@@ -57,7 +57,7 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
             "    UNION ALL " +
             "    SELECT COUNT(*) AS count " +
             "    FROM user_like ul " +
-            ") AS combined_counts;",nativeQuery = true)
+            ") AS combined_counts;", nativeQuery = true)
     Optional<Integer> totalInteraction();
 
     /**
@@ -74,6 +74,17 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, User
             "        SELECT COUNT(*) AS count " +
             "        FROM user_like ul " +
             "        WHERE CONVERT(DATE, ul.create_time) = CONVERT(DATE, GETDATE())" +
-            "    ) AS combined_counts;",nativeQuery = true)
+            "    ) AS combined_counts;", nativeQuery = true)
     Optional<Integer> currentInteraction();
+
+    /**
+     * List users favorite list.
+     *
+     * @param universityId the university id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM user_favorite uf " +
+            "WHERE uf.status = 'FOLLOW' AND uf.university_id = :universityId", nativeQuery = true)
+    List<UserFavorite> listUsersFavorite(Integer universityId);
 }

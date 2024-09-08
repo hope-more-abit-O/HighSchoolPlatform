@@ -1,10 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.follow.FollowResponseDTO;
-import com.demo.admissionportal.dto.response.follow.FollowUniMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowUniversityMajorResponseDTO;
+import com.demo.admissionportal.dto.response.follow.*;
 
 import java.util.List;
 
@@ -57,4 +54,11 @@ public interface FollowService {
      * @return the list follow uni major
      */
     ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor();
+
+    /**
+     * Gets list user follow major.
+     *
+     * @return the list user follow major
+     */
+    ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajor();
 }

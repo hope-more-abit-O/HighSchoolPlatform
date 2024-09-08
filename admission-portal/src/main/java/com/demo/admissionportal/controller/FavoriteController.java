@@ -3,6 +3,7 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
+import com.demo.admissionportal.dto.response.favorite.FavoriteUsersListResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.TotalCountResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.UserFavoriteResponseDTO;
 import com.demo.admissionportal.service.FavoriteService;
@@ -100,6 +101,17 @@ public class FavoriteController {
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<ResponseData<List<UserFavoriteResponseDTO>>> getFavoriteByUserId() {
         ResponseData<List<UserFavoriteResponseDTO>> list = favoriteService.getListFavorite();
+        if (list.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(list);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
+    }
+
+    @GetMapping("/list-users")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAnyAuthority('UNIVERSITY','CONSULTANT')")
+    public ResponseEntity<ResponseData<List<FavoriteUsersListResponseDTO>>> getFavoriteListUsers() {
+        ResponseData<List<FavoriteUsersListResponseDTO>> list = favoriteService.getFavoriteListUsers();
         if (list.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(list);
         }
