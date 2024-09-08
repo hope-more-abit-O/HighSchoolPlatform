@@ -1185,7 +1185,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
 
     @Override
-    public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, Integer identificationNumber) {
+    public ResponseData<List<UserIdentificationResponseDTO>> getAllRegisteredIdentificationNumbers(Integer userId, String identificationNumber) {
         try {
             List<UserIdentificationNumberRegister> registers;
 

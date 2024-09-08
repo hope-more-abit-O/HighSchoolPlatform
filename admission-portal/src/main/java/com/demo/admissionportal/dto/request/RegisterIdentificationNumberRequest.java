@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RegisterIdentificationNumberRequest {
     @NotNull(message = "Số báo danh không được để trống !")
-    private Integer identificationNumber;
+    private String identificationNumber;
 }
