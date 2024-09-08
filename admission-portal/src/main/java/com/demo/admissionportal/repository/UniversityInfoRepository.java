@@ -43,21 +43,12 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
             "WHERE ci.consultant_id = :id", nativeQuery = true)
     UniversityInfo findUniversityInfoByConsultantId(Integer id);
 
-    /**
-     * Find by code in list.
-     *
-     * @param codes the codes
-     * @return the list
-     */
     List<UniversityInfo> findByCodeIn(Collection<String> codes);
 
-    /**
-     * Find by staff id list.
-     *
-     * @param staffId the staff id
-     * @return the list
-     */
     List<UniversityInfo> findByStaffId(Integer staffId);
+
+    @Query("SELECT u FROM UniversityInfo u WHERE u.name = :name")
+    List<UniversityInfo> findByUniversityName(String name);
 
     /**
      * Find by name list.
@@ -90,5 +81,4 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
             "UNION ALL " +
             "SELECT * FROM RandomUniversities; ", nativeQuery = true)
     List<UniversityInfo> findByName(@Param("uniName") String uniName);
-
 }
