@@ -2,19 +2,14 @@ package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.FavoriteStatus;
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.dto.response.ResponseData;
-import com.demo.admissionportal.dto.response.follow.FollowResponseDTO;
-import com.demo.admissionportal.dto.response.follow.FollowUniMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowMajorResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UserFollowUniversityMajorResponseDTO;
+import com.demo.admissionportal.dto.response.follow.*;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowMajorId;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowUniversityMajorId;
-import com.demo.admissionportal.repository.MajorRepository;
-import com.demo.admissionportal.repository.UniversityInfoRepository;
-import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
-import com.demo.admissionportal.repository.UserRepository;
+import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowUniversityMajorRepository;
@@ -24,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +35,7 @@ public class FollowServiceImpl implements FollowService {
     private final UniversityTrainingProgramRepository universityTrainingProgramRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
+    private final UserInfoRepository userInfoRepository;
 
     @Override
     public ResponseData<FollowResponseDTO> createFollowMajor(Integer majorId) {
@@ -211,5 +208,53 @@ public class FollowServiceImpl implements FollowService {
         response.setCreateTime(userFollowUniversityMajor.getCreateTime());
         response.setAvatar(user.getAvatar());
         return response;
+    }
+
+
+    @Override
+    public ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajor() {
+        try {
+            Role role = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getRole();
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<UsersFollowMajorResponseDTO> responseDTOS = new ArrayList<>();
+            switch (role) {
+                case UNIVERSITY -> responseDTOS = findListUsersFollow(userId);
+                case CONSULTANT -> {
+                    UniversityInfo university = universityInfoRepository.findUniversityInfoByConsultantId(userId);
+                    responseDTOS = findListUsersFollow(university.getId());
+                }
+            }
+            if (responseDTOS == null) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy danh sách users follow university major thất bại", null);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách users follow university major thành công", responseDTOS);
+        } catch (Exception ex) {
+            log.error("Error while get list user follow university major by university");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy danh sách users follow university major thất bại", null);
+        }
+    }
+
+    private List<UsersFollowMajorResponseDTO> findListUsersFollow(Integer universityId) {
+        try {
+            List<UserFollowUniversityMajor> userFollowUniversityMajors = followUniversityMajorRepository.listUsersFollow(universityId);
+            return userFollowUniversityMajors.stream()
+                    .map(this::mapToUser)
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            log.error("Error while findListUsersFollow");
+        }
+        return null;
+    }
+
+    private UsersFollowMajorResponseDTO mapToUser(UserFollowUniversityMajor userFollowUniversityMajor) {
+        Major major = majorRepository.findById(userFollowUniversityMajor.getUniversityMajor().getMajorId()).orElse(null);
+        UserInfo userInfo = userInfoRepository.findUserInfoById(userFollowUniversityMajor.getUser().getId());
+        return UsersFollowMajorResponseDTO.builder()
+                .userId(userFollowUniversityMajor.getUser().getId())
+                .major(major.getName())
+                .email(userFollowUniversityMajor.getUser().getEmail())
+                .fullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName())
+                .avatar(userFollowUniversityMajor.getUser().getAvatar())
+                .build();
     }
 }

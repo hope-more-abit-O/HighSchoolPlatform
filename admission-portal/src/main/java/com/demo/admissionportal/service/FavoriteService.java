@@ -2,6 +2,7 @@ package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
+import com.demo.admissionportal.dto.response.favorite.FavoriteUsersListResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.TotalCountResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.UserFavoriteResponseDTO;
 
@@ -41,4 +42,11 @@ public interface FavoriteService {
      * @return the list favorite
      */
     ResponseData<List<UserFavoriteResponseDTO>> getListFavorite();
+
+    /**
+     * Gets favorite list users.
+     *
+     * @return the favorite list users
+     */
+    ResponseData<List<FavoriteUsersListResponseDTO>> getFavoriteListUsers();
 }
