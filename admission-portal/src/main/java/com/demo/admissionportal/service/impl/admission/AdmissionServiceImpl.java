@@ -1997,17 +1997,29 @@ public class AdmissionServiceImpl implements AdmissionService {
                 }
             }
 
+
             int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
 
             DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
 
+            String scoreTrend = scoreStatus.getName();
+
             ChiTieuStatus quotaStatus = analyzeQuotaChange(chiTieuChenhLech);
+
+            String quotaTrend = quotaStatus.getName();
 
             DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
 
             String advice = generateAdvice(finalStatus, request.getScore(), score2023, request.getUniversity(), request.getMajor());
 
-            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTB, chiTieuChenhLech);
+
+            String chenhLechDTBMessage = "Điểm trung bình năm 2024 có xu hướng " + scoreTrend +
+                    " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
+
+            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + request.getMajor() + " của trường " + request.getUniversity() +
+                    " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
+
+            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
 
         } catch (IllegalArgumentException ex) {
@@ -2098,33 +2110,33 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         if (finalStatus == DiemChuanStatus.Giam) {
             if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major +  " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 là KHÁ CAO.";
             } else if (scoreDifference <= -1.5) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.Tang) {
             if (scoreDifference < 0) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.KhongDoi) {
             if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference < -0.5) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Khả năng trúng tuyển vào trường: " + university + " với ngành " + major + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         }
         return "Không xác định được khả năng trúng tuyển.";
