@@ -1997,7 +1997,6 @@ public class AdmissionServiceImpl implements AdmissionService {
                 }
             }
 
-
             int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
 
             DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
