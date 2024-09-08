@@ -79,14 +79,14 @@ public class ReportServiceImpl implements ReportService {
             Integer userId = user.getId();
 
             Optional<Post> existPost = postRepository.findById(request.getPostId());
-            if (existPost.isEmpty() || existPost.equals(PostStatus.INACTIVE.name())) {
+            if (existPost.isEmpty() || !existPost.get().getStatus().equals(PostStatus.ACTIVE)) {
                 log.info("Post not found");
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Bài viết không được tìm thấy !");
             }
             Post post = existPost.get();
             PostReport postReport = new PostReport();
 
-            Report newReport = modelMapper.map(request, Report.class);
+            Report newReport = new Report();
             newReport.setTicket_id(generateTicketId());
             newReport.setCreate_by(userId);
             newReport.setCreate_time(new Date());
@@ -98,10 +98,7 @@ public class ReportServiceImpl implements ReportService {
             postReport.setPostId(post.getId());
             postReport.setReportAction(PostReportActionType.NONE);
 
-
             PostReport savedPostReport = postReportRepository.save(postReport);
-
-
             return new ResponseData<>(ResponseCode.C200.getCode(), "Báo cáo đã được tạo thành công", savedPostReport);
         } catch (Exception e) {
             log.error("Error while creating post report", e);
