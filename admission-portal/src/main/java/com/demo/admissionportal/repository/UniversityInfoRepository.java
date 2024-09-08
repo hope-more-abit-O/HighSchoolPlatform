@@ -3,6 +3,7 @@ package com.demo.admissionportal.repository;
 import com.demo.admissionportal.entity.UniversityInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -45,4 +46,7 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
     List<UniversityInfo> findByCodeIn(Collection<String> codes);
 
     List<UniversityInfo> findByStaffId(Integer staffId);
+
+    @Query("SELECT u FROM UniversityInfo u WHERE u.name = :name")
+    List<UniversityInfo> findByName(@Param("name") String name);
 }
