@@ -676,7 +676,18 @@ public class AdmissionServiceImpl implements AdmissionService {
 
 
         List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList());
-        List<Subject> subjects = subjectServiceImpl.findByIds(admissionTrainingPrograms.stream().filter(Objects::nonNull).map(AdmissionTrainingProgram::getMainSubjectId).distinct().toList());
+        List<Integer> subjectIds = admissionTrainingPrograms.stream()
+                .filter(Objects::nonNull)
+                .map(AdmissionTrainingProgram::getMainSubjectId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        List<Subject> subjects;
+        if (subjectIds.isEmpty()) {
+            subjects = new ArrayList<>();
+        } else {
+            subjects = subjectServiceImpl.findByIds(subjectIds);
+            }
         List<AdmissionTrainingProgramDTO> admissionTrainingProgramDTOS = admissionTrainingPrograms.stream()
                 .map((element) -> new AdmissionTrainingProgramDTO(element, subjects, majors))
                 .toList();
