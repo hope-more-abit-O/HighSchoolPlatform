@@ -19,7 +19,7 @@ public interface SearchEngineRepository extends JpaRepository<Post, Integer> {
      * @param content the content
      * @return the page
      */
-    List<PostSearchDTO> searchPost(String content);
+    List<PostSearchDTO.PostSearch> searchPost(String content);
 
     /**
      * Search post by filter list.
@@ -32,5 +32,5 @@ public interface SearchEngineRepository extends JpaRepository<Post, Integer> {
      * @param authorId   the author id
      * @return the list
      */
-    List<PostSearchDTO> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId);
+    List<PostSearchDTO.PostSearch> searchPostByFilter(String content, List<Integer> typeId, List<Integer> locationId, LocalDate startDate, LocalDate endDate, List<Integer> authorId);
 }

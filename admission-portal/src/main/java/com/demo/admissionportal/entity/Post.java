@@ -21,7 +21,7 @@ import java.util.List;
 @SqlResultSetMapping(
         name = "PostSearchDTOResult",
         classes = @ConstructorResult(
-                targetClass = PostSearchDTO.class,
+                targetClass = PostSearchDTO.PostSearch.class,
                 columns = {
                         @ColumnResult(name = "id", type = Integer.class),
                         @ColumnResult(name = "title", type = String.class),

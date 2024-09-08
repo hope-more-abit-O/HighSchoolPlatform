@@ -1,54 +1,54 @@
-version: '3.8'
-
-services:
-  admission-portal:
-    image: highschoolvn/admission-portal:latest
-    ports:
-      - "7654:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.205.94:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_FE
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: Fpt1234567890
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
-      # Sender mail configuration
-      SPRING_MAIL_HOST: smtp.gmail.com
-      SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: highschoolvn10@gmail.com
-      SPRING_MAIL_PASSWORD: zrle latv mjdq neqr
-      # Redis configuration
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      # Token configuration
-      SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
-      EXPIRATION: 86400000
-      REFRESH_TOKEN_EXPIRATION: 604800000
-      # SSL configuration
-      SERVER_SSL_KEY_ALIAS: uap-https
-      SERVER_SSL_KEY_STORE: /app/keystore.p12
-      SERVER_SSL_KEY_STORE_TYPE: PKCS12
-      SERVER_SSL_KEY_PASSWORD: Fpt1234567890
-      # Multipart configuration
-      SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
-      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
-      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 215MB
-      # Pageable configuration
-      SPRING_DATA_WEB_PAGEABLE_DEFAULT_PAGE_SIZE: 10
-      SPRING_DATA_WEB_PAGEABLE_MAX_PAGE_SIZE: 50
-    depends_on:
-      - redis
-    networks:
-      - my-network
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    networks:
-      - my-network
-
-networks:
-  my-network:
-    driver: bridge
+  version: '3.8'
+  
+  services:
+    admission-portal:
+      image: highschoolvn/admission-portal:latest
+      ports:
+        - "7654:8080"
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:sqlserver://14.225.205.94:1433;encrypt=true;trustServerCertificate=true;databaseName=UAP_FE
+        SPRING_DATASOURCE_USERNAME: sa
+        SPRING_DATASOURCE_PASSWORD: Fpt1234567890
+        SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.SQLServerDialect
+        SPRING_JPA_HIBERNATE_DDL_AUTO: update
+        SPRING_JPA_SHOW_SQL: "true"
+        SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+        # Sender mail configuration
+        SPRING_MAIL_HOST: smtp.gmail.com
+        SPRING_MAIL_PORT: 587
+        SPRING_MAIL_USERNAME: highschoolvn10@gmail.com
+        SPRING_MAIL_PASSWORD: zrle latv mjdq neqr
+        # Redis configuration
+        SPRING_DATA_REDIS_HOST: redis
+        SPRING_DATA_REDIS_PORT: 6379
+        # Token configuration
+        SECRET_KEY: 94b83cf0b942b22cc7c98924f90eec3bc90b974d61392b4eb694b85f7c68265e
+        EXPIRATION: 86400000
+        REFRESH_TOKEN_EXPIRATION: 604800000
+        # SSL configuration
+        SERVER_SSL_KEY_ALIAS: uap-https
+        SERVER_SSL_KEY_STORE: /app/keystore.p12
+        SERVER_SSL_KEY_STORE_TYPE: PKCS12
+        SERVER_SSL_KEY_PASSWORD: Fpt1234567890
+        # Multipart configuration
+        SPRING_SERVLET_MULTIPART_FILE_SIZE_THRESHOLD: 2KB
+        SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
+        SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 215MB
+        # Pageable configuration
+        SPRING_DATA_WEB_PAGEABLE_DEFAULT_PAGE_SIZE: 10
+        SPRING_DATA_WEB_PAGEABLE_MAX_PAGE_SIZE: 50
+      depends_on:
+        - redis
+      networks:
+        - my-network
+  
+    redis:
+      image: redis:latest
+      ports:
+        - "6379:6379"
+      networks:
+        - my-network
+  
+  networks:
+    my-network:
+      driver: bridge

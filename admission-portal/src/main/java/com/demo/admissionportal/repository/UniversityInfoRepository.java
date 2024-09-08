@@ -3,6 +3,7 @@ package com.demo.admissionportal.repository;
 import com.demo.admissionportal.entity.UniversityInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -45,4 +46,39 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
     List<UniversityInfo> findByCodeIn(Collection<String> codes);
 
     List<UniversityInfo> findByStaffId(Integer staffId);
+
+    @Query("SELECT u FROM UniversityInfo u WHERE u.name = :name")
+    List<UniversityInfo> findByUniversityName(String name);
+
+    /**
+     * Find by name list.
+     *
+     * @param uniName the uni name
+     * @return the list
+     */
+    @Query(value = "WITH MatchedUniversities AS ( " +
+            "    SELECT ui.*, u.avatar " +
+            "    FROM university_info ui " +
+            "    JOIN [user] u ON ui.university_id = u.id " +
+            "    WHERE u.status = 'ACTIVE' " +
+            "    AND ui.name COLLATE Latin1_General_CI_AI LIKE N'%' + :uniName + '%' COLLATE Latin1_General_CI_AI " +
+            "), " +
+            "RandomUniversities AS ( " +
+            "    SELECT TOP ( " +
+            "        CASE  " +
+            "            WHEN (SELECT COUNT(*) FROM MatchedUniversities) < 5  " +
+            "            THEN 5 - (SELECT COUNT(*) FROM MatchedUniversities)  " +
+            "            ELSE 0  " +
+            "        END " +
+            "    ) ui.*, u.avatar " +
+            "    FROM university_info ui " +
+            "    JOIN [user] u ON ui.university_id = u.id " +
+            "    WHERE u.status = 'ACTIVE' " +
+            "    AND ui.name COLLATE Latin1_General_CI_AI NOT LIKE N'%' + :uniName + '%' COLLATE Latin1_General_CI_AI " +
+            "    ORDER BY NEWID() " +
+            ") " +
+            "SELECT * FROM MatchedUniversities " +
+            "UNION ALL " +
+            "SELECT * FROM RandomUniversities; ", nativeQuery = true)
+    List<UniversityInfo> findByName(@Param("uniName") String uniName);
 }
