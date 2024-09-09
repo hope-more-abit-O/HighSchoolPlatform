@@ -429,4 +429,8 @@ public class AdmissionTrainingProgramMethodServiceImpl {
             throw new BadRequestException(errorMessage, errors);
         };
     }
+
+    public Integer deleteByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
+        return admissionTrainingProgramMethodRepository.deleteById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
+    }
 }

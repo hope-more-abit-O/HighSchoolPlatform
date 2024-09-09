@@ -1066,7 +1066,8 @@ public class AdmissionServiceImpl implements AdmissionService {
         Admission admission = this.findById(admissionId);
         User user = ServiceUtils.getUser();
         validateAdmissionOwnership(user, admission);
-
+        if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING))
+            updateNotAcceptedAdmission(admission, request, user);
         return null;
     }
 

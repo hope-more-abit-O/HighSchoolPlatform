@@ -149,6 +149,8 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
     @Modifying
     @Query("delete from AdmissionTrainingProgramMethod a where a.id in ?1")
     int deleteByIdIn(Collection<AdmissionTrainingProgramMethodId> ids);
+
+    int deleteById_AdmissionTrainingProgramIdIn(Collection<Integer> admissionTrainingProgramIds);
 }
 
 

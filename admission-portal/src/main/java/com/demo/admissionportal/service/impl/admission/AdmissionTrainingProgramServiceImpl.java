@@ -8,6 +8,7 @@ import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionTrainingPro
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
@@ -27,11 +28,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class AdmissionTrainingProgramServiceImpl {
-    private final ModelMapper modelMapper;
     private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
     private final SubjectService subjectService;
-    private final MajorServiceImpl majorService;
-
+    private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
+    private final AdmissionTrainingProgramSubjectGroupServiceImpl admissionTrainingProgramSubjectGroupService;
 
     public AdmissionTrainingProgram save(AdmissionTrainingProgram admissionTrainingProgram){
         log.info("Saving admission training program: {}", admissionTrainingProgram.toString());
@@ -160,25 +160,26 @@ public class AdmissionTrainingProgramServiceImpl {
         return admissionTrainingProgramRepository.findByAdmissionIdInAndMajorIdIn(admissionIds, majorIds);
     }
 
-    public Integer update(Admission admission, UpdateAdmissionTrainingProgramRequest updateAdmissionTrainingProgramRequest) {
+    public Integer update(Admission admission, UpdateAdmissionTrainingProgramRequest request) {
         List<AdmissionTrainingProgram> admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
 
         Integer modified = 0;
 
-        if (updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms() != null && updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId() != null && !updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId().isEmpty()){
-            modified += deleteByIds(updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId(), admissionTrainingPrograms);
+        if (request.getDeleteAdmissionTrainingPrograms() != null && request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId() != null && !request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId().isEmpty()){
+            modified += deleteByIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId(), admissionTrainingPrograms);
+            modified += admissionTrainingProgramMethodService.deleteByAdmissionTrainingProgramIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId());
         }
 
         admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
 
-        if (updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests() != null && !updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests().isEmpty()){
-            modified += createAdmissionTrainingProgram(admission.getId(), updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests(), admissionTrainingPrograms);
+        if (request.getCreateAdmissionTrainingProgramRequests() != null && !request.getCreateAdmissionTrainingProgramRequests().isEmpty()){
+            modified += createAdmissionTrainingProgram(admission.getId(), request.getCreateAdmissionTrainingProgramRequests(), admissionTrainingPrograms);
         }
 
         admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
 
-        if (updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms() != null && !updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms().isEmpty()){
-            modified += modifyAdmissionTrainingProgram(admissionTrainingPrograms, updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms());
+        if (request.getModifyAdmissionTrainingPrograms() != null && !request.getModifyAdmissionTrainingPrograms().isEmpty()){
+            modified += modifyAdmissionTrainingProgram(admissionTrainingPrograms, request.getModifyAdmissionTrainingPrograms());
         }
 
         return modified;
