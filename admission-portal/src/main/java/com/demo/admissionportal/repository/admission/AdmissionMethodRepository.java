@@ -19,4 +19,5 @@ public interface AdmissionMethodRepository extends JpaRepository<AdmissionMethod
 """, nativeQuery = true)
     List<Integer> findAdmissionIdByAdmissionMethodIds(@Param("admissionMethod") List<Integer> admissionMethodIds);
 
+    Integer deleteByIdIn(List<Integer> ids);
 }

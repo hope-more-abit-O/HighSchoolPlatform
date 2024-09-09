@@ -11,4 +11,5 @@ public class AdmissionTrainingProgramMethodQuotaDTO {
     private Integer admissionTrainingProgramId;
     private Integer admissionMethodId;
     private Integer quota;
+    private Float score;
 }

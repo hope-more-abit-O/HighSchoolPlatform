@@ -3,9 +3,11 @@ package com.demo.admissionportal.repository.admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -143,6 +145,10 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
                            @Param("majorName") String majorName,
                            @Param("subjectGroupName") String subjectGroupName);
 
+    @Transactional
+    @Modifying
+    @Query("delete from AdmissionTrainingProgramMethod a where a.id in ?1")
+    int deleteByIdIn(Collection<AdmissionTrainingProgramMethodId> ids);
 }
 
 

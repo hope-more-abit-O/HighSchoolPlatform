@@ -17,6 +17,7 @@ import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university.UpdateUniversityInfoResponse;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
@@ -40,10 +41,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.sql.SQLException;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -282,12 +280,20 @@ public class UniversityServiceImpl implements UniversityService {
 
     @Override
     public ResponseData updateUniversityStatus(Integer id, String note, AccountStatus status) throws ResourceNotFoundException, StoreDataFailedException {
-        Integer actionerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        User actioner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         User uniAccount = userService.findById(id);
 
         if (!uniAccount.getRole().equals(Role.UNIVERSITY))
             throw new ResourceNotFoundException("Không tồn tại trường đại học với id: " + id);
+
+        if (actioner.getRole().equals(Role.STAFF)){
+            if (!Objects.equals(uniAccount.getCreateBy(), actioner.getId()))
+                throw new NotAllowedException("Không có quyền cập nhật trạng thái trường đại học này.");
+        }
+
+        if (uniAccount.getStatus().equals(AccountStatus.ACTIVE)) status = AccountStatus.INACTIVE;
+        else status = AccountStatus.ACTIVE;
 
         userService.changeStatus(id, status, Role.UNIVERSITY, note, "trường học");
 

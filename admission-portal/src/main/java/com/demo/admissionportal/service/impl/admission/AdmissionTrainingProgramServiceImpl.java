@@ -3,15 +3,21 @@ package com.demo.admissionportal.service.impl.admission;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
 import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionTrainingProgramRequest;
+import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionTrainingProgramRequest;
 import com.demo.admissionportal.entity.Major;
+import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.service.SubjectService;
 import com.demo.admissionportal.service.impl.MajorServiceImpl;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,6 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class AdmissionTrainingProgramServiceImpl {
+    private final ModelMapper modelMapper;
     private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
     private final SubjectService subjectService;
     private final MajorServiceImpl majorService;
@@ -151,5 +158,91 @@ public class AdmissionTrainingProgramServiceImpl {
 
     public List<AdmissionTrainingProgram> findByAdmissionIdsAndMajorIds(List<Integer> admissionIds, List<Integer> majorIds) {
         return admissionTrainingProgramRepository.findByAdmissionIdInAndMajorIdIn(admissionIds, majorIds);
+    }
+
+    public Integer update(Admission admission, UpdateAdmissionTrainingProgramRequest updateAdmissionTrainingProgramRequest) {
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
+
+        Integer modified = 0;
+
+        if (updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms() != null && updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId() != null && !updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId().isEmpty()){
+            modified += deleteByIds(updateAdmissionTrainingProgramRequest.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId(), admissionTrainingPrograms);
+        }
+
+        admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
+
+        if (updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests() != null && !updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests().isEmpty()){
+            modified += createAdmissionTrainingProgram(admission.getId(), updateAdmissionTrainingProgramRequest.getCreateAdmissionTrainingProgramRequests(), admissionTrainingPrograms);
+        }
+
+        admissionTrainingPrograms = this.findByAdmissionId(admission.getId());
+
+        if (updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms() != null && !updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms().isEmpty()){
+            modified += modifyAdmissionTrainingProgram(admissionTrainingPrograms, updateAdmissionTrainingProgramRequest.getModifyAdmissionTrainingPrograms());
+        }
+
+        return modified;
+    }
+
+    public Integer modifyAdmissionTrainingProgram(List<AdmissionTrainingProgram> admissionTrainingPrograms, List<ModifyAdmissionTrainingProgramRequest> modifyAdmissionTrainingPrograms) throws BadRequestException {
+
+        ServiceUtils.checkDuplicate(modifyAdmissionTrainingPrograms.stream().map(ModifyAdmissionTrainingProgramRequest::getAdmissionTrainingProgramId).toList(), "modifyAdmissionTrainingProgramId", "Có id chương trình đào tạo để chỉnh sửa bị trùng.");
+
+        List<AdmissionTrainingProgram> modifiedPrograms = new ArrayList<>();
+
+        for (ModifyAdmissionTrainingProgramRequest request : modifyAdmissionTrainingPrograms) {
+            for (AdmissionTrainingProgram admissionTrainingProgram: admissionTrainingPrograms) {
+                if (request.idIsEqual(admissionTrainingProgram) && request.isModified(admissionTrainingProgram)){
+                    modifiedPrograms.add(admissionTrainingProgram);
+                    break;
+                }
+            }
+        }
+
+        if (modifiedPrograms.isEmpty())
+            return 0;
+        try {
+            List<AdmissionTrainingProgram> savedPrograms = this.saveAllAdmissionTrainingProgram(modifiedPrograms);
+            return savedPrograms.size();
+        } catch (Exception e){
+            throw new StoreDataFailedException("Lưu thông tin đề án - chương trình đào tạo thất bại", Map.of("error", e.getMessage()));
+        }
+    }
+
+    public Integer deleteByIds(List<Integer> ids, List<AdmissionTrainingProgram> admissionTrainingPrograms) {
+
+        ServiceUtils.checkDuplicate(ids, "deleteAdmissionTrainingProgramIds", "Có id chương trình đào tạo để xoá bị trùng.");
+
+        ServiceUtils.checkListIntegerNotInList(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList(), ids, "deleteAdmissionTrainingProgramIds", "Không tìm thấy chương trình đào tạo.");
+
+        return admissionTrainingProgramRepository.deleteByIdIn(ids);
+    }
+
+    public Integer createAdmissionTrainingProgram(Integer admissionId, List<CreateTrainingProgramRequest> createTrainingProgramRequests, List<AdmissionTrainingProgram> admissionTrainingPrograms) {
+        Map<String, String> error = new HashMap<>();
+        List<CreateTrainingProgramRequest> duplicateRequests = new ArrayList<>();
+
+        if (createTrainingProgramRequests.isEmpty()) {
+            List<AdmissionTrainingProgram> savedPrograms = this.saveAllAdmissionTrainingProgram(admissionId, createTrainingProgramRequests);
+            return savedPrograms.size();
+        }
+
+        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms) {
+            for (CreateTrainingProgramRequest createTrainingProgramRequest : createTrainingProgramRequests) {
+                if (createTrainingProgramRequest.isEqual(admissionTrainingProgram)) {
+                    duplicateRequests.add(createTrainingProgramRequest);
+                }
+            }
+        }
+
+        String duplicatePrograms = duplicateRequests.stream().map(CreateTrainingProgramRequest::toString).collect(Collectors.joining(", "));
+
+        if (!duplicateRequests.isEmpty()) {
+            error.put("error", "Một hoặc nhiều chương trình đào tạo đã tồn tai.");
+            error.put("duplicatePrograms", duplicatePrograms);
+            throw new BadRequestException("Chương trình đào tạo bị trùng.",error);
+        }
+        List<AdmissionTrainingProgram> savedPrograms = this.saveAllAdmissionTrainingProgram(admissionId, createTrainingProgramRequests);
+        return savedPrograms.size();
     }
 }

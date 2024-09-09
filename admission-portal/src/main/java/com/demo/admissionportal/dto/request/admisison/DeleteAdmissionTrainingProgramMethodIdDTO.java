@@ -1,13 +1,13 @@
 package com.demo.admissionportal.dto.request.admisison;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModifyAdmissionMethodRequest {
+public class DeleteAdmissionTrainingProgramMethodIdDTO {
+    private Integer admissionTrainingProgramId;
     private Integer admissionMethodId;
-    private Integer methodId;
 }

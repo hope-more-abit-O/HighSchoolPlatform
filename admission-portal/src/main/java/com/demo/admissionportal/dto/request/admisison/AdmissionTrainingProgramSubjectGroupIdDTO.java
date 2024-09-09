@@ -4,11 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateAdmissionTrainingProgramSubjectGroupRequest {
-    private List<AdmissionTrainingProgramSubjectGroupIdDTO> admissionTrainingProgramSubjectGroups;
+public class AdmissionTrainingProgramSubjectGroupIdDTO {
+    private Integer admissionTrainingProgramId;
+    private Integer subjectGroupId;
 }

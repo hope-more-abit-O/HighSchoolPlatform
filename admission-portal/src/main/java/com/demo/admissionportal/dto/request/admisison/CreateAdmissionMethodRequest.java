@@ -11,6 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateAdmissionMethodRequest {
-    private Integer admissionId;
     private List<Integer> methodIds;
 }

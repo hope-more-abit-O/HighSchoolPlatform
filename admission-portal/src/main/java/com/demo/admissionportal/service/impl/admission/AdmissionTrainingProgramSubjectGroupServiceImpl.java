@@ -1,5 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionSubjectGroupRequest;
+import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +30,9 @@ public class AdmissionTrainingProgramSubjectGroupServiceImpl {
 
     public List<AdmissionTrainingProgramSubjectGroup> findByAdmissionTrainingProgramIdsAndSubjectGroupIds(List<Integer> admissionTrainingProgramIds, List<Integer> subjectGroupIds) {
         return admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdInAndId_SubjectGroupIdIn(admissionTrainingProgramIds, subjectGroupIds);
+    }
+
+    public Integer update(Admission admission, UpdateAdmissionSubjectGroupRequest updateAdmissionSubjectGroupRequest) {
+        return null;
     }
 }
