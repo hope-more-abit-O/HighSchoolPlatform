@@ -317,6 +317,7 @@ public class AdmissionController {
             throw new RuntimeException(e);
         }
     }
+
     @PostMapping("/forecast")
     public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
         List<Object> responseList = new ArrayList<>();
@@ -333,5 +334,10 @@ public class AdmissionController {
             }
         }
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
+    }
+
+    @PutMapping("/update/{admissionId}")
+    public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
+        return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));
     }
 }

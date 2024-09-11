@@ -1,7 +1,10 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
+import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionMethodRequest;
+import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionMethodRequest;
 import com.demo.admissionportal.entity.Method;
+import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionMethod;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
@@ -9,6 +12,7 @@ import com.demo.admissionportal.exception.exceptions.CreateEntityFailedException
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionMethodRepository;
 import com.demo.admissionportal.service.impl.MethodServiceImpl;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -116,5 +120,78 @@ public class AdmissionMethodServiceImpl {
         }
 
         return methods;
+    }
+
+    public Integer update(Admission admission, UpdateAdmissionMethodRequest updateAdmissionMethodRequest) {
+        List<AdmissionMethod> admissionMethods = this.findByAdmissionId(admission.getId());
+
+        Integer modified = 0;
+
+        if (updateAdmissionMethodRequest.getDeleteAdmissionMethod() != null && updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId() != null && !updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId().isEmpty()) {
+            modified += this.deleteByAdmissionIds(updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId(), admissionMethods);
+        }
+
+        if (updateAdmissionMethodRequest.getCreateAdmissionMethods() != null && updateAdmissionMethodRequest.getCreateAdmissionMethods().getMethodIds() != null && !updateAdmissionMethodRequest.getCreateAdmissionMethods().getMethodIds().isEmpty()) {
+            modified += this.createAdmissionMethod(admission, admissionMethods, updateAdmissionMethodRequest.getCreateAdmissionMethods().getMethodIds());
+        }
+
+        if (updateAdmissionMethodRequest.getModifyAdmissionMethods() != null && !updateAdmissionMethodRequest.getModifyAdmissionMethods().isEmpty()){
+            modified += this.modifyAdmissionMethod(admission, admissionMethods, updateAdmissionMethodRequest.getModifyAdmissionMethods());
+        }
+
+        return modified;
+    }
+
+    private Integer modifyAdmissionMethod(Admission admission, List<AdmissionMethod> admissionMethods, List<ModifyAdmissionMethodRequest> modifyAdmissionMethods) {
+        ServiceUtils.checkListIntegerNotInList(admissionMethods.stream().map(AdmissionMethod::getId).toList(), modifyAdmissionMethods.stream().map(ModifyAdmissionMethodRequest::getAdmissionMethodId).toList(), "modifyAdmissionMethodIds", "Mã phương thức tuyển sinh để sửa không tồn tại.");
+
+        List<AdmissionMethod> modifiedAdmissionMethods = new ArrayList<>();
+
+        for (ModifyAdmissionMethodRequest modifyAdmissionMethod : modifyAdmissionMethods) {
+            AdmissionMethod admissionMethod = admissionMethods.stream().filter(admissionMethod1 -> admissionMethod1.getId().equals(modifyAdmissionMethod.getAdmissionMethodId())).findFirst().get();
+            admissionMethod.setMethodId(modifyAdmissionMethod.getMethodId());
+            modifiedAdmissionMethods.add(admissionMethod);
+        }
+
+        return admissionMethodRepository.saveAll(modifiedAdmissionMethods).size();
+    }
+
+    public Integer deleteByAdmissionIds(List<Integer> ids, List<AdmissionMethod> admissionMethods) {
+        ServiceUtils.checkDuplicate(ids, "deleteAdmissionMethodIds", "Mã phương thức tuyển sinh để xoá bị trùng.");
+        List<Integer> notfoundIds = new ArrayList<>();
+
+        for (Integer id : ids) {
+            boolean found = false;
+            for (AdmissionMethod admissionMethod : admissionMethods) {
+                if (admissionMethod.getId().equals(id)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                notfoundIds.add(id);
+            }
+        }
+
+        if (!notfoundIds.isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("deleteAdmissionMethodIds", notfoundIds.stream().map(Object::toString).collect(Collectors.joining(",")));
+            throw new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh.", error);
+        }
+
+        return admissionMethodRepository.deleteByIdIn(ids);
+    }
+
+    public Integer createAdmissionMethod(Admission admission, List<AdmissionMethod> admissionMethods, List<Integer> createMethodIds) {
+        ServiceUtils.checkDuplicate(createMethodIds, "createAdmissionMethodIds", "Mã phương thức tuyển sinh để tạo bị trùng.");
+        ServiceUtils.checkListIntegerInList(admissionMethods.stream().map(AdmissionMethod::getId).toList(), createMethodIds, "createAdmissionMethodIds", "Mã phương thức tuyển sinh để tạo đã tồn tại.");
+        List<Method> methods = methodService.findByIds(createMethodIds);
+
+        List<AdmissionMethod> newAdmissionMethods = new ArrayList<>();
+        createMethodIds.forEach((methodId) -> {
+            newAdmissionMethods.add(new AdmissionMethod(admission.getId(), methodId));
+        });
+
+        return admissionMethodRepository.saveAll(newAdmissionMethods).size();
     }
 }

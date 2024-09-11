@@ -1,13 +1,14 @@
 package com.demo.admissionportal.dto.request.admisison;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModifyAdmissionMethodRequest {
-    private Integer admissionMethodId;
-    private Integer methodId;
+public class DeleteAdmissionMethodRequest {
+    private List<Integer> admissionMethodId;
 }

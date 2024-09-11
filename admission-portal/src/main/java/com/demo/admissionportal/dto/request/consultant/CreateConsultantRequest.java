@@ -2,6 +2,7 @@ package com.demo.admissionportal.dto.request.consultant;
 
 import com.demo.admissionportal.util.enum_validator.EnumNameV2;
 import com.demo.admissionportal.util.enum_validator.EnumPhoneV2;
+import com.demo.admissionportal.util.enum_validator.EnumWhiteSpace;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,7 @@ public class CreateConsultantRequest {
      * @NotNull(message = "Tên người dùng không được để trống.")
      */
     @NotNull(message = "Tên người dùng không được để trống.")
+    @EnumWhiteSpace(message = "Tên tài khoản không được có khoảng trắng!")
     private String username;
 
     /**

@@ -6,4 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ModifyAdmissionTrainingProgramSubjectGroupRequest {
+    private Integer admissionTrainingProgramId;
+    private Integer subjectGroupIdFrom;
+    private Integer subjectGroupIdTo;
 }

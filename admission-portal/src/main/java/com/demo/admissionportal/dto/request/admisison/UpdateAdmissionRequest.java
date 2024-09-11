@@ -8,14 +8,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class UpdateAdmissionRequest {
-    private Integer admissionId;
     private Integer year;
 
-    private List<ModifyAdmissionTrainingProgramRequest> modifyAdmissionTrainingPrograms;
-
-    private List<ModifyAdmissionMethodRequest> modifyAdmissionMethods;
-
-    private List<ModifyAdmissionTrainingProgramMethodRequest> modifyAdmissionTrainingProgramMethodRequests;
-
-    private List<ModifyAdmissionTrainingProgramSubjectGroupRequest> modifyAdmissionDetailRequests;
+    private UpdateAdmissionTrainingProgramRequest updateAdmissionTrainingProgramRequest;
+    private UpdateAdmissionMethodRequest updateAdmissionMethodRequest;
+    private UpdateAdmissionTrainingMethodRequest updateAdmissionTrainingMethodRequest;
+    private UpdateAdmissionSubjectGroupRequest updateAdmissionSubjectGroupRequest;
 }

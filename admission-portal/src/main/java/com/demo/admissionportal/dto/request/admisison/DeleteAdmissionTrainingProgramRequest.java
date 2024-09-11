@@ -9,6 +9,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateAdmissionTrainingProgramSubjectGroupRequest {
-    private List<AdmissionTrainingProgramSubjectGroupIdDTO> admissionTrainingProgramSubjectGroups;
+public class DeleteAdmissionTrainingProgramRequest {
+    private List<Integer> admissionTrainingProgramId;
 }

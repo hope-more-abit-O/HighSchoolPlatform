@@ -26,4 +26,6 @@ public interface AdmissionTrainingProgramRepository extends JpaRepository<Admiss
     List<AdmissionTrainingProgram> findByAdmissionIdIn(Collection<Integer> admissionIds);
 
     List<AdmissionTrainingProgram> findByAdmissionIdInAndMajorIdIn(Collection<Integer> admissionIds, Collection<Integer> majorIds);
+
+    Integer deleteByIdIn(List<Integer> ids);
 }

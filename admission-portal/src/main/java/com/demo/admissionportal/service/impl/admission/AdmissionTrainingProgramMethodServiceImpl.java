@@ -1,10 +1,13 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.AdmissionStatus;
-import com.demo.admissionportal.dto.request.admisison.CreateAdmissionTrainingProgramMethodRequest;
-import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
+import com.demo.admissionportal.dto.request.admisison.*;
+import com.demo.admissionportal.entity.admission.Admission;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
+import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
 import jakarta.persistence.EntityManager;
@@ -27,15 +30,15 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         return admissionTrainingProgramMethodRepository.saveAll(admissionTrainingProgramMethods);
     }
 
-    public List<AdmissionTrainingProgramMethod> createAdmissionTrainingProgramMethod(CreateAdmissionTrainingProgramMethodRequest request) {
-        //TODO: CHECK EXIST by admissionTrainingProgramId and admissionMethodId
-
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = request.getQuotas().stream()
-                .map(quota -> new AdmissionTrainingProgramMethod(quota.getAdmissionTrainingProgramId(), quota.getAdmissionMethodId(), quota.getQuota()))
-                .toList();
-
-        return saveAll(admissionTrainingProgramMethods);
-    }
+//    public List<AdmissionTrainingProgramMethod> createAdmissionTrainingProgramMethod(CreateAdmissionTrainingProgramMethodRequest request) {
+//        //TODO: CHECK EXIST by admissionTrainingProgramId and admissionMethodId
+//
+//        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = request.getQuotas().stream()
+//                .map(quota -> new AdmissionTrainingProgramMethod(quota.getAdmissionTrainingProgramId(), quota.getAdmissionMethodId(), quota.getQuota()))
+//                .toList();
+//
+//        return saveAll(admissionTrainingProgramMethods);
+//    }
 
     public List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
         return admissionTrainingProgramMethodRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
@@ -389,5 +392,45 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
     public List<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdsAndAdmissionMethodIds(List<Integer> admissionTrainingProgramIds, List<Integer> admissionMethodIds) {
         return admissionTrainingProgramMethodRepository.findById_AdmissionTrainingProgramIdInAndId_AdmissionMethodIdIn(admissionTrainingProgramIds, admissionMethodIds);
+    }
+
+    public Integer update(Admission admission, UpdateAdmissionTrainingMethodRequest request) {
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = findByAdmissionId(admission.getId());
+
+        if(request.getDeleteAdmissionTrainingProgramRequests() != null && request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods() != null && !request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods().isEmpty()){
+
+        }
+
+        return null;
+    }
+
+    public Integer deleteAdmissionTrainingProgramMethod(DeleteAdmissionTrainingProgramMethodRequest request, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
+        List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getDeleteAdmissionTrainingProgramMethods().stream().map(AdmissionTrainingProgramMethodId::new).toList();
+
+        checkNotExist(admissionTrainingProgramMethodIds, request.getDeleteAdmissionTrainingProgramMethods(), "Admission training program method not existed");
+
+        return admissionTrainingProgramMethodRepository.deleteByIdIn(admissionTrainingProgramMethodIds);
+    }
+
+    public List<AdmissionTrainingProgramMethodId> findNotExists(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<DeleteAdmissionTrainingProgramMethodIdDTO> deleteAdmissionTrainingProgramMethods) {
+        List<AdmissionTrainingProgramMethodId> deleteAdmissionTrainingProgramMethodIds = deleteAdmissionTrainingProgramMethods.stream().map(AdmissionTrainingProgramMethodId::new).toList();
+
+        return deleteAdmissionTrainingProgramMethodIds.stream().filter(deleteAdmissionTrainingProgramMethodId -> !admissionTrainingProgramMethodIds.contains(deleteAdmissionTrainingProgramMethodId)).toList();
+    }
+
+    public void checkNotExist(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<DeleteAdmissionTrainingProgramMethodIdDTO> deleteAdmissionTrainingProgramMethodIds, String errorMessage){
+        List<AdmissionTrainingProgramMethodId> notExists = findNotExists(admissionTrainingProgramMethodIds, deleteAdmissionTrainingProgramMethodIds);
+        Map<String, String> errors = new HashMap<>();
+        if (!notExists.isEmpty()){
+            notExists.forEach(notExist -> {
+                errors.put("existed", notExist.toAObject() + ";");
+            });
+
+            throw new BadRequestException(errorMessage, errors);
+        };
+    }
+
+    public Integer deleteByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
+        return admissionTrainingProgramMethodRepository.deleteById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
     }
 }

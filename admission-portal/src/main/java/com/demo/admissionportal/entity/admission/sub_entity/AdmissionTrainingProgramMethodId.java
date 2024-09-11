@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity.admission.sub_entity;
 
 import com.demo.admissionportal.dto.entity.admission.AdmissionScoreDTO;
+import com.demo.admissionportal.dto.request.admisison.DeleteAdmissionTrainingProgramMethodIdDTO;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -29,6 +30,11 @@ public class AdmissionTrainingProgramMethodId implements Serializable {
     @Column(name = "admission_method_id", nullable = false)
     private Integer admissionMethodId;
 
+    public AdmissionTrainingProgramMethodId(DeleteAdmissionTrainingProgramMethodIdDTO deleteAdmissionTrainingProgramMethodIdDTO) {
+        this.admissionTrainingProgramId = deleteAdmissionTrainingProgramMethodIdDTO.getAdmissionTrainingProgramId();
+        this.admissionMethodId = deleteAdmissionTrainingProgramMethodIdDTO.getAdmissionMethodId();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -46,5 +52,9 @@ public class AdmissionTrainingProgramMethodId implements Serializable {
     public AdmissionTrainingProgramMethodId(AdmissionScoreDTO admissionScoreDTO) {
         this.admissionTrainingProgramId = admissionScoreDTO.getAdmissionTrainingProgramId();
         this.admissionMethodId = admissionScoreDTO.getAdmissionMethodId();
+    }
+
+    public String toAObject(){
+        return "(" + this.admissionTrainingProgramId + "," + this.admissionMethodId + ")";
     }
 }

@@ -86,7 +86,7 @@ public class ReportServiceImpl implements ReportService {
             Post post = existPost.get();
             PostReport postReport = new PostReport();
 
-            Report newReport = new Report();
+            Report newReport = new Report(request.getContent());
             newReport.setTicket_id(generateTicketId());
             newReport.setCreate_by(userId);
             newReport.setCreate_time(new Date());
