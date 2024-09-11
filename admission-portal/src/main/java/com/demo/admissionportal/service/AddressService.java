@@ -38,4 +38,6 @@ public interface AddressService {
      * @return the response data
      */
     ResponseData<List<WardResponseDTO>> findWard(Integer districtId);
+
+    List<Province> getUniversityProvinces();
 }

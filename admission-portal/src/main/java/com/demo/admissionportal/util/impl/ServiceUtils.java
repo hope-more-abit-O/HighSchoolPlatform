@@ -86,4 +86,11 @@ public class ServiceUtils {
             throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo.", error);
         }
     }
+
+    public static List<Integer> convertStringToIntList(String str) {
+        if (str == null || str.isEmpty()) {
+            return null;
+        }
+        return Arrays.stream(str.split(",")).map(Integer::parseInt).toList();
+    }
 }

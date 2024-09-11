@@ -413,4 +413,20 @@ public class UniversityServiceImpl implements UniversityService {
             throw new StoreDataFailedException("Tạo trường học thất bại", Map.of("error", e.getCause().getMessage()));
         }
     }
+
+    public ResponseData<List<UniversityFullResponseDTO>> getByProvinceIds(List<Integer> provinceIds){
+        List<Integer> uniIds = universityCampusServiceImpl.getUniversityIdsByProvinceIds(provinceIds);
+        List<User> uniAccounts = userRepository.findAllById(uniIds);
+        if (uniAccounts.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy trường học theo tỉnh thành.");
+
+        List<UniversityInfo> uniInfos = this.findByIds(uniIds);
+
+        List<ActionerDTO> actionerDTOS = userService.getActioners(uniAccounts.stream()
+                .flatMap(user -> Stream.of(user.getCreateBy(), user.getUpdateBy()))
+                .toList());
+
+        List<UniversityFullResponseDTO> result = mapping(uniAccounts, actionerDTOS, uniInfos);
+        return ResponseData.ok("Lấy thông tin trường học theo tỉnh thành thành công.", result);
+    }
 }

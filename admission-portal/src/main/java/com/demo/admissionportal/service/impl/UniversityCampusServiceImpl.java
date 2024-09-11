@@ -347,4 +347,14 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
     public List<UniversityCampus> findByUniversityIds(List<Integer> universityIds) {
         return universityCampusRepository.findByUniversityIdInAndStatus(universityIds, UniversityCampusStatus.ACTIVE);
     }
+
+    public List<Integer> getUniversityIdsByProvinceIds(List<Integer> provinceIds) {
+        List<UniversityCampus> universityCampuses;
+        if (provinceIds == null || provinceIds.isEmpty()) {
+            universityCampuses = universityCampusRepository.findByStatus(UniversityCampusStatus.ACTIVE);
+        } else {
+            universityCampuses = universityCampusRepository.findByProvinceIdInAndStatus(provinceIds, UniversityCampusStatus.ACTIVE);
+        }
+        return universityCampuses.stream().map(UniversityCampus::getUniversityId).distinct().toList();
+    }
 }

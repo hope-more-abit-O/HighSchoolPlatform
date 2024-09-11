@@ -81,4 +81,9 @@ public class AddressController {
         }
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @GetMapping("/university/provinces")
+    public ResponseEntity<ResponseData<List<Province>>> getProvince(){
+        return ResponseEntity.ok(ResponseData.ok("Lấy danh sách các tỉnh có trường đại học thành công", addressService.getUniversityProvinces()));
+    }
 }
