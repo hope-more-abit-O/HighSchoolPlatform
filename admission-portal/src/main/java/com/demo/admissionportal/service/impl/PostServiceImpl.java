@@ -279,9 +279,9 @@ public class PostServiceImpl implements PostService {
                 throw new Exception("Xoá post thất bại");
             }
 
-            if (resultChangeStatusPost.equals(PostStatus.BANNED)) {
-                return new ResponseData<>(ResponseCode.C207.getCode(), "Bài viết này đã bị vô hiệu hóa bởi báo cáo của người dùng và không thể kích hoạt lại.");
-            }
+//            if (resultChangeStatusPost.equals(PostStatus.BANNED)) {
+//                return new ResponseData<>(ResponseCode.C207.getCode(), "Bài viết này đã bị vô hiệu hóa bởi báo cáo của người dùng và không thể kích hoạt lại.");
+//            }
 
             // Remove post tag
             List<Integer> tagIds = new ArrayList<>();
@@ -331,11 +331,7 @@ public class PostServiceImpl implements PostService {
                 return null;
             }
 
-            if (post.getStatus().equals(PostStatus.BANNED)) {
-                return null;
-            }
-
-            if (post.getStatus().equals(PostStatus.INACTIVE)) {
+            if (post.getStatus().equals(PostStatus.INACTIVE) || post.getStatus().equals(PostStatus.BANNED) ) {
                 post.setStatus(PostStatus.ACTIVE);
                 post.setNote(requestDTO.getNote());
             } else {

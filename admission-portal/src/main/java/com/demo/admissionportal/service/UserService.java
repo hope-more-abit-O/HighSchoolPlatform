@@ -262,7 +262,7 @@ public interface UserService extends UserDetailsService {
      * @param authentication       the authentication
      * @return the response data
      */
-    ResponseData<String> registerIdentificationNumber(Integer userId, Integer identificationNumber, Authentication authentication);
+    ResponseData<String> registerIdentificationNumber(Integer userId, String identificationNumber, Authentication authentication);
 
     /**
      * Gets user profile by id.
