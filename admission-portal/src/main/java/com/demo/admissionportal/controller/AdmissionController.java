@@ -14,6 +14,7 @@ import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
 import com.demo.admissionportal.exception.exceptions.*;
+import com.demo.admissionportal.service.impl.HighschoolExamScoreServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -34,6 +35,7 @@ import java.util.*;
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
     private final RequestService requestBuilder;
+    private final HighschoolExamScoreServiceImpl highschoolExamScoreServiceImpl;
 
     @GetMapping("/score-advice")
     public ResponseEntity advice(@RequestParam(required = false) String majorId,
@@ -317,21 +319,5 @@ public class AdmissionController {
             throw new RuntimeException(e);
         }
     }
-    @PostMapping("/forecast")
-    public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
-        List<Object> responseList = new ArrayList<>();
-        for (AdmissionAnalysisRequest requests : request.getAspirations()) {
-            ResponseData<?> responseData = admissionService.forecastScore2024(requests);
-            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-                responseList.add(responseData.getData());
-            } else if (requests.getMajor() == null || requests.getMajor().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy ngành học của trường: " + requests.getUniversity() + " hoặc ngành học không hợp lệ: " +requests.getMajor()));
-            } else if (requests.getSubjectGroup() == null || requests.getSubjectGroup().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy tổ hợp môn hoặc tổ hợp môn học không hợp lệ: " + requests.getSubjectGroup()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy điểm chuẩn của năm 2023 với trường: " + requests.getUniversity() + " cho tổ hợp môn và ngành đã chọn."));
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
-    }
+
 }

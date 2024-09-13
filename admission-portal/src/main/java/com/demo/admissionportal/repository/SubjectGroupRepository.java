@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Subject group repository.
@@ -22,7 +23,7 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
      * @return the subject group
      */
     SubjectGroup findByName(String name);
-
+    Optional<SubjectGroup> findById(Integer id);
     /**
      * Find all page.
      *
@@ -75,4 +76,6 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
 
     @Query("SELECT sg.id FROM SubjectGroup sg WHERE sg.name = :examGroup")
     Integer findSubjectGroupIdByName(@Param("examGroup") String examGroup);
+
+
 }

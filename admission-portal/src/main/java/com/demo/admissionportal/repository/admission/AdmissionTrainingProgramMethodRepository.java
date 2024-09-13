@@ -135,13 +135,13 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
             "JOIN major m ON atp.major_id = m.id " +
             "JOIN subject_group sg ON atpsg.subject_group_id = sg.id " +
             "WHERE a.year = 2023 " +
-            "AND u.name = :universityName " +
-            "AND m.name = :majorName " +
-            "AND sg.name = :subjectGroupName",
+            "AND u.university_id = :universityId " +
+            "AND m.id = :majorId " +
+            "AND sg.id = :subjectGroupName",
             nativeQuery = true)
-    Float findScoreFor2023(@Param("universityName") String universityName,
-                           @Param("majorName") String majorName,
-                           @Param("subjectGroupName") String subjectGroupName);
+    Float findScoreFor2023(@Param("universityId") Integer universityId,
+                           @Param("majorId") Integer majorId,
+                           @Param("subjectGroupName") Integer subjectGroupName);
 
 }
 

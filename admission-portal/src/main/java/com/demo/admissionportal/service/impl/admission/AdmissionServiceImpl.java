@@ -1,7 +1,6 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.*;
-import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
 import com.demo.admissionportal.dto.entity.admission.*;
@@ -14,6 +13,7 @@ import com.demo.admissionportal.dto.entity.university_campus.CampusProvinceDTO;
 import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.AdmissionAnalysisResponse;
+import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
@@ -42,6 +42,7 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -77,6 +78,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final SubjectGroupRepository subjectGroupRepository;
     private final AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
     private final MajorRepository majorRepository;
+    private final HighschoolExamScoreServiceImpl highschoolExamScoreServiceImpl;
 
     public Admission save(Admission admission) {
         try {
@@ -1903,241 +1905,5 @@ public class AdmissionServiceImpl implements AdmissionService {
         return new SchoolDirectoryResponse(LocalDateTime.now().getYear(), admission.getSource(), schoolDirectoryDetailDTOS);
     }
 
-    private final Map<String, Float> avgScore2023 = new HashMap<>();
-    private final Map<String, Float> avgScore2024 = new HashMap<>();
-    private final Map<String, Integer> totalExaminer2023 = new HashMap<>();
-    private final Map<String, Integer> totalExaminer2024 = new HashMap<>();
 
-    public void AdmissionAnalysisService() {
-        avgScore2023.put("A00", 20.77f);
-        avgScore2023.put("A01", 20.28f);
-        avgScore2023.put("B00", 20.6f);
-        avgScore2023.put("C00", 18.98f);
-        avgScore2023.put("D01", 18.9f);
-
-        totalExaminer2023.put("A00", 325902);
-        totalExaminer2023.put("A01", 315146);
-        totalExaminer2023.put("B00", 324554);
-        totalExaminer2023.put("C00", 681723);
-        totalExaminer2023.put("D01", 877677);
-
-        avgScore2024.put("A00", 20.9f);
-        avgScore2024.put("A01", 20.47f);
-        avgScore2024.put("B00", 20.53f);
-        avgScore2024.put("C00", 20.95f);
-        avgScore2024.put("D01", 19.51f);
-
-        totalExaminer2024.put("A00", 343800);
-        totalExaminer2024.put("A01", 328761);
-        totalExaminer2024.put("B00", 342291);
-        totalExaminer2024.put("C00", 704008);
-        totalExaminer2024.put("D01", 908681);
-    }
-
-    public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
-        try {
-            String subjectGroupName = request.getSubjectGroup().trim();
-
-            // Define the allowed subject groups
-            List<String> allowedSubjectGroups = Arrays.asList("A00", "A01", "B00", "C00", "D01");
-
-            if (!allowedSubjectGroups.contains(subjectGroupName)) {
-                throw new IllegalArgumentException("Hãy chọn 1 trong 5 khối thi: A00, A01, B00, C00, D01.");
-            }
-
-            Float score2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroupName);
-
-            if (score2023 == null) {
-                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
-            }
-
-            String subjectGroup = request.getSubjectGroup().trim();
-            float userScore2024 = request.getScore();
-
-            float avgScore2023ForGroup;
-            float avgScore2024ForGroup;
-
-            switch (subjectGroup) {
-                case "A00":
-                    avgScore2023ForGroup = 20.77f;
-                    avgScore2024ForGroup = 20.9f;
-                    break;
-                case "A01":
-                    avgScore2023ForGroup = 20.28f;
-                    avgScore2024ForGroup = 20.47f;
-                    break;
-                case "B00":
-                    avgScore2023ForGroup = 20.6f;
-                    avgScore2024ForGroup = 20.53f;
-
-                    break;
-                case "C00":
-                    avgScore2023ForGroup = 18.98f;
-                    avgScore2024ForGroup = 20.95f;
-                    break;
-                case "D01":
-                    avgScore2023ForGroup = 18.9f;
-                    avgScore2024ForGroup = 19.51f;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Khối không hợp lệ: " + subjectGroup);
-            }
-
-            float chenhLechDTB = avgScore2024ForGroup - avgScore2023ForGroup;
-
-            List<Object[]> dataWithQuota = getScoreAndSubjectGroupAndMajor(request);
-
-            int quota2023 = 0, quota2024 = 0;
-            for (Object[] row : dataWithQuota) {
-                int year = (int) row[0];
-                if (year == 2023) {
-                    quota2023 = (int) row[2];
-                } else if (year == 2024) {
-                    quota2024 = (int) row[2];
-                }
-            }
-
-            int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
-
-            DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
-
-            String scoreTrend = scoreStatus.getName();
-
-            ChiTieuStatus quotaStatus = analyzeQuotaChange(chiTieuChenhLech);
-
-            String quotaTrend = quotaStatus.getName();
-
-            DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
-
-            String advice = generateAdvice(finalStatus, request.getScore(), score2023, request.getUniversity(), request.getMajor());
-
-
-            String chenhLechDTBMessage = "Điểm trung bình năm 2024 có xu hướng " + scoreTrend +
-                    " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
-
-            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + request.getMajor() + " của trường " + request.getUniversity() +
-                    " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
-
-            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
-
-        } catch (IllegalArgumentException ex) {
-            log.error("Validate error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
-        } catch (Exception ex) {
-            log.error("Error while analyze: {}", ex.getMessage(), ex);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
-        }
-    }
-
-    private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
-        List<UniversityInfo> universityList = universityInfoRepository.findByUniversityName(request.getUniversity());
-        if (universityList.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy trường đại học với tên: " + request.getUniversity());
-        }
-
-        List<Major> majorList = majorRepository.findAllByName(request.getMajor());
-        if (majorList.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy ngành học với tên: " + request.getMajor());
-        }
-
-        List<Integer> majorIds = majorList.stream()
-                .map(Major::getId)
-                .collect(Collectors.toList());
-
-        SubjectGroup subjectGroup = subjectGroupRepository.findByName(request.getSubjectGroup());
-        if (subjectGroup == null) {
-            throw new IllegalArgumentException("Không tìm thấy tổ hợp môn với tên: " + request.getSubjectGroup());
-        }
-
-
-        List<Object[]> dataWithQuota = null;
-
-        for (UniversityInfo university : universityList) {
-            if (majorIds.isEmpty()) {
-                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithoutMajor(
-                        university.getId(), subjectGroup.getId());
-            } else {
-                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithMajor(
-                        university.getId(), subjectGroup.getId(), majorIds);
-            }
-
-            if (!dataWithQuota.isEmpty()) {
-                break;
-            }
-        }
-
-        if (dataWithQuota == null || dataWithQuota.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy dữ liệu cho trường, ngành học, và tổ hợp môn đã cung cấp");
-        }
-
-        return dataWithQuota;
-    }
-
-    private DiemTrungBinhStatus analyzeScoreChange(float chenhLechDTB) {
-        if (chenhLechDTB >= 1) return DiemTrungBinhStatus.TangManh;
-        if (chenhLechDTB >= 0.4) return DiemTrungBinhStatus.Tang;
-        if (chenhLechDTB > 0) return DiemTrungBinhStatus.TangNhe;
-        if (chenhLechDTB <= -1) return DiemTrungBinhStatus.GiamManh;
-        if (chenhLechDTB <= -0.4) return DiemTrungBinhStatus.Giam;
-        if (chenhLechDTB < 0) return DiemTrungBinhStatus.GiamNhe;
-        return DiemTrungBinhStatus.KhongDoi;
-    }
-
-    private ChiTieuStatus analyzeQuotaChange(int chiTieuChenhLech) {
-        if (chiTieuChenhLech >= 200) return ChiTieuStatus.TangManh;
-        if (chiTieuChenhLech >= 100) return ChiTieuStatus.Tang;
-        if (chiTieuChenhLech > 0) return ChiTieuStatus.TangNhe;
-        if (chiTieuChenhLech <= -200) return ChiTieuStatus.GiamManh;
-        if (chiTieuChenhLech <= -100) return ChiTieuStatus.Giam;
-        if (chiTieuChenhLech < 0) return ChiTieuStatus.GiamNhe;
-        return ChiTieuStatus.KhongDoi;
-    }
-
-    private DiemChuanStatus getResult(DiemTrungBinhStatus scoreStatus, ChiTieuStatus quotaStatus) {
-        if (scoreStatus == DiemTrungBinhStatus.GiamManh || quotaStatus == ChiTieuStatus.GiamManh) {
-            return DiemChuanStatus.Giam;
-        }
-        if (scoreStatus == DiemTrungBinhStatus.TangManh || quotaStatus == ChiTieuStatus.TangManh) {
-            return DiemChuanStatus.Tang;
-        }
-        return DiemChuanStatus.KhongDoi;
-    }
-
-    private String generateAdvice(DiemChuanStatus finalStatus, double userScore, float score2023, String university, String major) {
-        double scoreDifference = userScore - score2023;
-
-        if (finalStatus == DiemChuanStatus.Giam) {
-            if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 là KHÁ CAO.";
-            } else if (scoreDifference <= -1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        } else if (finalStatus == DiemChuanStatus.Tang) {
-            if (scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        } else if (finalStatus == DiemChuanStatus.KhongDoi) {
-            if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference < -0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        }
-        return "Không xác định được khả năng trúng tuyển.";
-    }
 }
