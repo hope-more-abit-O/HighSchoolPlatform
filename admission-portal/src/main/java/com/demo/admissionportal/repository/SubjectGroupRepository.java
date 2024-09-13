@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.SubjectGroup;
+import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -78,4 +79,5 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
     Integer findSubjectGroupIdByName(@Param("examGroup") String examGroup);
 
 
+    SubjectGroup findSubjectGroupById(Integer subjectGroupId);
 }

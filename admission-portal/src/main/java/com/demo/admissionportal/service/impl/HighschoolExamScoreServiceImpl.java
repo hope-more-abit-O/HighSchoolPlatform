@@ -9,17 +9,23 @@ import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.admission.Admission;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
+import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.entity.sub_entity.ListExamScoreHighSchoolExamScore;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import com.demo.admissionportal.repository.sub_repository.ListExamScoreHighSchoolExamScoreRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -66,6 +72,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
     @Autowired
     private AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
+    @Autowired
+    private AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
 
     @Override
     public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer examYearId) {
@@ -1290,7 +1298,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
         try {
-            ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber());
+            ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
             if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
                 throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
             }
@@ -1396,10 +1404,10 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         } catch (IllegalArgumentException ex) {
             log.error("Validate error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
         } catch (Exception ex) {
             log.error("Error while analyze: {}", ex.getMessage(), ex);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
         }
     }
 
@@ -1522,40 +1530,67 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy điểm thi hợp lệ cho số báo danh này.");
             }
 
-            List<Integer> subjectIds = examScores.stream()
+            List<Integer> subjectIdsFromUser = examScores.stream()
                     .map(HighschoolExamScore::getSubjectId)
                     .distinct()
-                    .collect(Collectors.toList());
+                    .toList();
 
-            List<SubjectGroup> availableSubjectGroups = subjectGroupSubjectRepository.findBySubjectIdIn(subjectIds);
+            List<SubjectGroup> availableSubjectGroups = subjectGroupSubjectRepository.findBySubjectIdIn(subjectIdsFromUser);
             if (availableSubjectGroups.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy tổ hợp môn hợp lệ cho điểm thi của thí sinh.");
             }
 
+            List<SubjectGroup> filteredSubjectGroups = availableSubjectGroups.stream()
+                    .filter(subjectGroup -> {
+                        List<Integer> subjectGroupSubjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup.getId());
+                        return subjectIdsFromUser.containsAll(subjectGroupSubjectIds);
+                    })
+                    .toList();
+
+            if (filteredSubjectGroups.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy tổ hợp môn phù hợp với danh sách môn thí sinh đã thi.");
+            }
+
             UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
 
-            List<AdmissionTrainingProgramSubjectGroup> availableSubjectGroupsFromAdmission = admissionTrainingProgramSubjectGroupRepository.findByUniversityIdAndSubjectGroupId(universityInfo.getId(),subjectGroupId);
+            List<Integer> majorIds = admissionTrainingProgramRepository.findMajorIdsByUniversityId(universityId);
 
-            List<SubjectGroupDTO> subjectAvailable = availableSubjectGroupsFromAdmission.stream()
-                    .map(this::mapToSubjectGroup)
-                    .collect(Collectors.toList());
+            List<AdmissionTrainingProgramSubjectGroup> availableSubjectGroupsFromAdmission = admissionTrainingProgramSubjectGroupRepository.findByUniversityIdAndSubjectGroupId(universityInfo.getId(), subjectGroupId);
 
-            List<SubjectGroupDTO> subjectGroupDTOs = availableSubjectGroups.stream()
-                    .map(subjectGroup -> new SubjectGroupDTO(subjectGroup.getId(), subjectGroup.getName(),subjectGroup.getStatus()))
-                            .filter(subjectGroupDTO -> subjectGroupDTO.getStatus().equals(SubjectStatus.ACTIVE))
-                    .collect(Collectors.toList());
+            List<AdmissionTrainingProgramSubjectGroup> filteredAdmissionSubjectGroups = availableSubjectGroupsFromAdmission.stream()
+                    .filter(atpsg -> {
+                        Integer admissionTrainingProgramId = atpsg.getId().getAdmissionTrainingProgramId();
+
+                        AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingProgramRepository.findById(admissionTrainingProgramId).orElse(null);
+                        if (admissionTrainingProgram == null || !majorIds.contains(admissionTrainingProgram.getMajorId())) {
+                            return false;
+                        }
+
+                        Optional<AdmissionTrainingProgramMethod> admissionMethod2023 = admissionTrainingProgramMethodRepository.findByAdmissionTrainingProgramIdAndYearAndStatus(
+                                admissionTrainingProgramId, 2023, AdmissionStatus.ACTIVE);
+
+                        Optional<AdmissionTrainingProgramMethod> admissionMethod2024 = admissionTrainingProgramMethodRepository.findByAdmissionTrainingProgramIdAndYearAndStatus(
+                                admissionTrainingProgramId, 2024, AdmissionStatus.ACTIVE);
+
+                        return admissionMethod2023.isPresent() && admissionMethod2023.get().getAdmissionScore() != null
+                                || admissionMethod2024.isPresent();
+                    })
+                    .toList();
+
+            List<SubjectGroupDTO> subjectGroupDTOs = filteredAdmissionSubjectGroups.stream()
+                    .map(atpsg -> {
+                        SubjectGroup subjectGroup = subjectGroupRepository.findSubjectGroupById(atpsg.getId().getSubjectGroupId());
+                        return new SubjectGroupDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus());
+                    })
+                    .filter(subjectGroupDTO -> subjectGroupDTO.getStatus().equals(SubjectStatus.ACTIVE))
+                    .toList();
+
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn thành công", subjectGroupDTOs);
         } catch (Exception e) {
-            log.error("Error fetching subject groups for user", e);
+            log.error("Error fetching subject groups for examiner", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy tổ hợp môn, vui lòng thử lại sau.");
         }
     }
 
-    private SubjectGroupDTO mapToSubjectGroup(AdmissionTrainingProgramSubjectGroup admissionTrainingProgramSubjectGroup) {
-        AdmissionTrainingProgramSubjectGroup admissionTrainingProgramSubjectGroup1 = admissionTrainingProgramSubjectGroupRepository.findById(admissionTrainingProgramSubjectGroup.getId()).orElse(null);
-        return SubjectGroupDTO.builder()
-                .subjectGroupId(admissionTrainingProgramSubjectGroup.getId().getSubjectGroupId())
-                .build();
-    }
 }
