@@ -14,7 +14,6 @@ import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
 import com.demo.admissionportal.exception.exceptions.*;
-import com.demo.admissionportal.service.impl.HighschoolExamScoreServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -35,7 +34,6 @@ import java.util.*;
 public class AdmissionController {
     private final AdmissionServiceImpl admissionService;
     private final RequestService requestBuilder;
-    private final HighschoolExamScoreServiceImpl highschoolExamScoreServiceImpl;
 
     @GetMapping("/score-advice")
     public ResponseEntity advice(@RequestParam(required = false) String majorId,
@@ -320,4 +318,8 @@ public class AdmissionController {
         }
     }
 
+    @PutMapping("/update/{admissionId}")
+    public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
+        return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));
+    }
 }

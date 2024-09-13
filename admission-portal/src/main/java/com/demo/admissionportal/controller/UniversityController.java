@@ -231,4 +231,9 @@ public class UniversityController {
         return ResponseEntity.ok(universityTransactionService.getOrderByUniId(orderCode, status, pageable));
     }
 
+    @GetMapping("/find-by-province-ids")
+    public ResponseEntity<ResponseData<List<UniversityFullResponseDTO>>> getByProvinceIds(@RequestParam(required = false) String provinceId) {
+        List<Integer> provinceIds = ServiceUtils.convertStringToIntList(provinceId);
+        return ResponseEntity.ok(universityService.getByProvinceIds(provinceIds));
+    }
 }

@@ -81,4 +81,8 @@ public interface UniversityCampusRepository extends JpaRepository<UniversityCamp
     List<UniversityCampus> findByUniversityIdInAndStatus(List<Integer> universityIds, UniversityCampusStatus universityCampusStatus);
 
     List<UniversityCampus> findByUniversityIdAndStatus(Integer universityId, UniversityCampusStatus status);
+
+    List<UniversityCampus> findByStatus(UniversityCampusStatus status);
+
+    List<UniversityCampus> findByProvinceIdInAndStatus(Collection<Integer> provinceIds, UniversityCampusStatus status);
 }

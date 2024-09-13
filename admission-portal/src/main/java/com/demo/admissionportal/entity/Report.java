@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.ReportStatus;
 import com.demo.admissionportal.constants.ReportType;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "report")
 public class Report {
     @Id
@@ -42,4 +44,9 @@ public class Report {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "status")
     private ReportStatus status;
+
+
+    public Report(String content) {
+        this.content = content;
+    }
 }

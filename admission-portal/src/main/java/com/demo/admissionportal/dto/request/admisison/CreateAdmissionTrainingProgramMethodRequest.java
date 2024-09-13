@@ -11,6 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateAdmissionTrainingProgramMethodRequest {
-    private Integer admissionId;
-    private List<AdmissionTrainingProgramMethodQuotaDTO> quotas;
+    private List<AdmissionTrainingProgramMethodQuotaDTO> admissionTrainingProgramMethodQuotas;
 }

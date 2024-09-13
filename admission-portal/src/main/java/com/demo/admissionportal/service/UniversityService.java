@@ -19,6 +19,8 @@ import com.demo.admissionportal.service.impl.UniversityServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 /**
  * Provides methods for managing and retrieving university-related information.
  *
@@ -157,4 +159,6 @@ public interface UniversityService {
                                                                                 String createByName);
     boolean createUniversity(CreateUniversityRequestRequest createUniversityRequest);
     ResponseData<UpdateUniversityInfoResponse> updateUniversityInfo(UpdateUniversityInfoRequest request) throws ResourceNotFoundException, StoreDataFailedException;
+
+    ResponseData<List<UniversityFullResponseDTO>> getByProvinceIds(List<Integer> provinceIds);
 }

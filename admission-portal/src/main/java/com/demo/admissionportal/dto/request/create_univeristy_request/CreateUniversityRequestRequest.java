@@ -2,6 +2,7 @@ package com.demo.admissionportal.dto.request.create_univeristy_request;
 
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.util.enum_validator.EnumName;
+import com.demo.admissionportal.util.enum_validator.EnumWhiteSpace;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotNull;
@@ -20,8 +21,10 @@ public class CreateUniversityRequestRequest {
     private String universityName;
     @Email(message = "Email phải đúng định dạng")
     @NotNull(message = "Email trường đại học không được để trống!")
+    @EnumWhiteSpace(message = "Tên tài khoản không được có khoảng trắng!")
     private String universityEmail;
     @NotNull(message = "Tên tài khoản trường đại học không được để trống!")
+    @EnumWhiteSpace(message = "Tên tài khoản không được có khoảng trắng!")
     private String universityUsername;
     @NotNull(message = "Mã trường đại học không được để trống")
     private String universityCode;

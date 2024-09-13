@@ -31,4 +31,6 @@ public interface AdmissionTrainingProgramRepository extends JpaRepository<Admiss
             "(SELECT a.id FROM Admission a WHERE a.universityId = :universityId)")
     List<Integer> findMajorIdsByUniversityId(@Param("universityId") Integer universityId);
 
+
+    Integer deleteByIdIn(List<Integer> ids);
 }

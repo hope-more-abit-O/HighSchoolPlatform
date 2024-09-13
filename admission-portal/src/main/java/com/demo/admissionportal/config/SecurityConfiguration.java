@@ -87,6 +87,7 @@ public class SecurityConfiguration {
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/university/info/{id}").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/university").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university/find-by-province-ids").permitAll()
                                 .requestMatchers(UNIVERSITY_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
 
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")

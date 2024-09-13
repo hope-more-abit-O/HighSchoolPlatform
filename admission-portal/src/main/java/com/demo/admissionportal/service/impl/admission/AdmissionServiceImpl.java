@@ -144,42 +144,39 @@ public class AdmissionServiceImpl implements AdmissionService {
         return this.save(admission);
     }
 
-    //TODO: check if training program with all fields existed in admission
-    public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request) {
-        Admission admission = this.findById(request.getAdmissionId());
+//    public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request) {
+//        Admission admission = this.findById(request.getAdmissionId());
+//
+//        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAllAdmissionTrainingProgram(request.getAdmissionId(), request.getTrainingPrograms());
+//
+//        return new CreateAdmissionTrainingProgramResponse(this.mapFullResponse(admission),
+//                admissionTrainingPrograms.stream()
+//                        .map(admissionTrainingProgram -> modelMapper.map(admissionTrainingProgram, CreateTrainingProgramRequest.class))
+//                        .toList());
+//    }
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAllAdmissionTrainingProgram(request.getAdmissionId(), request.getTrainingPrograms());
-
-        return new CreateAdmissionTrainingProgramResponse(this.mapFullResponse(admission),
-                admissionTrainingPrograms.stream()
-                        .map(admissionTrainingProgram -> modelMapper.map(admissionTrainingProgram, CreateTrainingProgramRequest.class))
-                        .toList());
-    }
-
-    //TODO: throw Exception
-    //TODO: check if method existed in admission
-    public CreateAdmissionMethodResponse createAdmissionMethod(CreateAdmissionMethodRequest request) {
-        Admission admission = this.findById(request.getAdmissionId());
-
-        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethod(request.getAdmissionId(), request.getMethodIds());
-
-        List<Method> methods = methodService.findByIds(request.getMethodIds());
-        return new CreateAdmissionMethodResponse(this.mapFullResponse(admission),
-                methods.stream()
-                        .map(admissionTrainingProgram -> modelMapper.map(admissionTrainingProgram, InfoMethodDTO.class))
-                        .toList());
-    }
-
-    public ResponseData<CreateAdmissionTrainingProgramMethodQuotaResponse> createAdmissionTrainingProgramMethodQuota(CreateAdmissionTrainingProgramMethodRequest request) {
-        CreateAdmissionTrainingProgramMethodQuotaResponse response = new CreateAdmissionTrainingProgramMethodQuotaResponse();
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.createAdmissionTrainingProgramMethod(request);
-
-        response.setQuotas(admissionTrainingProgramMethods
-                .stream()
-                .map(admissionTrainingProgramMethod -> new AdmissionTrainingProgramMethodQuotaDTO(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId(), admissionTrainingProgramMethod.getId().getAdmissionMethodId(), admissionTrainingProgramMethod.getQuota()))
-                .toList());
-        return ResponseData.ok("Tạo chi tiết chỉ tiêu thành công", response);
-    }
+//    public CreateAdmissionMethodResponse createAdmissionMethod(CreateAdmissionMethodRequest request) {
+//        Admission admission = this.findById(request.getAdmissionId());
+//
+//        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethod(request.getAdmissionId(), request.getMethodIds());
+//
+//        List<Method> methods = methodService.findByIds(request.getMethodIds());
+//        return new CreateAdmissionMethodResponse(this.mapFullResponse(admission),
+//                methods.stream()
+//                        .map(admissionTrainingProgram -> modelMapper.map(admissionTrainingProgram, InfoMethodDTO.class))
+//                        .toList());
+//    }
+//
+//    public ResponseData<CreateAdmissionTrainingProgramMethodQuotaResponse> createAdmissionTrainingProgramMethodQuota(CreateAdmissionTrainingProgramMethodRequest request) {
+//        CreateAdmissionTrainingProgramMethodQuotaResponse response = new CreateAdmissionTrainingProgramMethodQuotaResponse();
+//        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.createAdmissionTrainingProgramMethod(request);
+//
+//        response.setQuotas(admissionTrainingProgramMethods
+//                .stream()
+//                .map(admissionTrainingProgramMethod -> new AdmissionTrainingProgramMethodQuotaDTO(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId(), admissionTrainingProgramMethod.getId().getAdmissionMethodId(), admissionTrainingProgramMethod.getQuota()))
+//                .toList());
+//        return ResponseData.ok("Tạo chi tiết chỉ tiêu thành công", response);
+//    }
 
     public List<AdmissionTrainingProgramSubjectGroup> createAdmissionTrainingProgramSubjectGroup(List<CreateAdmissionQuotaRequest> request, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Major> majors) {
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
@@ -198,25 +195,25 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
-    public CreateAdmissionTrainingProgramSubjectGroupResponse createAdmissionTrainingProgramSubjectGroup(CreateAdmissionTrainingProgramSubjectGroupRequest request) {
-        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
-        request.getSubjectGroupId().forEach(subjectGroupId -> admissionTrainingProgramSubjectGroups.add(new AdmissionTrainingProgramSubjectGroup(request.getAdmissionTrainingProgramId(), subjectGroupId)));
-
-        List<AdmissionTrainingProgramSubjectGroup> addList = admissionTrainingProgramSubjectGroupService.saveAll(admissionTrainingProgramSubjectGroups);
-
-        List<Integer> subjectGroupIds = addList.stream()
-                .map(subjectGroup -> subjectGroup.getId().getSubjectGroupId())
-                .toList();
-
-        List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(subjectGroupIds);
-
-        CreateAdmissionTrainingProgramSubjectGroupResponse response = CreateAdmissionTrainingProgramSubjectGroupResponse.builder()
-                .admissionTrainingProgramId(request.getAdmissionTrainingProgramId())
-                .subjectGroupIds(subjectGroupIds)
-                .build();
-
-        return response;
-    }
+//    public CreateAdmissionTrainingProgramSubjectGroupResponse createAdmissionTrainingProgramSubjectGroup(CreateAdmissionTrainingProgramSubjectGroupRequest request) {
+//        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
+//        request.getSubjectGroupId().forEach(subjectGroupId -> admissionTrainingProgramSubjectGroups.add(new AdmissionTrainingProgramSubjectGroup(request.getAdmissionTrainingProgramId(), subjectGroupId)));
+//
+//        List<AdmissionTrainingProgramSubjectGroup> addList = admissionTrainingProgramSubjectGroupService.saveAll(admissionTrainingProgramSubjectGroups);
+//
+//        List<Integer> subjectGroupIds = addList.stream()
+//                .map(subjectGroup -> subjectGroup.getId().getSubjectGroupId())
+//                .toList();
+//
+//        List<SubjectGroup> subjectGroups = subjectGroupService.findAllByIds(subjectGroupIds);
+//
+//        CreateAdmissionTrainingProgramSubjectGroupResponse response = CreateAdmissionTrainingProgramSubjectGroupResponse.builder()
+//                .admissionTrainingProgramId(request.getAdmissionTrainingProgramId())
+//                .subjectGroupIds(subjectGroupIds)
+//                .build();
+//
+//        return response;
+//    }
 
     @Transactional
     public void createAdmission(CreateAdmissionRequest request) throws DataExistedException {
@@ -998,6 +995,10 @@ public class AdmissionServiceImpl implements AdmissionService {
     public void staffUpdateAdmissionConfirmStatusAndUpdateUniversityTrainingProgram(Integer id, UpdateAdmissionConfirmStatusRequest request) throws NotAllowedException, BadRequestException, StoreDataFailedException{
         User user = ServiceUtils.getUser();
         Admission ad = findById(id);
+        Admission existedWithTheSameYear = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(ad.getUniversityId(), ad.getYear(), AdmissionStatus.ACTIVE).orElse(null);
+        if (existedWithTheSameYear != null){
+            throw new BadRequestException("Đề án khác cùng năm đã được kích hoạt.", Map.of("admissionId", existedWithTheSameYear.getId().toString()));
+        }
         ad = staffUpdateAdmissionConfirmStatus(id, request, user, ad);
         updateUniversityTrainingProgram(user, ad.getUniversityId(), ad);
     }
@@ -1062,11 +1063,82 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
     }
 
-    //TODO: must complete
     @Transactional
-    public ResponseData updateAdmission(UpdateAdmissionRequest request) {
-
+    public ResponseData updateAdmission(Integer admissionId, UpdateAdmissionRequest request) {
+        Admission admission = this.findById(admissionId);
+        User user = ServiceUtils.getUser();
+        validateAdmissionOwnership(user, admission);
+        if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING))
+            updateNotAcceptedAdmission(admission, request, user);
         return null;
+    }
+
+    public void updateNotAcceptedAdmission(Admission admission, UpdateAdmissionRequest request, User user){
+        boolean admissionModified = false;
+        Integer modifiedCount = 0;
+
+        if (request.getYear() != null && !request.getYear().equals(admission.getYear())) {
+            admission.setYear(request.getYear());
+            admissionModified = true;
+        }
+
+        if (request.getUpdateAdmissionTrainingProgramRequest() != null)
+            modifiedCount += admissionTrainingProgramService.update(admission, request.getUpdateAdmissionTrainingProgramRequest());
+
+        if (request.getUpdateAdmissionMethodRequest() != null)
+            modifiedCount += admissionMethodService.update(admission, request.getUpdateAdmissionMethodRequest());
+
+        if (request.getUpdateAdmissionTrainingMethodRequest() != null)
+            modifiedCount += admissionTrainingProgramMethodService.update(admission, request.getUpdateAdmissionTrainingMethodRequest());
+
+        if (request.getUpdateAdmissionSubjectGroupRequest() != null)
+            modifiedCount += admissionTrainingProgramSubjectGroupService.update(admission, request.getUpdateAdmissionSubjectGroupRequest());
+
+
+        if (admissionModified){
+            admissionRepository.save(admission);
+            modifiedCount += 1;
+        }
+    }
+
+    public void validateAdmissionOwnership(User user, Admission admission) {
+        boolean isUniversity = user.getRole().equals(Role.UNIVERSITY);
+        boolean isConsultant = user.getRole().equals(Role.CONSULTANT);
+
+        if (isUniversity && !admission.getUniversityId().equals(user.getId())) {
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
+
+        if (isConsultant && !admission.getUniversityId().equals(user.getCreateBy())) {
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
+
+        if (!isUniversity && !isConsultant) {
+            throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
+    }
+
+    public void validateAdmissionOwnershipV2(User user, Admission admission) {
+        switch (user.getRole()) {
+            case UNIVERSITY:
+                if (!admission.getUniversityId().equals(user.getId())) {
+                    throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+                }
+                break;
+            case CONSULTANT:
+                if (!admission.getUniversityId().equals(user.getCreateBy())) {
+                    throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+                }
+                break;
+            case STAFF:
+                User university = userService.findById(admission.getUniversityId());
+                if (!university.getCreateBy().equals(user.getId())) {
+                    throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+                }
+                break;
+            default:
+                throw new NotAllowedException("Bạn không có quyền thực hiện hành động này.");
+        }
     }
 
     public AdmissionDetailDTO getAdmissionScoreDetail(Integer year, String universityCode) {
