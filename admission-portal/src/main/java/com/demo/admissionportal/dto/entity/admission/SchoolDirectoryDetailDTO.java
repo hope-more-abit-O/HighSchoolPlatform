@@ -23,6 +23,7 @@ public class SchoolDirectoryDetailDTO {
     private SubjectDTO mainSubject;
     private String language;
     private String trainingSpecific;
+    private String trainingProgramCode;
     private InfoMethodDTO method;
     private Integer quota;
     private Float score;
@@ -36,6 +37,7 @@ public class SchoolDirectoryDetailDTO {
         this.mainSubject = subject == null ? null : new SubjectDTO(subject);
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
         this.method = new InfoMethodDTO(method);
         this.quota = admissionTrainingProgramMethod.getQuota();
         this.score = admissionTrainingProgramMethod.getAdmissionScore();

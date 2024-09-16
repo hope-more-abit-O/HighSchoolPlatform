@@ -29,6 +29,7 @@ public class  AdmissionTrainingProgramDTO {
     private InfoSubjectDTO mainSubjectName;
     private String language;
     private String trainingSpecific;
+    private String trainingProgramCode;
 
     public AdmissionTrainingProgramDTO(AdmissionTrainingProgram admissionTrainingProgram, List<Subject> subjects, List<Major> majors) {
         this.id = admissionTrainingProgram.getId();
@@ -44,6 +45,7 @@ public class  AdmissionTrainingProgramDTO {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 
     public AdmissionTrainingProgramDTO(AdmissionTrainingProgram admissionTrainingProgram, List<Subject> subjects, List<Major> majors, List<UniversityTrainingProgram> universityTrainingPrograms) {
@@ -61,5 +63,6 @@ public class  AdmissionTrainingProgramDTO {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 }

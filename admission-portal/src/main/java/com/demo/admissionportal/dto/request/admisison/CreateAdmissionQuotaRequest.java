@@ -19,6 +19,8 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     @EnumId(message = "Mã ngành phải là số và phải lớn hơn 0")
     private Integer majorId;
 
+    private String trainingProgramCode;
+
     private String majorName;
     private String majorCode;
 
