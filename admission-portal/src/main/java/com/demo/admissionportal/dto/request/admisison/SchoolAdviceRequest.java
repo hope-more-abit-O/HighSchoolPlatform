@@ -17,4 +17,5 @@ public class SchoolAdviceRequest implements Serializable {
     private List<Integer> subjectGroupId;
     private List<Integer> methodId;
     private List<Integer> provinceId;
+    private Integer year;
 }
