@@ -244,4 +244,8 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     public List<UniversityTrainingProgram> findByUniversityIdsWithStatus(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus) {
         return universityTrainingProgramRepository.findByUniversityIdInAndStatus(universityIds, universityTrainingProgramStatus);
     }
+
+    public List<UniversityTrainingProgram> findByUniversityIds(List<Integer> universityIds) {
+        return universityTrainingProgramRepository.findByUniversityIdIn(universityIds);
+    }
 }

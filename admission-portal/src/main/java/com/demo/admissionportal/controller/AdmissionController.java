@@ -41,7 +41,8 @@ public class AdmissionController {
                                  @RequestParam(required = false) Float score,
                                  @RequestParam(required = false) String subjectGroupId,
                                  @RequestParam(required = false) String methodId,
-                                 @RequestParam(required = false) String provinceId) {
+                                 @RequestParam(required = false) String provinceId,
+                                 @RequestParam(required = true) Integer year) {
         try {
             List<Integer> majorIds = null;
             List<Integer> subjectGroupIds = null;
@@ -59,7 +60,7 @@ public class AdmissionController {
             if (provinceId != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
+            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds, year)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -69,6 +70,7 @@ public class AdmissionController {
     public ResponseEntity adviceV2(
             @RequestParam(required = true) Integer pageNumber,
             @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = true) Integer year,
             @RequestParam(required = false) String majorId,
             @RequestParam(required = false) Float fromScore,
             @RequestParam(required = false) Float toScore,
@@ -99,7 +101,7 @@ public class AdmissionController {
             if (region != null && !region.isEmpty()) {
                 regions = Arrays.stream(region.split(",")).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize)));
+            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
