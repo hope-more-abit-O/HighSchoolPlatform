@@ -8,14 +8,17 @@ import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionTrainingPro
 import com.demo.admissionportal.entity.Major;
 import com.demo.admissionportal.entity.admission.Admission;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.service.SubjectService;
+import com.demo.admissionportal.service.impl.MajorServiceImpl;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -242,24 +245,5 @@ public class AdmissionTrainingProgramServiceImpl {
         }
         List<AdmissionTrainingProgram> savedPrograms = this.saveAllAdmissionTrainingProgram(admissionId, createTrainingProgramRequests);
         return savedPrograms.size();
-    }
-
-    public List<AdmissionTrainingProgram> findAll() {
-        return admissionTrainingProgramRepository.findAll();
-    }
-
-    public List<AdmissionTrainingProgram> findByMajorIdAndUniversityIdsAndYear(Integer majorId, List<Integer> universityIds, Integer year) {
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramRepository.findByMajorIdAndUniversityIdsAndYearCustom(majorId, universityIds, year);
-        if (admissionTrainingPrograms.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy dữ liệu so sánh.");
-        }
-        if (admissionTrainingPrograms.size() < 2){
-            throw new ResourceNotFoundException("Số lượng ngành học cần so sánh phải lớn hơn 1.");
-        }
-        return admissionTrainingPrograms;
-    }
-
-    public List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year) {
-        return admissionTrainingProgramRepository.findByMajorIdAndYear(majorId, year);
     }
 }

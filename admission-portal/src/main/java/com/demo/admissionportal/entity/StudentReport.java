@@ -33,8 +33,4 @@ public class StudentReport {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private StudentReportStatus status;
-    @Column(name = "high_school_exam_score")
-    private Float highSchoolExamScore;
-    @Column(name = "competency_assessment_exam_score")
-    private Float competencyAssessmentExamScore;
 }

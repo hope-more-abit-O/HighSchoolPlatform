@@ -19,5 +19,4 @@ public class SchoolAdviceRequestV2 {
     private List<Integer> provinceId;
     private Integer pageNumber;
     private Integer rowsPerPage;
-    private Integer year;
 }

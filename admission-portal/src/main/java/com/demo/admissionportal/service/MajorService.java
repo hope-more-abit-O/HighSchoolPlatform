@@ -35,6 +35,4 @@ public interface MajorService {
     List<Major> findByIds(List<Integer> ids);
 
     void createMajorRequest(CreateMajorRequest request);
-
-    List<InfoMajorDTO> getAvailableMajors();
 }

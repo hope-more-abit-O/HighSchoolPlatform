@@ -102,10 +102,6 @@ public class AdmissionMethodServiceImpl {
         return admissionMethodRepository.findAdmissionIdByAdmissionMethodIds(admissionMethodIds);
     }
 
-    public List<AdmissionMethod> findByAdmissionIds(List<Integer> admissionIds) {
-        return admissionMethodRepository.findByAdmissionIdIn(admissionIds);
-    }
-
     public List<AdmissionMethod> findByIds(List<Integer> admissionMethodIds)
             throws ResourceNotFoundException{
         List<AdmissionMethod> methods = admissionMethodRepository.findAllById(admissionMethodIds);

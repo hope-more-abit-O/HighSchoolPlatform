@@ -37,9 +37,4 @@ public class UniversityTrainingProgramController {
     public ResponseEntity<ResponseData<GetInfoUniversityTrainingProgramResponse>> universityGetInfoUniversityTrainingPrograms(@PathVariable("university-id") Integer universityId) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", universityTrainingProgramService.getInfoUniversityTrainingPrograms(universityId)));
     }
-
-    @GetMapping("/major/{major-id}")
-    public ResponseEntity getUniversitiesHaveMajor(@PathVariable("major-id") Integer majorId) {
-        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", universityTrainingProgramService.getUniversitiesHaveMajor(majorId)));
-    }
 }

@@ -41,8 +41,7 @@ public class AdmissionController {
                                  @RequestParam(required = false) Float score,
                                  @RequestParam(required = false) String subjectGroupId,
                                  @RequestParam(required = false) String methodId,
-                                 @RequestParam(required = false) String provinceId,
-                                 @RequestParam(required = true) Integer year) {
+                                 @RequestParam(required = false) String provinceId) {
         try {
             List<Integer> majorIds = null;
             List<Integer> subjectGroupIds = null;
@@ -60,7 +59,7 @@ public class AdmissionController {
             if (provinceId != null && !provinceId.isEmpty()) {
                 provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds, year)));
+            return ResponseEntity.ok(admissionService.adviceSchool(new SchoolAdviceRequest(majorIds, offset, score, subjectGroupIds, methodIds, provinceIds)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -70,7 +69,6 @@ public class AdmissionController {
     public ResponseEntity adviceV2(
             @RequestParam(required = true) Integer pageNumber,
             @RequestParam(required = true) Integer pageSize,
-            @RequestParam(required = true) Integer year,
             @RequestParam(required = false) String majorId,
             @RequestParam(required = false) Float fromScore,
             @RequestParam(required = false) Float toScore,
@@ -101,49 +99,7 @@ public class AdmissionController {
             if (region != null && !region.isEmpty()) {
                 regions = Arrays.stream(region.split(",")).toList();
             }
-            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @GetMapping("/score-advice/v3")
-    public ResponseEntity adviceV3(
-            @RequestParam(required = true) Integer pageNumber,
-            @RequestParam(required = true) Integer pageSize,
-            @RequestParam(required = true) Integer year,
-            @RequestParam(required = false) String majorCode,
-            @RequestParam(required = false) Float fromScore,
-            @RequestParam(required = false) Float toScore,
-            @RequestParam(required = false) String subjectId,
-            @RequestParam(required = false) String methodId,
-            @RequestParam(required = false) String region,
-            @RequestParam(required = false) String provinceId
-    ) {
-        try {
-            List<String> majorCodes = null;
-            List<Integer> subjectIds = null;
-            List<Integer> methodIds = null;
-            List<Integer> provinceIds = null;
-            List<String> regions = null;
-
-            if (majorCode != null && !majorCode.isEmpty()) {
-                majorCodes = Arrays.stream(majorCode.split(",")).toList();
-            }
-            if (subjectId != null && !subjectId.isEmpty()) {
-                subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
-            }
-            if (methodId != null && !methodId.isEmpty()) {
-                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
-            }
-            if (provinceId != null && !provinceId.isEmpty()) {
-                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
-            }
-            if (region != null && !region.isEmpty()) {
-                regions = Arrays.stream(region.split(",")).toList();
-            }
-            return ResponseEntity.ok(admissionService.adviceSchoolV3
-                    (new SchoolAdviceRequestV3(majorCodes, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
+            return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -365,26 +321,5 @@ public class AdmissionController {
     @PutMapping("/update/{admissionId}")
     public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
         return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));
-    }
-
-    @GetMapping("/compare")
-    public ResponseEntity compareMajor(@RequestParam(required = true) Integer majorId,
-                                        @RequestParam(required = true) String universityId,
-                                       @RequestParam(required = true) Integer year,
-                                       @RequestParam(required = false) Integer studentReportId){
-        try {
-            List<Integer> universityIds = null;
-            if (universityId != null && !universityId.isEmpty()) {
-                universityIds = Arrays.stream(universityId.split(",")).map(Integer::parseInt).toList();
-            }
-            return ResponseEntity.ok(ResponseData.ok("So sánh ngành học thành công", admissionService.compareMajor(majorId, universityIds, year, studentReportId)));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @GetMapping("/university-got-major/{majorId}/year/{year}")
-    public ResponseEntity getUniversitiesHaveMajor(@PathVariable("majorId") Integer majorId, @PathVariable("year") Integer year) {
-        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", admissionService.getUniversitiesHaveMajorAtYear(majorId, year)));
     }
 }

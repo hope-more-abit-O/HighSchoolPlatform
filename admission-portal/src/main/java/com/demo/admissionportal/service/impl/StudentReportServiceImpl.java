@@ -154,13 +154,6 @@ public class StudentReportServiceImpl implements StudentReportService {
             studentReport.setName(request.getStudentReportName());
             studentReport.setUpdateBy(authenticatedUser.getId());
             studentReport.setUpdateTime(new Date());
-            if (request.getHighSchoolExamScore() != null) {
-                studentReport.setHighSchoolExamScore(request.getHighSchoolExamScore());
-            }
-            if (request.getCompetencyAssessmentExamScore() != null) {
-                studentReport.setCompetencyAssessmentExamScore(request.getCompetencyAssessmentExamScore());
-            }
-
             studentReportRepository.save(studentReport);
 
             // Check valid grade, semester and subject exist in table subject_grade_semester
@@ -244,10 +237,6 @@ public class StudentReportServiceImpl implements StudentReportService {
             log.error("Error updating student report", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình cập nhật học bạ của bạn. Vui lòng thử lại sau");
         }
-    }
-
-    public StudentReport findById(Integer studentReportId) {
-        return studentReportRepository.findById(studentReportId).orElse(null);
     }
 
     @Override

@@ -200,24 +200,6 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         var b = executeQuery.getResultList();
         return b;
     }
-    public List<AdmissionTrainingProgramMethod> findAdmissionTrainingProgramsV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
-        Map<String, Object> parameters = new HashMap<>();
-
-        String query = buildQueryForScoreAdviceV2(subjectId, fromScore, toScore, methodId, majorCode, provinceId, year, regions, pageNumber, rowsPerPage, parameters);
-
-        // 5. Create and execute the TypedQuery
-        Query executeQuery = entityManager.createNativeQuery(query.toString(), AdmissionTrainingProgramMethod.class);
-
-        // 6. Set the parameters
-        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-            executeQuery.setParameter(entry.getKey(), entry.getValue());
-        }
-
-        // 7. Execute and return the results
-        var b = executeQuery.getResultList();
-        return b;
-    }
 
     public Integer countAll(){
         return admissionTrainingProgramMethodRepository.countAll();
@@ -228,25 +210,6 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         Map<String, Object> parameters = new HashMap<>();
 
         String query = buildCountQuery(buildQueryForScoreAdvice(subjectId, fromScore, toScore, methodId, majorId, provinceId, year, regions, null, null, parameters));
-
-        // 5. Create and execute the TypedQuery
-        Query executeQuery = entityManager.createNativeQuery(query.toString(), Integer.class);
-
-        // 6. Set the parameters
-        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-            executeQuery.setParameter(entry.getKey(), entry.getValue());
-        }
-
-        // 7. Execute and return the results
-        Integer b = (Integer) executeQuery.getSingleResult();
-        return b;
-    }
-
-    public Integer countV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<String> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
-        Map<String, Object> parameters = new HashMap<>();
-
-        String query = buildCountQuery(buildQueryForScoreAdviceV2(subjectId, fromScore, toScore, methodId, majorId, provinceId, year, regions, null, null, parameters));
 
         // 5. Create and execute the TypedQuery
         Query executeQuery = entityManager.createNativeQuery(query.toString(), Integer.class);
@@ -393,154 +356,6 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
             for (int i = 0; i < majorId.size(); i++) {
                 parameters.put("majorId" + i, majorId.get(i));
-            }
-        }
-
-        // 4. Add the year filter (seems to be always required)
-        queryBuilder.append(" AND a.year IN (:yearMinus3, :yearMinus2, :yearMinus1, :currentYear)\n");
-        parameters.put("yearMinus3", year - 3);
-        parameters.put("yearMinus2", year - 2);
-        parameters.put("yearMinus1", year - 1);
-        parameters.put("currentYear", year);
-
-
-        if (pageNumber == null || rowsPerPage == null) {
-            return queryBuilder.toString();
-        }
-        queryBuilder.append("ORDER BY atpm.admission_training_program_id desc\n" +
-                "OFFSET :PageNumber * :RowsPerPage ROWS\n" +
-                "FETCH NEXT :RowsPerPage ROWS ONLY");
-        parameters.put("PageNumber", pageNumber);
-        parameters.put("RowsPerPage", rowsPerPage);
-        return queryBuilder.toString();
-    }
-
-    public String buildQueryForScoreAdviceV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                           List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions,
-                                           Integer pageNumber, Integer rowsPerPage, Map<String, Object> parameters){
-        // 1. Start building the base query
-        StringBuilder queryBuilder = new StringBuilder(
-                "SELECT DISTINCT atpm.* " +
-                        "from admission a\n" +
-                        " inner join admission_training_program atp on a.id = atp.admission_id\n" +
-                        " inner join admission_training_program_method atpm on atp.id = atpm.admission_training_program_id\n" +
-                        " inner join admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id\n" +
-                        " inner join subject_group_subject sgs on sgs.subject_group_id = atpsg.subject_group_id\n" +
-                        " inner join university_campus uc on uc.university_id = a.university_id\n" +
-                        " inner join province p on p.id = uc.province_id\n" +
-                        " inner join dbo.admission_method am on atpm.admission_method_id = am.id\n" +
-                        " inner join dbo.major m on m.id = atp.major_id\n" +
-                        " where a.status = 'ACTIVE' \n"
-//                        " where 1 = 1 \n"
-        );
-
-        if (regions != null && !regions.isEmpty() && provinceId != null && !provinceId.isEmpty()) {
-            // Case where both regions and provinceId are not null
-            List<String> regionPlaceholders = new ArrayList<>();
-            List<String> provincePlaceholders = new ArrayList<>();
-
-            for (int i = 0; i < regions.size(); i++) {
-                regionPlaceholders.add(":region" + i);
-            }
-            for (int i = 0; i < provinceId.size(); i++) {
-                provincePlaceholders.add(":provinceId" + i);
-            }
-
-            queryBuilder.append(" AND (p.region IN (")
-                    .append(String.join(",", regionPlaceholders))
-                    .append(") OR uc.province_id IN (")
-                    .append(String.join(",", provincePlaceholders))
-                    .append(")) ");
-
-            for (int i = 0; i < regions.size(); i++) {
-                parameters.put("region" + i, regions.get(i));
-            }
-            for (int i = 0; i < provinceId.size(); i++) {
-                parameters.put("provinceId" + i, provinceId.get(i));
-            }
-
-        } else {
-            // Case where only regions or only provinceId is not null
-            if (regions != null && !regions.isEmpty()) {
-                List<String> placeholders = new ArrayList<>();
-                for (int i = 0; i < regions.size(); i++) {
-                    placeholders.add(":region" + i);
-                }
-
-                queryBuilder.append(" AND p.region IN (")
-                        .append(String.join(",", placeholders))
-                        .append(") ");
-
-                for (int i = 0; i < regions.size(); i++) {
-                    parameters.put("region" + i, regions.get(i));
-                }
-            }
-
-            if (provinceId != null && !provinceId.isEmpty()) {
-                List<String> placeholders = new ArrayList<>();
-                for (int i = 0; i < provinceId.size(); i++) {
-                    placeholders.add(":provinceId" + i);
-                }
-
-                queryBuilder.append(" AND uc.province_id IN (")
-                        .append(String.join(",", placeholders))
-                        .append(") ");
-
-                for (int i = 0; i < provinceId.size(); i++) {
-                    parameters.put("provinceId" + i, provinceId.get(i));
-                }
-            }
-        }
-
-        if (methodId != null && !methodId.isEmpty()) {
-            List<String> placeholders = new ArrayList<>();
-            for (int i = 0; i < methodId.size(); i++) {
-                placeholders.add(":methodId" + i);
-            }
-
-            queryBuilder.append(" AND am.method_id IN (")
-                    .append(String.join(",", placeholders))
-                    .append(") ");
-
-            for (int i = 0; i < methodId.size(); i++) {
-                parameters.put("methodId" + i, methodId.get(i));
-            }
-        }
-
-        if (subjectId != null && !subjectId.isEmpty()) {
-            List<String> placeholders = new ArrayList<>();
-            for (int i = 0; i < subjectId.size(); i++) {
-                placeholders.add(":subjectId" + i);
-            }
-
-            queryBuilder.append(" AND sgs.subject_id IN (")
-                    .append(String.join(",", placeholders))
-                    .append(") ");
-
-            for (int i = 0; i < subjectId.size(); i++) {
-                parameters.put("subjectId" + i, subjectId.get(i));
-            }
-        }
-
-        if (fromScore != null && toScore != null) {
-            queryBuilder.append(" AND atpm.addmission_score <= (:toScore) AND atpm.addmission_score >= (:fromScore) ");
-            parameters.put("fromScore", fromScore);
-            parameters.put("toScore", toScore);
-        }
-
-        if (majorCode != null && !majorCode.isEmpty()) {
-            List<String> likeClauses = new ArrayList<>();
-
-            for (int i = 0; i < majorCode.size(); i++) {
-                likeClauses.add("m.code LIKE :majorCode" + i);
-            }
-
-            queryBuilder.append(" AND (")
-                    .append(String.join(" OR ", likeClauses))
-                    .append(") \n");
-
-            for (int i = 0; i < majorCode.size(); i++) {
-                parameters.put("majorCode" + i, majorCode.get(i) + "%");
             }
         }
 
