@@ -347,13 +347,14 @@ public class AdmissionController {
     @GetMapping("/compare")
     public ResponseEntity compareMajor(@RequestParam(required = true) Integer majorId,
                                         @RequestParam(required = true) String universityId,
-                                       @RequestParam(required = true) Integer year) {
+                                       @RequestParam(required = true) Integer year,
+                                       @RequestParam(required = false) Integer studentReportId){
         try {
             List<Integer> universityIds = null;
             if (universityId != null && !universityId.isEmpty()) {
                 universityIds = Arrays.stream(universityId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.compareMajor(majorId, universityIds, year));
+            return ResponseEntity.ok(admissionService.compareMajor(majorId, universityIds, year, studentReportId));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
