@@ -75,4 +75,16 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
 
     @Query("SELECT sg.id FROM SubjectGroup sg WHERE sg.name = :examGroup")
     Integer findSubjectGroupIdByName(@Param("examGroup") String examGroup);
+
+    @Query(value = """
+select distinct sg.*
+from admission_training_program atp
+inner join dbo.admission a on a.id = atp.admission_id
+inner join dbo.admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id
+inner join subject_group sg on atpsg.subject_group_id = sg.id
+where a.status = 'ACTIVE' and a.year = :year
+and atp.major_id = :majorId
+and a.university_id = :universityId
+""", nativeQuery = true)
+    List<SubjectGroup> findByMajorIdAndUniversityIdAndYear(Integer majorId, Integer universityId, Integer year);
 }

@@ -123,4 +123,6 @@ public interface SubjectGroupService {
     ResponseData<?> activateSubjectGroup(Integer id);
 
     List<SubjectGroupResponseDTO2> getAll();
+
+    List<SubjectGroupResponseDTO2> getByMajorIdAndUniversityId(Integer majorId, Integer universityId, Integer year);
 }

@@ -428,4 +428,8 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> b = (List<SubjectGroup>) a.getResultList();
         return b;
     }
+
+    public List<SubjectGroupResponseDTO2> getByMajorIdAndUniversityId(Integer majorId, Integer universityId, Integer year){
+        return subjectGroupRepository.findByMajorIdAndUniversityIdAndYear(majorId, universityId, year).stream().map(SubjectGroupResponseDTO2::new).toList();
+    }
 }
