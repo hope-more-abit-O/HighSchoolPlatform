@@ -228,4 +228,6 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
     }
+
+    
 }
