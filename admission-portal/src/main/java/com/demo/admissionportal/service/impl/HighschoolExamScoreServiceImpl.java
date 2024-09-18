@@ -1327,6 +1327,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             float avgScore2023ForGroup;
             float avgScore2024ForGroup;
 
+            
+
             switch (subjectGroup) {
                 case 1:
                     avgScore2023ForGroup = 20.77f;
