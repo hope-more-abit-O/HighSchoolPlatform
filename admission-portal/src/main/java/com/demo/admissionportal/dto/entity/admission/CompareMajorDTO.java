@@ -1,11 +1,9 @@
-package com.demo.admissionportal.dto.response.admission;
+package com.demo.admissionportal.dto.entity.admission;
 
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
-import com.demo.admissionportal.entity.Major;
-import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.entity.UniversityTrainingProgram;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.Admission;
+import com.demo.admissionportal.entity.admission.AdmissionMethod;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -25,10 +23,10 @@ public class CompareMajorDTO {
     private Integer admissionId;
     private String trainingSpecific;
     private String language;
-    private Float score;
+    private List<CompareMajorMethodDTO> methodAndScores;
 
 
-    public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, InfoMajorDTO major, Admission admission, List<UniversityTrainingProgram> universityTrainingPrograms) {
+    public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, InfoMajorDTO major, Admission admission, List<UniversityTrainingProgram> universityTrainingPrograms) {
         this.major = major;
         this.admissionTrainingProgramId = admissionTrainingProgram.getId();
         this.universityTrainingProgramId = universityTrainingPrograms
@@ -40,14 +38,11 @@ public class CompareMajorDTO {
         this.admissionId = admission.getId();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
-        this.score = admissionTrainingProgramMethod.getAdmissionScore();
     }
 
-    public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, InfoMajorDTO major) {
+    public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, InfoMajorDTO major) {
         this.major = major;
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
-        this.score = admissionTrainingProgramMethod.getAdmissionScore();
     }
-
 }

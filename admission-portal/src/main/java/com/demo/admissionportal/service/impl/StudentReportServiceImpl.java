@@ -246,6 +246,10 @@ public class StudentReportServiceImpl implements StudentReportService {
         }
     }
 
+    public StudentReport findById(Integer studentReportId) {
+        return studentReportRepository.findById(studentReportId).orElse(null);
+    }
+
     @Override
     public ResponseData<StudentReportResponseDTO> findStudentReportById(Integer studentReportId, Authentication authentication) {
         try {

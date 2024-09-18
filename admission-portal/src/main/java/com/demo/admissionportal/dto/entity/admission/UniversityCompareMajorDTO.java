@@ -1,7 +1,5 @@
 package com.demo.admissionportal.dto.entity.admission;
 
-import com.demo.admissionportal.dto.entity.university_campus.CampusProvinceDTO;
-import com.demo.admissionportal.dto.response.admission.CompareMajorDTO;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.entity.admission.Admission;
