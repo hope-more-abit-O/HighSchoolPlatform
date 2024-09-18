@@ -383,6 +383,17 @@ public class AdmissionController {
         }
     }
 
+    @GetMapping("/compare-majors")
+    public ResponseEntity compareMajorsFromUniversities(@RequestParam(required = true) List<CompareMajorsFromUniversitiesRequest> request,
+                                        @RequestParam(required = true) Integer year,
+                                        @RequestParam(required = false) Integer studentReportId){
+        try {
+            return ResponseEntity.ok(ResponseData.ok("So sánh ngành học thành công", admissionService.compareMajorsFromUniversities(request, year, studentReportId)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @GetMapping("/university-got-major/{majorId}/year/{year}")
     public ResponseEntity getUniversitiesHaveMajor(@PathVariable("majorId") Integer majorId, @PathVariable("year") Integer year) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", admissionService.getUniversitiesHaveMajorAtYear(majorId, year)));

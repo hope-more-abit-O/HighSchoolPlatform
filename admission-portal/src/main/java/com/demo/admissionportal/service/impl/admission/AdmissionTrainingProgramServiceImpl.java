@@ -1,7 +1,9 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
+import com.demo.admissionportal.dto.request.admisison.CompareMajorsFromUniversitiesRequest;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionTrainingProgramRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionTrainingProgramRequest;
@@ -261,5 +263,25 @@ public class AdmissionTrainingProgramServiceImpl {
 
     public List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year) {
         return admissionTrainingProgramRepository.findByMajorIdAndYear(majorId, year);
+    }
+
+    public List<AdmissionTrainingProgram> findByMajorIdWithUniversityIdIdAndYear(List<CompareMajorsFromUniversitiesRequest> request, Integer year) {
+        String query
+        return null;
+    }
+
+    private String buildQueryFindByMajorIdWithUniversityIdIdAndYear(List<CompareMajorsFromUniversitiesRequest> request, Integer year, Map<String, Object> parameters) {
+
+        StringBuilder queryBuilder = new StringBuilder("select a.university_id, a.id, atp.*\n" +
+                "from admission_training_program atp\n" +
+                "inner join dbo.admission a on a.id = atp.admission_id\n" +
+                "where a.status = 'ACTIVE' and a.year = 2024");
+
+        parameters.put("year", year);
+
+        queryBuilder.append("and (");
+
+        queryBuilder.append(")");
+        return queryBuilder.toString();
     }
 }
