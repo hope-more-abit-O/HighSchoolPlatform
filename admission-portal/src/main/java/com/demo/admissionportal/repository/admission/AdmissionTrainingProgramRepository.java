@@ -35,4 +35,12 @@ inner join admission a on atp.admission_id = a.id
 where a.university_id in (:universityIds) and a.year = :year and atp.major_id = :majorId and a.status = 'ACTIVE'
 """, nativeQuery = true)
     List<AdmissionTrainingProgram> findByMajorIdAndUniversityIdsAndYearCustom(@Param("majorId") Integer majorId, @Param("universityIds") List<Integer> universityIds, @Param("year")  Integer year);
+
+    @Query(value = """
+SELECT atp.*
+FROM admission_training_program atp
+INNER JOIN admission a ON atp.admission_id = a.id
+WHERE a.year = :year AND atp.major_id = :majorId AND a.status = 'ACTIVE'
+""", nativeQuery = true)
+    List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year);
 }
