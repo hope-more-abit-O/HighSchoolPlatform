@@ -33,7 +33,7 @@ public class SchoolDirectoryDetailDTO {
     public SchoolDirectoryDetailDTO(AdmissionTrainingProgramMethod admissionTrainingProgramMethod, AdmissionTrainingProgram admissionTrainingProgram, Method method, Major major, List<SubjectGroup> subjectGroups1, Subject subject, UniversityTrainingProgram universityTrainingProgram) {
         this.major = new InfoMajorDTO(major);
         this.admissionTrainingProgramId = admissionTrainingProgram.getId();
-        this.universityTrainingProgramId = universityTrainingProgram.getId();
+        this.universityTrainingProgramId = universityTrainingProgram == null ? null : universityTrainingProgram.getId();
         this.mainSubject = subject == null ? null : new SubjectDTO(subject);
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();

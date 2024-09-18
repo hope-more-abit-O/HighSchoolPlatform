@@ -260,6 +260,10 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         return universityTrainingProgramRepository.findByUniversityIdInAndStatusAndMajorId(universityIds, universityTrainingProgramStatus, majorId);
     }
 
+    public List<UniversityTrainingProgram> findByUniversityIdsWithStatusWithMajorIds(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus, List<Integer> majorIds) {
+        return universityTrainingProgramRepository.findByUniversityIdInAndStatusAndMajorIdIn(universityIds, universityTrainingProgramStatus, majorIds);
+    }
+
     public List<UniversityInfoResponseDTO> getUniversitiesHaveMajor(Integer majorId) {
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findByMajorId(majorId);
 

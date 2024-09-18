@@ -384,11 +384,15 @@ public class AdmissionController {
     }
 
     @GetMapping("/compare-majors")
-    public ResponseEntity compareMajorsFromUniversities(@RequestParam(required = true) List<CompareMajorsFromUniversitiesRequest> request,
+    public ResponseEntity compareMajorsFromUniversities(@RequestParam(required = true) String request,
                                         @RequestParam(required = true) Integer year,
                                         @RequestParam(required = false) Integer studentReportId){
         try {
-            return ResponseEntity.ok(ResponseData.ok("So sánh ngành học thành công", admissionService.compareMajorsFromUniversities(request, year, studentReportId)));
+            List<CompareMajorsFromUniversitiesRequest> listRequest = null;
+            if (request == null || request.isEmpty())
+                throw new BadRequestException("Id trường và ngành không được để trống");
+            listRequest = Arrays.stream(request.split(",")).map(CompareMajorsFromUniversitiesRequest::new).toList();
+            return ResponseEntity.ok(ResponseData.ok("So sánh ngành học thành công", admissionService.compareMajorsFromUniversities(listRequest, year, studentReportId)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
