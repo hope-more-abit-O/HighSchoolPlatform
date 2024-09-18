@@ -13,6 +13,7 @@ import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
+import com.demo.admissionportal.dto.response.admission.CompareMajorResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -341,5 +342,20 @@ public class AdmissionController {
     @PutMapping("/update/{admissionId}")
     public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
         return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));
+    }
+
+    @GetMapping("/compare")
+    public ResponseEntity compareMajor(@RequestParam(required = true) Integer majorId,
+                                        @RequestParam(required = true) String universityId,
+                                       @RequestParam(required = true) Integer year) {
+        try {
+            List<Integer> universityIds = null;
+            if (universityId != null && !universityId.isEmpty()) {
+                universityIds = Arrays.stream(universityId.split(",")).map(Integer::parseInt).toList();
+            }
+            return ResponseEntity.ok(admissionService.compareMajor(majorId, universityIds, year));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

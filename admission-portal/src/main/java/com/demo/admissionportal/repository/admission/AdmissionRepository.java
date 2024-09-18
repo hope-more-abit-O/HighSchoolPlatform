@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -371,5 +372,7 @@ AND status = :admissionStatus
     @Query("SELECT a FROM Admission a WHERE a.universityId = :universityId AND a.year = :year")
     List<Admission> findByUniversityAndYear(@Param("universityId") Integer universityId, @Param("year") Integer year);
 
+    List<Admission> findByUniversityIdInAndYearAndAdmissionStatus(List<Integer> universityIds, Integer year, AdmissionStatus admissionStatus);
 
+    Optional<Admission> findByUniversityIdAndYearAndConfirmStatus(Integer universityId, Integer year, AdmissionConfirmStatus confirmStatus);
 }

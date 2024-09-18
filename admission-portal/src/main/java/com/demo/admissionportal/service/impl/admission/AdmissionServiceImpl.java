@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.*;
+import com.demo.admissionportal.dto.entity.admission.UniversityCompareMajorDTO;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.*;
 import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceDTO;
@@ -215,6 +216,11 @@ public class AdmissionServiceImpl implements AdmissionService {
     public void createAdmission(CreateAdmissionRequest request) throws DataExistedException {
         List<AdmissionQuotaDTO> admissionQuotaDTOs = request.getQuotas().stream().map(AdmissionQuotaDTO::new).toList();
         User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
+        if (checkAdmission != null) {
+            throw new DataExistedException("Đề án đã tồn tại");
+        }
 
         Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
 
@@ -613,7 +619,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         result.setScoreStatus(admission.getScoreStatus().name);
         UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoByConsultantId(admission.getCreateBy());
         result.setCreateBy(new ActionerDTO(universityInfo.getId(), universityInfo.getName(), null, null));
-        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
+        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
         result.setSources(sources);
 
@@ -2375,5 +2381,58 @@ public class AdmissionServiceImpl implements AdmissionService {
             }
         }
         return "Không xác định được khả năng trúng tuyển.";
+    }
+
+    public void getAllAdmissionTrainingProgramCode(){
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findAll();
+        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms) {
+            if (admissionTrainingProgram.getTrainingProgramCode() == null)
+                admissionTrainingProgram.updateCode();
+        }
+        admissionTrainingProgramService.saveAllAdmissionTrainingProgram(admissionTrainingPrograms);
+    }
+
+    public List<UniversityCompareMajorDTO> compareMajor(Integer majorId, List<Integer> universityIds, Integer year) {
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdAndUniversityIdsAndYear(majorId, universityIds, year);
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
+        List<Admission> admissions = this.findByUniversityIdsAndYearAndStatus(universityIds, year, AdmissionStatus.ACTIVE);
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatusWithMajorId(universityIds, UniversityTrainingProgramStatus.ACTIVE, majorId);
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityIds);
+        List<User> accounts = userService.findByIds(universityIds);
+        Major major = majorService.findById(majorId);
+
+        List<UniversityCompareMajorDTO> universityCompareMajorDTOS = new ArrayList<>();
+        for (User user: accounts) {
+            UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
+            Admission admission = admissions.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
+            List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms.stream().filter((ele) -> ele.getAdmissionId().equals(admission.getId())).toList();
+            List<Integer> admissionTrainingProgramIds = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
+            List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream().filter((ele) -> admissionTrainingProgramIds.contains(ele.getId().getAdmissionTrainingProgramId())).toList();
+            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).toList();
+
+            List<CompareMajorDTO> compareMajorDTOS = new ArrayList<>();
+            for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms1) {
+                AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods1.stream().filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh."));
+
+                compareMajorDTOS.add(mappingCompareMajorDTO(admissionTrainingProgram, admissionTrainingProgramMethod, major, admission, universityTrainingPrograms1));
+            }
+            universityCompareMajorDTOS.add(new UniversityCompareMajorDTO(user, universityInfo, compareMajorDTOS, admission));
+        }
+        return universityCompareMajorDTOS;
+    }
+
+    private CompareMajorDTO mappingCompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, Major major, Admission admission, List<UniversityTrainingProgram> universityTrainingProgram) {
+        return new CompareMajorDTO(admissionTrainingProgram, admissionTrainingProgramMethod, majorService.mapInfo(major), admission, universityTrainingProgram);
+    }
+
+    private List<Admission> findByUniversityIdsAndYearAndStatus(List<Integer> universityIds, Integer year, AdmissionStatus status) {
+        List<Admission> admissions = admissionRepository.findByUniversityIdInAndYearAndAdmissionStatus(universityIds, year, status);
+        if (admissions.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy dữ liệu tuyển sinh.");
+        }
+        if (admissions.size() != universityIds.size()) {
+            throw new ResourceNotFoundException("Dữ liệu tuyển sinh không đầy đủ.");
+        }
+        return admissions;
     }
 }
