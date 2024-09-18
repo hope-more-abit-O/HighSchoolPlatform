@@ -266,7 +266,7 @@ public class AdmissionTrainingProgramServiceImpl {
     }
 
     public List<AdmissionTrainingProgram> findByMajorIdWithUniversityIdIdAndYear(List<CompareMajorsFromUniversitiesRequest> request, Integer year) {
-        String query
+        String query;
         return null;
     }
 
