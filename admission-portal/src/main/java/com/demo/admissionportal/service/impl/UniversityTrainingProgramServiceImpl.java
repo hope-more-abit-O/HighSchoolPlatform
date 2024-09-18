@@ -4,8 +4,11 @@ import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.Role;
 import com.demo.admissionportal.constants.UniversityTrainingProgramStatus;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
+import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university_training_program.FullUniversityTrainingProgramDTO;
 import com.demo.admissionportal.dto.entity.university_training_program.InfoUniversityTrainingProgramDTO;
+import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.response.university_training_program.GetFullUniversityTrainingProgramResponse;
 import com.demo.admissionportal.dto.response.university_training_program.GetInfoUniversityTrainingProgramResponse;
 import com.demo.admissionportal.entity.*;
@@ -23,6 +26,7 @@ import com.demo.admissionportal.service.UniversityTrainingProgramService;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -40,6 +44,9 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     private final UniversityInfoService universityInfoService;
     private final MajorService majorService;
     private final AdmissionRepository admissionRepository;
+    private final UserServiceImpl userServiceImpl;
+    private final UniversityCampusServiceImpl universityCampusServiceImpl;
+    private final ModelMapper modelMapper;
 
     public static void removeAllMatching(List<UniversityTrainingProgram> universityTrainingPrograms, List<UniversityTrainingProgram> activeUniversityTrainingPrograms) {
         Iterator<UniversityTrainingProgram> iterator = universityTrainingPrograms.iterator();
@@ -251,5 +258,34 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
 
     public List<UniversityTrainingProgram> findByUniversityIdsWithStatusWithMajorId(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus, Integer majorId) {
         return universityTrainingProgramRepository.findByUniversityIdInAndStatusAndMajorId(universityIds, universityTrainingProgramStatus, majorId);
+    }
+
+    public List<UniversityInfoResponseDTO> getUniversitiesHaveMajor(Integer majorId) {
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findByMajorId(majorId);
+
+        if (universityTrainingPrograms == null || universityTrainingPrograms.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy trường nào có ngành học này");
+        }
+        
+        List<Integer> universityIds = universityTrainingPrograms.stream().map(UniversityTrainingProgram::getUniversityId).distinct().toList();
+        List<UniversityInfo> universityInfos = universityInfoService.findByIds(universityIds).stream().toList();
+        List<User> users = userServiceImpl.findByIds(universityInfos.stream().map(UniversityInfo::getId).distinct().toList());
+        List<UniversityCampus> universityCampuses = universityCampusServiceImpl.findByUniversityIds(users.stream().map(User::getId).distinct().toList());
+
+        List<UniversityInfoResponseDTO> result = new ArrayList<>();
+
+        for (User user: users) {
+            UniversityInfo universityInfo = universityInfos.stream().filter(info -> info.getId().equals(user.getId())).findFirst().orElse(null);
+            List<UniversityCampus> universityCampus = universityCampuses.stream().filter(campus -> campus.getUniversityId().equals(user.getId())).toList();
+
+            if (universityInfo != null && universityCampus != null) {
+                result.add(new UniversityInfoResponseDTO(
+                        modelMapper.map(user, InfoUserResponseDTO.class),
+                        modelMapper.map(universityInfo, InfoUniversityResponseDTO.class),
+                        universityCampusServiceImpl.mapToListCampusV2(user.getId())));
+            }
+        }
+
+        return result;
     }
 }
