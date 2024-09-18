@@ -148,4 +148,9 @@ public class TestController {
     public void testtest(@RequestParam List<Integer> a){
         log.info("{}", a);
     }
+
+    @GetMapping("test3")
+    public void test3(){
+        admissionService.getAllAdmissionTrainingProgramCode();
+    }
 }

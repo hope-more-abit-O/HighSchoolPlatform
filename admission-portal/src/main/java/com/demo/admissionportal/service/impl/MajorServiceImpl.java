@@ -9,12 +9,14 @@ import com.demo.admissionportal.dto.request.major.UpdateMajorRequest;
 import com.demo.admissionportal.dto.request.major.UpdateMajorStatusRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.entity.Major;
+import com.demo.admissionportal.entity.UniversityTrainingProgram;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
 import com.demo.admissionportal.exception.exceptions.QueryException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.MajorRepository;
+import com.demo.admissionportal.repository.UniversityTrainingProgramRepository;
 import com.demo.admissionportal.service.MajorService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.transaction.Transactional;
@@ -36,6 +38,7 @@ import java.util.stream.Stream;
 public class MajorServiceImpl implements MajorService {
     private final MajorRepository majorRepository;
     private final ModelMapper modelMapper;
+    private final UniversityTrainingProgramRepository universityTrainingProgramRepository;
 
     public Major findById(int id){
         log.info("Find major by id: {}", id);
@@ -414,5 +417,11 @@ public class MajorServiceImpl implements MajorService {
     public List<InfoMajorDTO> findAll(){
         List<Major> majors = majorRepository.findAll();
         return majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).collect(Collectors.toList());
+    }
+
+    public List<InfoMajorDTO> getAvailableMajors(){
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findAll();
+        List<Integer> majorIds = universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList();
+        return this.findByIds(majorIds).stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList();
     }
 }
