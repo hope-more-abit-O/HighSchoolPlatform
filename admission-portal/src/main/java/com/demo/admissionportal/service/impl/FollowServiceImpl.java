@@ -4,6 +4,7 @@ import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.FavoriteStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.follow.UpdateFollowUniRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.follow.*;
 import com.demo.admissionportal.entity.*;
@@ -232,7 +233,7 @@ public class FollowServiceImpl implements FollowService {
     }
 
     private String mapToSubjectGroup(AdmissionTrainingProgramSubjectGroup admissionTrainingProgramSubjectGroup) {
-        SubjectGroup subjectGroup =  subjectGroupRepository.findById(admissionTrainingProgramSubjectGroup.getId().getSubjectGroupId()).orElse(null);
+        SubjectGroup subjectGroup = subjectGroupRepository.findById(admissionTrainingProgramSubjectGroup.getId().getSubjectGroupId()).orElse(null);
         return subjectGroup.getName();
     }
 
@@ -282,5 +283,31 @@ public class FollowServiceImpl implements FollowService {
                 .fullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName())
                 .avatar(userFollowUniversityMajor.getUser().getAvatar())
                 .build();
+    }
+
+    @Override
+    public ResponseData<String> updateIndexFollow(List<UpdateFollowUniRequestDTO> updateFollowUniRequestDTOS) {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<UpdateFollowUniRequestDTO> updateFollowUni = updateFollowUniRequestDTOS.stream()
+                    .map(e -> mapUpdateFollowUni(e, userId))
+                    .collect(Collectors.toList());
+            if (updateFollowUni != null) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thứ tự nguyện vọng thành công");
+            }
+            throw new Exception();
+        } catch (Exception ex) {
+            log.error("Error while update index of follow university major");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Cập nhật thứ tự nguyện vọng thất bại", null);
+        }
+    }
+
+    private UpdateFollowUniRequestDTO mapUpdateFollowUni(UpdateFollowUniRequestDTO updateFollowUniRequestDTO, Integer userId) {
+        UserFollowUniversityMajor userFollowUniversityMajor = followUniversityMajorRepository.findByUserIdAndUniversityMajor(userId, updateFollowUniRequestDTO.getUniversityMajorId());
+        if (userFollowUniversityMajor != null) {
+            userFollowUniversityMajor.setIndexOfFollow(updateFollowUniRequestDTO.getIndexOfFollow());
+            followUniversityMajorRepository.save(userFollowUniversityMajor);
+        }
+        return null;
     }
 }
