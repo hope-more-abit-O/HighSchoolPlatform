@@ -16,4 +16,5 @@ public class SchoolAdviceDTO {
     private String source;
     private Integer majorCount;
     private List<AdmissionTrainingProgramDTOV2> detail;
+    private Integer year;
 }

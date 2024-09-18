@@ -76,9 +76,9 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear = :examYear AND h.status = :status")
     List<HighschoolExamScore> findAllByExamYearAndStatus(@Param("examYear") ExamYear examYear, @Param("status") HighschoolExamScoreStatus status);
 
-//    Page<HighschoolExamScore> findByYear(Integer examYearId, Pageable pageable);
-@Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear.year = :year AND h.examLocal.name = :local AND h.status = :status")
-List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer year, @Param("local") String local, @Param("status") HighschoolExamScoreStatus status);
+    //    Page<HighschoolExamScore> findByYear(Integer examYearId, Pageable pageable);
+    @Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear.year = :year AND h.examLocal.name = :local AND h.status = :status")
+    List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer year, @Param("local") String local, @Param("status") HighschoolExamScoreStatus status);
 
     @Modifying
     @Transactional
@@ -106,9 +106,11 @@ List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer 
             "WHERE ey.year = :year")
     Page<HighschoolExamScore> findByExamYear(@Param("year") Integer year, Pageable pageable);
 
+    @Query("""
+             SELECT h
+             FROM HighschoolExamScore h
+             WHERE h.identificationNumber = :identificationNumber
+             AND h.score IS NOT NULL
+""")
+    List<HighschoolExamScore> findByIdentificationNumberAndScoreIsNotNull(String identificationNumber);
 }
-
-
-
-
-

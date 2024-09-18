@@ -1,8 +1,10 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.ExamYearData;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
+import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

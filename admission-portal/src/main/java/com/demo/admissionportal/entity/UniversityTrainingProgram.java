@@ -71,4 +71,10 @@ public class UniversityTrainingProgram {
                 && (this.trainingSpecific == null ? admissionTrainingProgram.getTrainingSpecific() == null : this.trainingSpecific.equals(admissionTrainingProgram.getTrainingSpecific()))
                 && (this.language == null ? admissionTrainingProgram.getLanguage() == null : this.language.equals(admissionTrainingProgram.getLanguage()));
     }
+
+    public boolean compareWithAdmissionTrainingProgram(Integer majorId, String trainingSpecific, String language) {
+        return this.majorId.equals(getMajorId())
+                && (this.trainingSpecific == null ? getTrainingSpecific() == null : this.trainingSpecific.equals(getTrainingSpecific()))
+                && (this.language == null ? getLanguage() == null : this.language.equals(getLanguage()));
+    }
 }

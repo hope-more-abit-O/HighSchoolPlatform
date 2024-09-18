@@ -42,6 +42,9 @@ public class AdmissionTrainingProgram {
     @Column(name = "training_specific")
     private String trainingSpecific;
 
+    @Column(name = "training_program_code")
+    private String trainingProgramCode;
+
     @Column(name = "quota")
     private Integer quota;
 
@@ -68,6 +71,7 @@ public class AdmissionTrainingProgram {
         this.mainSubjectId = request.getMainSubjectId();
         this.language = request.getLanguage();
         this.trainingSpecific = request.getTrainingSpecific();
+        this.trainingProgramCode = trainingProgramCodeConvert();
     }
 
     @Override
@@ -81,5 +85,30 @@ public class AdmissionTrainingProgram {
                 ", trainingSpecific='" + trainingSpecific + '\'' +
                 ", quota=" + quota +
                 '}';
+    }
+
+    public void updateCode(){
+        this.trainingProgramCode = trainingProgramCodeConvert();
+    }
+
+    private String trainingProgramCodeConvert() {
+        String extension ="";
+        if (this.language != null) {
+            extension = "_" + getUppercaseLetters(this.language);
+        }
+        if (this.trainingSpecific != null) {
+            extension = extension + "_" + this.trainingSpecific;
+        }
+        return this.majorId.toString()+extension;
+    }
+
+    private String getUppercaseLetters(String str) {
+        StringBuilder uppercaseLetters = new StringBuilder();
+        for (char c : str.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                uppercaseLetters.append(c);
+            }
+        }
+        return uppercaseLetters.toString();
     }
 }
