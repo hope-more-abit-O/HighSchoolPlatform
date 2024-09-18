@@ -19,12 +19,14 @@ public class CompareMajorMethodDTO {
     private InfoMethodDTO method;
     private Integer admissionMethodId;
     private Float score;
+    private Integer quota;
     private Boolean isRecommended;
 
     public CompareMajorMethodDTO(AdmissionMethod admissionMethod, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, StudentReport studentReport, Method method) {
         this.method = new InfoMethodDTO(method);
         this.score = admissionTrainingProgramMethod.getAdmissionScore();
         this.isRecommended = false;
+        this.quota = admissionTrainingProgramMethod.getQuota();
         this.admissionMethodId = admissionMethod.getMethodId();
         setRecommend(admissionMethod, studentReport, admissionTrainingProgramMethod);
     }
@@ -32,16 +34,20 @@ public class CompareMajorMethodDTO {
     public void setRecommend(AdmissionMethod admissionMethod, StudentReport studentReport, AdmissionTrainingProgramMethod admissionTrainingProgramMethod) {
         this.isRecommended = false;
 
+        if (studentReport == null) {
+            return;
+        }
+
         if (admissionMethod.getMethodId().equals(1)) {
-            if (studentReport.getHighSchoolExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
+            if (studentReport.getHighSchoolExamScore() != null && studentReport.getHighSchoolExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
                 this.isRecommended = true;
             }
         } else if (admissionMethod.getMethodId().equals(6)) {
-            if (studentReport.getCompetencyAssessmentExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
+            if (studentReport.getCompetencyAssessmentExamScore() != null && studentReport.getCompetencyAssessmentExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
                 this.isRecommended = true;
             }
         } else if (admissionMethod.getMethodId().equals(7)) {
-            if (studentReport.getCompetencyAssessmentExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
+            if (studentReport.getCompetencyAssessmentExamScore() != null && studentReport.getCompetencyAssessmentExamScore() >= admissionTrainingProgramMethod.getAdmissionScore()) {
                 this.isRecommended = true;
             }
         }

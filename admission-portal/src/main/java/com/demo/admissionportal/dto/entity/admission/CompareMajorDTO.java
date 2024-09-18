@@ -23,6 +23,7 @@ public class CompareMajorDTO {
     private Integer admissionId;
     private String trainingSpecific;
     private String language;
+    private String trainingProgramCode;
     private List<CompareMajorMethodDTO> methodAndScores;
 
 
@@ -38,11 +39,13 @@ public class CompareMajorDTO {
         this.admissionId = admission.getId();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 
     public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, InfoMajorDTO major) {
         this.major = major;
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 }
