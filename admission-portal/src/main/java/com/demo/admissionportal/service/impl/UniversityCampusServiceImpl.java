@@ -12,6 +12,7 @@ import com.demo.admissionportal.dto.request.post.ProvinceResponseDTO;
 import com.demo.admissionportal.dto.request.post.WardResponseDTO;
 import com.demo.admissionportal.dto.request.university_campus.CreateCampusRequestDTO;
 import com.demo.admissionportal.dto.request.university_campus.UpdateCampusRequestDTO;
+import com.demo.admissionportal.dto.response.ProvinceDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.university_campus.DeleteCampusResponseDTO;
 import com.demo.admissionportal.entity.*;
@@ -128,6 +129,9 @@ public class UniversityCampusServiceImpl implements UniversityCampusService {
                 .address(universityCampus.getSpecificAddress() + ", " + ward.getName() + ", " + district.getName() + ", " + province.getName())
                 .type(universityCampus.getType().name)
                 .status(universityCampus.getStatus().name)
+                .provinceResponseDTO(modelMapper.map(province, ProvinceResponseDTO.class))
+                .districtResponseDTO(modelMapper.map(district, DistrictResponseDTO.class))
+                .wardResponseDTO(modelMapper.map(ward, WardResponseDTO.class))
                 .build();
     }
 
