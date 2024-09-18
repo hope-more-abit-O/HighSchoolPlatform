@@ -23,26 +23,32 @@ public class CompareMajorDTO {
     private Integer admissionId;
     private String trainingSpecific;
     private String language;
+    private String trainingProgramCode;
     private List<CompareMajorMethodDTO> methodAndScores;
 
 
     public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, InfoMajorDTO major, Admission admission, List<UniversityTrainingProgram> universityTrainingPrograms) {
         this.major = major;
         this.admissionTrainingProgramId = admissionTrainingProgram.getId();
-        this.universityTrainingProgramId = universityTrainingPrograms
+        UniversityTrainingProgram universityTrainingProgram = universityTrainingPrograms
                 .stream()
                 .filter((ele) -> ele.compareWithAdmissionTrainingProgram(admissionTrainingProgram))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy university training program"))
-                .getId();
+                .orElse(null);
+        if (universityTrainingProgram != null)
+            this.universityTrainingProgramId = universityTrainingProgram.getId();
+        else
+            this.universityTrainingProgramId = null;
         this.admissionId = admission.getId();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 
     public CompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, InfoMajorDTO major) {
         this.major = major;
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.language = admissionTrainingProgram.getLanguage();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
     }
 }

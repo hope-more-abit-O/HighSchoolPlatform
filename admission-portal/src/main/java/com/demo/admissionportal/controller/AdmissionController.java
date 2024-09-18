@@ -13,7 +13,6 @@ import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
-import com.demo.admissionportal.dto.response.admission.CompareMajorResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -103,6 +102,48 @@ public class AdmissionController {
                 regions = Arrays.stream(region.split(",")).toList();
             }
             return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/score-advice/v3")
+    public ResponseEntity adviceV3(
+            @RequestParam(required = true) Integer pageNumber,
+            @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = true) Integer year,
+            @RequestParam(required = false) String majorCode,
+            @RequestParam(required = false) Float fromScore,
+            @RequestParam(required = false) Float toScore,
+            @RequestParam(required = false) String subjectId,
+            @RequestParam(required = false) String methodId,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String provinceId
+    ) {
+        try {
+            List<String> majorCodes = null;
+            List<Integer> subjectIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> provinceIds = null;
+            List<String> regions = null;
+
+            if (majorCode != null && !majorCode.isEmpty()) {
+                majorCodes = Arrays.stream(majorCode.split(",")).toList();
+            }
+            if (subjectId != null && !subjectId.isEmpty()) {
+                subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (provinceId != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (region != null && !region.isEmpty()) {
+                regions = Arrays.stream(region.split(",")).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchoolV3
+                    (new SchoolAdviceRequestV3(majorCodes, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -321,24 +362,6 @@ public class AdmissionController {
         }
     }
 
-    @PostMapping("/forecast")
-    public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
-        List<Object> responseList = new ArrayList<>();
-        for (AdmissionAnalysisRequest requests : request.getAspirations()) {
-            ResponseData<?> responseData = admissionService.forecastScore2024(requests);
-            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-                responseList.add(responseData.getData());
-            } else if (requests.getMajor() == null || requests.getMajor().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy ngành học của trường: " + requests.getUniversity() + " hoặc ngành học không hợp lệ: " +requests.getMajor()));
-            } else if (requests.getSubjectGroup() == null || requests.getSubjectGroup().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy tổ hợp môn hoặc tổ hợp môn học không hợp lệ: " + requests.getSubjectGroup()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy điểm chuẩn của năm 2023 với trường: " + requests.getUniversity() + " cho tổ hợp môn và ngành đã chọn."));
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
-    }
-
     @PutMapping("/update/{admissionId}")
     public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
         return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));
@@ -354,9 +377,14 @@ public class AdmissionController {
             if (universityId != null && !universityId.isEmpty()) {
                 universityIds = Arrays.stream(universityId.split(",")).map(Integer::parseInt).toList();
             }
-            return ResponseEntity.ok(admissionService.compareMajor(majorId, universityIds, year, studentReportId));
+            return ResponseEntity.ok(ResponseData.ok("So sánh ngành học thành công", admissionService.compareMajor(majorId, universityIds, year, studentReportId)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/university-got-major/{majorId}/year/{year}")
+    public ResponseEntity getUniversitiesHaveMajor(@PathVariable("majorId") Integer majorId, @PathVariable("year") Integer year) {
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", admissionService.getUniversitiesHaveMajorAtYear(majorId, year)));
     }
 }

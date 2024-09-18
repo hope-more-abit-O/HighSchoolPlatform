@@ -258,4 +258,8 @@ public class AdmissionTrainingProgramServiceImpl {
         }
         return admissionTrainingPrograms;
     }
+
+    public List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year) {
+        return admissionTrainingProgramRepository.findByMajorIdAndYear(majorId, year);
+    }
 }

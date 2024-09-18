@@ -106,6 +106,13 @@ List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer 
             "WHERE ey.year = :year")
     Page<HighschoolExamScore> findByExamYear(@Param("year") Integer year, Pageable pageable);
 
+    @Query("""
+             SELECT h
+             FROM HighschoolExamScore h
+             WHERE h.identificationNumber = :identificationNumber
+             AND h.score IS NOT NULL
+""")
+    List<HighschoolExamScore> findByIdentificationNumberAndScoreIsNotNull(String identificationNumber);
 }
 
 

@@ -9,10 +9,13 @@ import com.demo.admissionportal.dto.entity.admission.school_advice.SchoolAdviceM
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.entity.method.InfoMethodDTO;
 import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
+import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university_campus.CampusProvinceDTO;
+import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.AdmissionAnalysisResponse;
+import com.demo.admissionportal.dto.response.HighschoolExamScoreResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
@@ -1508,6 +1511,185 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Tìm kiếm các chương trình đào tạo phù hợp thành công", result);
     }
 
+
+
+    public ResponseData<Page<SchoolAdviceDTO>> adviceSchoolV3(SchoolAdviceRequestV3 request) {
+        Integer year = request.getYear();
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findAdmissionTrainingProgramsV2(
+                request.getSubjectId(),
+                request.getFromScore(),
+                request.getToScore(),
+                request.getMethodId(),
+                request.getMajorId(),
+                request.getProvinceId(),
+                year,
+                request.getRegion(),
+                request.getPageNumber(),
+                request.getRowsPerPage()
+        );
+
+        Integer countAll = admissionTrainingProgramMethodService.countV2(
+                request.getSubjectId(),
+                request.getFromScore(),
+                request.getToScore(),
+                request.getMethodId(),
+                request.getMajorId(),
+                request.getProvinceId(),
+                year,
+                request.getRegion(),
+                null,
+                null
+        );
+
+        if (admissionTrainingProgramMethods.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
+        log.info(request.toString());
+        List<Integer> admissionTrainingProgramIds = admissionTrainingProgramMethods
+                .stream()
+                .map(AdmissionTrainingProgramMethod::getId)
+                .map(AdmissionTrainingProgramMethodId::getAdmissionTrainingProgramId)
+                .distinct().toList();
+
+        List<Integer> admissionMethodIds = admissionTrainingProgramMethods
+                .stream()
+                .map(AdmissionTrainingProgramMethod::getId)
+                .map(AdmissionTrainingProgramMethodId::getAdmissionMethodId)
+                .distinct().toList();
+
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByIds(admissionTrainingProgramIds);
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByIds(admissionMethodIds);
+        List<Integer> methodIds = admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList();
+        List<Method> methods = methodService.findByIds(methodIds);
+        List<Admission> admissions = admissionRepository.findAllById(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getAdmissionId).distinct().toList());
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingProgramIds);
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIds(universityInfos.stream().map(UniversityInfo::getId).distinct().toList());
+        List<SubjectGroup> subjectGroups = subjectGroupService.findSubjectGroup(request.getSubjectId(), admissionTrainingProgramIds);
+        List<Major> majors = majorService.findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList());
+        List<UniversityCampus> universityCampuses = universityCampusService.findHeadQuarterByUniversityIds(universityInfos.stream().map(UniversityInfo::getId).distinct().toList());
+        List<Province> provinces = addressServiceImpl.findProvinceByIds(universityCampuses.stream().map(UniversityCampus::getProvinceId).distinct().toList());
+
+        List<Integer> universityIds = admissions.stream().map(Admission::getUniversityId).distinct().toList();
+//        List<InfoMajorDTO> infoMajors = majors.stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList();
+//        List<InfoUniversityResponseDTO> infoUniversityResponses = universityInfos
+//                .stream()
+//                .map((element) -> modelMapper.map(element, InfoUniversityResponseDTO.class))
+//                .toList();
+//        List<SubjectGroupResponseDTO2> subjectGroupResponses = subjectGroups.stream().map((element) -> modelMapper.map(element, SubjectGroupResponseDTO2.class)).toList();
+        List<SchoolAdviceDTO> schoolAdviceDTOs = new ArrayList<>();
+
+
+        List<Integer> majorIds = admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList();
+        List<Integer> provinceIds = provinces.stream().map(Province::getId).distinct().toList();
+
+        for (Integer universityId : universityIds) {
+
+            UniversityInfo universityInfo = universityInfos
+                    .stream()
+                    .filter((element) -> element.getId().equals(universityId))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường đại học."));
+
+            UniversityCampus universityCampus = universityCampuses
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(universityId))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cơ sở chính của trường đại học."));
+
+            Province province = provinces
+                    .stream()
+                    .filter((element) -> element.getId().equals(universityCampus.getProvinceId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tỉnh thành của trường đại học."));
+
+            List<Admission> admissions1 = admissions
+                    .stream()
+                    .filter((element) -> element.getUniversityId().equals(universityId))
+                    .sorted(Comparator.comparing(Admission::getId).reversed())
+                    .toList();
+
+            List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms
+                    .stream()
+                    .filter((element) -> admissions1.stream().map(Admission::getId).toList().contains(element.getAdmissionId()))
+                    .toList();
+
+            List<Integer> admissionTrainingProgramIds1 = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
+
+            List<Major> majors1 = majors
+                    .stream()
+                    .filter((ele) -> admissionTrainingPrograms1
+                            .stream()
+                            .map(AdmissionTrainingProgram::getMajorId)
+                            .distinct()
+                            .toList()
+                            .contains(ele.getId()))
+                    .distinct()
+                    .toList();
+
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups1 = admissionTrainingProgramSubjectGroups
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds1.contains(element.getId().getAdmissionTrainingProgramId()))
+                    .toList();
+
+            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((element) -> element.getUniversityId().equals(universityId)).toList();
+
+            List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups1
+                    .stream()
+                    .map(AdmissionTrainingProgramSubjectGroup::getId)
+                    .filter(id -> admissionTrainingProgramIds1.contains(id.getAdmissionTrainingProgramId()))
+                    .map(AdmissionTrainingProgramSubjectGroupId::getSubjectGroupId)
+                    .toList();
+
+            List<SubjectGroup> subjectGroups1 = subjectGroups.stream().filter((element) -> subjectGroupIds.contains(element.getId())).toList();
+
+            List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods
+                    .stream()
+                    .filter((element) -> admissionTrainingProgramIds1.contains(element.getId().getAdmissionTrainingProgramId()))
+                    .toList();
+
+            Set<String> seen = new LinkedHashSet<>();
+            admissionTrainingPrograms1.forEach(program -> seen.add(
+                    program.getMajorId() + "-" +
+                            (program.getMainSubjectId() != null ? program.getMainSubjectId() : "null") + "-" +
+                            (program.getLanguage() != null ? program.getLanguage() : "null") + "-" +
+                            (program.getTrainingSpecific() != null ? program.getTrainingSpecific() : "null")
+            ));
+
+            List<AdmissionTrainingProgramDTOV2> admissionTrainingProgramDTOV2s = getSchoolAdviceMajorDetails(universityId,
+                    majors1,
+                    admissions1,
+                    admissionTrainingPrograms1,
+                    admissionTrainingProgramSubjectGroups1,
+                    admissionTrainingProgramMethods1,
+                    subjectGroups1,
+                    year,
+                    admissionMethods,
+                    methods, seen,
+                    universityTrainingPrograms1);
+
+            Admission admission = admissions1.stream()
+                    .max(Comparator.comparing(Admission::getYear).reversed()).get();
+
+            if (admission != null){
+                schoolAdviceDTOs.add(
+                        new SchoolAdviceDTO(InfoUniversityResponseDTO.fromEntity(universityInfo, province),
+                                admission.getSource(),
+                                seen.size(),
+                                admissionTrainingProgramDTOV2s,
+                                year));
+            }
+        }
+
+        if (schoolAdviceDTOs.size() < 1) {
+            throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo phù hợp.");
+        }
+
+        Page<SchoolAdviceDTO> result = new PageImpl<>(schoolAdviceDTOs, PageRequest.of(request.getPageNumber(), request.getRowsPerPage()), countAll);
+
+        return ResponseData.ok("Tìm kiếm các chương trình đào tạo phù hợp thành công", result);
+    }
+
     public List<AdmissionTrainingProgramDTOV2> getSchoolAdviceMajorDetails(Integer universityId,
                                                                            List<Major> majors,
                                                                            List<Admission> admissions,
@@ -2144,344 +2326,5 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
 
         return new SchoolDirectoryResponse(LocalDateTime.now().getYear(), admission.getSource(), schoolDirectoryDetailDTOS);
-    }
-
-    private final Map<String, Float> avgScore2023 = new HashMap<>();
-    private final Map<String, Float> avgScore2024 = new HashMap<>();
-    private final Map<String, Integer> totalExaminer2023 = new HashMap<>();
-    private final Map<String, Integer> totalExaminer2024 = new HashMap<>();
-
-    public void AdmissionAnalysisService() {
-        avgScore2023.put("A00", 20.77f);
-        avgScore2023.put("A01", 20.28f);
-        avgScore2023.put("B00", 20.6f);
-        avgScore2023.put("C00", 18.98f);
-        avgScore2023.put("D01", 18.9f);
-
-        totalExaminer2023.put("A00", 325902);
-        totalExaminer2023.put("A01", 315146);
-        totalExaminer2023.put("B00", 324554);
-        totalExaminer2023.put("C00", 681723);
-        totalExaminer2023.put("D01", 877677);
-
-        avgScore2024.put("A00", 20.9f);
-        avgScore2024.put("A01", 20.47f);
-        avgScore2024.put("B00", 20.53f);
-        avgScore2024.put("C00", 20.95f);
-        avgScore2024.put("D01", 19.51f);
-
-        totalExaminer2024.put("A00", 343800);
-        totalExaminer2024.put("A01", 328761);
-        totalExaminer2024.put("B00", 342291);
-        totalExaminer2024.put("C00", 704008);
-        totalExaminer2024.put("D01", 908681);
-    }
-
-    public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
-        try {
-            String subjectGroupName = request.getSubjectGroup().trim();
-
-            // Define the allowed subject groups
-            List<String> allowedSubjectGroups = Arrays.asList("A00", "A01", "B00", "C00", "D01");
-
-            if (!allowedSubjectGroups.contains(subjectGroupName)) {
-                throw new IllegalArgumentException("Hãy chọn 1 trong 5 khối thi: A00, A01, B00, C00, D01.");
-            }
-
-            Float score2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroupName);
-
-            if (score2023 == null) {
-                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
-            }
-
-            String subjectGroup = request.getSubjectGroup().trim();
-            float userScore2024 = request.getScore();
-
-            float avgScore2023ForGroup;
-            float avgScore2024ForGroup;
-
-            switch (subjectGroup) {
-                case "A00":
-                    avgScore2023ForGroup = 20.77f;
-                    avgScore2024ForGroup = 20.9f;
-                    break;
-                case "A01":
-                    avgScore2023ForGroup = 20.28f;
-                    avgScore2024ForGroup = 20.47f;
-                    break;
-                case "B00":
-                    avgScore2023ForGroup = 20.6f;
-                    avgScore2024ForGroup = 20.53f;
-
-                    break;
-                case "C00":
-                    avgScore2023ForGroup = 18.98f;
-                    avgScore2024ForGroup = 20.95f;
-                    break;
-                case "D01":
-                    avgScore2023ForGroup = 18.9f;
-                    avgScore2024ForGroup = 19.51f;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Khối không hợp lệ: " + subjectGroup);
-            }
-
-            float chenhLechDTB = avgScore2024ForGroup - avgScore2023ForGroup;
-
-            List<Object[]> dataWithQuota = getScoreAndSubjectGroupAndMajor(request);
-
-            int quota2023 = 0, quota2024 = 0;
-            for (Object[] row : dataWithQuota) {
-                int year = (int) row[0];
-                if (year == 2023) {
-                    quota2023 = (int) row[2];
-                } else if (year == 2024) {
-                    quota2024 = (int) row[2];
-                }
-            }
-
-            int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
-
-            DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
-
-            String scoreTrend = scoreStatus.getName();
-
-            ChiTieuStatus quotaStatus = analyzeQuotaChange(chiTieuChenhLech);
-
-            String quotaTrend = quotaStatus.getName();
-
-            DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
-
-            String advice = generateAdvice(finalStatus, request.getScore(), score2023, request.getUniversity(), request.getMajor());
-
-
-            String chenhLechDTBMessage = "Điểm trung bình năm 2024 có xu hướng " + scoreTrend +
-                    " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
-
-            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + request.getMajor() + " của trường " + request.getUniversity() +
-                    " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
-
-            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
-
-        } catch (IllegalArgumentException ex) {
-            log.error("Validate error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
-        } catch (Exception ex) {
-            log.error("Error while analyze: {}", ex.getMessage(), ex);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại.", ex.getMessage());
-        }
-    }
-
-    private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
-        List<UniversityInfo> universityList = universityInfoRepository.findByUniversityName(request.getUniversity());
-        if (universityList.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy trường đại học với tên: " + request.getUniversity());
-        }
-
-        List<Major> majorList = majorRepository.findAllByName(request.getMajor());
-        if (majorList.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy ngành học với tên: " + request.getMajor());
-        }
-
-        List<Integer> majorIds = majorList.stream()
-                .map(Major::getId)
-                .collect(Collectors.toList());
-
-        SubjectGroup subjectGroup = subjectGroupRepository.findByName(request.getSubjectGroup());
-        if (subjectGroup == null) {
-            throw new IllegalArgumentException("Không tìm thấy tổ hợp môn với tên: " + request.getSubjectGroup());
-        }
-
-
-        List<Object[]> dataWithQuota = null;
-
-        for (UniversityInfo university : universityList) {
-            if (majorIds.isEmpty()) {
-                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithoutMajor(
-                        university.getId(), subjectGroup.getId());
-            } else {
-                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithMajor(
-                        university.getId(), subjectGroup.getId(), majorIds);
-            }
-
-            if (!dataWithQuota.isEmpty()) {
-                break;
-            }
-        }
-
-        if (dataWithQuota == null || dataWithQuota.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy dữ liệu cho trường, ngành học, và tổ hợp môn đã cung cấp");
-        }
-
-        return dataWithQuota;
-    }
-
-    private DiemTrungBinhStatus analyzeScoreChange(float chenhLechDTB) {
-        if (chenhLechDTB >= 1) return DiemTrungBinhStatus.TangManh;
-        if (chenhLechDTB >= 0.4) return DiemTrungBinhStatus.Tang;
-        if (chenhLechDTB > 0) return DiemTrungBinhStatus.TangNhe;
-        if (chenhLechDTB <= -1) return DiemTrungBinhStatus.GiamManh;
-        if (chenhLechDTB <= -0.4) return DiemTrungBinhStatus.Giam;
-        if (chenhLechDTB < 0) return DiemTrungBinhStatus.GiamNhe;
-        return DiemTrungBinhStatus.KhongDoi;
-    }
-
-    private ChiTieuStatus analyzeQuotaChange(int chiTieuChenhLech) {
-        if (chiTieuChenhLech >= 200) return ChiTieuStatus.TangManh;
-        if (chiTieuChenhLech >= 100) return ChiTieuStatus.Tang;
-        if (chiTieuChenhLech > 0) return ChiTieuStatus.TangNhe;
-        if (chiTieuChenhLech <= -200) return ChiTieuStatus.GiamManh;
-        if (chiTieuChenhLech <= -100) return ChiTieuStatus.Giam;
-        if (chiTieuChenhLech < 0) return ChiTieuStatus.GiamNhe;
-        return ChiTieuStatus.KhongDoi;
-    }
-
-    private DiemChuanStatus getResult(DiemTrungBinhStatus scoreStatus, ChiTieuStatus quotaStatus) {
-        if (scoreStatus == DiemTrungBinhStatus.GiamManh || quotaStatus == ChiTieuStatus.GiamManh) {
-            return DiemChuanStatus.Giam;
-        }
-        if (scoreStatus == DiemTrungBinhStatus.TangManh || quotaStatus == ChiTieuStatus.TangManh) {
-            return DiemChuanStatus.Tang;
-        }
-        return DiemChuanStatus.KhongDoi;
-    }
-
-    private String generateAdvice(DiemChuanStatus finalStatus, double userScore, float score2023, String university, String major) {
-        double scoreDifference = userScore - score2023;
-
-        if (finalStatus == DiemChuanStatus.Giam) {
-            if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 là KHÁ CAO.";
-            } else if (scoreDifference <= -1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        } else if (finalStatus == DiemChuanStatus.Tang) {
-            if (scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        } else if (finalStatus == DiemChuanStatus.KhongDoi) {
-            if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
-            } else if (scoreDifference < -0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
-            } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
-            } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
-            }
-        }
-        return "Không xác định được khả năng trúng tuyển.";
-    }
-
-    public void getAllAdmissionTrainingProgramCode(){
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findAll();
-        for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms) {
-            if (admissionTrainingProgram.getTrainingProgramCode() == null)
-                admissionTrainingProgram.updateCode();
-        }
-        admissionTrainingProgramService.saveAllAdmissionTrainingProgram(admissionTrainingPrograms);
-    }
-
-    public List<UniversityCompareMajorDTO> compareMajor(Integer majorId, List<Integer> universityIds, Integer year) {
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdAndUniversityIdsAndYear(majorId, universityIds, year);
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
-        List<Admission> admissions = this.findByUniversityIdsAndYearAndStatus(universityIds, year, AdmissionStatus.ACTIVE);
-        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatusWithMajorId(universityIds, UniversityTrainingProgramStatus.ACTIVE, majorId);
-        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityIds);
-        List<User> accounts = userService.findByIds(universityIds);
-        Major major = majorService.findById(majorId);
-
-        List<UniversityCompareMajorDTO> universityCompareMajorDTOS = new ArrayList<>();
-        for (User user: accounts) {
-            UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
-            Admission admission = admissions.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
-            List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms.stream().filter((ele) -> ele.getAdmissionId().equals(admission.getId())).toList();
-            List<Integer> admissionTrainingProgramIds = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
-            List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream().filter((ele) -> admissionTrainingProgramIds.contains(ele.getId().getAdmissionTrainingProgramId())).toList();
-            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).toList();
-
-            List<CompareMajorDTO> compareMajorDTOS = new ArrayList<>();
-            for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms1) {
-                AdmissionTrainingProgramMethod admissionTrainingProgramMethod = admissionTrainingProgramMethods1.stream().filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh."));
-
-                compareMajorDTOS.add(mappingCompareMajorDTO(admissionTrainingProgram, admissionTrainingProgramMethod, major, admission, universityTrainingPrograms1));
-            }
-            universityCompareMajorDTOS.add(new UniversityCompareMajorDTO(user, universityInfo, compareMajorDTOS, admission));
-        }
-        return universityCompareMajorDTOS;
-    }
-
-    public List<UniversityCompareMajorDTO> compareMajor(Integer majorId, List<Integer> universityIds, Integer year, Integer studentReportId) {
-        StudentReport studentReport = studentReportService.findById(studentReportId);
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdAndUniversityIdsAndYear(majorId, universityIds, year);
-        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
-        List<Admission> admissions = this.findByUniversityIdsAndYearAndStatus(universityIds, year, AdmissionStatus.ACTIVE);
-        List<AdmissionMethod> admissionMethods = admissionMethodService.findByAdmissionIds(admissions.stream().map(Admission::getId).distinct().toList());
-        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatusWithMajorId(universityIds, UniversityTrainingProgramStatus.ACTIVE, majorId);
-        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityIds);
-        List<User> accounts = userService.findByIds(universityIds);
-        List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).distinct().toList());
-        Major major = majorService.findById(majorId);
-
-        List<UniversityCompareMajorDTO> universityCompareMajorDTOS = new ArrayList<>();
-        for (User user: accounts) {
-            UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
-            Admission admission = admissions.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
-            List<AdmissionTrainingProgram> admissionTrainingPrograms1 = admissionTrainingPrograms.stream().filter((ele) -> ele.getAdmissionId().equals(admission.getId())).toList();
-            List<Integer> admissionTrainingProgramIds = admissionTrainingPrograms1.stream().map(AdmissionTrainingProgram::getId).toList();
-            List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods1 = admissionTrainingProgramMethods.stream().filter((ele) -> admissionTrainingProgramIds.contains(ele.getId().getAdmissionTrainingProgramId())).toList();
-            List<UniversityTrainingProgram> universityTrainingPrograms1 = universityTrainingPrograms.stream().filter((ele) -> ele.getUniversityId().equals(user.getId())).toList();
-            List<AdmissionMethod> admissionMethods1 = admissionMethods.stream().filter((ele) -> ele.getAdmissionId().equals(admission.getId())).toList();
-            List<CompareMajorDTO> compareMajorDTOS = new ArrayList<>();
-            for (AdmissionTrainingProgram admissionTrainingProgram : admissionTrainingPrograms1) {
-                List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods2 = admissionTrainingProgramMethods1.stream().filter((ele) -> ele.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId())).toList();
-
-                compareMajorDTOS.add(mappingCompareMajorDTO(admissionTrainingProgram, admissionTrainingProgramMethods2, major, admission, universityTrainingPrograms1, admissionMethods1, studentReport, methods));
-            }
-            universityCompareMajorDTOS.add(new UniversityCompareMajorDTO(user, universityInfo, compareMajorDTOS, admission));
-        }
-        return universityCompareMajorDTOS;
-    }
-
-    private CompareMajorDTO mappingCompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, Major major, Admission admission, List<UniversityTrainingProgram> universityTrainingProgram, List<AdmissionMethod> admissionMethods, StudentReport studentReport, List<Method> methods) {
-        CompareMajorDTO result = new CompareMajorDTO(admissionTrainingProgram, majorService.mapInfo(major), admission, universityTrainingProgram);
-        List<CompareMajorMethodDTO> methodAndScores = new ArrayList<>();
-        for (AdmissionTrainingProgramMethod admissionTrainingProgramMethod : admissionTrainingProgramMethods) {
-            AdmissionMethod admissionMethod = admissionMethods.stream().filter((element) -> element.getId().equals(admissionTrainingProgramMethod.getId().getAdmissionMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Admission Method."));
-            methodAndScores.add(
-                    new CompareMajorMethodDTO(admissionMethod,
-                            admissionTrainingProgramMethod,
-                            studentReport,
-                            methods.stream().filter((element) -> element.getId().equals(admissionMethod.getMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh.")))
-            );
-        }
-        result.setMethodAndScores(methodAndScores);
-        return result;
-    }
-
-    private CompareMajorDTO mappingCompareMajorDTO(AdmissionTrainingProgram admissionTrainingProgram, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, Major major, Admission admission, List<UniversityTrainingProgram> universityTrainingProgram) {
-        return new CompareMajorDTO(admissionTrainingProgram, majorService.mapInfo(major), admission, universityTrainingProgram);
-    }
-
-    private List<Admission> findByUniversityIdsAndYearAndStatus(List<Integer> universityIds, Integer year, AdmissionStatus status) {
-        List<Admission> admissions = admissionRepository.findByUniversityIdInAndYearAndAdmissionStatus(universityIds, year, status);
-        if (admissions.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy dữ liệu tuyển sinh.");
-        }
-        if (admissions.size() != universityIds.size()) {
-            throw new ResourceNotFoundException("Dữ liệu tuyển sinh không đầy đủ.");
-        }
-        return admissions;
     }
 }

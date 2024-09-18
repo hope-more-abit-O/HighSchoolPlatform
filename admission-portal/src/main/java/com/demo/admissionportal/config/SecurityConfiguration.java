@@ -93,6 +93,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(CONSULTANT_API).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
 
                                 .requestMatchers(HttpMethod.GET, "/api/v1/major/all").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/major/available-majors").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/major").permitAll()
                                 .requestMatchers(MAJOR_API).hasAnyAuthority("STAFF", "ADMIN")
 
@@ -106,6 +107,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/school-directory-detail").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice/v2").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/score-advice/v3").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/university-got-major/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/a").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/university/{id}/latest-training-program").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission").permitAll()
@@ -125,6 +128,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/university-training-program/info/{university-id}").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/university-training-program/major/{major-id}").permitAll()
                                 .requestMatchers(UNIVERSITY_TRAINING_PROGRAM).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(STATISTICS_API).hasAnyAuthority("UNIVERSITY","ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
