@@ -36,4 +36,11 @@ public class SubjectGroupController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    @GetMapping("/get-by-major-and-university")
+    public ResponseEntity<ResponseData> getByMajorIdAndUniversityId(@RequestParam(required = true) Integer majorId
+            , @RequestParam(required = true) Integer universityId
+            , @RequestParam(required = true) Integer year) {
+        return ResponseEntity.ok(ResponseData.ok("Lấy tất cả các khối xét tuyển cho ngành và trường thành công.", subjectGroupService.getByMajorIdAndUniversityId(majorId, universityId, year)));
+    }
 }

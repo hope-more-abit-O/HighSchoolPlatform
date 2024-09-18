@@ -1,7 +1,6 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.SubjectGroup;
-import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The interface Subject group repository.
@@ -24,7 +22,7 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
      * @return the subject group
      */
     SubjectGroup findByName(String name);
-    Optional<SubjectGroup> findById(Integer id);
+
     /**
      * Find all page.
      *
@@ -78,6 +76,15 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
     @Query("SELECT sg.id FROM SubjectGroup sg WHERE sg.name = :examGroup")
     Integer findSubjectGroupIdByName(@Param("examGroup") String examGroup);
 
-
-    SubjectGroup findSubjectGroupById(Integer subjectGroupId);
+    @Query(value = """
+select distinct sg.*
+from admission_training_program atp
+inner join dbo.admission a on a.id = atp.admission_id
+inner join dbo.admission_training_program_subject_group atpsg on atp.id = atpsg.admission_training_program_id
+inner join subject_group sg on atpsg.subject_group_id = sg.id
+where a.status = 'ACTIVE' and a.year = :year
+and atp.major_id = :majorId
+and a.university_id = :universityId
+""", nativeQuery = true)
+    List<SubjectGroup> findByMajorIdAndUniversityIdAndYear(Integer majorId, Integer universityId, Integer year);
 }

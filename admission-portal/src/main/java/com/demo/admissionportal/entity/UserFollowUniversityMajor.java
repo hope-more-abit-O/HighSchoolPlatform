@@ -31,11 +31,10 @@ public class UserFollowUniversityMajor {
     @Column(name = "create_time")
     private Date createTime;
 
-    @Column(name = "update_time")
-    private Date updateTime;
-
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private FavoriteStatus status;
 
+    @Column(name = "index_of_follow")
+    private Integer indexOfFollow;
 }

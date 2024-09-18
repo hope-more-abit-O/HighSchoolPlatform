@@ -47,8 +47,8 @@ public interface UniversityInfoRepository extends JpaRepository<UniversityInfo, 
 
     List<UniversityInfo> findByStaffId(Integer staffId);
 
-    @Query("SELECT u FROM UniversityInfo u WHERE u.id = :universityId")
-    List<UniversityInfo> findByUniversityId(@Param("universityId")Integer universityId);
+    @Query("SELECT u FROM UniversityInfo u WHERE u.name = :name")
+    List<UniversityInfo> findByUniversityName(String name);
 
     /**
      * Find by name list.

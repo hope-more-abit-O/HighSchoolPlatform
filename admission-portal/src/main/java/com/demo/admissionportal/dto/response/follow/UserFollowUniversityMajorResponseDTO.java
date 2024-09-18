@@ -29,4 +29,5 @@ public class UserFollowUniversityMajorResponseDTO implements Serializable {
     private String training_specific;
     private String language;
     private Date createTime;
+    private String subjectGroups;
 }
