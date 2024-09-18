@@ -75,4 +75,10 @@ public class MajorController {
             return ResponseEntity.ok(ResponseData.error("Tạo yêu cầu ngành thất bại."));
         }
     }
+
+    @GetMapping("/available-majors")
+    public ResponseEntity<ResponseData> getAvailableMajors(){
+        return ResponseEntity.ok(ResponseData.ok("Lấy thông tin các ngành thành công.", majorService.getAvailableMajors()));
+    }
+
 }

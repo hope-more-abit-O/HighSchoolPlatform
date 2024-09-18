@@ -1,7 +1,6 @@
 package com.demo.admissionportal.dto.entity.admission;
 
 import com.demo.admissionportal.dto.entity.university_campus.CampusProvinceDTO;
-import com.demo.admissionportal.dto.response.ProvinceDTO;
 import com.demo.admissionportal.entity.UniversityInfo;
 import com.demo.admissionportal.entity.UniversityTrainingProgram;
 import com.demo.admissionportal.entity.User;
@@ -15,7 +14,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SchoolDirectoryInfo {
+public class SchoolDirectoryInfoDTO {
     private Integer id;
     private Integer admissionId;
     private Integer year;
@@ -34,13 +33,13 @@ public class SchoolDirectoryInfo {
     private List<Integer> admissionTrainingProgramIds;
     private List<Integer> admissionMethodIds;
 
-    public SchoolDirectoryInfo(User user,
-                               UniversityInfo universityInfo,
-                               List<UniversityTrainingProgram> universityTrainingPrograms,
-                               List<CampusProvinceDTO> campus, Integer totalQuota,
-                               Admission admission,
-                               Integer methodCount,
-                               Integer majorCount) {
+    public SchoolDirectoryInfoDTO(User user,
+                                  UniversityInfo universityInfo,
+                                  List<UniversityTrainingProgram> universityTrainingPrograms,
+                                  List<CampusProvinceDTO> campus, Integer totalQuota,
+                                  Admission admission,
+                                  Integer methodCount,
+                                  Integer majorCount) {
         this.id = user.getId();
         this.admissionId = admission.getId();
         this.year = admission.getYear();
@@ -58,15 +57,15 @@ public class SchoolDirectoryInfo {
         this.majorCount = majorCount;
     }
 
-    public SchoolDirectoryInfo(User user,
-                               UniversityInfo universityInfo,
-                               List<UniversityTrainingProgram> universityTrainingPrograms,
-                               List<CampusProvinceDTO> campus, Integer totalQuota,
-                               Admission admission,
-                               Integer methodCount,
-                               Integer majorCount,
-                               List<Integer> admissionTrainingProgramIds,
-                               List<Integer> admissionMethodIds) {
+    public SchoolDirectoryInfoDTO(User user,
+                                  UniversityInfo universityInfo,
+                                  List<UniversityTrainingProgram> universityTrainingPrograms,
+                                  List<CampusProvinceDTO> campus, Integer totalQuota,
+                                  Admission admission,
+                                  Integer methodCount,
+                                  Integer majorCount,
+                                  List<Integer> admissionTrainingProgramIds,
+                                  List<Integer> admissionMethodIds) {
         this.id = user.getId();
         this.admissionId = admission.getId();
         this.year = admission.getYear();

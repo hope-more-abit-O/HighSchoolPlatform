@@ -21,6 +21,7 @@ import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.SubjectGroupService;
 import com.demo.admissionportal.util.impl.NameUtils;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
@@ -278,6 +279,8 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
                 return new ResponseData<>(ResponseCode.C203.getCode(), "Tổ hợp môn học không được tìm thấy !");
             }
             subjectGroup.setStatus(SubjectStatus.INACTIVE);
+            subjectGroup.setUpdateBy(ServiceUtils.getId());
+            subjectGroup.setUpdateTime(new Date());
             subjectGroupRepository.save(subjectGroup);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tổ hợp môn học được xóa thành công !");
         } catch (Exception e) {
@@ -425,5 +428,4 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         List<SubjectGroup> b = (List<SubjectGroup>) a.getResultList();
         return b;
     }
-
 }

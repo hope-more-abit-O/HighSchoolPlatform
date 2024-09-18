@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SchoolAdviceRequestV2 {
-    private List<Integer> majorId;
+public class SchoolAdviceRequestV3 {
+    private List<String> majorId;
     private Float fromScore;
     private Float toScore;
     private List<String> region;
