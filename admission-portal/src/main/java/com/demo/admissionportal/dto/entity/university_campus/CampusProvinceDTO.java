@@ -21,6 +21,8 @@ public class CampusProvinceDTO {
     private String districtName;
     private Integer wardId;
     private String wardName;
+    private String specificAddress;
+    private String fullAddress;
     private Integer campusId;
     private String campusName;
     private String type;
@@ -55,6 +57,8 @@ public class CampusProvinceDTO {
         this.campusId = universityCampus.getId();
         this.campusName = universityCampus.getCampusName();
         this.provinceName = province.getName();
+        this.specificAddress = universityCampus.getSpecificAddress();
+        this.fullAddress = universityCampus.getSpecificAddress() + ", " + ward.getName() + ", " + district.getName() + ", " + province.getName();
         this.type = universityCampus.getType().name;
         if (provinceIds == null) {
             this.isChosen = false;
