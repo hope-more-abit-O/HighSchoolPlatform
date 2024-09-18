@@ -1,26 +1,31 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.*;
+import com.demo.admissionportal.dto.*;
+import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.entity.ExamLocal;
 import com.demo.admissionportal.entity.ExamYear;
-import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
-import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
-import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
-import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.ExamYearData;
-import com.demo.admissionportal.dto.RegisteredIdentificationNumberDTO;
-import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.admission.Admission;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
+import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.entity.sub_entity.ListExamScoreHighSchoolExamScore;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import com.demo.admissionportal.repository.sub_repository.ListExamScoreHighSchoolExamScoreRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -59,6 +64,16 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private ExamLocalRepository examLocalRepository;
     @Autowired
     private ExamYearRepository examYearRepository;
+    @Autowired
+    private UniversityInfoRepository universityInfoRepository;
+    @Autowired
+    private MajorRepository majorRepository;
+    @Autowired
+    private AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
+    @Autowired
+    private AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
+    @Autowired
+    private AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
 
     @Override
     public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer examYearId) {
@@ -137,7 +152,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình tra cứu điểm, vui lòng thử lại sau.");
         }
     }
-
 
     private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(36, 28, 38, 27, 16, 23, 34, 9, 54);
 
@@ -1250,4 +1264,333 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 .map(subject -> new SubjectDTO(subject.getId(), subject.getName()))
                 .orElse(null);
     }
+
+    private final Map<Integer, Float> avgScore2023 = new HashMap<>();
+    private final Map<Integer, Float> avgScore2024 = new HashMap<>();
+    private final Map<Integer, Integer> totalExaminer2023 = new HashMap<>();
+    private final Map<Integer, Integer> totalExaminer2024 = new HashMap<>();
+
+    public void AdmissionAnalysisService() {
+        avgScore2023.put(1, 20.77f);
+        avgScore2023.put(2, 20.28f);
+        avgScore2023.put(19, 20.6f);
+        avgScore2023.put(26, 18.98f);
+        avgScore2023.put(46, 18.9f);
+
+        totalExaminer2023.put(1, 325902);
+        totalExaminer2023.put(2, 315146);
+        totalExaminer2023.put(19, 324554);
+        totalExaminer2023.put(26, 681723);
+        totalExaminer2023.put(46, 877677);
+
+        avgScore2024.put(1, 20.9f);
+        avgScore2024.put(2, 20.47f);
+        avgScore2024.put(19, 20.53f);
+        avgScore2024.put(26, 20.95f);
+        avgScore2024.put(46, 19.51f);
+
+        totalExaminer2024.put(1, 343800);
+        totalExaminer2024.put(2, 328761);
+        totalExaminer2024.put(19, 342291);
+        totalExaminer2024.put(26, 704008);
+        totalExaminer2024.put(46, 908681);
+    }
+
+    public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
+        try {
+            ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
+            if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
+                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
+            }
+
+            List<Integer> availableSubjectGroupIds = availableSubjectGroupsResponse.getData().stream()
+                    .map(SubjectGroupDTO::getSubjectGroupId)
+                    .toList();
+
+            Integer subjectGroup = request.getSubjectGroup();
+            if (!availableSubjectGroupIds.contains(subjectGroup)) {
+                throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
+            }
+
+            Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroup);
+            if (examScore2023 == null) {
+                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
+            }
+            List<Integer> subjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup);
+
+            List<HighschoolExamScore> userScores = highschoolExamScoreRepository.findByIdentificationNumberAndSubjectIdIn(request.getIdentificationNumber(), subjectIds);
+
+            float userScore2024 = userScores.stream()
+                    .map(HighschoolExamScore::getScore)
+                    .reduce(0f, Float::sum);
+
+            float avgScore2023ForGroup;
+            float avgScore2024ForGroup;
+
+            switch (subjectGroup) {
+                case 1:
+                    avgScore2023ForGroup = 20.77f;
+                    avgScore2024ForGroup = 20.9f;
+                    break;
+                case 2:
+                    avgScore2023ForGroup = 20.28f;
+                    avgScore2024ForGroup = 20.47f;
+                    break;
+                case 19:
+                    avgScore2023ForGroup = 20.6f;
+                    avgScore2024ForGroup = 20.53f;
+
+                    break;
+                case 26:
+                    avgScore2023ForGroup = 18.98f;
+                    avgScore2024ForGroup = 20.95f;
+                    break;
+                case 46:
+                    avgScore2023ForGroup = 18.9f;
+                    avgScore2024ForGroup = 19.51f;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Khối không hợp lệ: " + subjectGroup);
+            }
+
+            float chenhLechDTB = avgScore2024ForGroup - avgScore2023ForGroup;
+
+            List<Object[]> dataWithQuota = getScoreAndSubjectGroupAndMajor(request);
+
+            int quota2023 = 0, quota2024 = 0;
+            for (Object[] row : dataWithQuota) {
+                int year = (int) row[0];
+                if (year == 2023) {
+                    quota2023 = (int) row[2];
+                } else if (year == 2024) {
+                    quota2024 = (int) row[2];
+                }
+            }
+
+            int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
+
+            DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
+
+            String scoreTrend = scoreStatus.getName();
+
+            ChiTieuStatus quotaStatus = analyzeQuotaChange(chiTieuChenhLech);
+
+            String quotaTrend = quotaStatus.getName();
+
+            DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
+
+            String universityName = universityInfoRepository.findById(request.getUniversity())
+                    .map(UniversityInfo::getName)
+                    .orElse("Trường không hợp lệ");
+
+            String majorName = majorRepository.findById(request.getMajor())
+                    .map(Major::getName)
+                    .orElse("Ngành không hợp lệ");
+
+            String subjectGroupName = subjectGroupRepository.findById(request.getSubjectGroup())
+                    .map(SubjectGroup::getName)
+                    .orElse("Tổ hợp môn không hợp lệ");
+
+            String advice = generateAdvice(finalStatus, userScore2024, examScore2023, universityName, majorName, subjectGroupName);
+
+            String chenhLechDTBMessage = "Điểm trung bình tổ hợp môn " + subjectGroupName + " năm 2024 có xu hướng " + scoreTrend +
+                    " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
+
+            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + majorName + " của trường " + universityName+
+                    " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
+
+            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
+
+        } catch (IllegalArgumentException ex) {
+            log.error("Validate error: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Error while analyze: {}", ex.getMessage(), ex);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+        }
+    }
+
+    private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
+        List<UniversityInfo> universityList = universityInfoRepository.findByUniversityId(request.getUniversity());
+        if (universityList.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy trường đại học với tên: " + request.getUniversity());
+        }
+
+        List<Major> majorList = majorRepository.findAllById(request.getMajor());
+        if (majorList.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy ngành học với tên: " + request.getMajor());
+        }
+
+        List<Integer> majorIds = majorList.stream()
+                .map(Major::getId)
+                .collect(Collectors.toList());
+
+        Optional<SubjectGroup> subjectGroup = subjectGroupRepository.findById(request.getSubjectGroup());
+        if (subjectGroup.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy tổ hợp môn với tên: " + request.getSubjectGroup().getClass().getName());
+        }
+
+
+        List<Object[]> dataWithQuota = null;
+
+        for (UniversityInfo university : universityList) {
+            if (majorIds.isEmpty()) {
+                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithoutMajor(
+                        university.getId(), subjectGroup.get().getId());
+            } else {
+                dataWithQuota = admissionTrainingProgramMethodRepository.findAdmissionDataFor2023And2024WithMajor(
+                        university.getId(), subjectGroup.get().getId(), majorIds);
+            }
+
+            if (!dataWithQuota.isEmpty()) {
+                break;
+            }
+        }
+
+        if (dataWithQuota == null || dataWithQuota.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy dữ liệu cho trường, ngành học, và tổ hợp môn đã cung cấp");
+        }
+
+        return dataWithQuota;
+    }
+
+    private DiemTrungBinhStatus analyzeScoreChange(float chenhLechDTB) {
+        if (chenhLechDTB >= 1) return DiemTrungBinhStatus.TangManh;
+        if (chenhLechDTB >= 0.4) return DiemTrungBinhStatus.Tang;
+        if (chenhLechDTB > 0) return DiemTrungBinhStatus.TangNhe;
+        if (chenhLechDTB <= -1) return DiemTrungBinhStatus.GiamManh;
+        if (chenhLechDTB <= -0.4) return DiemTrungBinhStatus.Giam;
+        if (chenhLechDTB < 0) return DiemTrungBinhStatus.GiamNhe;
+        return DiemTrungBinhStatus.KhongDoi;
+    }
+
+    private ChiTieuStatus analyzeQuotaChange(int chiTieuChenhLech) {
+        if (chiTieuChenhLech >= 200) return ChiTieuStatus.TangManh;
+        if (chiTieuChenhLech >= 100) return ChiTieuStatus.Tang;
+        if (chiTieuChenhLech > 0) return ChiTieuStatus.TangNhe;
+        if (chiTieuChenhLech <= -200) return ChiTieuStatus.GiamManh;
+        if (chiTieuChenhLech <= -100) return ChiTieuStatus.Giam;
+        if (chiTieuChenhLech < 0) return ChiTieuStatus.GiamNhe;
+        return ChiTieuStatus.KhongDoi;
+    }
+
+    private DiemChuanStatus getResult(DiemTrungBinhStatus scoreStatus, ChiTieuStatus quotaStatus) {
+        if (scoreStatus == DiemTrungBinhStatus.GiamManh || quotaStatus == ChiTieuStatus.GiamManh) {
+            return DiemChuanStatus.Giam;
+        }
+        if (scoreStatus == DiemTrungBinhStatus.TangManh || quotaStatus == ChiTieuStatus.TangManh) {
+            return DiemChuanStatus.Tang;
+        }
+        return DiemChuanStatus.KhongDoi;
+    }
+
+    private String generateAdvice(DiemChuanStatus finalStatus, float score2024, float score2023, String university, String major, String subjectGroupName) {
+        double scoreDifference = score2024 - score2023;
+
+        if (finalStatus == DiemChuanStatus.Giam) {
+            if (scoreDifference >= -1.5 && scoreDifference < 0) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+            } else if (scoreDifference >= 0 && scoreDifference <= 1) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+            } else if (scoreDifference <= -1.5) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName +" là RẤT THẤP.";
+            } else {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+            }
+        } else if (finalStatus == DiemChuanStatus.Tang) {
+            if (scoreDifference < 0) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+            } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+            } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+            } else {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+            }
+        } else if (finalStatus == DiemChuanStatus.KhongDoi) {
+            if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+            } else if (scoreDifference < -0.5) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+            } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+            } else {
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+            }
+        }
+        return "Không xác định được khả năng trúng tuyển.";
+    }
+
+
+    public ResponseData<List<SubjectGroupDTO>> getAvailableSubjectGroupsForUser(String identificationNumber, Integer universityId, Integer subjectGroupId) {
+        try {
+            List<HighschoolExamScore> examScores = highschoolExamScoreRepository.findByIdentificationNumberAndScoreIsNotNull(identificationNumber);
+            if (examScores.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy điểm thi hợp lệ cho số báo danh này.");
+            }
+
+            List<Integer> subjectIdsFromUser = examScores.stream()
+                    .map(HighschoolExamScore::getSubjectId)
+                    .distinct()
+                    .toList();
+
+            List<SubjectGroup> availableSubjectGroups = subjectGroupSubjectRepository.findBySubjectIdIn(subjectIdsFromUser);
+            if (availableSubjectGroups.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy tổ hợp môn hợp lệ cho điểm thi của thí sinh.");
+            }
+
+            List<SubjectGroup> filteredSubjectGroups = availableSubjectGroups.stream()
+                    .filter(subjectGroup -> {
+                        List<Integer> subjectGroupSubjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup.getId());
+                        return subjectIdsFromUser.containsAll(subjectGroupSubjectIds);
+                    })
+                    .toList();
+
+            if (filteredSubjectGroups.isEmpty()) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy tổ hợp môn phù hợp với danh sách môn thí sinh đã thi.");
+            }
+
+            UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
+
+            List<Integer> majorIds = admissionTrainingProgramRepository.findMajorIdsByUniversityId(universityId);
+
+            List<AdmissionTrainingProgramSubjectGroup> availableSubjectGroupsFromAdmission = admissionTrainingProgramSubjectGroupRepository.findByUniversityIdAndSubjectGroupId(universityInfo.getId(), subjectGroupId);
+
+            List<AdmissionTrainingProgramSubjectGroup> filteredAdmissionSubjectGroups = availableSubjectGroupsFromAdmission.stream()
+                    .filter(atpsg -> {
+                        Integer admissionTrainingProgramId = atpsg.getId().getAdmissionTrainingProgramId();
+
+                        AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingProgramRepository.findById(admissionTrainingProgramId).orElse(null);
+                        if (admissionTrainingProgram == null || !majorIds.contains(admissionTrainingProgram.getMajorId())) {
+                            return false;
+                        }
+
+                        Optional<AdmissionTrainingProgramMethod> admissionMethod2023 = admissionTrainingProgramMethodRepository.findByAdmissionTrainingProgramIdAndYearAndStatus(
+                                admissionTrainingProgramId, 2023, AdmissionStatus.ACTIVE);
+
+                        Optional<AdmissionTrainingProgramMethod> admissionMethod2024 = admissionTrainingProgramMethodRepository.findByAdmissionTrainingProgramIdAndYearAndStatus(
+                                admissionTrainingProgramId, 2024, AdmissionStatus.ACTIVE);
+
+                        return admissionMethod2023.isPresent() && admissionMethod2023.get().getAdmissionScore() != null
+                                || admissionMethod2024.isPresent();
+                    })
+                    .toList();
+
+            List<SubjectGroupDTO> subjectGroupDTOs = filteredAdmissionSubjectGroups.stream()
+                    .map(atpsg -> {
+                        SubjectGroup subjectGroup = subjectGroupRepository.findSubjectGroupById(atpsg.getId().getSubjectGroupId());
+                        return new SubjectGroupDTO(subjectGroup.getId(), subjectGroup.getName(), subjectGroup.getStatus());
+                    })
+                    .filter(subjectGroupDTO -> subjectGroupDTO.getStatus().equals(SubjectStatus.ACTIVE))
+                    .toList();
+
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn thành công", subjectGroupDTOs);
+        } catch (Exception e) {
+            log.error("Error fetching subject groups for examiner", e);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy tổ hợp môn, vui lòng thử lại sau.");
+        }
+    }
+
 }

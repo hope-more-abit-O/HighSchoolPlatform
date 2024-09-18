@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.entity.SubjectGroup;
+import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Subject group repository.
@@ -22,7 +24,7 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
      * @return the subject group
      */
     SubjectGroup findByName(String name);
-
+    Optional<SubjectGroup> findById(Integer id);
     /**
      * Find all page.
      *
@@ -75,4 +77,7 @@ public interface SubjectGroupRepository extends JpaRepository<SubjectGroup, Inte
 
     @Query("SELECT sg.id FROM SubjectGroup sg WHERE sg.name = :examGroup")
     Integer findSubjectGroupIdByName(@Param("examGroup") String examGroup);
+
+
+    SubjectGroup findSubjectGroupById(Integer subjectGroupId);
 }

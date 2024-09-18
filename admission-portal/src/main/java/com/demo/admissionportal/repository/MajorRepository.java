@@ -14,7 +14,7 @@ import java.util.*;
 public interface MajorRepository extends JpaRepository<Major, Integer> {
     Optional<Major> findByName(String methodName);
 
-    List<Major> findAllByName(String name);
+    List<Major> findAllById(Integer majorId);
 
     List<Major> findByNameInOrCodeIn(Set<String> majorNames, Set<String> majorCodes);
 
