@@ -34,7 +34,7 @@ public class CompareMajorMethodDTO {
     public void setRecommend(AdmissionMethod admissionMethod, StudentReport studentReport, AdmissionTrainingProgramMethod admissionTrainingProgramMethod) {
         this.isRecommended = false;
 
-        if (studentReport == null) {
+        if (studentReport == null || admissionTrainingProgramMethod.getAdmissionScore() == null) {
             return;
         }
 
