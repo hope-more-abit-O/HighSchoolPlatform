@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AdmissionTrainingProgramRepository extends JpaRepository<AdmissionTrainingProgram, Integer> {
@@ -28,4 +27,12 @@ public interface AdmissionTrainingProgramRepository extends JpaRepository<Admiss
     List<AdmissionTrainingProgram> findByAdmissionIdInAndMajorIdIn(Collection<Integer> admissionIds, Collection<Integer> majorIds);
 
     Integer deleteByIdIn(List<Integer> ids);
+
+    @Query(value = """
+select atp.*
+from admission_training_program atp
+inner join admission a on atp.admission_id = a.id
+where a.university_id in (:universityIds) and a.year = :year and atp.major_id = :majorId and a.status = 'ACTIVE'
+""", nativeQuery = true)
+    List<AdmissionTrainingProgram> findByMajorIdAndUniversityIdsAndYearCustom(@Param("majorId") Integer majorId, @Param("universityIds") List<Integer> universityIds, @Param("year")  Integer year);
 }

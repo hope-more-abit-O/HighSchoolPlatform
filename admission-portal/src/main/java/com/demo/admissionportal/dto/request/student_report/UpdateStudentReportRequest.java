@@ -19,4 +19,6 @@ public class UpdateStudentReportRequest {
     private String studentReportName;
     @NotEmpty(message = "Danh sách điểm không được để trống !")
     private List<UpdateMarkDTO> marks;
+    private Float highSchoolExamScore;
+    private Float competencyAssessmentExamScore;
 }

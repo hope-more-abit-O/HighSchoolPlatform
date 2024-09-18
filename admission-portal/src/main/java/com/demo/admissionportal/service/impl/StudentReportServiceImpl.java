@@ -154,6 +154,13 @@ public class StudentReportServiceImpl implements StudentReportService {
             studentReport.setName(request.getStudentReportName());
             studentReport.setUpdateBy(authenticatedUser.getId());
             studentReport.setUpdateTime(new Date());
+            if (request.getHighSchoolExamScore() != null) {
+                studentReport.setHighSchoolExamScore(request.getHighSchoolExamScore());
+            }
+            if (request.getCompetencyAssessmentExamScore() != null) {
+                studentReport.setCompetencyAssessmentExamScore(request.getCompetencyAssessmentExamScore());
+            }
+
             studentReportRepository.save(studentReport);
 
             // Check valid grade, semester and subject exist in table subject_grade_semester

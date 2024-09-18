@@ -87,6 +87,10 @@ public class AdmissionTrainingProgram {
                 '}';
     }
 
+    public void updateCode(){
+        this.trainingProgramCode = trainingProgramCodeConvert();
+    }
+
     private String trainingProgramCodeConvert() {
         String extension ="";
         if (this.language != null) {

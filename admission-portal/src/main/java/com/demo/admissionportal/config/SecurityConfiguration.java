@@ -116,6 +116,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/v1/admission/forecast").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/admission/compare").permitAll()
                                 .requestMatchers(ADMISSION_API).authenticated()
 
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
