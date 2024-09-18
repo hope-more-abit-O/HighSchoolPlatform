@@ -53,7 +53,7 @@ public interface FollowService {
      *
      * @return the list follow uni major
      */
-    ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor();
+    ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor(Integer year);
 
     /**
      * Gets list user follow major.
