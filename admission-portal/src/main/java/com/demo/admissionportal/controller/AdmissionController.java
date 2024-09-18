@@ -13,7 +13,6 @@ import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
-import com.demo.admissionportal.dto.response.admission.CompareMajorResponse;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -103,6 +102,48 @@ public class AdmissionController {
                 regions = Arrays.stream(region.split(",")).toList();
             }
             return ResponseEntity.ok(admissionService.adviceSchoolV2(new SchoolAdviceRequestV2(majorIds, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/score-advice/v3")
+    public ResponseEntity adviceV3(
+            @RequestParam(required = true) Integer pageNumber,
+            @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = true) Integer year,
+            @RequestParam(required = false) String majorCode,
+            @RequestParam(required = false) Float fromScore,
+            @RequestParam(required = false) Float toScore,
+            @RequestParam(required = false) String subjectId,
+            @RequestParam(required = false) String methodId,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String provinceId
+    ) {
+        try {
+            List<String> majorCodes = null;
+            List<Integer> subjectIds = null;
+            List<Integer> methodIds = null;
+            List<Integer> provinceIds = null;
+            List<String> regions = null;
+
+            if (majorCode != null && !majorCode.isEmpty()) {
+                majorCodes = Arrays.stream(majorCode.split(",")).toList();
+            }
+            if (subjectId != null && !subjectId.isEmpty()) {
+                subjectIds = Arrays.stream(subjectId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (methodId != null && !methodId.isEmpty()) {
+                methodIds = Arrays.stream(methodId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (provinceId != null && !provinceId.isEmpty()) {
+                provinceIds = Arrays.stream(provinceId.split(",")).map(Integer::parseInt).toList();
+            }
+            if (region != null && !region.isEmpty()) {
+                regions = Arrays.stream(region.split(",")).toList();
+            }
+            return ResponseEntity.ok(admissionService.adviceSchoolV3
+                    (new SchoolAdviceRequestV3(majorCodes, fromScore, toScore, regions, subjectIds, methodIds, provinceIds, pageNumber, pageSize, year)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
