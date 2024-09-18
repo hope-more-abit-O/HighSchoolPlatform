@@ -39,7 +39,7 @@ public class AdmissionTrainingProgramDTOV2 {
 
     public AdmissionTrainingProgramDTOV2(Admission admission, InfoMajorDTO major, List<AdmissionTrainingProgramScoreDTO> score, String trainingSpecific, String language, List<UniversityTrainingProgram> universityTrainingPrograms) {
         this.universityId = admission.getUniversityId();
-        this.universityTrainingProgramId = universityTrainingPrograms.stream().filter((element) -> element.compareWithAdmissionTrainingProgram(major.getId(), trainingSpecific, language)).map(UniversityTrainingProgram::getMajorId).findFirst().orElse(null);
+        this.universityTrainingProgramId = universityTrainingPrograms.stream().filter((element) -> element.compareWithAdmissionTrainingProgram(major.getId(), trainingSpecific, language)).map(UniversityTrainingProgram::getId).findFirst().orElse(null);
         this.major = major;
         this.score = score;
         this.trainingSpecific = trainingSpecific;

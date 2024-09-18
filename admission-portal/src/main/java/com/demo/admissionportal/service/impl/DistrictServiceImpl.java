@@ -25,4 +25,8 @@ public class DistrictServiceImpl {
             return new ResourceNotFoundException("Địa chỉ cấp 2 với id: " + id + " không tìm thấy.");
         });
     }
+
+    public List<District> findByIds(List<Integer> ids){
+        return districtRepository.findAllById(ids);
+    }
 }
