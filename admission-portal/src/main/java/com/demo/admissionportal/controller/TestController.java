@@ -149,8 +149,5 @@ public class TestController {
         log.info("{}", a);
     }
 
-    @GetMapping("test3")
-    public void test3(){
-        admissionService.getAllAdmissionTrainingProgramCode();
-    }
+
 }
