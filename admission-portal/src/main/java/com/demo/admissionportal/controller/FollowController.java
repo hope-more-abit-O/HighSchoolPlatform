@@ -135,8 +135,8 @@ public class FollowController {
      */
     @GetMapping("/university/major/list")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<List<UserFollowUniversityMajorResponseDTO>>> getFollowUniMajorByUserId() {
-        ResponseData<List<UserFollowUniversityMajorResponseDTO>> list = followService.getListFollowUniMajor();
+    public ResponseEntity<ResponseData<List<UserFollowUniversityMajorResponseDTO>>> getFollowUniMajorByUserId(@RequestParam(required = true) Integer year) {
+        ResponseData<List<UserFollowUniversityMajorResponseDTO>> list = followService.getListFollowUniMajor(year);
         if (list.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(list);
         }

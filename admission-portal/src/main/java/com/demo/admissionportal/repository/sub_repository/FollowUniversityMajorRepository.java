@@ -1,5 +1,6 @@
 package com.demo.admissionportal.repository.sub_repository;
 
+import com.demo.admissionportal.entity.UserFollowMajor;
 import com.demo.admissionportal.entity.UserFollowUniversityMajor;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowUniversityMajorId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,4 +46,15 @@ public interface FollowUniversityMajorRepository extends JpaRepository<UserFollo
             "JOIN dbo.university_training_program utp on ufum.university_major = utp.id " +
             "WHERE utp.university_id = :universityId AND ufum.status = 'FOLLOW'", nativeQuery = true)
     List<UserFollowUniversityMajor> listUsersFollow(Integer universityId);
+
+    /**
+     * Find by user id v 2 list.
+     *
+     * @param userId the user id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM user_follow_university_major ufum " +
+            "WHERE ufum.user_id = :userId AND status = 'FOLLOW'", nativeQuery = true)
+    List<UserFollowUniversityMajor> findByUserIdV2(Integer userId);
 }
