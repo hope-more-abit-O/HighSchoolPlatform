@@ -125,6 +125,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(PACKAGE_API).hasAnyAuthority("ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(ORDER_API).hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/all").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/get-by-major-and-university").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/subject-group/list-all-subject-groups").permitAll()
                                 .requestMatchers(SUBJECT_GROUP_API).hasAnyAuthority("STAFF")
                                 .requestMatchers(HttpMethod.GET, "/api/v1/university-training-program/info/{university-id}").permitAll()
