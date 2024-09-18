@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdmissionAnalysisRequest {
-    private String identificationNumber;
-    private Integer subjectGroup;
-    private Integer university;
-    private Integer major;
+    private Float score;
+    private String subjectGroup;
+    private String university;
+    private String major;
 }

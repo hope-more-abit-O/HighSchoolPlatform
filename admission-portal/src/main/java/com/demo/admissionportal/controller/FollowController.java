@@ -1,6 +1,7 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.follow.UpdateFollowUniRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.follow.*;
 import com.demo.admissionportal.service.FollowService;
@@ -131,12 +132,13 @@ public class FollowController {
     /**
      * Gets follow uni major by user id.
      *
+     * @param year the year
      * @return the follow uni major by user id
      */
     @GetMapping("/university/major/list")
     @SecurityRequirement(name = "BearerAuth")
-    public ResponseEntity<ResponseData<List<UserFollowUniversityMajorResponseDTO>>> getFollowUniMajorByUserId() {
-        ResponseData<List<UserFollowUniversityMajorResponseDTO>> list = followService.getListFollowUniMajor();
+    public ResponseEntity<ResponseData<List<UserFollowUniversityMajorResponseDTO>>> getFollowUniMajorByUserId(@RequestParam(required = true) Integer year) {
+        ResponseData<List<UserFollowUniversityMajorResponseDTO>> list = followService.getListFollowUniMajor(year);
         if (list.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.status(HttpStatus.OK.value()).body(list);
         }
@@ -157,5 +159,24 @@ public class FollowController {
             return ResponseEntity.status(HttpStatus.OK.value()).body(list);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
+    }
+
+    /**
+     * Update follow uni major response entity.
+     *
+     * @param updateFollowUniRequestDTOS the update follow uni request dtos
+     * @return the response entity
+     */
+    @PutMapping("/university/major/list")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<String>> updateFollowUniMajor(@RequestBody List<UpdateFollowUniRequestDTO> updateFollowUniRequestDTOS) {
+        if (updateFollowUniRequestDTOS == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "updateFollowUniRequestDTOS null"));
+        }
+        ResponseData<String> updateFollow = followService.updateIndexFollow(updateFollowUniRequestDTOS);
+        if (updateFollow.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(updateFollow);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(updateFollow);
     }
 }

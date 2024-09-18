@@ -1,5 +1,6 @@
 package com.demo.admissionportal.service;
 
+import com.demo.admissionportal.dto.request.follow.UpdateFollowUniRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.follow.*;
 
@@ -51,9 +52,10 @@ public interface FollowService {
     /**
      * Gets list follow uni major.
      *
+     * @param year the year
      * @return the list follow uni major
      */
-    ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor();
+    ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor(Integer year);
 
     /**
      * Gets list user follow major.
@@ -61,4 +63,12 @@ public interface FollowService {
      * @return the list user follow major
      */
     ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajor();
+
+    /**
+     * Update index follow response data.
+     *
+     * @param updateFollowUniRequestDTOS the update follow uni request dtos
+     * @return the response data
+     */
+    ResponseData<String> updateIndexFollow(List<UpdateFollowUniRequestDTO> updateFollowUniRequestDTOS);
 }

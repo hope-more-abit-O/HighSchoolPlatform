@@ -1,15 +1,22 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.constants.FavoriteStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.Role;
+import com.demo.admissionportal.dto.request.follow.UpdateFollowUniRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.follow.*;
 import com.demo.admissionportal.entity.*;
+import com.demo.admissionportal.entity.admission.Admission;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowMajorId;
 import com.demo.admissionportal.entity.sub_entity.id.UserFollowUniversityMajorId;
 import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.repository.admission.AdmissionRepository;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowUniversityMajorRepository;
 import com.demo.admissionportal.service.FollowService;
@@ -18,10 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,6 +42,9 @@ public class FollowServiceImpl implements FollowService {
     private final UserInfoRepository userInfoRepository;
     private final UniversityCampusRepository universityCampusRepository;
     private final ProvinceRepository provinceRepository;
+    private final AdmissionRepository admissionRepository;
+    private final AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
+    private final SubjectGroupRepository subjectGroupRepository;
 
     @Override
     public ResponseData<FollowResponseDTO> createFollowMajor(Integer majorId) {
@@ -150,20 +157,17 @@ public class FollowServiceImpl implements FollowService {
                 userFollowUniversityMajor.setUser(user);
 
                 UniversityTrainingProgram universityTrainingProgram = universityTrainingProgramRepository.findById(universityMajorId).orElse(null);
+                List<UserFollowUniversityMajor> indexOfFollow = followUniversityMajorRepository.findByUserIdV2(userId);
                 userFollowUniversityMajor.setUniversityMajor(universityTrainingProgram);
                 userFollowUniversityMajor.setCreateTime(new Date());
                 userFollowUniversityMajor.setStatus(FavoriteStatus.FOLLOW);
+                userFollowUniversityMajor.setIndexOfFollow(indexOfFollow.size() + 1);
                 result = followUniversityMajorRepository.save(userFollowUniversityMajor);
+                followUniMajorResponseDTO.setCurrentStatus(result.getStatus().name);
             } else {
-                if (checkExistedFollowUniMajor.getStatus().equals(FavoriteStatus.FOLLOW)) {
-                    checkExistedFollowUniMajor.setStatus(FavoriteStatus.UNFOLLOW);
-                } else {
-                    checkExistedFollowUniMajor.setStatus(FavoriteStatus.FOLLOW);
-                }
-                checkExistedFollowUniMajor.setUpdateTime(new Date());
-                result = followUniversityMajorRepository.save(checkExistedFollowUniMajor);
+                followUniversityMajorRepository.delete(checkExistedFollowUniMajor);
+                followUniMajorResponseDTO.setCurrentStatus(FavoriteStatus.UNFOLLOW.name);
             }
-            followUniMajorResponseDTO.setCurrentStatus(result.getStatus().name);
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật follow major university thành công", followUniMajorResponseDTO);
         } catch (Exception ex) {
             log.error("Error while creating follow for majorId {}: {}", universityMajorId, ex.getMessage(), ex);
@@ -181,14 +185,13 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor() {
+    public ResponseData<List<UserFollowUniversityMajorResponseDTO>> getListFollowUniMajor(Integer year) {
         try {
-            AtomicReference<Integer> indexFollow = new AtomicReference<>(1);
             Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
             List<UserFollowUniversityMajor> listFollowUniMajor = followUniversityMajorRepository.findByUserId(userId).stream().filter(userFollowUniversityMajor -> userFollowUniversityMajor.getStatus().equals(FavoriteStatus.FOLLOW)).toList();
             List<UserFollowUniversityMajorResponseDTO> result = listFollowUniMajor.stream()
-                    .map(this::mapUserFollowUniversityMajor)
-                    .peek(e -> e.setIndex(indexFollow.getAndSet(indexFollow.get() + 1)))
+                    .map(p -> mapUserFollowUniversityMajor(p, year))
+                    .sorted(Comparator.comparing(UserFollowUniversityMajorResponseDTO::getIndex))
                     .collect(Collectors.toList());
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách follow university major thành công", result);
         } catch (Exception ex) {
@@ -197,14 +200,22 @@ public class FollowServiceImpl implements FollowService {
         }
     }
 
-    private UserFollowUniversityMajorResponseDTO mapUserFollowUniversityMajor(UserFollowUniversityMajor userFollowUniversityMajor) {
+    private UserFollowUniversityMajorResponseDTO mapUserFollowUniversityMajor(UserFollowUniversityMajor userFollowUniversityMajor, Integer year) {
         UniversityTrainingProgram universityTrainingProgram = universityTrainingProgramRepository.findById(userFollowUniversityMajor.getId().getUniversityMajor()).orElse(null);
         Major major = majorRepository.findById(universityTrainingProgram.getMajorId()).orElse(null);
         User user = userRepository.findUserById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UniversityInfo userUniversityInfo = universityInfoRepository.findUniversityInfoById(userFollowUniversityMajor.getUniversityMajor().getUniversityId());
         UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(userUniversityInfo.getId());
         Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
+        Admission admission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(userUniversityInfo.getId(), year, AdmissionStatus.ACTIVE).orElse(null);
+        AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingProgramRepository.findById(admission.getId()).orElse(null);
+        Collection<Integer> admissionTrainingProgramIds = Collections.singleton(admissionTrainingProgram.getId());
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroup = admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
+        String subjectGroups = admissionTrainingProgramSubjectGroup.stream()
+                .map(this::mapToSubjectGroup)
+                .collect(Collectors.joining(", "));
         UserFollowUniversityMajorResponseDTO response = new UserFollowUniversityMajorResponseDTO();
+        response.setIndex(userFollowUniversityMajor.getIndexOfFollow());
         response.setUniversityId(user.getId());
         response.setMajorName(major.getName());
         response.setMajorCode(major.getCode());
@@ -217,7 +228,13 @@ public class FollowServiceImpl implements FollowService {
         response.setTraining_specific(userFollowUniversityMajor.getUniversityMajor().getTrainingSpecific());
         response.setCreateTime(userFollowUniversityMajor.getCreateTime());
         response.setAvatar(user.getAvatar());
+        response.setSubjectGroups(subjectGroups);
         return response;
+    }
+
+    private String mapToSubjectGroup(AdmissionTrainingProgramSubjectGroup admissionTrainingProgramSubjectGroup) {
+        SubjectGroup subjectGroup = subjectGroupRepository.findById(admissionTrainingProgramSubjectGroup.getId().getSubjectGroupId()).orElse(null);
+        return subjectGroup.getName();
     }
 
 
@@ -266,5 +283,31 @@ public class FollowServiceImpl implements FollowService {
                 .fullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName())
                 .avatar(userFollowUniversityMajor.getUser().getAvatar())
                 .build();
+    }
+
+    @Override
+    public ResponseData<String> updateIndexFollow(List<UpdateFollowUniRequestDTO> updateFollowUniRequestDTOS) {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<UpdateFollowUniRequestDTO> updateFollowUni = updateFollowUniRequestDTOS.stream()
+                    .map(e -> mapUpdateFollowUni(e, userId))
+                    .collect(Collectors.toList());
+            if (updateFollowUni != null) {
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật thứ tự nguyện vọng thành công");
+            }
+            throw new Exception();
+        } catch (Exception ex) {
+            log.error("Error while update index of follow university major");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Cập nhật thứ tự nguyện vọng thất bại", null);
+        }
+    }
+
+    private UpdateFollowUniRequestDTO mapUpdateFollowUni(UpdateFollowUniRequestDTO updateFollowUniRequestDTO, Integer userId) {
+        UserFollowUniversityMajor userFollowUniversityMajor = followUniversityMajorRepository.findByUserIdAndUniversityMajor(userId, updateFollowUniRequestDTO.getUniversityMajorId());
+        if (userFollowUniversityMajor != null) {
+            userFollowUniversityMajor.setIndexOfFollow(updateFollowUniRequestDTO.getIndexOfFollow());
+            followUniversityMajorRepository.save(userFollowUniversityMajor);
+        }
+        return null;
     }
 }

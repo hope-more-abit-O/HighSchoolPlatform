@@ -1,6 +1,5 @@
 package com.demo.admissionportal.repository.admission;
 
-import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -138,25 +137,13 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
             "JOIN major m ON atp.major_id = m.id " +
             "JOIN subject_group sg ON atpsg.subject_group_id = sg.id " +
             "WHERE a.year = 2023 " +
-            "AND u.university_id = :universityId " +
-            "AND m.id = :majorId " +
-            "AND sg.id = :subjectGroupName",
+            "AND u.name = :universityName " +
+            "AND m.name = :majorName " +
+            "AND sg.name = :subjectGroupName",
             nativeQuery = true)
-    Float findScoreFor2023(@Param("universityId") Integer universityId,
-                           @Param("majorId") Integer majorId,
-                           @Param("subjectGroupName") Integer subjectGroupName);
-
-    @Query("SELECT atpm FROM AdmissionTrainingProgramMethod atpm " +
-            "JOIN AdmissionMethod am ON am.id = atpm.id.admissionMethodId " +
-            "JOIN Admission a ON a.id = am.admissionId " +
-            "WHERE atpm.id.admissionTrainingProgramId = :admissionTrainingProgramId " +
-            "AND a.year = :year " +
-            "AND a.admissionStatus = :status")
-    Optional<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdAndYearAndStatus(
-            @Param("admissionTrainingProgramId") Integer admissionTrainingProgramId,
-            @Param("year") Integer year,
-            @Param("status") AdmissionStatus status);
-
+    Float findScoreFor2023(@Param("universityName") String universityName,
+                           @Param("majorName") String majorName,
+                           @Param("subjectGroupName") String subjectGroupName);
 
     @Transactional
     @Modifying

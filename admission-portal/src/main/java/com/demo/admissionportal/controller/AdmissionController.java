@@ -318,6 +318,24 @@ public class AdmissionController {
         }
     }
 
+    @PostMapping("/forecast")
+    public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
+        List<Object> responseList = new ArrayList<>();
+        for (AdmissionAnalysisRequest requests : request.getAspirations()) {
+            ResponseData<?> responseData = admissionService.forecastScore2024(requests);
+            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
+                responseList.add(responseData.getData());
+            } else if (requests.getMajor() == null || requests.getMajor().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy ngành học của trường: " + requests.getUniversity() + " hoặc ngành học không hợp lệ: " +requests.getMajor()));
+            } else if (requests.getSubjectGroup() == null || requests.getSubjectGroup().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy tổ hợp môn hoặc tổ hợp môn học không hợp lệ: " + requests.getSubjectGroup()));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy điểm chuẩn của năm 2023 với trường: " + requests.getUniversity() + " cho tổ hợp môn và ngành đã chọn."));
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
+    }
+
     @PutMapping("/update/{admissionId}")
     public ResponseEntity updateAdmission(@PathVariable Integer admissionId, @RequestBody @Valid UpdateAdmissionRequest request) {
         return ResponseEntity.ok(admissionService.updateAdmission(admissionId, request));

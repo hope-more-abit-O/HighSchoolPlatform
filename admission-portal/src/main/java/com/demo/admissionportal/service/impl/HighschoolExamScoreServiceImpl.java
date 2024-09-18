@@ -1,31 +1,26 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.constants.*;
-import com.demo.admissionportal.dto.*;
-import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.entity.ExamLocal;
 import com.demo.admissionportal.entity.ExamYear;
+import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
+import com.demo.admissionportal.constants.IdentificationNumberRegisterStatus;
+import com.demo.admissionportal.constants.ListExamScoreByYearStatus;
+import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.ExamYearData;
+import com.demo.admissionportal.dto.RegisteredIdentificationNumberDTO;
+import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
 import com.demo.admissionportal.entity.*;
-import com.demo.admissionportal.entity.admission.Admission;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
-import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import com.demo.admissionportal.entity.sub_entity.ListExamScoreHighSchoolExamScore;
 import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.repository.*;
-import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
-import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
-import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import com.demo.admissionportal.repository.sub_repository.ListExamScoreHighSchoolExamScoreRepository;
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import com.demo.admissionportal.util.impl.EmailUtil;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -64,16 +59,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     private ExamLocalRepository examLocalRepository;
     @Autowired
     private ExamYearRepository examYearRepository;
-    @Autowired
-    private UniversityInfoRepository universityInfoRepository;
-    @Autowired
-    private MajorRepository majorRepository;
-    @Autowired
-    private AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
-    @Autowired
-    private AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
-    @Autowired
-    private AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
 
     @Override
     public ResponseData<List<HighschoolExamScoreResponse>> findAllWithFilter(String identificationNumber, Integer examYearId) {
@@ -152,6 +137,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình tra cứu điểm, vui lòng thử lại sau.");
         }
     }
+
 
     private static final List<Integer> ALLOWED_SUBJECT_IDS = List.of(36, 28, 38, 27, 16, 23, 34, 9, 54);
 
