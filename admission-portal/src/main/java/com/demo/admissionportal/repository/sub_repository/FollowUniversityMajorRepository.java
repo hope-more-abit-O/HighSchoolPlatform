@@ -57,4 +57,16 @@ public interface FollowUniversityMajorRepository extends JpaRepository<UserFollo
             "FROM user_follow_university_major ufum " +
             "WHERE ufum.user_id = :userId AND status = 'FOLLOW'", nativeQuery = true)
     List<UserFollowUniversityMajor> findByUserIdV2(Integer userId);
+
+    /**
+     * Find high index list.
+     *
+     * @param indexOfFollow the index of follow
+     * @param userId        the user id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM user_follow_university_major ufum " +
+            "WHERE ufum.index_of_follow > :indexOfFollow AND ufum.user_id = :userId ", nativeQuery = true)
+    List<UserFollowUniversityMajor> findHighIndex(Integer indexOfFollow, Integer userId);
 }
