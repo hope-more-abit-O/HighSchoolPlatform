@@ -20,4 +20,10 @@ public class UsersFollowMajorResponseDTO implements Serializable {
     private String email;
     private String fullName;
     private String major;
+    private Integer universityTrainingProgramId;
+    private String training_specific;
+    private String language;
+    private Integer majorId;
+    private String majorName;
+    private String majorCode;
 }
