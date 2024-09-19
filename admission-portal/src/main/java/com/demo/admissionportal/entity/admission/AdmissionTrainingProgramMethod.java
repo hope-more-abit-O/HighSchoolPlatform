@@ -1,6 +1,7 @@
 package com.demo.admissionportal.entity.admission;
 
 import com.demo.admissionportal.dto.entity.admission.AdmissionScoreDTO;
+import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionTrainingProgramMethodRequest;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,5 +51,11 @@ public class AdmissionTrainingProgramMethod {
     public AdmissionTrainingProgramMethod(AdmissionScoreDTO admissionScoreDTO) {
         this.id = new AdmissionTrainingProgramMethodId(admissionScoreDTO.getAdmissionTrainingProgramId(), admissionScoreDTO.getAdmissionMethodId());
         this.admissionScore = admissionScoreDTO.getAdmissionScore();
+    }
+
+    public AdmissionTrainingProgramMethod(ModifyAdmissionTrainingProgramMethodRequest modifyAdmissionTrainingProgramMethodRequest) {
+        this.id = new AdmissionTrainingProgramMethodId(modifyAdmissionTrainingProgramMethodRequest.getAdmissionTrainingProgramId(), modifyAdmissionTrainingProgramMethodRequest.getAdmissionMethodId());
+        this.quota = modifyAdmissionTrainingProgramMethodRequest.getQuota();
+        this.admissionScore = modifyAdmissionTrainingProgramMethodRequest.getScore();
     }
 }

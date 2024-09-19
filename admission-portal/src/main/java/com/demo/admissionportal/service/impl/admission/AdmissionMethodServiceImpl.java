@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class AdmissionMethodServiceImpl {
     private final AdmissionMethodRepository admissionMethodRepository;
     private final MethodServiceImpl methodService;
+    private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodServiceImpl;
 
     public List<AdmissionMethod> saveAllAdmissionMethod(Integer admissionId, List<Integer> methodIds) {
         log.info("Saving admission methods for admission ID: {}", admissionId);
@@ -132,6 +133,7 @@ public class AdmissionMethodServiceImpl {
         Integer modified = 0;
 
         if (updateAdmissionMethodRequest.getDeleteAdmissionMethod() != null && updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId() != null && !updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId().isEmpty()) {
+            modified += admissionTrainingProgramMethodServiceImpl.deleteByAdmissionMethodIds(updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId());
             modified += this.deleteByAdmissionIds(updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId(), admissionMethods);
         }
 
