@@ -162,7 +162,11 @@ AND atpm.admission_training_program_id in (:admissionTrainingProgramIds)
     Optional<AdmissionTrainingProgramMethod> findByAdmissionTrainingProgramIdAndYearAndStatus(
             @Param("admissionTrainingProgramId") Integer admissionTrainingProgramId,
             @Param("year") Integer year,
-            @Param("status") AdmissionStatus status);}
+            @Param("status") AdmissionStatus status);
+
+    List<AdmissionTrainingProgramMethod> findById_AdmissionMethodIdInAndId_AdmissionTrainingProgramIdIn(Collection<Integer> admissionMethodIds, Collection<Integer> admissionTrainingProgramIds);
+
+}
 
 
 

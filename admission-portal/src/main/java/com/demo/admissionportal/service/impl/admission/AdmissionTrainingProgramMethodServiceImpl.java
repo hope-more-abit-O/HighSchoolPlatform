@@ -1,11 +1,9 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.dto.entity.admission.AdmissionTrainingProgramMethodQuotaDTO;
 import com.demo.admissionportal.dto.request.admisison.*;
-import com.demo.admissionportal.entity.admission.Admission;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
-import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramSubjectGroup;
+import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -24,6 +22,8 @@ import java.util.*;
 public class AdmissionTrainingProgramMethodServiceImpl {
     private final AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
     private final EntityManager entityManager;
+    private final AdmissionTrainingProgramServiceImpl admissionTrainingProgramServiceImpl;
+    private final AdmissionMethodServiceImpl admissionMethodServiceImpl;
 
 
     public List<AdmissionTrainingProgramMethod> saveAll(List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
@@ -581,41 +581,97 @@ public class AdmissionTrainingProgramMethodServiceImpl {
 
     public Integer update(Admission admission, UpdateAdmissionTrainingMethodRequest request) {
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = findByAdmissionId(admission.getId());
-
-        if(request.getDeleteAdmissionTrainingProgramRequests() != null && request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods() != null && !request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods().isEmpty()){
-
+        Integer modified = 0;
+        if (request.getDeleteAdmissionTrainingProgramRequests() != null && request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods() != null && !request.getDeleteAdmissionTrainingProgramRequests().getDeleteAdmissionTrainingProgramMethods().isEmpty()){
+            modified += deleteAdmissionTrainingProgramMethod(request.getDeleteAdmissionTrainingProgramRequests(), admissionTrainingProgramMethods);
         }
 
-        return null;
+        if (request.getCreateAdmissionTrainingProgramMethodRequests() != null && request.getCreateAdmissionTrainingProgramMethodRequests().getAdmissionTrainingProgramMethodQuotas() != null && !request.getCreateAdmissionTrainingProgramMethodRequests().getAdmissionTrainingProgramMethodQuotas().isEmpty()){
+            modified += createAdmissionTrainingProgramMethod(request.getCreateAdmissionTrainingProgramMethodRequests());
+        }
+
+        if (request.getModifyAdmissionTrainingProgramMethodRequests() != null && !request.getModifyAdmissionTrainingProgramMethodRequests().isEmpty()){
+            modified += updateAdmissionTrainingProgramMethod(request.getModifyAdmissionTrainingProgramMethodRequests());
+        }
+
+        return modified;
+    }
+
+    private Integer updateAdmissionTrainingProgramMethod(List<ModifyAdmissionTrainingProgramMethodRequest> modifyAdmissionTrainingProgramMethodRequests) {
+        List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = modifyAdmissionTrainingProgramMethodRequests.stream().map(AdmissionTrainingProgramMethodId::new).toList();
+        List<AdmissionTrainingProgramMethod> existed = admissionTrainingProgramMethodRepository.findAllById(admissionTrainingProgramMethodIds);
+        List<AdmissionTrainingProgramMethodId> existedIds = existed.stream().map(AdmissionTrainingProgramMethod::getId).toList();
+        Map<String, String> errors = new HashMap<>();
+        if (existed.size() < modifyAdmissionTrainingProgramMethodRequests.size()){
+            admissionTrainingProgramMethodIds.forEach(id -> {
+                if (!existedIds.contains(id)){
+                    errors.put("existed", id.toAObject() + ";");
+                }
+            });
+            throw new ResourceNotFoundException("Admission training program method not existed", errors);
+        }
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = modifyAdmissionTrainingProgramMethodRequests.stream().map(AdmissionTrainingProgramMethod::new).toList();
+        return saveAll(admissionTrainingProgramMethods).size();
+    }
+
+    public Integer createAdmissionTrainingProgramMethod(CreateAdmissionTrainingProgramMethodRequest request) {
+        List<Integer> admissionTrainingProgramIds = request.getAdmissionTrainingProgramMethodQuotas().stream().map(AdmissionTrainingProgramMethodQuotaDTO::getAdmissionTrainingProgramId).distinct().toList();
+        List<Integer> admissionMethodIds = request.getAdmissionTrainingProgramMethodQuotas().stream().map(AdmissionTrainingProgramMethodQuotaDTO::getAdmissionMethodId).distinct().toList();
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramServiceImpl.findByIds(admissionTrainingProgramIds);
+        List<AdmissionMethod> admissionMethods = admissionMethodServiceImpl.findByIds(admissionMethodIds);
+
+        Set<Integer> admissionIds = new HashSet<>();
+        admissionTrainingPrograms.forEach(admissionTrainingProgram -> admissionIds.add(admissionTrainingProgram.getAdmissionId()));
+        admissionMethods.forEach(admissionMethod -> admissionIds.add(admissionMethod.getAdmissionId()));
+
+        if (admissionIds.size() > 1){
+            throw new BadRequestException("Chương trình đào tạo và phương thức xét tuyển không cùng một đề án");
+        }
+
+        List<AdmissionTrainingProgramMethod> existedAdmissionTrainingProgramMethods = admissionTrainingProgramMethodRepository.findById_AdmissionMethodIdInAndId_AdmissionTrainingProgramIdIn(admissionMethodIds, admissionTrainingProgramIds);
+        if (!existedAdmissionTrainingProgramMethods.isEmpty()){
+            throw new BadRequestException("Có chương trình đào tạo và phương thức xét tuyển đã tồn tại");
+        }
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = request.getAdmissionTrainingProgramMethodQuotas().stream()
+                .map(quota -> new AdmissionTrainingProgramMethod(quota.getAdmissionTrainingProgramId(), quota.getAdmissionMethodId(), quota.getQuota()))
+                .toList();
+
+        return saveAll(admissionTrainingProgramMethods).size();
     }
 
     public Integer deleteAdmissionTrainingProgramMethod(DeleteAdmissionTrainingProgramMethodRequest request, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
         List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds = request.getDeleteAdmissionTrainingProgramMethods().stream().map(AdmissionTrainingProgramMethodId::new).toList();
 
-        checkNotExist(admissionTrainingProgramMethodIds, request.getDeleteAdmissionTrainingProgramMethods(), "Admission training program method not existed");
+//        checkNotExist(admissionTrainingProgramMethodIds, request.getDeleteAdmissionTrainingProgramMethods(), "Admission training program method not existed");
 
         return admissionTrainingProgramMethodRepository.deleteByIdIn(admissionTrainingProgramMethodIds);
     }
 
-    public List<AdmissionTrainingProgramMethodId> findNotExists(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<DeleteAdmissionTrainingProgramMethodIdDTO> deleteAdmissionTrainingProgramMethods) {
-        List<AdmissionTrainingProgramMethodId> deleteAdmissionTrainingProgramMethodIds = deleteAdmissionTrainingProgramMethods.stream().map(AdmissionTrainingProgramMethodId::new).toList();
-
+    public List<AdmissionTrainingProgramMethodId> findNotExists(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<AdmissionTrainingProgramMethodId> deleteAdmissionTrainingProgramMethodIds) {
         return deleteAdmissionTrainingProgramMethodIds.stream().filter(deleteAdmissionTrainingProgramMethodId -> !admissionTrainingProgramMethodIds.contains(deleteAdmissionTrainingProgramMethodId)).toList();
     }
 
-    public void checkNotExist(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<DeleteAdmissionTrainingProgramMethodIdDTO> deleteAdmissionTrainingProgramMethodIds, String errorMessage){
-        List<AdmissionTrainingProgramMethodId> notExists = findNotExists(admissionTrainingProgramMethodIds, deleteAdmissionTrainingProgramMethodIds);
-        Map<String, String> errors = new HashMap<>();
-        if (!notExists.isEmpty()){
-            notExists.forEach(notExist -> {
-                errors.put("existed", notExist.toAObject() + ";");
-            });
-
-            throw new BadRequestException(errorMessage, errors);
-        };
-    }
+//    public void checkNotExist(List<AdmissionTrainingProgramMethodId> admissionTrainingProgramMethodIds, List<DeleteAdmissionTrainingProgramMethodIdDTO> deleteAdmissionTrainingProgramMethodIds, String errorMessage){
+//        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = findByAdmissionId(admissionTrainingProgramMethodIds, false);
+//        List<AdmissionTrainingProgramMethodId> notExists = findNotExists(admissionTrainingProgramMethodIds, deleteAdmissionTrainingProgramMethodIds);
+//        Map<String, String> errors = new HashMap<>();
+//        if (!notExists.isEmpty()){
+//            notExists.forEach(notExist -> {
+//                errors.put("existed", notExist.toAObject() + ";");
+//            });
+//
+//            throw new BadRequestException(errorMessage, errors);
+//        };
+//    }
 
     public Integer deleteByAdmissionTrainingProgramIds(List<Integer> admissionTrainingProgramIds) {
         return admissionTrainingProgramMethodRepository.deleteById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
+    }
+
+    public Integer deleteByAdmissionMethodIds(List<Integer> admissionMethodId) {
+        return admissionTrainingProgramMethodRepository.deleteById_AdmissionTrainingProgramIdIn(admissionMethodId);
     }
 }
