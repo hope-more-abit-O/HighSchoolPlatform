@@ -71,4 +71,12 @@ public interface FollowService {
      * @return the response data
      */
     ResponseData<String> updateIndexFollow(List<UpdateFollowUniRequestDTO> updateFollowUniRequestDTOS);
+
+    /**
+     * Gets list user follow major v 2.
+     *
+     * @param universityId the university id
+     * @return the list user follow major v 2
+     */
+    ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajorV2(Integer universityId);
 }
