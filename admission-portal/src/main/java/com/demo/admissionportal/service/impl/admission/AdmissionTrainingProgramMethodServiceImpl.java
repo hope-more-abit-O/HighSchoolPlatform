@@ -8,6 +8,7 @@ import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingPro
 import com.demo.admissionportal.exception.exceptions.BadRequestException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ import java.util.*;
 public class AdmissionTrainingProgramMethodServiceImpl {
     private final AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
     private final EntityManager entityManager;
-    private final AdmissionTrainingProgramServiceImpl admissionTrainingProgramServiceImpl;
     private final AdmissionMethodServiceImpl admissionMethodServiceImpl;
+    private final AdmissionTrainingProgramRepository admissionTrainingProgramRepository;
 
 
     public List<AdmissionTrainingProgramMethod> saveAll(List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
@@ -619,7 +620,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         List<Integer> admissionTrainingProgramIds = request.getAdmissionTrainingProgramMethodQuotas().stream().map(AdmissionTrainingProgramMethodQuotaDTO::getAdmissionTrainingProgramId).distinct().toList();
         List<Integer> admissionMethodIds = request.getAdmissionTrainingProgramMethodQuotas().stream().map(AdmissionTrainingProgramMethodQuotaDTO::getAdmissionMethodId).distinct().toList();
 
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramServiceImpl.findByIds(admissionTrainingProgramIds);
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramRepository.findAllById(admissionTrainingProgramIds);
         List<AdmissionMethod> admissionMethods = admissionMethodServiceImpl.findByIds(admissionMethodIds);
 
         Set<Integer> admissionIds = new HashSet<>();

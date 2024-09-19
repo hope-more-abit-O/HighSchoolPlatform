@@ -34,7 +34,7 @@ SELECT atpsg.*
 FROM admission_training_program_subject_group atpsg
 JOIN admission_training_program atp ON atpsg.admission_training_program_id = atp.id
 JOIN admission a ON atp.admission_id = a.id
-WHERE a.id = :admissionId
+WHERE a.id = :id
 """, nativeQuery = true)
     List<AdmissionTrainingProgramSubjectGroup> findByAdmissionId(Integer id);
 
@@ -43,10 +43,6 @@ WHERE a.id = :admissionId
     @Query("delete from AdmissionTrainingProgramSubjectGroup a where a.id in ?1")
     int deleteByIdIn(Collection<AdmissionTrainingProgramSubjectGroupId> ids);
 
-    @Transactional
-    @Modifying
-    @Query(value =
-"""delete from AdmissionTrainingProgramSubjectGroup a where a.id.admissionTrainingProgramId in :admissionTrainingProgramIds
-""", nativeQuery = true)
+    @Query(value = "delete from admission_training_program_subject_group a where a.admission_training_program_id in :admissionTrainingProgramIds", nativeQuery = true)
     int deleteByAdmissionTrainingProgramIdIn(Collection<Integer> admissionTrainingProgramIds);
 }
