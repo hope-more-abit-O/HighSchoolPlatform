@@ -1,7 +1,10 @@
 package com.demo.admissionportal.service.impl.admission;
 
+import com.demo.admissionportal.constants.AdmissionStatus;
 import com.demo.admissionportal.dto.entity.admission.CreateTrainingProgramRequest;
+import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.TrainingProgramDTO;
+import com.demo.admissionportal.dto.request.admisison.CompareMajorsFromUniversitiesRequest;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
 import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionTrainingProgramRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionTrainingProgramRequest;
@@ -14,6 +17,8 @@ import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramRepository;
 import com.demo.admissionportal.service.SubjectService;
 import com.demo.admissionportal.util.impl.ServiceUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,7 @@ public class AdmissionTrainingProgramServiceImpl {
     private final SubjectService subjectService;
     private final AdmissionTrainingProgramMethodServiceImpl admissionTrainingProgramMethodService;
     private final AdmissionTrainingProgramSubjectGroupServiceImpl admissionTrainingProgramSubjectGroupService;
+    private final EntityManager entityManager;
 
     public AdmissionTrainingProgram save(AdmissionTrainingProgram admissionTrainingProgram){
         log.info("Saving admission training program: {}", admissionTrainingProgram.toString());
@@ -132,7 +138,7 @@ public class AdmissionTrainingProgramServiceImpl {
     public List<AdmissionTrainingProgram> findByAdmissionIds(List<Integer> id) {
         return admissionTrainingProgramRepository.findByAdmissionIdIn(id);
     }
-    
+
     public List<AdmissionTrainingProgram> findByIds(List<Integer> admissionMethodIds)
             throws ResourceNotFoundException{
         List<AdmissionTrainingProgram> methods = admissionTrainingProgramRepository.findAllById(admissionMethodIds);
@@ -261,5 +267,43 @@ public class AdmissionTrainingProgramServiceImpl {
 
     public List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year) {
         return admissionTrainingProgramRepository.findByMajorIdAndYear(majorId, year);
+    }
+
+    public List<AdmissionTrainingProgram> findByMajorIdWithUniversityIdAndYear(List<CompareMajorsFromUniversitiesRequest> request, Integer year) {
+        Map<String, Object> parameters = new HashMap<>();
+        String query = buildQueryFindByMajorIdWithUniversityIdAndYear(request, year, parameters);
+
+        // Create native query and map parameters
+        Query nativeQuery = entityManager.createNativeQuery(query, AdmissionTrainingProgram.class);
+
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            nativeQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        return nativeQuery.getResultList();
+    }
+
+    private String buildQueryFindByMajorIdWithUniversityIdAndYear(List<CompareMajorsFromUniversitiesRequest> request, Integer year, Map<String, Object> parameters) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("select atp.* ")
+                .append("from admission_training_program atp ")
+                .append("inner join admission a on a.id = atp.admission_id ")
+                .append("where a.year = :year ");
+
+        parameters.put("year", year);
+
+        StringJoiner conditions = new StringJoiner(" or ");
+        for (int i = 0; i < request.size(); i++) {
+            CompareMajorsFromUniversitiesRequest req = request.get(i);
+            String condition = String.format("(a.university_id = :universityId%d and atp.major_id = :majorId%d)", i, i);
+            conditions.add(condition);
+
+            parameters.put("universityId" + i, req.getUniversityId());
+            parameters.put("majorId" + i, req.getMajorId());
+        }
+
+        queryBuilder.append("and (").append(conditions.toString()).append(")");
+
+        return queryBuilder.toString();
     }
 }

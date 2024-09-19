@@ -87,4 +87,6 @@ and atp.major_id = :majorId
 and a.university_id = :universityId
 """, nativeQuery = true)
     List<SubjectGroup> findByMajorIdAndUniversityIdAndYear(Integer majorId, Integer universityId, Integer year);
+
+    SubjectGroup findSubjectGroupById(Integer subjectGroupId);
 }

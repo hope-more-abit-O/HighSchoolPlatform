@@ -33,7 +33,7 @@ public class AdmissionSourceDTO {
         this.universityName = universityInfo.getName();
         this.universityCode = universityInfo.getCode();
         this.admissionId = admission.getId();
-        this.admissionName = "ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase();
+        this.admissionName = "ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase();
         this.admissionSource = admission.getSource();
         this.admissionYear = admission.getYear();
     }

@@ -79,7 +79,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
     }
 
     public List<AdmissionTrainingProgramMethod> findAdmissionData(List<Integer> subjectGroupId, Float score, Float offset, List<Integer> methodId,
-                                                                       List<Integer> majorId, List<Integer> provinceId, Integer year) {
+                                                                  List<Integer> majorId, List<Integer> provinceId, Integer year) {
 
         // 1. Start building the base query
         StringBuilder queryBuilder = new StringBuilder(
@@ -183,7 +183,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         return b;
     }
     public List<AdmissionTrainingProgramMethod> findAdmissionTrainingPrograms(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<Integer> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
+                                                                              List<Integer> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
         Map<String, Object> parameters = new HashMap<>();
 
         String query = buildQueryForScoreAdvice(subjectId, fromScore, toScore, methodId, majorId, provinceId, year, regions, pageNumber, rowsPerPage, parameters);
@@ -201,7 +201,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
         return b;
     }
     public List<AdmissionTrainingProgramMethod> findAdmissionTrainingProgramsV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
+                                                                                List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
         Map<String, Object> parameters = new HashMap<>();
 
         String query = buildQueryForScoreAdviceV2(subjectId, fromScore, toScore, methodId, majorCode, provinceId, year, regions, pageNumber, rowsPerPage, parameters);
@@ -224,7 +224,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
     }
 
     public Integer count(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<Integer> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
+                         List<Integer> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
         Map<String, Object> parameters = new HashMap<>();
 
         String query = buildCountQuery(buildQueryForScoreAdvice(subjectId, fromScore, toScore, methodId, majorId, provinceId, year, regions, null, null, parameters));
@@ -243,7 +243,7 @@ public class AdmissionTrainingProgramMethodServiceImpl {
     }
 
     public Integer countV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                                                       List<String> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
+                           List<String> majorId, List<Integer> provinceId, Integer year, List<String> regions, Integer pageNumber, Integer rowsPerPage) {
         Map<String, Object> parameters = new HashMap<>();
 
         String query = buildCountQuery(buildQueryForScoreAdviceV2(subjectId, fromScore, toScore, methodId, majorId, provinceId, year, regions, null, null, parameters));
@@ -416,8 +416,8 @@ public class AdmissionTrainingProgramMethodServiceImpl {
     }
 
     public String buildQueryForScoreAdviceV2(List<Integer> subjectId, Float fromScore, Float toScore, List<Integer> methodId,
-                                           List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions,
-                                           Integer pageNumber, Integer rowsPerPage, Map<String, Object> parameters){
+                                             List<String> majorCode, List<Integer> provinceId, Integer year, List<String> regions,
+                                             Integer pageNumber, Integer rowsPerPage, Map<String, Object> parameters){
         // 1. Start building the base query
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT DISTINCT atpm.* " +

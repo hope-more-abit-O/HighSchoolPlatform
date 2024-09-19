@@ -43,4 +43,8 @@ INNER JOIN admission a ON atp.admission_id = a.id
 WHERE a.year = :year AND atp.major_id = :majorId AND a.status = 'ACTIVE'
 """, nativeQuery = true)
     List<AdmissionTrainingProgram> findByMajorIdAndYear(Integer majorId, Integer year);
+
+    @Query("SELECT DISTINCT atp.majorId FROM AdmissionTrainingProgram atp WHERE atp.admissionId IN " +
+            "(SELECT a.id FROM Admission a WHERE a.universityId = :universityId)")
+    List<Integer> findMajorIdsByUniversityId(@Param("universityId") Integer universityId);
 }

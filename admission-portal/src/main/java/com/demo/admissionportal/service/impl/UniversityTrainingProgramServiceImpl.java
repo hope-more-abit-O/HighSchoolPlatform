@@ -260,13 +260,17 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
         return universityTrainingProgramRepository.findByUniversityIdInAndStatusAndMajorId(universityIds, universityTrainingProgramStatus, majorId);
     }
 
+    public List<UniversityTrainingProgram> findByUniversityIdsWithStatusWithMajorIds(List<Integer> universityIds, UniversityTrainingProgramStatus universityTrainingProgramStatus, List<Integer> majorIds) {
+        return universityTrainingProgramRepository.findByUniversityIdInAndStatusAndMajorIdIn(universityIds, universityTrainingProgramStatus, majorIds);
+    }
+
     public List<UniversityInfoResponseDTO> getUniversitiesHaveMajor(Integer majorId) {
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findByMajorId(majorId);
 
         if (universityTrainingPrograms == null || universityTrainingPrograms.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy trường nào có ngành học này");
         }
-        
+
         List<Integer> universityIds = universityTrainingPrograms.stream().map(UniversityTrainingProgram::getUniversityId).distinct().toList();
         List<UniversityInfo> universityInfos = universityInfoService.findByIds(universityIds).stream().toList();
         List<User> users = userServiceImpl.findByIds(universityInfos.stream().map(UniversityInfo::getId).distinct().toList());

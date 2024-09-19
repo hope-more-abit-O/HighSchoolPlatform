@@ -3,10 +3,7 @@ package com.demo.admissionportal.dto.entity.university;
 import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.UniversityType;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.entity.Province;
-import com.demo.admissionportal.entity.UniversityCampus;
-import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import lombok.*;
 
 /**
@@ -29,8 +26,13 @@ public class InfoUniversityResponseDTO {
     private String type;
     private String description;
     private String coverImage;
+    private String specificAddress;
     private String provinceName;
     private Integer provinceId;
+    private String districtName;
+    private Integer districtId;
+    private String wardName;
+    private Integer wardId;
 
     public static InfoUniversityResponseDTO fromEntity(UniversityInfo universityInfo, Province province) {
         return InfoUniversityResponseDTO.builder()
@@ -42,6 +44,24 @@ public class InfoUniversityResponseDTO {
                 .coverImage(universityInfo.getCoverImage())
                 .provinceName(province.getName())
                 .provinceId(province.getId())
+                .build();
+    }
+
+    public static InfoUniversityResponseDTO fromEntity(UniversityInfo universityInfo, Province province, District district, Ward ward, UniversityCampus universityCampus) {
+        return InfoUniversityResponseDTO.builder()
+                .id(universityInfo.getId())
+                .name(universityInfo.getName())
+                .code(universityInfo.getCode())
+                .type(universityInfo.getType().name())
+                .description(universityInfo.getDescription())
+                .coverImage(universityInfo.getCoverImage())
+                .specificAddress(universityCampus.getSpecificAddress())
+                .provinceName(province.getName())
+                .provinceId(province.getId())
+                .districtId(district.getId())
+                .districtName(district.getName())
+                .wardId(ward.getId())
+                .wardName(ward.getName())
                 .build();
     }
 }

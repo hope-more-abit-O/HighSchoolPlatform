@@ -40,9 +40,9 @@ public class  AdmissionTrainingProgramDTO {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chuyên ngành", Map.of("majorId", admissionTrainingProgram.getMajorId().toString())));
         if (admissionTrainingProgram.getMainSubjectId() != null)
             this.mainSubjectName = subjects.stream().filter( (element) -> element.getId().equals(admissionTrainingProgram.getMainSubjectId()))
-                .map(InfoSubjectDTO::new)
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
+                    .map(InfoSubjectDTO::new)
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
@@ -58,9 +58,9 @@ public class  AdmissionTrainingProgramDTO {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chuyên ngành", Map.of("majorId", admissionTrainingProgram.getMajorId().toString())));
         if (admissionTrainingProgram.getMainSubjectId() != null)
             this.mainSubjectName = subjects.stream().filter( (element) -> element.getId().equals(admissionTrainingProgram.getMainSubjectId()))
-                .map(InfoSubjectDTO::new)
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
+                    .map(InfoSubjectDTO::new)
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy môn học", Map.of("mainSubjectId", admissionTrainingProgram.getMainSubjectId().toString())));
         this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
