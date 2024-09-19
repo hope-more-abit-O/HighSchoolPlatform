@@ -22,6 +22,7 @@ import com.demo.admissionportal.repository.sub_repository.ListExamScoreHighSchoo
 import com.demo.admissionportal.repository.sub_repository.SubjectGroupSubjectRepository;
 import com.demo.admissionportal.service.HighschoolExamScoreService;
 import com.demo.admissionportal.util.impl.EmailUtil;
+import com.google.api.Advice;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1294,10 +1295,11 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
-        try {
+//        try {
             ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
             if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
-                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
+//                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
+                return null;
             }
 
             List<Integer> availableSubjectGroupIds = availableSubjectGroupsResponse.getData().stream()
@@ -1311,7 +1313,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroup);
             if (examScore2023 == null) {
-                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
+//                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
+                return null;
             }
             List<Integer> subjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup);
 
@@ -1321,8 +1324,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     .map(HighschoolExamScore::getScore)
                     .reduce(0f, Float::sum);
 
-            float avgScore2023ForGroup;
-            float avgScore2024ForGroup;
+            float avgScore2023ForGroup = 0;
+            float avgScore2024ForGroup = 0;
 
             switch (subjectGroup) {
                 case 1:
@@ -1347,7 +1350,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     avgScore2024ForGroup = 19.51f;
                     break;
                 default:
-                    throw new IllegalArgumentException("Khối không hợp lệ: " + subjectGroup);
+                    break;
             }
 
             float chenhLechDTB = avgScore2024ForGroup - avgScore2023ForGroup;
@@ -1364,7 +1367,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 }
             }
 
-            int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
+//            int chiTieuChenhLech = ((quota2024 - quota2023) / quota2023) * 100;
+            int chiTieuChenhLech = quota2024 - quota2023;
+
 
             DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
 
@@ -1395,17 +1400,26 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + majorName + " của trường " + universityName+
                     " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
+            List<AdviceResult> result = new ArrayList<>();
+            AdviceResult response = new AdviceResult(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
+            if (response != null){
+                result.add(response);
+            } else {
+                return null;
+            }
+            result.stream().filter(Objects::nonNull).toList();
 
-            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
 
-        } catch (IllegalArgumentException ex) {
-            log.error("Validate error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
-        } catch (Exception ex) {
-            log.error("Error while analyze: {}", ex.getMessage(), ex);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
-        }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", result);
+
+//        }
+//        catch (IllegalArgumentException ex) {
+//            log.error("Validate error: {}", ex.getMessage());
+//            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+//        } catch (Exception ex) {
+//            log.error("Error while analyze: {}", ex.getMessage(), ex);
+//            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+//        }
     }
 
     private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
