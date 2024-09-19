@@ -20,6 +20,7 @@ import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSub
 import com.demo.admissionportal.repository.sub_repository.FollowRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowUniversityMajorRepository;
 import com.demo.admissionportal.service.FollowService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -132,6 +133,7 @@ public class FollowServiceImpl implements FollowService {
         return result;
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public ResponseData<FollowUniMajorResponseDTO> createFollowUniMajor(Integer universityMajorId) {
         try {
@@ -166,6 +168,7 @@ public class FollowServiceImpl implements FollowService {
                 followUniMajorResponseDTO.setCurrentStatus(result.getStatus().name);
             } else {
                 followUniversityMajorRepository.delete(checkExistedFollowUniMajor);
+                updateAllIndex(checkExistedFollowUniMajor, userId);
                 followUniMajorResponseDTO.setCurrentStatus(FavoriteStatus.UNFOLLOW.name);
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Cập nhật follow major university thành công", followUniMajorResponseDTO);
@@ -309,5 +312,17 @@ public class FollowServiceImpl implements FollowService {
             followUniversityMajorRepository.save(userFollowUniversityMajor);
         }
         return null;
+    }
+
+
+    private void updateAllIndex(UserFollowUniversityMajor checkExistedFollowUniMajor, Integer userId) {
+        // Find high and update it
+        List<UserFollowUniversityMajor> userFollowUniversityMajors = followUniversityMajorRepository.findHighIndex(checkExistedFollowUniMajor.getIndexOfFollow(), userId);
+        if (userFollowUniversityMajors != null) {
+            // Update index
+            userFollowUniversityMajors.stream()
+                    .peek(e -> e.setIndexOfFollow(e.getIndexOfFollow() - 1))
+                    .collect(Collectors.toList());
+        }
     }
 }
