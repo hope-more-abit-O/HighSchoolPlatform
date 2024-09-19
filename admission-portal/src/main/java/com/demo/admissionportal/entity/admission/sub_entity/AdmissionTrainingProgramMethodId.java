@@ -2,6 +2,7 @@ package com.demo.admissionportal.entity.admission.sub_entity;
 
 import com.demo.admissionportal.dto.entity.admission.AdmissionScoreDTO;
 import com.demo.admissionportal.dto.request.admisison.DeleteAdmissionTrainingProgramMethodIdDTO;
+import com.demo.admissionportal.dto.request.admisison.ModifyAdmissionTrainingProgramMethodRequest;
 import com.demo.admissionportal.dto.request.admisison.UpdateAdmissionScoreRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -33,6 +34,11 @@ public class AdmissionTrainingProgramMethodId implements Serializable {
     public AdmissionTrainingProgramMethodId(DeleteAdmissionTrainingProgramMethodIdDTO deleteAdmissionTrainingProgramMethodIdDTO) {
         this.admissionTrainingProgramId = deleteAdmissionTrainingProgramMethodIdDTO.getAdmissionTrainingProgramId();
         this.admissionMethodId = deleteAdmissionTrainingProgramMethodIdDTO.getAdmissionMethodId();
+    }
+
+    public AdmissionTrainingProgramMethodId(ModifyAdmissionTrainingProgramMethodRequest modifyAdmissionTrainingProgramMethodRequest) {
+        this.admissionTrainingProgramId = modifyAdmissionTrainingProgramMethodRequest.getAdmissionTrainingProgramId();
+        this.admissionMethodId = modifyAdmissionTrainingProgramMethodRequest.getAdmissionMethodId();
     }
 
     @Override

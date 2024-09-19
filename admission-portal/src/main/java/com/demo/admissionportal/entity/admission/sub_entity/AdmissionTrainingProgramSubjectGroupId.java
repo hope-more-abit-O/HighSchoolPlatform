@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.admission.sub_entity;
 
+import com.demo.admissionportal.dto.request.admisison.AdmissionTrainingProgramSubjectGroupIdDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,11 @@ public class AdmissionTrainingProgramSubjectGroupId implements Serializable {
     @NotNull
     @Column(name = "subject_group_id", nullable = false)
     private Integer subjectGroupId;
+
+    public AdmissionTrainingProgramSubjectGroupId(AdmissionTrainingProgramSubjectGroupIdDTO admissionTrainingProgramSubjectGroupIdDTO) {
+        this.admissionTrainingProgramId = admissionTrainingProgramSubjectGroupIdDTO.getAdmissionTrainingProgramId();
+        this.subjectGroupId = admissionTrainingProgramSubjectGroupIdDTO.getSubjectGroupId();
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -120,6 +120,7 @@ public class AuthenticationUserServiceImpl implements AuthenticationUserService 
                     UniversityInfo uni = universityInfoRepository.findUniversityInfoById(university.getId());
                     consultantInfoResponseDTO.setAvatarUniversity(university.getAvatar());
                     consultantInfoResponseDTO.setFullNameUniversity(uni.getName());
+                    consultantInfoResponseDTO.setStaffIncharge(uni.getStaffId());
                 }
                 return new ResponseData<>(ResponseCode.C200.getCode(), "Đăng nhập thành công", LoginResponseDTO.builder()
                         .accessToken(jwtToken)

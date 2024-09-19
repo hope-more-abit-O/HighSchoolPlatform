@@ -222,9 +222,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         List<AdmissionQuotaDTO> admissionQuotaDTOs = request.getQuotas().stream().map(AdmissionQuotaDTO::new).toList();
         User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 
-        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
+//        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
+        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(consultant.getCreateBy(), request.getYear(), AdmissionStatus.ACTIVE).orElse(null);
         if (checkAdmission != null) {
-            throw new DataExistedException("Đề án đã tồn tại");
+            throw new DataExistedException("Đã có đề án năm " + request.getYear() + " đang được active.");
         }
 
         Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
@@ -949,6 +950,13 @@ public class AdmissionServiceImpl implements AdmissionService {
     public void universityAndConsultantUpdateAdmissionStatusAndUpdateUniversityTrainingProgram(Integer id, UpdateAdmissionStatusRequest request) throws NotAllowedException, BadRequestException, StoreDataFailedException{
         User user = ServiceUtils.getUser();
         Admission ad = findById(id);
+        
+        List<Admission> admissions = admissionRepository.findByUniversityIdAndYearAndAdmissionStatusV2(ad.getUniversityId(), ad.getYear(), AdmissionStatus.ACTIVE);
+
+        if (admissions.size() > 1 || (admissions.size() == 1 && !admissions.get(0).getId().equals(ad.getId()))){
+            throw new BadRequestException("Đề án khác cùng năm đã được kích hoạt.", Map.of("admissionId", admissions.get(0).getId().toString()));
+        }
+
         ad = universityAndConsultantUpdateAdmissionStatus(id, request, user, ad);
         updateUniversityTrainingProgram(user, ad.getUniversityId(), ad);
     }
@@ -1085,7 +1093,13 @@ public class AdmissionServiceImpl implements AdmissionService {
         validateAdmissionOwnership(user, admission);
         if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING))
             updateNotAcceptedAdmission(admission, request, user);
+        if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
+            updateAcceptedAdmission(admission, request, user);
         return null;
+    }
+
+    private void updateAcceptedAdmission(Admission admission, UpdateAdmissionRequest request, User user) {
+
     }
 
     public void updateNotAcceptedAdmission(Admission admission, UpdateAdmissionRequest request, User user){
