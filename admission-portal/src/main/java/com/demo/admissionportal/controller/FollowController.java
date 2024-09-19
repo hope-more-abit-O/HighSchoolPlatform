@@ -179,4 +179,18 @@ public class FollowController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(updateFollow);
     }
+
+    @GetMapping("/university/major/list-users/V2")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<List<UsersFollowMajorResponseDTO>>> getListUserFollowMajorV2(@RequestParam(required = true) Integer universityId) {
+        if (universityId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "universityId null"));
+        }
+        ResponseData<List<UsersFollowMajorResponseDTO>> list = followService.getListUserFollowMajorV2(universityId);
+        if (list.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(list);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
+    }
+
 }

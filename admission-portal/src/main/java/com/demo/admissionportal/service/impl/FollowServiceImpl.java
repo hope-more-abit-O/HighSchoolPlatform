@@ -332,4 +332,22 @@ public class FollowServiceImpl implements FollowService {
                     .collect(Collectors.toList());
         }
     }
+
+
+    @Override
+    public ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajorV2(Integer universityId) {
+        try {
+            if (universityId == null) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "universityId null");
+            }
+            List<UsersFollowMajorResponseDTO> responseDTOS = findListUsersFollow(universityId);
+            if (responseDTOS == null) {
+                return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy danh sách users follow university major v2 thất bại", null);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy danh sách users follow university major v2 thành công", responseDTOS);
+        } catch (Exception ex) {
+            log.error("Error while get list user follow university major v2 by university");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy danh sách users follow university major v2 thất bại", null);
+        }
+    }
 }
