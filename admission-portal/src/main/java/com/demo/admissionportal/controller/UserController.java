@@ -7,9 +7,11 @@ import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.UpdateUserResponseDTO;
 import com.demo.admissionportal.dto.response.UserProfileResponseDTO;
+import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.service.UniversityService;
 import com.demo.admissionportal.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -128,6 +130,26 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else if (user.getStatus() == ResponseCode.C203.getCode()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
+    }
+
+    @PutMapping("/profile/mobile")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseData<LoginResponseDTO>> updateUserMobile(@RequestBody @Valid UpdateUserRequestDTO requestDTO, HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization");
+        if (requestDTO == null) {
+            new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseData<LoginResponseDTO> user = userService.updateUserMobile(requestDTO, accessToken);
+        if (user.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        } else if (user.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
+        } else if (user.getStatus() == ResponseCode.C209.getCode()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(user);
+        } else if (user.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(user);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
     }

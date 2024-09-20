@@ -11,6 +11,8 @@ import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
 import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
+import com.demo.admissionportal.dto.response.authen.UserInfoResponseDTO;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.id.UserIdentificationNumberId;
 import com.demo.admissionportal.exception.exceptions.DataExistedException;
@@ -690,6 +692,72 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex) {
             log.error("Error getting user by id: {}", ex.getMessage());
             return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi tìm user id");
+        }
+    }
+
+    @Override
+    public ResponseData<LoginResponseDTO> updateUserMobile(UpdateUserRequestDTO requestDTO, String token) {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            if (requestDTO == null) {
+                new ResponseEntity<ResponseData<UpdateUserResponseDTO>>(HttpStatus.BAD_REQUEST);
+            }
+            UserInfo userInfo = userInfoRepository.findUserInfoById(userId);
+            User user = userRepository.findUserById(userId);
+            // Get user profile
+            if (userInfo == null) {
+                return new ResponseData<>(ResponseCode.C203.getCode(), "Không tìm thấy user");
+            }
+            // Update profile
+            boolean isChanged = false;
+            boolean isPhoneChange = ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);
+            ;
+            if (isPhoneChange) {
+                validationService.validatePhoneNumber(requestDTO.getPhone());
+            }
+            ValidationService.updateIfChanged(requestDTO.getFirstName(), userInfo.getFirstName(), userInfo::setFirstName);
+            ValidationService.updateIfChanged(requestDTO.getMiddleName(), userInfo.getMiddleName(), userInfo::setMiddleName);
+            ValidationService.updateIfChanged(requestDTO.getLastName(), userInfo.getLastName(), userInfo::setLastName);
+            ValidationService.updateIfChanged(requestDTO.getGender(), userInfo.getGender(), userInfo::setGender);
+            ValidationService.updateIfChanged(requestDTO.getPhone(), userInfo.getPhone(), userInfo::setPhone);
+            ValidationService.updateIfChanged(requestDTO.getBirthday(), userInfo.getBirthday(), userInfo::setBirthday);
+            ValidationService.updateIfChanged(requestDTO.getEducation_level(), userInfo.getEducationLevel(), userInfo::setEducationLevel);
+            ValidationService.updateIfChanged(requestDTO.getSpecific_address(), userInfo.getSpecificAddress(), userInfo::setSpecificAddress);
+            ValidationService.updateIfChanged(requestDTO.getAvatar(), user.getAvatar(), user::setAvatar);
+
+            Province province = requestDTO.getProvince() != null ?
+                    provinceRepository.findProvinceById(requestDTO.getProvince()) :
+                    userInfo.getProvince();
+            userInfo.setProvince(province);
+
+            District district = requestDTO.getDistrict() != null ?
+                    districtRepository.findDistrictById(requestDTO.getDistrict()) :
+                    userInfo.getDistrict();
+            userInfo.setDistrict(district);
+
+            Ward ward = requestDTO.getWard() != null ?
+                    wardRepository.findWardById(requestDTO.getWard()) :
+                    userInfo.getWard();
+            userInfo.setWard(ward);
+
+            // Save update time
+            user.setUpdateTime(new Date());
+            if (!isChanged) {
+               User newUser = userRepository.save(user);
+               UserInfo newUserInfo = userInfoRepository.save(userInfo);
+
+                return new ResponseData<>(ResponseCode.C200.getCode(), "Đã cập nhật user thành công", LoginResponseDTO.builder()
+                        .accessToken(token.substring(7))
+                        .user(modelMapper.map(newUser, LoginResponseDTO.UserLoginResponseDTO.class))
+                        .userInfo(modelMapper.map(newUserInfo, UserInfoResponseDTO.class)).build());
+            }
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Cập nhật thất bại");
+        } catch (DataExistedException de) {
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Số điện thoai đã tồn tại");
+
+        } catch (Exception ex) {
+            log.error("Error update user: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Xảy ra lỗi khi cập nhật user");
         }
     }
 
