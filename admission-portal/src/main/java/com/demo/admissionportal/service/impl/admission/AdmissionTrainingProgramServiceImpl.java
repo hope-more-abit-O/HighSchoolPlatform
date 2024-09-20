@@ -139,13 +139,13 @@ public class AdmissionTrainingProgramServiceImpl {
         return admissionTrainingProgramRepository.findByAdmissionIdIn(id);
     }
 
-    public List<AdmissionTrainingProgram> findByIds(List<Integer> admissionMethodIds)
+    public List<AdmissionTrainingProgram> findByIds(List<Integer> admissionTrainingProgramIds)
             throws ResourceNotFoundException{
-        List<AdmissionTrainingProgram> methods = admissionTrainingProgramRepository.findAllById(admissionMethodIds);
+        List<AdmissionTrainingProgram> methods = admissionTrainingProgramRepository.findAllById(admissionTrainingProgramIds);
 
         // Check for IDs that were not found
         List<Integer> foundIds = methods.stream().map(AdmissionTrainingProgram::getId).toList();
-        List<Integer> notFoundIds = admissionMethodIds.stream().filter(id -> !foundIds.contains(id)).toList();
+        List<Integer> notFoundIds = admissionTrainingProgramIds.stream().filter(id -> !foundIds.contains(id)).toList();
 
         Map<String, String> error = new HashMap<>();
         error.put("error", notFoundIds
@@ -169,8 +169,9 @@ public class AdmissionTrainingProgramServiceImpl {
         Integer modified = 0;
 
         if (request.getDeleteAdmissionTrainingPrograms() != null && request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId() != null && !request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId().isEmpty()){
-            modified += deleteByIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId(), admissionTrainingPrograms);
             modified += admissionTrainingProgramMethodService.deleteByAdmissionTrainingProgramIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId());
+            modified += admissionTrainingProgramSubjectGroupService.deleteByAdmissionTrainingProgramIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId());
+            modified += deleteByIds(request.getDeleteAdmissionTrainingPrograms().getAdmissionTrainingProgramId(), admissionTrainingPrograms);
         }
 
         admissionTrainingPrograms = this.findByAdmissionId(admission.getId());

@@ -1093,7 +1093,13 @@ public class AdmissionServiceImpl implements AdmissionService {
         validateAdmissionOwnership(user, admission);
         if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.PENDING))
             updateNotAcceptedAdmission(admission, request, user);
+        if (admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
+            updateAcceptedAdmission(admission, request, user);
         return null;
+    }
+
+    private void updateAcceptedAdmission(Admission admission, UpdateAdmissionRequest request, User user) {
+
     }
 
     public void updateNotAcceptedAdmission(Admission admission, UpdateAdmissionRequest request, User user){

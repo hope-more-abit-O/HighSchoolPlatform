@@ -11,6 +11,7 @@ import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.exception.exceptions.CreateEntityFailedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.admission.AdmissionMethodRepository;
+import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
 import com.demo.admissionportal.service.impl.MethodServiceImpl;
 import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class AdmissionMethodServiceImpl {
     private final AdmissionMethodRepository admissionMethodRepository;
     private final MethodServiceImpl methodService;
+    private final AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
 
     public List<AdmissionMethod> saveAllAdmissionMethod(Integer admissionId, List<Integer> methodIds) {
         log.info("Saving admission methods for admission ID: {}", admissionId);
@@ -132,6 +134,7 @@ public class AdmissionMethodServiceImpl {
         Integer modified = 0;
 
         if (updateAdmissionMethodRequest.getDeleteAdmissionMethod() != null && updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId() != null && !updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId().isEmpty()) {
+            modified += admissionTrainingProgramMethodRepository.deleteById_AdmissionTrainingProgramIdIn(updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId());
             modified += this.deleteByAdmissionIds(updateAdmissionMethodRequest.getDeleteAdmissionMethod().getAdmissionMethodId(), admissionMethods);
         }
 
