@@ -9,6 +9,7 @@ import com.demo.admissionportal.dto.request.ChangeStatusUserRequestDTO;
 import com.demo.admissionportal.dto.request.RegisterIdentificationNumberRequest;
 import com.demo.admissionportal.dto.request.UpdateUserRequestDTO;
 import com.demo.admissionportal.dto.response.*;
+import com.demo.admissionportal.dto.response.authen.LoginResponseDTO;
 import com.demo.admissionportal.entity.User;
 import com.demo.admissionportal.exception.exceptions.NotAllowedException;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
@@ -271,4 +272,12 @@ public interface UserService extends UserDetailsService {
      * @return the user profile by id
      */
     ResponseData<UserProfileResponseDTO> getUserProfileById(Integer id);
+
+    /**
+     * Update user mobile response data.
+     *
+     * @param requestDTO the request dto
+     * @return the response data
+     */
+    ResponseData<LoginResponseDTO> updateUserMobile(UpdateUserRequestDTO requestDTO, String accessToken);
 }
