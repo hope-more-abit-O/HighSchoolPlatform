@@ -12,10 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service implementation for interacting with Firebase Storage.
@@ -63,14 +60,18 @@ public class FirebaseStorageServiceImpl implements FirebaseStorageService {
      * @throws IOException If an I/O error occurs during the upload process.
      */
     public ResponseData uploadFile(MultipartFile file) throws IOException {
-        Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-dev.appspot.com");
-        String fileName = UUID.randomUUID().toString() + "." + getExtension(Objects.requireNonNull(file.getOriginalFilename()));
+        try {
+            Bucket bucket = FirebaseUtil.getStorageClient().bucket("highschoolvn-dev.appspot.com");
+            String fileName = UUID.randomUUID().toString() + "." + getExtension(Objects.requireNonNull(file.getOriginalFilename()));
 
-        bucket.create(fileName, file.getBytes(), file.getContentType());
+            bucket.create(fileName, file.getBytes(), file.getContentType());
 
-        String downloadTokens = fetchDownloadTokens(fileName);
+            String downloadTokens = fetchDownloadTokens(fileName);
 
-        return ResponseData.ok("Lưu file thành công.", new UploadFileResponse(getDownloadUrl(fileName)));
+            return ResponseData.ok("Lưu file thành công.", new UploadFileResponse(getDownloadUrl(fileName)));
+        } catch (Exception e) {
+            return ResponseData.error("Lưu file thất bại.", e.getMessage());
+        }
     }
 
 

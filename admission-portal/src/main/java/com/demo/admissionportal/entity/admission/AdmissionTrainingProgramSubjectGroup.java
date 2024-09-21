@@ -1,5 +1,6 @@
 package com.demo.admissionportal.entity.admission;
 
+import com.demo.admissionportal.dto.request.admisison.AdmissionTrainingProgramSubjectGroupIdDTO;
 import com.demo.admissionportal.entity.SubjectGroup;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
 import jakarta.persistence.*;
@@ -18,5 +19,9 @@ public class AdmissionTrainingProgramSubjectGroup {
 
     public AdmissionTrainingProgramSubjectGroup(Integer admissionTrainingProgramId, Integer subjectGroupId) {
         this.id = new AdmissionTrainingProgramSubjectGroupId(admissionTrainingProgramId, subjectGroupId);
+    }
+
+    public AdmissionTrainingProgramSubjectGroup(AdmissionTrainingProgramSubjectGroupIdDTO admissionTrainingProgramSubjectGroupIdDTO) {
+        this.id = new AdmissionTrainingProgramSubjectGroupId(admissionTrainingProgramSubjectGroupIdDTO.getAdmissionTrainingProgramId(), admissionTrainingProgramSubjectGroupIdDTO.getSubjectGroupId());
     }
 }

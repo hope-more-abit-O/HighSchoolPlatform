@@ -375,4 +375,13 @@ AND status = :admissionStatus
     List<Admission> findByUniversityIdInAndYearAndAdmissionStatus(List<Integer> universityIds, Integer year, AdmissionStatus admissionStatus);
 
     Optional<Admission> findByUniversityIdAndYearAndConfirmStatus(Integer universityId, Integer year, AdmissionConfirmStatus confirmStatus);
+
+    @Query(value = """
+SELECT *
+FROM admission
+WHERE university_id = :universityId
+AND year = :year
+AND status = :admissionStatus
+""", nativeQuery = true)
+   List<Admission> findByUniversityIdAndYearAndAdmissionStatusV2(Integer universityId, Integer year, AdmissionStatus admissionStatus);
 }
