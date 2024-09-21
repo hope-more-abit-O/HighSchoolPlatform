@@ -597,7 +597,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         result.setScoreStatus(admission.getScoreStatus().name);
         result.setConfirmStatus(admission.getConfirmStatus().name);
         UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(admission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("University info not found"));
-        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
+        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
         result.setSources(sources);
         if (admission.getUpdateBy() != null) {
@@ -638,7 +638,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         AdmissionDetailDTO result = modelMapper.map(admission, AdmissionDetailDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
-        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
+        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         return result;
     }
 
