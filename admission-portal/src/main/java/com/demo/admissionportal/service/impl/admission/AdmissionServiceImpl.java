@@ -1815,7 +1815,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                                 new ArrayList<>(List.of(admissionTrainingProgramScoreDTO)),
                                 admissionTrainingProgram.getTrainingSpecific(),
                                 admissionTrainingProgram.getLanguage(),
-                                universityTrainingPrograms));
+                                universityTrainingPrograms.stream().filter((element) -> element.compareWithAdmissionTrainingProgram(admissionTrainingProgram)).findFirst().orElse(null)));
                     } else {
                         Integer index = admissionTrainingProgramDTOV2s.indexOf(admissionTrainingProgramDTOV2);
                         if (index == -1 ) throw new ResourceNotFoundException("Không tìm thấy chương trình đào tạo.");
