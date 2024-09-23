@@ -402,4 +402,11 @@ public class AdmissionController {
     public ResponseEntity getUniversitiesHaveMajor(@PathVariable("majorId") Integer majorId, @PathVariable("year") Integer year) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", admissionService.getUniversitiesHaveMajorAtYear(majorId, year)));
     }
+
+
+    @GetMapping("/test3")
+    @SecurityRequirement(name = "BearerAuth")
+    public void test3(){
+        admissionService.validateAllAdmission();
+    }
 }

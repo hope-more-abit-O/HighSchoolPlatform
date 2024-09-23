@@ -2530,4 +2530,12 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
         return universityCompareMajorDTOS;
     }
+
+    public void validateAllAdmission(){
+        List<Admission> admissions = admissionRepository.findByAdmissionStatusOrderByYearAsc(AdmissionStatus.ACTIVE);
+        User user = ServiceUtils.getUser();
+        for (Admission ad: admissions){
+            updateUniversityTrainingProgram(user, ad.getUniversityId(), ad);
+        }
+    }
 }

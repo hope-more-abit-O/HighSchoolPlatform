@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.MajorStatus;
+import com.demo.admissionportal.constants.UniversityTrainingProgramStatus;
 import com.demo.admissionportal.dto.entity.major.CreateMajorDTO;
 import com.demo.admissionportal.dto.entity.major.InfoMajorDTO;
 import com.demo.admissionportal.dto.request.admisison.CreateAdmissionQuotaRequest;
@@ -420,7 +421,7 @@ public class MajorServiceImpl implements MajorService {
     }
 
     public List<InfoMajorDTO> getAvailableMajors(){
-        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findAll();
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramRepository.findByStatus(UniversityTrainingProgramStatus.ACTIVE);
         List<Integer> majorIds = universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList();
         return this.findByIds(majorIds).stream().map((element) -> modelMapper.map(element, InfoMajorDTO.class)).toList();
     }
