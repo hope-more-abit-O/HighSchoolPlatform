@@ -45,4 +45,13 @@ public class AdmissionTrainingProgramDTOV2 {
         this.trainingSpecific = trainingSpecific;
         this.language = language;
     }
+
+    public AdmissionTrainingProgramDTOV2(Admission admission, InfoMajorDTO major, List<AdmissionTrainingProgramScoreDTO> score, String trainingSpecific, String language, UniversityTrainingProgram universityTrainingProgram) {
+        this.universityId = admission.getUniversityId();
+        this.universityTrainingProgramId = universityTrainingProgram == null ? null : universityTrainingProgram.getId();
+        this.major = major;
+        this.score = score;
+        this.trainingSpecific = trainingSpecific;
+        this.language = language;
+    }
 }
