@@ -1295,11 +1295,10 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
-//        try {
+        try {
             ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
             if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
-//                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
-                return null;
+                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
             }
 
             List<Integer> availableSubjectGroupIds = availableSubjectGroupsResponse.getData().stream()
@@ -1313,8 +1312,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroup);
             if (examScore2023 == null) {
-//                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
-                return null;
+                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
             }
             List<Integer> subjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup);
 
@@ -1412,14 +1410,14 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", result);
 
-//        }
-//        catch (IllegalArgumentException ex) {
-//            log.error("Validate error: {}", ex.getMessage());
-//            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
-//        } catch (Exception ex) {
-//            log.error("Error while analyze: {}", ex.getMessage(), ex);
-//            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
-//        }
+        }
+        catch (IllegalArgumentException ex) {
+            log.error("Validate error: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Error while analyze: {}", ex.getMessage(), ex);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+        }
     }
 
     private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
@@ -1487,47 +1485,184 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     private DiemChuanStatus getResult(DiemTrungBinhStatus scoreStatus, ChiTieuStatus quotaStatus) {
-        if (scoreStatus == DiemTrungBinhStatus.GiamManh || quotaStatus == ChiTieuStatus.GiamManh) {
-            return DiemChuanStatus.Giam;
+        // Điểm trung bình giảm mạnh
+        if (scoreStatus == DiemTrungBinhStatus.GiamManh) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Giam;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
         }
-        if (scoreStatus == DiemTrungBinhStatus.TangManh || quotaStatus == ChiTieuStatus.TangManh) {
-            return DiemChuanStatus.Tang;
+
+        // Điểm trung bình giảm
+        if (scoreStatus == DiemTrungBinhStatus.Giam) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
         }
+
+        // Điểm trung bình giảm nhẹ
+        if (scoreStatus == DiemTrungBinhStatus.GiamNhe) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình không đổi
+        if (scoreStatus == DiemTrungBinhStatus.KhongDoi) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình tăng nhẹ
+        if (scoreStatus == DiemTrungBinhStatus.TangNhe) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình tăng
+        if (scoreStatus == DiemTrungBinhStatus.Tang) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
+        }
+        // Điểm trung bình tăng mạnh
+        if (scoreStatus == DiemTrungBinhStatus.TangManh) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
+        }
+
         return DiemChuanStatus.KhongDoi;
     }
 
-    private String generateAdvice(DiemChuanStatus finalStatus, float score2024, float score2023, String university, String major, String subjectGroupName) {
+
+    private String generateAdvice(DiemChuanStatus finalStatus, float score2024, Float score2023, String university, String major, String subjectGroupName) {
+        if (score2023 == null) {
+            return "Không có dữ liệu điểm chuẩn cho năm 2023. Khả năng trúng tuyển không thể xác định.";
+        }
+
         double scoreDifference = score2024 - score2023;
+
+        if (scoreDifference > 3) {
+            return "Bạn có điểm vượt ngưỡng đáng kể so với năm 2023. Khả năng trúng tuyển vào " + university + " ngành " + major + " rất cao.";
+        } else if (scoreDifference < -3) {
+            return "Điểm của bạn thấp hơn đáng kể so với ngưỡng năm 2023. Bạn nên cân nhắc kỹ lưỡng các nguyện vọng.";
+        }
 
         if (finalStatus == DiemChuanStatus.Giam) {
             if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else if (scoreDifference <= -1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName +" là RẤT THẤP.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " của bạn là RẤT THẤP.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.Tang) {
             if (scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " của bạn là RẤT THẤP.";
             } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " của bạn là TRUNG BÌNH.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.KhongDoi) {
             if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " của bạn là TRUNG BÌNH.";
             } else if (scoreDifference < -0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là RẤT THẤP.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Khả năng đậu vào trường " + university + " với ngành " + major + " là CAO.";
             }
         }
         return "Không xác định được khả năng trúng tuyển.";
