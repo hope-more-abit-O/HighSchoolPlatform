@@ -383,5 +383,5 @@ WHERE university_id = :universityId
 AND year = :year
 AND status = :admissionStatus
 """, nativeQuery = true)
-   List<Admission> findByUniversityIdAndYearAndAdmissionStatusV2(Integer universityId, Integer year, AdmissionStatus admissionStatus);
+   List<Admission> findByUniversityIdAndYearAndAdmissionStatusV2(Integer universityId, Integer year, String admissionStatus);
 }
