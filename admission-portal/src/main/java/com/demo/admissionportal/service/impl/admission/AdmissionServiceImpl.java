@@ -951,7 +951,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         User user = ServiceUtils.getUser();
         Admission ad = findById(id);
         
-        List<Admission> admissions = admissionRepository.findByUniversityIdAndYearAndAdmissionStatusV2(ad.getUniversityId(), ad.getYear(), AdmissionStatus.ACTIVE);
+        List<Admission> admissions = admissionRepository.findByUniversityIdAndYearAndAdmissionStatusV2(ad.getUniversityId(), ad.getYear(), AdmissionStatus.ACTIVE.name());
 
         if (admissions.size() > 1 || (admissions.size() == 1 && !admissions.get(0).getId().equals(ad.getId()))){
             throw new BadRequestException("Đề án khác cùng năm đã được kích hoạt.", Map.of("admissionId", admissions.get(0).getId().toString()));
