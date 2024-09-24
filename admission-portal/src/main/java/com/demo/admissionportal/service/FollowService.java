@@ -79,4 +79,12 @@ public interface FollowService {
      * @return the list user follow major v 2
      */
     ResponseData<List<UsersFollowMajorResponseDTO>> getListUserFollowMajorV2(Integer universityId);
+
+    /**
+     * Save fcm token response data.
+     *
+     * @param fcmToken the fcm token
+     * @return the response data
+     */
+    ResponseData<String> saveFCMToken(String fcmToken);
 }

@@ -30,4 +30,5 @@ public class UserFollowUniversityMajorResponseDTO implements Serializable {
     private String language;
     private Date createTime;
     private String subjectGroups;
+    private String fcmToken;
 }
