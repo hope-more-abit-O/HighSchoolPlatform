@@ -5,10 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class UniInfoDTO {
+@NoArgsConstructor
+public class SubjectGrouppDTO {
     private Integer id;
     private String name;
-    private String code;
 }

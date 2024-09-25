@@ -1761,8 +1761,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             for(Object[] result : allUniversities) {
                 Integer universityId = (Integer) result[0];
                 String universityName = (String) result[1];
+                String uniCode = (String) result[2];
 
-                UniInfoDTO finalResult = new UniInfoDTO(universityId, universityName);
+                UniInfoDTO finalResult = new UniInfoDTO(universityId, universityName, uniCode);
                 results.add(finalResult);
             }
             if (results.isEmpty() || results == null){
@@ -1781,8 +1782,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             for (Object[] majorInfo : majorFromUni ){
                 Integer majorId = (Integer) majorInfo[0];
                 String majorName = (String) majorInfo[1];
+                String majorCode = (String) majorInfo[2];
 
-                MajorInfoDTO result = new MajorInfoDTO(majorId, majorName);
+                MajorInfoDTO result = new MajorInfoDTO(majorId, majorName, majorCode);
                 majorResults.add(result);
             }
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu ngành học của trường đại học thành công", majorResults);
@@ -1792,20 +1794,43 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
 
-    public ResponseData<?> getSubjectGroupByMajorIdAndUniversityId(Integer universityId, Integer majorId){
+    public ResponseData<?> getSubjectGroupByUniversityIdAndMajorId(Integer universityId, Integer majorId){
         try {
-            List<Object[]> subjectGroupResponses = highschoolExamScoreRepository.findSubjectGroupByUniversityIdAndMajorId(universityId, majorId);
-            List<SubjectGroupInfoDTO> subjectGroupResult = new ArrayList<>();
-            for (Object[] subjectGroupResponse : subjectGroupResponses){
-                Integer subjectGroupId = (Integer) subjectGroupResponse[0];
-                String subjectGroupName = (String) subjectGroupResponse[1];
+            List<Object[]> subjectGroupResults = highschoolExamScoreRepository.findSubjectGroupByUniversityIdAndMajorId(universityId, majorId);
+            Map<Integer, SubjectGroupInfoDTO> subjectGroupInfoDTOMap = new HashMap<>();
 
-                SubjectGroupInfoDTO result = new SubjectGroupInfoDTO(subjectGroupId, subjectGroupName);
-                subjectGroupResult.add(result);
+            for (Object[] subjectGroupResult : subjectGroupResults){
+                Integer subjectGroupId = (Integer) subjectGroupResult[0];
+                String subjectGroupName = (String) subjectGroupResult[1];
+                Integer subjectId = (Integer) subjectGroupResult[2];
+                String subjectName = (String) subjectGroupResult[3];
+
+                //check exist subject group id
+                SubjectGroupInfoDTO subjectGroupInfoDTO = subjectGroupInfoDTOMap.get(subjectGroupId);
+
+                //chua co, add moi
+                if (subjectGroupInfoDTO == null) {
+                    subjectGroupInfoDTO = new SubjectGroupInfoDTO(subjectGroupId, subjectGroupName, new ArrayList<>());
+                    subjectGroupInfoDTOMap.put(subjectGroupId, subjectGroupInfoDTO);
+                }
+
+                //add subject vo lits subjectgroup
+                List<SubjectInfDTO> subjectList = subjectGroupInfoDTO.getSubjects();
+                SubjectInfDTO subject = new SubjectInfDTO(subjectId, subjectName);
+
+
+                //dam bao subject chi add 1 lan 1 subject group
+                if(!subjectList.contains(subject)){
+                    subjectList.add(subject);
+                }
             }
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn học thành công.", subjectGroupResult);
+
+            List<SubjectGroupInfoDTO> finalResult = new ArrayList<>(subjectGroupInfoDTOMap.values());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn học thành công",finalResult);
         } catch (Exception e){
-            return new ResponseData<>(ResponseCode.C204.getCode(), "Có lỗi xảy ra khi lấy tổ hợp môn học từ ngành học và trường đại học.", e.getMessage());
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Có lỗi xảy ra khi lấy tổ hợp môn học từ ngành học của trường đại học", e.getMessage());
         }
     }
+
 }

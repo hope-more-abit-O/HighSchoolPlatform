@@ -264,7 +264,7 @@ public class HighschoolExamScoreController {
             @PathVariable (required = true) Integer universityId,
             @PathVariable (required = true) Integer majorId
     ) {
-        ResponseData<?> response = highschoolExamScoreServiceImpl.getSubjectGroupByMajorIdAndUniversityId(universityId, majorId);
+        ResponseData<?> response = highschoolExamScoreServiceImpl.getSubjectGroupByUniversityIdAndMajorId(universityId, majorId);
         if (response.getStatus() == ResponseCode.C200.getCode()) {
             return ResponseEntity.ok(response);
         } else if (response.getStatus() == ResponseCode.C204.getCode()) {
