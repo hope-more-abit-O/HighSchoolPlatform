@@ -1310,7 +1310,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
 
             if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
-                throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
+                return new ResponseData<>(ResponseCode.C204.getCode(),"Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
             List<Integer> availableSubjectGroupIds = availableSubjectGroupsResponse.getData().stream()
@@ -1320,14 +1320,14 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             Integer subjectGroup = request.getSubjectGroup();
 
             if (!availableSubjectGroupIds.contains(subjectGroup)) {
-                throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
+                return new ResponseData<>(ResponseCode.C204.getCode(),"Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
             examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(
                     request.getUniversity(), request.getMajor(), subjectGroup);
 
             if (examScore2023 == null) {
-                throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
+                return new ResponseData<>(ResponseCode.C204.getCode(),"Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
             }
 
             List<Integer> subjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup);

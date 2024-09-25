@@ -213,7 +213,7 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    
+
 
     @PostMapping("/forecast")
     public ResponseEntity<ResponseData<?>> forecastScore2024(@RequestBody Aspiration request) {
