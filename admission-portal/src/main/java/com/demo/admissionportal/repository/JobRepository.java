@@ -24,7 +24,7 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
      */
     @Query(value = "SELECT * " +
             "FROM job j " +
-            "WHERE (:jobName IS NULL OR j.name LIKE N'%' + :jobName + '%')" +
+            "WHERE (:jobName IS NULL OR j.name COLLATE Latin1_General_CI_AI LIKE N'%' + :jobName + '%'COLLATE Latin1_General_CI_AI)" +
             "AND (:status IS NULL OR j.status = :status)", nativeQuery = true)
     Page<Job> findJobs(@Param("jobName") String jobName, String status, Pageable pageable);
 
