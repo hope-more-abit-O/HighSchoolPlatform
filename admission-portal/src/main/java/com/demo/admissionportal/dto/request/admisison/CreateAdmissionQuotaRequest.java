@@ -26,6 +26,7 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     private Integer mainSubjectId;
     private String language;
     private String trainingSpecific;
+    private String trainingProgramCode;
 
     @NotNull(message = "Mã phương thức phải không được để trống")
     @EnumId(message = "Mã phương thức phải là số và phải lớn hơn 0")
@@ -40,4 +41,6 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     @NotNull(message = "Số chỉ tiêu phải không được để trống")
     @EnumQuota(message = "Số chỉ tiêu phải là số và phải lớn hơn 0")
     private Integer quota;
+
+    private Float score;
 }

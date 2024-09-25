@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Follow university major repository.
@@ -69,4 +70,15 @@ public interface FollowUniversityMajorRepository extends JpaRepository<UserFollo
             "FROM user_follow_university_major ufum " +
             "WHERE ufum.index_of_follow > :indexOfFollow AND ufum.user_id = :userId ", nativeQuery = true)
     List<UserFollowUniversityMajor> findHighIndex(Integer indexOfFollow, Integer userId);
+
+    /**
+     * Find fcm token list.
+     *
+     * @param userId the user id
+     * @return the list
+     */
+    @Query(value = "SELECT * " +
+            "FROM user_follow_university_major ufum " +
+            "WHERE user_id = :userId", nativeQuery = true)
+    Optional<List<UserFollowUniversityMajor>> findFCMToken(Integer userId);
 }

@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 @Entity
@@ -110,5 +112,12 @@ public class AdmissionTrainingProgram {
             }
         }
         return uppercaseLetters.toString();
+    }
+
+    public boolean isIdEqual(AdmissionTrainingProgram admissionTrainingProgram){
+        return this.majorId.equals(admissionTrainingProgram.getMajorId()) &&
+                Objects.equals(this.admissionId, admissionTrainingProgram.getAdmissionId()) &&
+                Objects.equals(this.trainingSpecific, admissionTrainingProgram.getTrainingSpecific()) &&
+                Objects.equals(this.language, admissionTrainingProgram.getLanguage());
     }
 }
