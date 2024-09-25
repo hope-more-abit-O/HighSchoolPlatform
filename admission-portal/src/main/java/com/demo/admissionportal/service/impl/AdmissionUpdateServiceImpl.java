@@ -35,6 +35,10 @@ public class AdmissionUpdateServiceImpl implements AdmissionUpdateService {
         return admissionUpdateRepository.findFirstByBeforeAdmissionIdAndStatus(beforeAdmissionId, status).orElse(null);
     }
 
+    public AdmissionUpdate findByBeforeAdmissionIdAndStatus(Integer beforeAdmissionId, AdmissionUpdateStatus status, AdmissionUpdateStatus status2){
+        return admissionUpdateRepository.findFirstByBeforeAdmissionIdAndStatus(beforeAdmissionId, status.name(), status2.name()).orElse(null);
+    }
+
     public List<AdmissionUpdate> findAllByBeforeAdmissionIdAndStatus(Integer beforeAdmissionId, AdmissionUpdateStatus status){
         return admissionUpdateRepository.findByBeforeAdmissionIdAndStatus(beforeAdmissionId, status);
     }

@@ -22,7 +22,6 @@ public class UpdateAdmissionRequestV2 {
     private String documents;
 
     @NotNull
-    @EnumCreateAdmissionQuotaRequest
     @Valid
     private List<UpdateAdmissionQuotaDTO> quotas;
 }

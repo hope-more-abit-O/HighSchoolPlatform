@@ -406,7 +406,7 @@ public class AdmissionController {
         admissionService.validateAllAdmission();
     }
 
-    @PostMapping("/update-admission/{admisisonId}")
+    @PostMapping("/update-admission/{oldAdmissionId}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<?> updateAdmissionV2(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionRequestV2 request)
             throws DataExistedException {
@@ -418,11 +418,22 @@ public class AdmissionController {
         }
     }
 
-    @PutMapping("/update-admission/from/{oldAdmissionId}")
+    @PutMapping("/staff/update-admission/from/{oldAdmissionId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> staffUpdateUpdateAdmissionStatus(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionUpdateStatusRequest request) {
+        try {
+            admissionService.staffUpdateUpdateAdmissionStatus(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        } catch (Exception e) {
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/consultant/update-admission/from/{oldAdmissionId}")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<?> consultantAndUniversityUpdateUpdateAdmissionStatus(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionUpdateStatusRequest request) {
         try {
-            admissionService.staffUpdateUpdateAdmissionStatus(oldAdmissionId, request);
+            admissionService.consultantAndUniversityUpdateUpdateAdmissionStatus(oldAdmissionId, request);
             return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
         } catch (Exception e) {
             throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));

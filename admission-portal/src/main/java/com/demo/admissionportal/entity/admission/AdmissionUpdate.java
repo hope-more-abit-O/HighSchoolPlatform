@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
 
 import java.util.Date;
 
@@ -47,7 +48,11 @@ public class AdmissionUpdate {
     @Column(name = "note")
     private String note;
 
-    @Column(name = "status")
+    @NotNull
+    @Nationalized
+    @ColumnDefault("'PENDING'")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private AdmissionUpdateStatus status;
 
     public AdmissionUpdate(Integer beforeAdmissionId, Integer afterAdmissionId, Integer createBy){
