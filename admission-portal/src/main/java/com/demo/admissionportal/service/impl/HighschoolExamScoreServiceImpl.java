@@ -1339,13 +1339,13 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     .map(HighschoolExamScore::getScore)
                     .reduce(0f, Float::sum);
 
-            if (examScore2023 > 30) {
-                float chosenSubjectScore = userScores.get(0).getScore() * 2;
-                userScore2024 = chosenSubjectScore + userScores.stream()
-                        .skip(1)
-                        .map(HighschoolExamScore::getScore)
-                        .reduce(0f, Float::sum);
-            }
+//            if (examScore2023 > 30) {
+//                float chosenSubjectScore = userScores.get(0).getScore() * 2;
+//                userScore2024 = chosenSubjectScore + userScores.stream()
+//                        .skip(1)
+//                        .map(HighschoolExamScore::getScore)
+//                        .reduce(0f, Float::sum);
+//            }
 
             avgScore2023ForGroup = 0;
             avgScore2024ForGroup = 0;
