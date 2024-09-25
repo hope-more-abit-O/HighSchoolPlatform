@@ -37,9 +37,7 @@ public class NotificationDTO implements Serializable {
         @Data
         @Builder
         public static class DataRequest implements Serializable {
-            @NotNull(message = "Title không được trống")
             private String title;
-            @NotNull(message = "Body không được trống")
             private String body;
         }
     }
