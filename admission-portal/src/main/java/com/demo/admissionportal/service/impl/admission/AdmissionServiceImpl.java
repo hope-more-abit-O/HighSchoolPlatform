@@ -2871,6 +2871,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     public ResponseData<GetUpdateAdmissionDetailResponse> getUpdateAdmissionDetail(Integer id) {
         AdmissionUpdate admissionUpdate = admissionUpdateService.findById(id);
+        if (admissionUpdate == null)
+            throw new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhập đề án.");
         List<ActionerDTO> actionerDTOS = userService.getActioners(List.of(admissionUpdate.getCreateBy(), admissionUpdate.getUpdateBy()).stream().distinct().toList());
         FullAdmissionDTO oldAdmission = getByIdV2Detail(admissionUpdate.getBeforeAdmissionId());
         FullAdmissionDTO newAdmission = getByIdV2Detail(admissionUpdate.getAfterAdmissionId());
