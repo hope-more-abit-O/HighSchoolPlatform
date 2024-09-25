@@ -3,6 +3,7 @@ package com.demo.admissionportal.service.impl;
 import com.demo.admissionportal.constants.*;
 import com.demo.admissionportal.dto.*;
 import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
+import com.demo.admissionportal.dto.request.AspirationsRequest;
 import com.demo.admissionportal.entity.ExamLocal;
 import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
@@ -1294,6 +1295,16 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
+        List<AdviceResult> result = new ArrayList<>();
+        String universityName = "";
+        String majorName = "";
+        String subjectGroupName = "";
+        float avgScore2023ForGroup = 0f;
+        float avgScore2024ForGroup = 0f;
+        Float examScore2023 = 0f;
+        Float userScore2024 = 0f;
+        int quota2023 = 0;
+        int quota2024 = 0;
         try {
             ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(
                     request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
@@ -1312,7 +1323,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
-            Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(
+            examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(
                     request.getUniversity(), request.getMajor(), subjectGroup);
 
             if (examScore2023 == null) {
@@ -1324,7 +1335,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             List<HighschoolExamScore> userScores = highschoolExamScoreRepository.findByIdentificationNumberAndSubjectIdIn(
                     request.getIdentificationNumber(), subjectIds);
 
-            float userScore2024 = userScores.stream()
+            userScore2024 = userScores.stream()
                     .map(HighschoolExamScore::getScore)
                     .reduce(0f, Float::sum);
 
@@ -1336,8 +1347,8 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         .reduce(0f, Float::sum);
             }
 
-            float avgScore2023ForGroup = 0;
-            float avgScore2024ForGroup = 0;
+            avgScore2023ForGroup = 0;
+            avgScore2024ForGroup = 0;
 
             switch (subjectGroup) {
                 case 1:
@@ -1368,7 +1379,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             List<Object[]> dataWithQuota = getScoreAndSubjectGroupAndMajor(request);
 
-            int quota2023 = 0, quota2024 = 0;
             for (Object[] row : dataWithQuota) {
                 int year = (int) row[0];
                 if (year == 2023) {
@@ -1388,15 +1398,15 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
             DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
 
-            String universityName = universityInfoRepository.findById(request.getUniversity())
+            universityName = universityInfoRepository.findById(request.getUniversity())
                     .map(UniversityInfo::getName)
                     .orElse("Trường không hợp lệ");
 
-            String majorName = majorRepository.findById(request.getMajor())
+            majorName = majorRepository.findById(request.getMajor())
                     .map(Major::getName)
                     .orElse("Ngành không hợp lệ");
 
-            String subjectGroupName = subjectGroupRepository.findById(request.getSubjectGroup())
+            subjectGroupName = subjectGroupRepository.findById(request.getSubjectGroup())
                     .map(SubjectGroup::getName)
                     .orElse("Tổ hợp môn không hợp lệ");
 
@@ -1405,10 +1415,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             String chenhLechDTBMessage = "Điểm trung bình tổ hợp môn " + subjectGroupName + " năm 2024 có xu hướng " + scoreTrend +
                     " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
 
-            String chiTieuChenhLechMessage = "Chỉ tiêu ngành" + majorName + " của trường " + universityName +
+            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + majorName + " của trường " + universityName +
                     " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
 
-            List<AdviceResult> result = new ArrayList<>();
             AdviceResult response = new AdviceResult(universityName, majorName, quota2023, quota2024, subjectGroupName, avgScore2024ForGroup,
                     avgScore2023ForGroup, examScore2023, userScore2024, advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
 
@@ -1420,7 +1429,13 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
         catch (IllegalArgumentException ex) {
             log.error("Validation error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage());
+            String advice = "Không thể dự đoán tỉ lệ do lỗi xác thực. Vui lòng kiểm tra thông tin nhập.";
+            AdviceResult response = new AdviceResult(universityName, majorName, quota2023, quota2024, subjectGroupName,
+                    avgScore2024ForGroup, avgScore2023ForGroup, examScore2023, userScore2024, advice,
+                    "Không thể dự đoán do lỗi xác thực.", "Không có dữ liệu chênh lệch chỉ tiêu.");
+            result.add(response);
+
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), result);
         }
         catch (Exception ex) {
             log.error("Error while analyzing: {}", ex.getMessage(), ex);
@@ -1638,9 +1653,9 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         float scoreDifference = score2024 - score2023;
 
         if (scoreDifference > 3) {
-            return "Bạn có điểm của tổ hợp môn xét tuyển " + subjectGroupName + " là " + score2024 + ", số điểm này vượt ngưỡng đáng kể so với năm 2023: " + score2023 + " ngành " + major + "của trường " + university + ".Khả năng trúng tuyển vào " + university + " ngành " + major + "là RẤT CAO.";
+            return "Bạn có điểm của tổ hợp môn xét tuyển " + subjectGroupName + " là " + score2024 + ", số điểm này vượt ngưỡng đáng kể so với năm 2023: " + score2023 + " ngành " + major + " của trường " + university + ".Khả năng trúng tuyển vào " + university + " ngành " + major + " là RẤT CAO.";
         } else if (scoreDifference < -3) {
-            return "Điểm của bạn với tổ hợp " + subjectGroupName + "là " + score2024 + " thấp hơn đáng kể so với ngưỡng năm 2023. Bạn nên cân nhắc kỹ lưỡng lựa chọn nguyện vọng cho ngành " + major + "của trường " + university + "nhé.";
+            return "Điểm của bạn với tổ hợp " + subjectGroupName + "là " + score2024 + " thấp hơn đáng kể so với ngưỡng năm 2023. Bạn nên cân nhắc kỹ lưỡng lựa chọn nguyện vọng cho ngành " + major + "của trường " + university + " nhé.";
         }
 
         if (finalStatus == DiemChuanStatus.Giam) {
@@ -1676,7 +1691,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
         }
         return "Không xác định được khả năng trúng tuyển.";
     }
-
 
     public ResponseData<List<SubjectGroupDTO>> getAvailableSubjectGroupsForUser(String identificationNumber, Integer universityId, Integer subjectGroupId) {
         try {
