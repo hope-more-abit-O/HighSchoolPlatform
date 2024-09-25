@@ -280,4 +280,6 @@ public interface UserService extends UserDetailsService {
      * @return the response data
      */
     ResponseData<LoginResponseDTO> updateUserMobile(UpdateUserRequestDTO requestDTO, String accessToken);
+
+    List<User> findByAdmissionIds(List<Integer> admissionIds);
 }
