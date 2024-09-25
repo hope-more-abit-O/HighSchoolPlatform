@@ -6,8 +6,11 @@ import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.AdmissionUpdateRepository;
 import com.demo.admissionportal.service.AdmissionUpdateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -50,5 +53,13 @@ public class AdmissionUpdateServiceImpl implements AdmissionUpdateService {
         }
         admissionUpdateAvailables.forEach((ele) -> ele.setExpired(consultantId));
         return this.saveAll(admissionUpdateAvailables);
+    }
+
+    public Page<AdmissionUpdate> findAllBy(Pageable pageable, Integer id, Integer beforeAdmissionId, Date createTime, Integer createBy, Integer universityId, List<String> statuses) {
+        return admissionUpdateRepository.findAllBy(pageable, id, beforeAdmissionId, createTime, createBy, universityId, statuses);
+    }
+
+    public Page<AdmissionUpdate> findAllBy(Pageable pageable, Integer id, Integer beforeAdmissionId, Date createTime, Integer createBy, Integer universityId) {
+        return admissionUpdateRepository.findAllBy(pageable, id, beforeAdmissionId, createTime, createBy, universityId);
     }
 }
