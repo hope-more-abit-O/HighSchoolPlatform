@@ -3,13 +3,10 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
-import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
-import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
@@ -21,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -409,4 +405,28 @@ public class AdmissionController {
     public void test3(){
         admissionService.validateAllAdmission();
     }
+
+    @PostMapping("/update-admission/{admisisonId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> updateAdmissionV2(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionRequestV2 request)
+            throws DataExistedException {
+        try {
+            admissionService.updateAdmissionV2(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Tạo yêu cầu cập nhập đề án thành công."));
+        } catch (Exception e) {
+            throw new DataExistedException(e.getMessage());
+        }
+    }
+
+    @PutMapping("/update-admission/from/{oldAdmissionId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> consultantAndUniversityUpdateUpdateAdmissionStatus(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionUpdateStatusRequest request) {
+        try {
+            admissionService.staffUpdateUpdateAdmissionStatus(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        } catch (Exception e) {
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
 }

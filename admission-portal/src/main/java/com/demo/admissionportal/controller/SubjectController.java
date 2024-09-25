@@ -18,4 +18,9 @@ public class SubjectController {
     public ResponseEntity<ResponseData> findAllSubjects() {
         return ResponseEntity.ok(ResponseData.ok("Lấy tất cả các môn học thành công.", subjectService.getAllActive()));
     }
+
+    @GetMapping("/high-school-exam")
+    public ResponseEntity<?> getHighSchoolExamSubjects() {
+        return ResponseEntity.ok(ResponseData.ok("Lấy tất cả các môn thi tốt nghiệp THPT thành công.", subjectService.getHighSchoolExamSubjects()));
+    }
 }

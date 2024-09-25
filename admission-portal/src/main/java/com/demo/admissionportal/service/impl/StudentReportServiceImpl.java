@@ -1,22 +1,27 @@
 package com.demo.admissionportal.service.impl;
 
-import com.demo.admissionportal.constants.AccountStatus;
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.constants.StudentReportStatus;
+import com.demo.admissionportal.dto.entity.SubjectDTO;
+import com.demo.admissionportal.dto.entity.student_report.GetHighSchoolExamSubjectScoreDTO;
+import com.demo.admissionportal.dto.entity.student_report.GetStudentReportHighSchoolExamScoreDTO;
+import com.demo.admissionportal.dto.entity.student_report.StudentReportHighSchoolExamScoreDTO;
 import com.demo.admissionportal.dto.request.student_report.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.student_report.CreateStudentReportResponseDTO;
 import com.demo.admissionportal.dto.response.student_report.ListStudentReportResponse;
 import com.demo.admissionportal.dto.response.student_report.StudentReportResponseDTO;
 import com.demo.admissionportal.dto.response.student_report.UpdateStudentReportResponseDTO;
-import com.demo.admissionportal.entity.StudentReport;
-import com.demo.admissionportal.entity.Subject;
-import com.demo.admissionportal.entity.SubjectGradeSemester;
-import com.demo.admissionportal.entity.User;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.StudentReportMark;
+import com.demo.admissionportal.entity.sub_entity.id.StudentReportHighSchoolScoreId;
 import com.demo.admissionportal.entity.sub_entity.id.StudentReportMarkId;
+import com.demo.admissionportal.exception.exceptions.BadRequestException;
+import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import com.demo.admissionportal.repository.*;
+import com.demo.admissionportal.service.StudentReportHighSchoolScoreServiceImpl;
 import com.demo.admissionportal.service.StudentReportService;
+import com.demo.admissionportal.util.impl.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,12 +30,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +43,8 @@ public class StudentReportServiceImpl implements StudentReportService {
     private final SubjectGradeSemesterRepository subjectGradeSemesterRepository;
     private final StudentReportMarkRepository studentReportMarkRepository;
     private final SubjectRepository subjectRepository;
+    private final SubjectServiceImpl subjectServiceImpl;
+    private final StudentReportHighSchoolScoreServiceImpl studentReportHighSchoolScoreService;
 
     @Override
     @Transactional
@@ -309,6 +312,23 @@ public class StudentReportServiceImpl implements StudentReportService {
                     gradeReportDTO.getSemesterMarks().add(new SemesterMarkDTO(sgs.getSemester(), mark.getMark()));
                 }
             }
+
+            List<StudentReportHighSchoolScore> studentReportHighSchoolScores = studentReportHighSchoolScoreService.getByStudentReportId(studentReportId);
+            List<SubjectDTO> subjectDTOs = subjectServiceImpl.getHighSchoolExamSubjects();
+            List<GetStudentReportHighSchoolExamScoreDTO> studentReportHighSchoolExamScoreDTOS = new ArrayList<>();
+
+            for (SubjectDTO subjectDTO : subjectDTOs) {
+                studentReportHighSchoolExamScoreDTOS.add(new GetStudentReportHighSchoolExamScoreDTO(
+                        studentReportHighSchoolScores
+                                .stream()
+                                .filter((element) -> element.getId().getSubjectId().equals(subjectDTO.getSubjectId()))
+                                .findFirst()
+                                .orElse(null),
+                        subjectDTO
+                        )
+                );
+            }
+
             //create final response and integrate mark and grade for final response
             StudentReportResponseDTO responseDTO = new StudentReportResponseDTO();
             responseDTO.setId(studentReport.getId());
@@ -320,6 +340,7 @@ public class StudentReportServiceImpl implements StudentReportService {
             responseDTO.setUpdateTime(studentReport.getUpdateTime());
             responseDTO.setStatus(studentReport.getStatus());
             responseDTO.setReport(subjectReportDTOList);
+            responseDTO.setHighSchoolExamSubjectScores(GetHighSchoolExamSubjectScoreDTO.mapping(studentReportHighSchoolExamScoreDTOS));
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Học bạ được tìm thấy !", responseDTO);
         } catch (Exception e) {
@@ -397,5 +418,116 @@ public class StudentReportServiceImpl implements StudentReportService {
             log.error("Delete Student Report with ID failed: {}", e.getMessage());
             return new ResponseData<>(ResponseCode.C201.getCode(), "Xóa học bạ thất bại, vui lòng thử lại sau !");
         }
+    }
+
+    public ResponseData<?> createHighSchoolExamScore(Integer studentReportId, UpdateHighSchoolExamScoreForStudentReportRequest request){
+        StudentReport studentReport = findById(studentReportId);
+        Integer userId = ServiceUtils.getId();
+
+        if (!isStudentReportBelongToUser(studentReport, userId)) {
+            throw new BadRequestException("Học bạ này không thuộc về bạn.");
+        }
+
+        if(isDuplicated(request.getScores())){
+            throw new BadRequestException("Mã môn không được lặp.");
+        }
+
+        List<Integer> subjectIds = request.getScores().stream()
+                .map(StudentReportHighSchoolExamScoreDTO::getSubjectId)
+                .toList();
+
+        List<Subject> subjects = subjectServiceImpl.findByIds(subjectIds);
+
+        List<StudentReportHighSchoolScore> studentReportHighSchoolScores = new ArrayList<>();
+
+        request.getScores().forEach((element) -> studentReportHighSchoolScores.add(new StudentReportHighSchoolScore(studentReportId, element)));
+
+        studentReportHighSchoolScoreService.createStudentReportHighSchoolScore(studentReportHighSchoolScores);
+
+        return ResponseData.ok("Lưu điểm thi THPT thành công.");
+    }
+
+    public ResponseData<?> updateHighSchoolExamScore(Integer studentReportId, UpdateHighSchoolExamScoreForStudentReportRequest request){
+        StudentReport studentReport = findById(studentReportId);
+
+        List<StudentReportHighSchoolScore> studentReportHighSchoolScoresExisted = studentReportHighSchoolScoreService.getByStudentReportIdAdnSubjectIdsIn(studentReportId,
+                request.getScores().stream().map(StudentReportHighSchoolExamScoreDTO::getSubjectId).distinct().toList());
+
+        if (request.getScores().size() != studentReportHighSchoolScoresExisted.size()) {
+            throw new BadRequestException("Danh sách môn học không hợp lệ.");
+        }
+
+        Integer userId = ServiceUtils.getId();
+
+        if (!isStudentReportBelongToUser(studentReport, userId)) {
+            throw new BadRequestException("Học bạ này không thuộc về bạn.");
+        }
+
+        if(isDuplicated(request.getScores())){
+            throw new BadRequestException("Mã môn không được lặp.");
+        }
+
+        List<Integer> subjectIds = request.getScores().stream()
+                .map(StudentReportHighSchoolExamScoreDTO::getSubjectId)
+                .toList();
+
+        List<Subject> subjects = subjectServiceImpl.findByIds(subjectIds);
+
+        List<StudentReportHighSchoolScore> studentReportHighSchoolScores = new ArrayList<>();
+
+        request.getScores().forEach((element) -> studentReportHighSchoolScores.add(new StudentReportHighSchoolScore(studentReportId, element)));
+
+        studentReportHighSchoolScoreService.createStudentReportHighSchoolScore(studentReportHighSchoolScores);
+
+        return ResponseData.ok("Lưu điểm thi THPT thành công.");
+    }
+
+    public ResponseData<?> createHighSchoolExamScoreInStudentReport(Integer studentReportId ,UpdateHighSchoolExamScoreForStudentReportRequest request){
+        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
+        return createHighSchoolExamScore(studentReportId, request);
+    }
+
+    public ResponseData<?> updateHighSchoolExamScoreInStudentReport(Integer studentReportId ,UpdateHighSchoolExamScoreForStudentReportRequest request){
+        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
+        return updateHighSchoolExamScore(studentReportId, request);
+    }
+
+    public ResponseData<?> deleteHighSchoolExamScoreInStudentReport(Integer studentReportId){
+        StudentReport studentReport = findById(studentReportId);
+        Integer userId = ServiceUtils.getId();
+
+        if (!isStudentReportBelongToUser(studentReport, userId)) {
+            throw new BadRequestException("Học bạ này không thuộc về bạn.");
+        }
+
+        studentReportHighSchoolScoreService.deleteStudentReportHighSchoolScore(studentReportId);
+
+        return ResponseData.ok("Xóa điểm thi THPT thành công.");
+    }
+
+    public boolean isDuplicated(List<StudentReportHighSchoolExamScoreDTO> scores){
+        return scores.stream()
+                .map(StudentReportHighSchoolExamScoreDTO::getSubjectId)
+                .collect(Collectors.toSet())
+                .size() != scores.size();
+    }
+
+    public void isCreateAndUpdateHighSchoolExamScoreRequestValid(UpdateHighSchoolExamScoreForStudentReportRequest request){
+        List<Integer> mainSubjectIds = List.of(36,38,28);
+        List<Integer> naturalScienceSubjectIds = List.of(16,23,27);
+        List<Integer> socialScienceSubjectIds = List.of(9,54,34);
+        Float naturalScienceScore = request.getScores().stream().filter((ele) -> naturalScienceSubjectIds.contains(ele.getSubjectId())).map(StudentReportHighSchoolExamScoreDTO::getScore).filter(Objects::nonNull).findFirst().orElse(null);
+        Float socialScienceScore = request.getScores().stream().filter((ele) -> socialScienceSubjectIds.contains(ele.getSubjectId())).map(StudentReportHighSchoolExamScoreDTO::getScore).filter(Objects::nonNull).findFirst().orElse(null);
+
+        if (naturalScienceScore == null && socialScienceScore == null){
+            throw new BadRequestException("Bạn phải có điểm thi một trong hai khối: Khoa học Tự nhiên hoặc Khoa học Xã hội");
+        } else if (naturalScienceScore != null && socialScienceScore != null){
+            throw new BadRequestException("Bạn chỉ có thể có điểm thi một trong hai khối: Khoa học Tự nhiên hoặc Khoa học Xã hội");
+        }
+
+    }
+
+    protected boolean isStudentReportBelongToUser(StudentReport studentReport, Integer userId) {
+        return studentReport.getUserId().equals(userId);
     }
 }
