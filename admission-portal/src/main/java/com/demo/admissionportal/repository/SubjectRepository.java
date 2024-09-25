@@ -59,4 +59,12 @@ from subject
 where id in (9, 16, 23, 27, 28, 34, 36, 38, 54)
 """, nativeQuery = true)
     List<Subject> findHighSchoolSubjectExam();
+
+    @Query(value = """
+select distinct s.*
+from subject s
+inner join subject_group_subject sgs on s.id = sgs.subject_id
+where sgs.subject_group_id in (1,2,3)
+""", nativeQuery = true)
+    List<Subject> findBySubjectGroupIdsCustom(List<Integer> list);
 }

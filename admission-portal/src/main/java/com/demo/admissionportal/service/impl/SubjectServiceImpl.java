@@ -220,4 +220,8 @@ public class SubjectServiceImpl implements SubjectService {
     public GetHighSchoolExamSubjectsResponse getHighSchoolExamSubjectsResponse(){
             return new GetHighSchoolExamSubjectsResponse(getHighSchoolExamSubjects());
     }
+
+    public List<Subject> findBySubjectGroupIds(List<Integer> list) {
+        return subjectRepository.findBySubjectGroupIdsCustom(list);
+    }
 }

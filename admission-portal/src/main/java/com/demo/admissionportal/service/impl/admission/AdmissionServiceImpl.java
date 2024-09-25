@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.*;
+import com.demo.admissionportal.dto.SubjectGroupDTO;
 import com.demo.admissionportal.dto.entity.admission.UniversityCompareMajorDTO;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.*;
@@ -16,10 +17,12 @@ import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO2;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
+import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.admission.AdmissionRepository;
@@ -2176,9 +2179,14 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryInfoDTOS.add(new SchoolDirectoryInfoDTO(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor, admissionTrainingProgramIds, admissionMethodIds));
         }
 
+        List<Subject> subjects = subjectGroupService.getSubjectsBySubjectGroupIds(subjectGroups);
+
+
+
         return new SchoolDirectoryInfoResponse(majors.stream().map(InfoMajorDTO::new).toList(),
                 methods.stream().map(InfoMethodDTO::new).toList(),
-                subjectGroups.stream().map(SubjectGroupResponseDTO2::new).toList(),
+                subjectGroupService.mapping(subjectGroups),
+                subjects.stream().map(SubjectResponseDTO2::new).toList(),
                 new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
     }
 
@@ -2286,7 +2294,8 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryInfoDTOS.add(new SchoolDirectoryInfoDTO(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor, admissionTrainingProgramIds, admissionMethodIds));
         }
 
-        return new SchoolDirectoryInfoResponse(null, null, null, new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
+//        return new SchoolDirectoryInfoResponse(null, null, null, new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
+        return null;
     }
 
     private String buildQueryForSchoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest, Map<String, Object> parameters, Integer year) {
