@@ -138,7 +138,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
                 INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
                 INNER JOIN admission a ON atp.admission_id = a.id
                 INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
-                WHERE a.status = 'ACTIVE' AND a.year = 2023 AND atpm.admission_score IS NOT NULL
+                WHERE a.status = 'ACTIVE' AND a.year = 2023 AND atpm.addmission_score IS NOT NULL
             ) ir ON atp.major_id = ir.major_id
                       AND a.university_id = ir.university_id
         WHERE a.status = 'ACTIVE'
@@ -174,7 +174,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
                     WHERE a.status = 'ACTIVE'
                       AND a.university_id = :universityId
                       AND a.year = 2023
-                      AND atpm.admission_score IS NOT NULL
+                      AND atpm.addmission_score IS NOT NULL
                 ) ir ON atp.major_id = ir.major_id
                 AND a.university_id = ir.university_id
         WHERE a.status = 'ACTIVE'
@@ -186,7 +186,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
 
     @Query(value = """
-SELECT DISTINCT sgs.subject_group_id, sg.name, s.id, s.name 
+SELECT DISTINCT sgs.subject_group_id, sg.name, s.id, s.name
 FROM admission_training_program atp
     INNER JOIN admission_training_program_method atpm ON atp.id = atpm.admission_training_program_id
     INNER JOIN admission_method am ON atpm.admission_method_id = am.id
@@ -195,8 +195,11 @@ FROM admission_training_program atp
     INNER JOIN subject_group sg ON atpsg.subject_group_id = sg.id
     INNER JOIN subject_group_subject sgs ON atpsg.subject_group_id = sgs.subject_group_id
     INNER JOIN subject s ON sgs.subject_id = s.id
-    INNER JOIN (
-        SELECT a.university_id, atp.major_id, atpsg.subject_group_id
+WHERE a.status = 'ACTIVE'
+  AND a.confirm_status = 'CONFIRMED'
+  AND a.year IN (2023, 2024)
+  AND atpsg.subject_group_id IN (
+        SELECT DISTINCT atpsg.subject_group_id
         FROM admission_training_program_method atpm
             INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
             INNER JOIN admission a ON atp.admission_id = a.id
@@ -206,21 +209,17 @@ FROM admission_training_program atp
           AND a.university_id = :universityId
           AND atp.major_id = :majorId
         INTERSECT
-        SELECT a.university_id, atp.major_id, atpsg.subject_group_id
+        SELECT DISTINCT atpsg.subject_group_id
         FROM admission_training_program_method atpm
             INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
             INNER JOIN admission a ON atp.admission_id = a.id
             INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
         WHERE a.status = 'ACTIVE'
           AND a.year = 2023
-          AND atpm.admission_score IS NOT NULL
+          AND atpm.addmission_score IS NOT NULL
           AND a.university_id = :universityId
           AND atp.major_id = :majorId
-    ) ir ON atp.major_id = ir.major_id
-        AND a.university_id = ir.university_id
-WHERE a.status = 'ACTIVE'
-  AND a.confirm_status = 'CONFIRMED'
-  AND a.year IN (2023, 2024)
+    )
 ORDER BY sgs.subject_group_id ASC;
 
 """, nativeQuery = true)
