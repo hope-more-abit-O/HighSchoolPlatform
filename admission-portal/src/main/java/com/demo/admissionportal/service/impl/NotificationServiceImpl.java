@@ -1,13 +1,22 @@
 package com.demo.admissionportal.service.impl;
 
+import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.request.notification.NotificationDTO;
+import com.demo.admissionportal.dto.request.notification.NotificationRequest;
+import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.service.NotificationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -18,6 +27,8 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private static final String firebaseMessagingScope = "https://www.googleapis.com/auth/firebase.messaging";
+    private static final String FCM_URL = "https://fcm.googleapis.com/v1/projects/highschoolvn-dev/messages:send";
+
     @Override
     public String getAccessToken() {
         try {
@@ -39,8 +50,48 @@ public class NotificationServiceImpl implements NotificationService {
             googleCredentials.refresh();
             return googleCredentials.getAccessToken().getTokenValue();
         } catch (Exception e) {
-            log.info("getAccessToken: " , e.getLocalizedMessage());
+            log.info("getAccessToken: ", e.getLocalizedMessage());
             return null;
         }
+    }
+
+    @Override
+    public ResponseData<String> sendNotification(NotificationRequest request) throws IOException {
+        for (String deviceToken : request.getFcmToken()) {
+            String accessToken = getAccessToken();
+            log.info("AccessToken: {}", accessToken);
+            URL url = new URL(FCM_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            NotificationDTO notificationDTO = new NotificationDTO();
+            NotificationDTO.MessageRequest messageRequest = new NotificationDTO.MessageRequest();
+            NotificationDTO.MessageRequest.DataRequest dataRequest = new NotificationDTO.MessageRequest.DataRequest();
+            messageRequest.setToken(deviceToken);
+            dataRequest.setBody(request.getBody());
+            dataRequest.setTitle(request.getTitle());
+            messageRequest.setNotification(dataRequest);
+            notificationDTO.setMessage(messageRequest);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonPayload = objectMapper.writeValueAsString(notificationDTO);
+
+            // Gửi dữ liệu JSON qua OutputStream
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                log.info("Notification sent successfully to token: {} ", deviceToken);
+            } else {
+                log.error("Failed to send notification to token: {}", deviceToken);
+            }
+            conn.disconnect();
+        }
+        return new ResponseData<>(ResponseCode.C200.getCode(), "Gửi thông báo thành công");
     }
 }
