@@ -15,6 +15,7 @@ import com.demo.admissionportal.service.ConsultantService;
 import com.demo.admissionportal.service.impl.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import com.demo.admissionportal.service.impl.admission.AdmissionTrainingProgramMethodServiceImpl;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -193,4 +193,17 @@ public class FollowController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(list);
     }
 
+    @PostMapping("/fcm-token")
+    @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseData<String>> saveFcmToken(@RequestParam(required = true) String fcmToken){
+        if(fcmToken == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(new ResponseData<>(ResponseCode.C205.getCode(), "fcmToken null"));
+        }
+        ResponseData<String> result = followService.saveFCMToken(fcmToken);
+        if (result.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(result);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(result);
+    }
 }
