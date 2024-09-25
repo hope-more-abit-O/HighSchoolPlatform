@@ -1,14 +1,15 @@
 package com.demo.admissionportal.dto.response;
 
+import com.demo.admissionportal.dto.AdviceResult;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdmissionAnalysisResponse {
-    private String advice;
-    private String avgDiffMessage;
-    private String quotaDiffMessage;
+    private List<AdviceResult> results;
 }
