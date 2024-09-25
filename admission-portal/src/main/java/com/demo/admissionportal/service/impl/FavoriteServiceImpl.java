@@ -8,16 +8,13 @@ import com.demo.admissionportal.dto.response.favorite.FavoriteResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.FavoriteUsersListResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.TotalCountResponseDTO;
 import com.demo.admissionportal.dto.response.favorite.UserFavoriteResponseDTO;
-import com.demo.admissionportal.dto.response.follow.UsersFollowMajorResponseDTO;
-import com.demo.admissionportal.entity.UniversityInfo;
-import com.demo.admissionportal.entity.User;
-import com.demo.admissionportal.entity.UserFavorite;
-import com.demo.admissionportal.entity.UserInfo;
+import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.sub_entity.id.UserFavoriteId;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.UserInfoRepository;
 import com.demo.admissionportal.repository.UserRepository;
 import com.demo.admissionportal.repository.sub_repository.FollowRepository;
+import com.demo.admissionportal.repository.sub_repository.FollowUniversityMajorRepository;
 import com.demo.admissionportal.repository.sub_repository.UserFavoriteRepository;
 import com.demo.admissionportal.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +39,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserRepository userRepository;
     private final UniversityInfoRepository universityInfoRepository;
     private final FollowRepository followRepository;
+    private final FollowUniversityMajorRepository followUniversityMajorRepository;
 
     @Override
     public ResponseData<FavoriteResponseDTO> createFavorite(Integer universityID) {
@@ -166,11 +164,13 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     private FavoriteUsersListResponseDTO mapToUser(UserFavorite userFavorite) {
         UserInfo userInfo = userInfoRepository.findUserInfoById(userFavorite.getUser().getId());
+        List<UserFollowUniversityMajor> userFollowUniversityMajor = followUniversityMajorRepository.findFCMToken(userFavorite.getUser().getId()).orElse(null);
         return FavoriteUsersListResponseDTO.builder()
                 .userId(userFavorite.getUser().getId())
                 .email(userFavorite.getUser().getEmail())
                 .fullName(userInfo.getFirstName() + " " + userInfo.getMiddleName() + " " + userInfo.getLastName())
                 .avatar(userFavorite.getUser().getAvatar())
+                .fcmToken(userFollowUniversityMajor.get(0).getFcmToken())
                 .build();
     }
 }
