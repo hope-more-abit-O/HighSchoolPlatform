@@ -232,6 +232,7 @@ public class FollowServiceImpl implements FollowService {
         response.setCreateTime(userFollowUniversityMajor.getCreateTime());
         response.setAvatar(user.getAvatar());
         response.setSubjectGroups(subjectGroups);
+        response.setFcmToken(userFollowUniversityMajor.getFcmToken());
         return response;
     }
 
@@ -292,6 +293,7 @@ public class FollowServiceImpl implements FollowService {
                 .language(universityTrainingProgram.getLanguage())
                 .training_specific(universityTrainingProgram.getTrainingSpecific())
                 .majorCode(major.getCode())
+                .fcmToken(userFollowUniversityMajor.getFcmToken())
                 .build();
     }
 
@@ -349,5 +351,24 @@ public class FollowServiceImpl implements FollowService {
             log.error("Error while get list user follow university major v2 by university");
             return new ResponseData<>(ResponseCode.C207.getCode(), "Lấy danh sách users follow university major v2 thất bại", null);
         }
+    }
+
+    @Override
+    public ResponseData<String> saveFCMToken(String fcmToken) {
+        try {
+            Integer userId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+            List<UserFollowUniversityMajor> result = followUniversityMajorRepository.findByUserId(userId);
+            result.forEach(p -> mapToFCMToken(fcmToken, userId, p));
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lưu danh sách FCM token thành công");
+        } catch (Exception ex) {
+            log.error("Error save FCMToken");
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Lưu danh sách FCM token thất bại", null);
+        }
+    }
+
+    private void mapToFCMToken(String fcmToken, Integer userId, UserFollowUniversityMajor userFollowUniversityMajor) {
+        UserFollowUniversityMajor userFollow = followUniversityMajorRepository.findByUserIdAndUniversityMajor(userId, userFollowUniversityMajor.getUniversityMajor().getId());
+        userFollow.setFcmToken(fcmToken);
+        followUniversityMajorRepository.save(userFollow);
     }
 }

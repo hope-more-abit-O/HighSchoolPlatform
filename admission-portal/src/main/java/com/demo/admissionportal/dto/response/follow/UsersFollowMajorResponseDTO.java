@@ -26,4 +26,5 @@ public class UsersFollowMajorResponseDTO implements Serializable {
     private Integer majorId;
     private String majorName;
     private String majorCode;
+    private String fcmToken;
 }
