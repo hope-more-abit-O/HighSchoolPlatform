@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.*;
+import com.demo.admissionportal.dto.SubjectGroupDTO;
 import com.demo.admissionportal.dto.entity.admission.UniversityCompareMajorDTO;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.*;
@@ -12,23 +13,19 @@ import com.demo.admissionportal.dto.entity.university.InfoUniversityResponseDTO;
 import com.demo.admissionportal.dto.entity.university.UniversityInfoResponseDTO;
 import com.demo.admissionportal.dto.entity.university_campus.CampusProvinceDTO;
 import com.demo.admissionportal.dto.entity.user.InfoUserResponseDTO;
-import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
-import com.demo.admissionportal.dto.response.AdmissionAnalysisResponse;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.admission.*;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectGroupResponseDTO2;
+import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO2;
 import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
+import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.exception.exceptions.*;
-import com.demo.admissionportal.repository.MajorRepository;
-import com.demo.admissionportal.repository.SubjectGroupRepository;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.admission.AdmissionRepository;
-import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramMethodRepository;
-import com.demo.admissionportal.repository.admission.AdmissionTrainingProgramSubjectGroupRepository;
 import com.demo.admissionportal.service.AdmissionService;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.impl.*;
@@ -74,13 +71,10 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UniversityInfoRepository universityInfoRepository;
     private final AddressServiceImpl addressServiceImpl;
     private final SubjectServiceImpl subjectService;
-    private final AdmissionTrainingProgramMethodRepository admissionTrainingProgramMethodRepository;
-    private final SubjectGroupRepository subjectGroupRepository;
-    private final AdmissionTrainingProgramSubjectGroupRepository admissionTrainingProgramSubjectGroupRepository;
-    private final MajorRepository majorRepository;
     private final StudentReportServiceImpl studentReportService;
     private final DistrictServiceImpl districtServiceImpl;
     private final WardServiceImpl wardServiceImpl;
+    private final AdmissionUpdateServiceImpl admissionUpdateService;
 
     public Admission save(Admission admission) {
         try {
@@ -197,6 +191,23 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
+    public List<AdmissionTrainingProgramSubjectGroup> updateAdmissionTrainingProgramSubjectGroup(List<UpdateAdmissionQuotaDTO> request, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Major> majors) {
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
+
+        for (UpdateAdmissionQuotaDTO quotaRequest : request) {
+            Integer admissionTrainingProgramId = getAdmissionTrainingProgramIdV2(quotaRequest, admissionTrainingPrograms, majors);
+
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroupList = quotaRequest.getSubjectGroupIds().stream()
+                    .map(subjectGroupId -> new AdmissionTrainingProgramSubjectGroup(admissionTrainingProgramId, subjectGroupId)).toList();
+
+            admissionTrainingProgramSubjectGroups.addAll(admissionTrainingProgramSubjectGroupList);
+        }
+
+        List<AdmissionTrainingProgramSubjectGroup> result = admissionTrainingProgramSubjectGroupService.saveAll(admissionTrainingProgramSubjectGroups);
+
+        return result;
+    }
+
 //    public CreateAdmissionTrainingProgramSubjectGroupResponse createAdmissionTrainingProgramSubjectGroup(CreateAdmissionTrainingProgramSubjectGroupRequest request) {
 //        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = new ArrayList<>();
 //        request.getSubjectGroupId().forEach(subjectGroupId -> admissionTrainingProgramSubjectGroups.add(new AdmissionTrainingProgramSubjectGroup(request.getAdmissionTrainingProgramId(), subjectGroupId)));
@@ -244,6 +255,41 @@ public class AdmissionServiceImpl implements AdmissionService {
 
     }
 
+    @Transactional
+    public void updateAdmissionV2(Integer oldAdmissionId, UpdateAdmissionRequestV2 request) throws DataExistedException {
+        User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+        admissionUpdateService.expiredAllPendingAdmissionUpdate(oldAdmissionId, consultant.getId());
+        
+//        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
+        Admission checkAdmission = this.findById(oldAdmissionId);
+
+        List<AdmissionQuotaDTO> admissionQuotaDTOs = request.getQuotas().stream().map(AdmissionQuotaDTO::new).toList();
+
+        Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
+
+        List<Method> methods = methodService.findByIds(request.getQuotas().stream().map(UpdateAdmissionQuotaDTO::getMethodId).distinct().toList());
+
+        List<Major> majors = majorService.findByIds(request.getQuotas().stream().map(UpdateAdmissionQuotaDTO::getMajorId).distinct().toList());
+
+        List<AdmissionMethod> admissionMethods = admissionMethodService.saveAllAdmissionMethodWithListMethods(admission.getId(), methods);
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.saveAdmissionTrainingProgramV2(admission.getId(), request.getQuotas(), majors);
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethod = setAdmissionTrainingProgramMethodV2(majors, methods, admissionTrainingPrograms, admissionMethods, request.getQuotas());
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = updateAdmissionTrainingProgramSubjectGroup(request.getQuotas(), admissionTrainingPrograms, majors);
+
+        List<AdmissionTrainingProgramMethod> oldAdmissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionId(oldAdmissionId);
+
+        List<AdmissionTrainingProgram> oldAdmissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(oldAdmissionId);
+
+        List<AdmissionMethod> oldAdmissionMethods = admissionMethodService.findByAdmissionId(oldAdmissionId);
+
+        AdmissionUpdate admissionUpdate = new AdmissionUpdate(oldAdmissionId, admission.getId(), consultant.getId());
+        admissionUpdateService.save(admissionUpdate);
+    }
+
     public List<AdmissionTrainingProgramMethod> setAdmissionTrainingProgramMethod(List<Major> majors,
                                                                                   List<Method> methods,
                                                                                   List<AdmissionTrainingProgram> admissionTrainingPrograms,
@@ -267,7 +313,37 @@ public class AdmissionServiceImpl implements AdmissionService {
         return admissionTrainingProgramMethodService.saveAll(result);
     }
 
+    public List<AdmissionTrainingProgramMethod> setAdmissionTrainingProgramMethodV2(List<Major> majors,
+                                                                                  List<Method> methods,
+                                                                                  List<AdmissionTrainingProgram> admissionTrainingPrograms,
+                                                                                  List<AdmissionMethod> admissionMethods,
+                                                                                  List<UpdateAdmissionQuotaDTO> quotaRequests) {
+
+        List<AdmissionTrainingProgramMethod> result = new ArrayList<>();
+
+        for (UpdateAdmissionQuotaDTO quotaRequest : quotaRequests) {
+
+            AdmissionTrainingProgramMethod admissionTrainingProgramMethod = new AdmissionTrainingProgramMethod();
+
+            Integer admissionMethodId = getAdmissionMethodIdV2(quotaRequest, admissionMethods, methods);
+
+            Integer admissionTrainingProgramId = getAdmissionTrainingProgramIdV2(quotaRequest, admissionTrainingPrograms, majors);
+
+            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota()));
+        }
+
+
+        return admissionTrainingProgramMethodService.saveAll(result);
+    }
+
     private Integer getAdmissionMethodId(CreateAdmissionQuotaRequest quotaRequest,
+                                         List<AdmissionMethod> admissionMethods,
+                                         List<Method> methods) {
+        log.info("Get admission method id by method id");
+        return findAdmissionMethodIdByMethodId(quotaRequest.getMethodId(), admissionMethods);
+    }
+
+    private Integer getAdmissionMethodIdV2(UpdateAdmissionQuotaDTO quotaRequest,
                                          List<AdmissionMethod> admissionMethods,
                                          List<Method> methods) {
         log.info("Get admission method id by method id");
@@ -299,6 +375,22 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     private Integer getAdmissionTrainingProgramId(CreateAdmissionQuotaRequest quotaRequest,
+                                                  List<AdmissionTrainingProgram> admissionTrainingPrograms,
+                                                  List<Major> majors) {
+        log.info("Get admission method id by method id");
+        AdmissionTrainingProgram admissionTrainingProgram = null;
+
+        return admissionTrainingPrograms.stream()
+                .filter(ad -> ad.getMajorId().equals(quotaRequest.getMajorId())
+                        && (ad.getLanguage() == null ? quotaRequest.getLanguage() == null : quotaRequest.getLanguage() != null && quotaRequest.getLanguage().equals(ad.getLanguage()))
+                        && (ad.getTrainingSpecific() == null ? quotaRequest.getTrainingSpecific() == null : quotaRequest.getTrainingSpecific() != null && quotaRequest.getTrainingSpecific().equals(ad.getTrainingSpecific()))
+                )
+                .map(AdmissionTrainingProgram::getId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Admission training program id not found"));
+    }
+
+    private Integer getAdmissionTrainingProgramIdV2(UpdateAdmissionQuotaDTO quotaRequest,
                                                   List<AdmissionTrainingProgram> admissionTrainingPrograms,
                                                   List<Major> majors) {
         log.info("Get admission method id by method id");
@@ -2087,9 +2179,14 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryInfoDTOS.add(new SchoolDirectoryInfoDTO(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor, admissionTrainingProgramIds, admissionMethodIds));
         }
 
+        List<Subject> subjects = subjectGroupService.getSubjectsBySubjectGroupIds(subjectGroups);
+
+
+
         return new SchoolDirectoryInfoResponse(majors.stream().map(InfoMajorDTO::new).toList(),
                 methods.stream().map(InfoMethodDTO::new).toList(),
-                subjectGroups.stream().map(SubjectGroupResponseDTO2::new).toList(),
+                subjectGroupService.mapping(subjectGroups),
+                subjects.stream().map(SubjectResponseDTO2::new).toList(),
                 new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
     }
 
@@ -2197,7 +2294,8 @@ public class AdmissionServiceImpl implements AdmissionService {
             schoolDirectoryInfoDTOS.add(new SchoolDirectoryInfoDTO(user, universityInfo, universityTrainingPrograms1, campusProvinces, totalQuota, admission, totalMethod, totalMajor, admissionTrainingProgramIds, admissionMethodIds));
         }
 
-        return new SchoolDirectoryInfoResponse(null, null, null, new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
+//        return new SchoolDirectoryInfoResponse(null, null, null, new PageImpl<>(schoolDirectoryInfoDTOS, PageRequest.of(schoolDirectoryRequest.getPageNumber(), schoolDirectoryRequest.getPageSize()), countAll));
+        return null;
     }
 
     private String buildQueryForSchoolDirectory(SchoolDirectoryRequest schoolDirectoryRequest, Map<String, Object> parameters, Integer year) {
@@ -2532,10 +2630,41 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public void validateAllAdmission(){
-        List<Admission> admissions = admissionRepository.findByAdmissionStatusOrderByYearAsc(AdmissionStatus.ACTIVE);
+        List<Admission> admissions = admissionRepository.findByAdmissionStatusAndYear(AdmissionStatus.ACTIVE, 2024);
         User user = ServiceUtils.getUser();
         for (Admission ad: admissions){
             updateUniversityTrainingProgram(user, ad.getUniversityId(), ad);
+        }
+    }
+
+    @Transactional
+    public void staffUpdateUpdateAdmissionStatus(Integer beforeAdmissionId, UpdateAdmissionUpdateStatusRequest request) {
+        User staff= ServiceUtils.getUser();
+        Admission oldAdmission = this.findById(beforeAdmissionId);
+        AdmissionUpdate admissionUpdate = admissionUpdateService.findByBeforeAdmissionIdAndStatus(beforeAdmissionId, AdmissionUpdateStatus.PENDING);
+        Admission newAdmisison = this.findById(admissionUpdate.getAfterAdmissionId());
+
+        if (admissionUpdate == null)
+            throw new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhật đề án.");
+
+        if (request.getStatus().equals(AdmissionUpdateStatus.DENIED)){
+            admissionUpdate.updateStatus(request.getStatus(), request.getNote(), staff.getId());
+            admissionUpdateService.save(admissionUpdate);
+
+            oldAdmission.staffReject(staff.getId());
+            save(oldAdmission);
+        } else if (request.getStatus().equals(AdmissionUpdateStatus.ACCEPTED)){
+            oldAdmission.modifyOldAdmissionWhenStaffConfirmUpdateAdmission(staff.getId());
+
+            Admission newAdmission = this.findById(admissionUpdate.getAfterAdmissionId());
+            newAdmission.modifyNewAdmissionWhenStaffConfirmUpdateAdmission(staff.getId());
+            List<Admission> admissions = new ArrayList<>();
+            admissions.add(oldAdmission);
+            admissions.add(newAdmission);
+            admissionRepository.saveAll(admissions);
+
+            admissionUpdate.updateStatus(request.getStatus(), request.getNote(), staff.getId());
+            admissionUpdateService.save(admissionUpdate);
         }
     }
 }

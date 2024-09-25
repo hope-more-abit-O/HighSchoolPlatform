@@ -386,4 +386,8 @@ AND status = :admissionStatus
    List<Admission> findByUniversityIdAndYearAndAdmissionStatusV2(Integer universityId, Integer year, String admissionStatus);
 
     List<Admission> findByAdmissionStatusOrderByYearAsc(AdmissionStatus admissionStatus);
+
+    List<Admission> findByAdmissionStatusAndYearLessThanEqualOrderByYearAsc(AdmissionStatus admissionStatus, Integer year);
+
+    List<Admission> findByAdmissionStatusAndYear(AdmissionStatus admissionStatus, Integer year);
 }

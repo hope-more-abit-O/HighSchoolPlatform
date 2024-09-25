@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,4 +46,6 @@ public interface SubjectGroupSubjectRepository extends JpaRepository<SubjectGrou
 
     @Query("SELECT s.subjectId FROM SubjectGroupSubject s WHERE s.subjectGroupId = :subjectGroupId")
     List<Integer> findSubjectIdsBySubjectGroupId(@Param("subjectGroupId") Integer subjectGroupId);
+
+    List<SubjectGroupSubject> findBySubjectGroupIdIn(Collection<Integer> subjectGroupIds);
 }
