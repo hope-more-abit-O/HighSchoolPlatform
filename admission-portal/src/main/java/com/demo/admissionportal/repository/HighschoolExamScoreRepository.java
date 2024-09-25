@@ -138,7 +138,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
                 INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
                 INNER JOIN admission a ON atp.admission_id = a.id
                 INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
-                WHERE a.status = 'ACTIVE' AND a.year = 2023
+                WHERE a.status = 'ACTIVE' AND a.year = 2023 AND atpm.admission_score IS NOT NULL
             ) ir ON atp.major_id = ir.major_id
                       AND a.university_id = ir.university_id
         WHERE a.status = 'ACTIVE'
@@ -174,6 +174,7 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
                     WHERE a.status = 'ACTIVE'
                       AND a.university_id = :universityId
                       AND a.year = 2023
+                      AND atpm.admission_score IS NOT NULL
                 ) ir ON atp.major_id = ir.major_id
                 AND a.university_id = ir.university_id
         WHERE a.status = 'ACTIVE'
@@ -212,6 +213,7 @@ FROM admission_training_program atp
             INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
         WHERE a.status = 'ACTIVE'
           AND a.year = 2023
+          AND atpm.admission_score IS NOT NULL
           AND a.university_id = :universityId
           AND atp.major_id = :majorId
     ) ir ON atp.major_id = ir.major_id

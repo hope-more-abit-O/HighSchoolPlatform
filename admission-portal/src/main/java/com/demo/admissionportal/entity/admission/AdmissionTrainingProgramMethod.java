@@ -58,4 +58,9 @@ public class AdmissionTrainingProgramMethod {
         this.quota = modifyAdmissionTrainingProgramMethodRequest.getQuota();
         this.admissionScore = modifyAdmissionTrainingProgramMethodRequest.getScore();
     }
+
+    public boolean isIdEqualTo(AdmissionTrainingProgramMethod admissionTrainingProgramMethod){
+        return this.id.getAdmissionMethodId().equals(admissionTrainingProgramMethod.getId().getAdmissionMethodId())
+                && this.id.getAdmissionTrainingProgramId().equals(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId());
+    }
 }

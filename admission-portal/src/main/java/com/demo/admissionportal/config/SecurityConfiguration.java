@@ -118,6 +118,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/v1/admission/update-admission/**").hasAnyAuthority("CONSULTANT", "UNIVERSITY")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/update-admission").hasAnyAuthority("CONSULTANT", "UNIVERSITY", "STAFF", "ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/v1/admission/forecast").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/compare").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/compare-majors").permitAll()
