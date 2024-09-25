@@ -1,10 +1,12 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.AdviceResult;
 import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.ExamYearData;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
+import com.demo.admissionportal.dto.request.AspirationsRequest;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
@@ -21,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -210,23 +213,44 @@ public class HighschoolExamScoreController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    
 
     @PostMapping("/forecast")
     public ResponseEntity<ResponseData<?>> forecastScore2024(@RequestBody Aspiration request) {
-        List<Object> responseList = new ArrayList<>();
+        List<Object> successList = new ArrayList<>();
+        List<Object> errorList = new ArrayList<>();
         for (AdmissionAnalysisRequest requests : request.getAspirations()) {
-            ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
-            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-                responseList.add(responseData.getData());
-            } else if (responseData.getStatus() == ResponseCode.C204.getCode()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(responseData);
-            } else if (responseData.getStatus() == ResponseCode.C203.getCode()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
+            try {
+                ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
+
+                if (responseData.getStatus() == ResponseCode.C200.getCode()) {
+                    successList.add(responseData.getData());
+                } else {
+                    Map<String, Object> errorInfo = new HashMap<>();
+                    errorInfo.put("errorMessage", responseData.getMessage());
+                    errorList.add(errorInfo);
+                }
+            } catch (Exception e) {
+                Map<String, Object> errorInfo = new HashMap<>();
+
+                errorInfo.put("errorMessage", e.getMessage());
+                errorList.add(errorInfo);
             }
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
+        if (!successList.isEmpty() && errorList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseData<>(ResponseCode.C200.getCode(), "Tất cả nguyện vọng được dự đoán thành công.", successList));
+        } else if (!successList.isEmpty() && !errorList.isEmpty()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", successList);
+            result.put("errors", errorList);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseData<>(ResponseCode.C206.getCode(), "Các nguyện vọng đã được dự đoán nhưng có một số nguyện vọng không thể dự đoán được", result));
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseData<>(ResponseCode.C207.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
+        }
     }
 
     @GetMapping("/universities")
