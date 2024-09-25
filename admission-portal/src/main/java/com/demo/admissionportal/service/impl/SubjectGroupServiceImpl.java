@@ -54,6 +54,8 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     private StaffInfoRepository staffInfoRepository;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private SubjectServiceImpl subjectServiceImpl;
 
     @Override
     @Transactional
@@ -427,6 +429,30 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
     }
 
     public List<SubjectGroupResponseDTO2> getByMajorIdAndUniversityId(Integer majorId, Integer universityId, Integer year){
-        return subjectGroupRepository.findByMajorIdAndUniversityIdAndYear(majorId, universityId, year).stream().map(SubjectGroupResponseDTO2::new).toList();
+        List<SubjectGroup> subjectGroups = subjectGroupRepository.findByMajorIdAndUniversityIdAndYear(majorId, universityId, year);
+        return mapping(subjectGroups);
+    }
+
+    public List<SubjectGroupResponseDTO2> mapping(List<SubjectGroup> subjectGroups){
+        List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectGroupIdIn(subjectGroups.stream().map(SubjectGroup::getId).collect(Collectors.toList()));
+        List<Integer> subjectIds = subjectGroupSubjects.stream().map(SubjectGroupSubject::getSubjectId).distinct().toList();
+        List<Subject> subjects = subjectRepository.findAllById(subjectIds);
+        List<SubjectGroupResponseDTO2> result = new ArrayList<>();
+        for (SubjectGroup subjectGroup: subjectGroups){
+            SubjectGroupResponseDTO2 subjectGroupResponseDTO2 = new SubjectGroupResponseDTO2(subjectGroup);
+            List<Integer> subjectIds2 = subjectGroupSubjects.stream().filter(sgs -> sgs.getSubjectGroupId().equals(subjectGroup.getId())).map(SubjectGroupSubject::getSubjectId).distinct().toList();
+
+            List<Subject> subjects1 = subjects.stream().filter(subject -> subjectIds2.contains(subject.getId())).toList();
+            List<SubjectResponseDTO2> subjectResponseDTO2s = subjects1.stream().map(SubjectResponseDTO2::new).toList();
+            subjectGroupResponseDTO2.setSubjects(subjectResponseDTO2s);
+            result.add(subjectGroupResponseDTO2);
+        }
+        return result;
+    }
+
+    public List<Subject> getSubjectsBySubjectGroupIds(List<SubjectGroup> subjectGroups){
+        List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectGroupIdIn(subjectGroups.stream().map(SubjectGroup::getId).collect(Collectors.toList()));
+        List<Integer> subjectIds = subjectGroupSubjects.stream().map(SubjectGroupSubject::getSubjectId).distinct().toList();
+        return subjectRepository.findAllById(subjectIds);
     }
 }

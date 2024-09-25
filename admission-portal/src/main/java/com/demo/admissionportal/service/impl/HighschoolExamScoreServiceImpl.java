@@ -1295,9 +1295,11 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
     public ResponseData<?> forecastScore2024(AdmissionAnalysisRequest request) {
         try {
-            ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
+            ResponseData<List<SubjectGroupDTO>> availableSubjectGroupsResponse = getAvailableSubjectGroupsForUser(
+                    request.getIdentificationNumber(), request.getUniversity(), request.getSubjectGroup());
+
             if (availableSubjectGroupsResponse.getData() == null || !request.getSubjectGroup().describeConstable().isPresent()) {
-                throw new IllegalArgumentException("Không tìm thấy tổ hợp môn khả dụng cho số báo danh này.");
+                throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
             List<Integer> availableSubjectGroupIds = availableSubjectGroupsResponse.getData().stream()
@@ -1305,24 +1307,37 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     .toList();
 
             Integer subjectGroup = request.getSubjectGroup();
+
             if (!availableSubjectGroupIds.contains(subjectGroup)) {
                 throw new IllegalArgumentException("Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
-            Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(request.getUniversity(), request.getMajor(), subjectGroup);
+            Float examScore2023 = admissionTrainingProgramMethodRepository.findScoreFor2023(
+                    request.getUniversity(), request.getMajor(), subjectGroup);
+
             if (examScore2023 == null) {
                 throw new IllegalArgumentException("Không tìm thấy điểm chuẩn cho năm 2023 cho tổ hợp môn và ngành đã chọn.");
             }
+
             List<Integer> subjectIds = subjectGroupSubjectRepository.findSubjectIdsBySubjectGroupId(subjectGroup);
 
-            List<HighschoolExamScore> userScores = highschoolExamScoreRepository.findByIdentificationNumberAndSubjectIdIn(request.getIdentificationNumber(), subjectIds);
+            List<HighschoolExamScore> userScores = highschoolExamScoreRepository.findByIdentificationNumberAndSubjectIdIn(
+                    request.getIdentificationNumber(), subjectIds);
 
             float userScore2024 = userScores.stream()
                     .map(HighschoolExamScore::getScore)
                     .reduce(0f, Float::sum);
 
-            float avgScore2023ForGroup;
-            float avgScore2024ForGroup;
+            if (examScore2023 > 30) {
+                float chosenSubjectScore = userScores.get(0).getScore() * 2;
+                userScore2024 = chosenSubjectScore + userScores.stream()
+                        .skip(1)
+                        .map(HighschoolExamScore::getScore)
+                        .reduce(0f, Float::sum);
+            }
+
+            float avgScore2023ForGroup = 0;
+            float avgScore2024ForGroup = 0;
 
             switch (subjectGroup) {
                 case 1:
@@ -1336,7 +1351,6 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 case 19:
                     avgScore2023ForGroup = 20.6f;
                     avgScore2024ForGroup = 20.53f;
-
                     break;
                 case 26:
                     avgScore2023ForGroup = 18.98f;
@@ -1347,7 +1361,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     avgScore2024ForGroup = 19.51f;
                     break;
                 default:
-                    throw new IllegalArgumentException("Khối không hợp lệ: " + subjectGroup);
+                    break;
             }
 
             float chenhLechDTB = avgScore2024ForGroup - avgScore2023ForGroup;
@@ -1364,14 +1378,12 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 }
             }
 
-            int chiTieuChenhLech = (quota2024 - quota2023) / quota2023 * 100;
+            int chiTieuChenhLech = quota2024 - quota2023;
 
             DiemTrungBinhStatus scoreStatus = analyzeScoreChange(chenhLechDTB);
-
             String scoreTrend = scoreStatus.getName();
 
             ChiTieuStatus quotaStatus = analyzeQuotaChange(chiTieuChenhLech);
-
             String quotaTrend = quotaStatus.getName();
 
             DiemChuanStatus finalStatus = getResult(scoreStatus, quotaStatus);
@@ -1393,20 +1405,29 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
             String chenhLechDTBMessage = "Điểm trung bình tổ hợp môn " + subjectGroupName + " năm 2024 có xu hướng " + scoreTrend +
                     " với mức chênh lệch " + Math.abs(chenhLechDTB) + " điểm so với năm 2023.";
 
-            String chiTieuChenhLechMessage = "Chỉ tiêu ngành " + majorName + " của trường " + universityName+
+            String chiTieuChenhLechMessage = "Chỉ tiêu ngành" + majorName + " của trường " + universityName +
                     " năm 2024 có xu hướng " + quotaTrend + " so với năm 2023" + " với số chỉ tiêu chênh lệch là: " + chiTieuChenhLech;
 
-            AdmissionAnalysisResponse response = new AdmissionAnalysisResponse(advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
-            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", response);
+            List<AdviceResult> result = new ArrayList<>();
+            AdviceResult response = new AdviceResult(universityName, majorName, quota2023, quota2024, subjectGroupName, avgScore2024ForGroup,
+                    avgScore2023ForGroup, examScore2023, userScore2024, advice, chenhLechDTBMessage, chiTieuChenhLechMessage);
 
-        } catch (IllegalArgumentException ex) {
-            log.error("Validate error: {}", ex.getMessage());
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
-        } catch (Exception ex) {
-            log.error("Error while analyze: {}", ex.getMessage(), ex);
-            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage(), ex.getMessage());
+            if (response != null) {
+                result.add(response);
+            }
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", result);
+        }
+        catch (IllegalArgumentException ex) {
+            log.error("Validation error: {}", ex.getMessage());
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage());
+        }
+        catch (Exception ex) {
+            log.error("Error while analyzing: {}", ex.getMessage(), ex);
+            return new ResponseData<>(ResponseCode.C207.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại. " + ex.getMessage());
         }
     }
+
 
     private List<Object[]> getScoreAndSubjectGroupAndMajor(AdmissionAnalysisRequest request) {
         List<UniversityInfo> universityList = universityInfoRepository.findByUniversityId(request.getUniversity());
@@ -1473,47 +1494,184 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
     }
 
     private DiemChuanStatus getResult(DiemTrungBinhStatus scoreStatus, ChiTieuStatus quotaStatus) {
-        if (scoreStatus == DiemTrungBinhStatus.GiamManh || quotaStatus == ChiTieuStatus.GiamManh) {
-            return DiemChuanStatus.Giam;
+        // Điểm trung bình giảm mạnh
+        if (scoreStatus == DiemTrungBinhStatus.GiamManh) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Giam;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
         }
-        if (scoreStatus == DiemTrungBinhStatus.TangManh || quotaStatus == ChiTieuStatus.TangManh) {
-            return DiemChuanStatus.Tang;
+
+        // Điểm trung bình giảm
+        if (scoreStatus == DiemTrungBinhStatus.Giam) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
         }
+
+        // Điểm trung bình giảm nhẹ
+        if (scoreStatus == DiemTrungBinhStatus.GiamNhe) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình không đổi
+        if (scoreStatus == DiemTrungBinhStatus.KhongDoi) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình tăng nhẹ
+        if (scoreStatus == DiemTrungBinhStatus.TangNhe) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.KhongDoi;
+            }
+        }
+
+        // Điểm trung bình tăng
+        if (scoreStatus == DiemTrungBinhStatus.Tang) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
+        }
+        // Điểm trung bình tăng mạnh
+        if (scoreStatus == DiemTrungBinhStatus.TangManh) {
+            if (quotaStatus == ChiTieuStatus.GiamManh) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.Giam) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.GiamNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.KhongDoi) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.TangNhe) {
+                return DiemChuanStatus.KhongDoi;
+            } else if (quotaStatus == ChiTieuStatus.Tang) {
+                return DiemChuanStatus.Tang;
+            } else if (quotaStatus == ChiTieuStatus.TangManh) {
+                return DiemChuanStatus.Tang;
+            }
+        }
+
         return DiemChuanStatus.KhongDoi;
     }
 
-    private String generateAdvice(DiemChuanStatus finalStatus, float score2024, float score2023, String university, String major, String subjectGroupName) {
-        double scoreDifference = score2024 - score2023;
+
+    private String generateAdvice(DiemChuanStatus finalStatus, float score2024, Float score2023, String university, String major, String subjectGroupName) {
+        if (score2023 == null) {
+            return "Không có dữ liệu điểm chuẩn cho năm 2023. Khả năng trúng tuyển không thể xác định.";
+        }
+
+        float scoreDifference = score2024 - score2023;
+
+        if (scoreDifference > 3) {
+            return "Bạn có điểm của tổ hợp môn xét tuyển " + subjectGroupName + " là " + score2024 + ", số điểm này vượt ngưỡng đáng kể so với năm 2023: " + score2023 + " ngành " + major + "của trường " + university + ".Khả năng trúng tuyển vào " + university + " ngành " + major + "là RẤT CAO.";
+        } else if (scoreDifference < -3) {
+            return "Điểm của bạn với tổ hợp " + subjectGroupName + "là " + score2024 + " thấp hơn đáng kể so với ngưỡng năm 2023. Bạn nên cân nhắc kỹ lưỡng lựa chọn nguyện vọng cho ngành " + major + "của trường " + university + "nhé.";
+        }
 
         if (finalStatus == DiemChuanStatus.Giam) {
             if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major +  " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
             } else if (scoreDifference <= -1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName +" là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường  " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.Tang) {
             if (scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.KhongDoi) {
             if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference < -0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích thì khả năng đậu nguyện vào trường: " + university + " với ngành " + major + " của bạn vào năm 2024 với số điểm " + score2024 + " cho khối thi " + subjectGroupName + " là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
             }
         }
         return "Không xác định được khả năng trúng tuyển.";
@@ -1544,8 +1702,15 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     })
                     .toList();
 
+            boolean isSubjectGroupIdInFilteredGroups = filteredSubjectGroups.stream()
+                    .anyMatch(subjectGroup -> subjectGroup.getId().equals(subjectGroupId));
+
             if (filteredSubjectGroups.isEmpty()) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Không tìm thấy tổ hợp môn phù hợp với danh sách môn thí sinh đã thi.");
+            }
+
+            if (!isSubjectGroupIdInFilteredGroups) {
+                return new ResponseData<>(ResponseCode.C204.getCode(), "Tổ hợp môn đã chọn không nằm trong danh sách các tổ hợp môn khả dụng cho thí sinh.");
             }
 
             UniversityInfo universityInfo = universityInfoRepository.findUniversityInfoById(universityId);
@@ -1582,11 +1747,89 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                     .filter(subjectGroupDTO -> subjectGroupDTO.getStatus().equals(SubjectStatus.ACTIVE))
                     .toList();
 
-
             return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn thành công", subjectGroupDTOs);
         } catch (Exception e) {
             log.error("Error fetching subject groups for examiner", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình lấy tổ hợp môn, vui lòng thử lại sau.");
+        }
+    }
+
+    public ResponseData<?> getDistinctUniversityIds() {
+        try {
+            List<Object[]> allUniversities = highschoolExamScoreRepository.findDistinctUniversityIds();
+            List<UniInfoDTO> results = new ArrayList<>();
+            for(Object[] result : allUniversities) {
+                Integer universityId = (Integer) result[0];
+                String universityName = (String) result[1];
+                String uniCode = (String) result[2];
+
+                UniInfoDTO finalResult = new UniInfoDTO(universityId, universityName, uniCode);
+                results.add(finalResult);
+            }
+            if (results.isEmpty() || results == null){
+                throw new Exception("Không tìm thấy trường đại học nào !");
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu trường đại học thành công !", results);
+        } catch (Exception e){
+            return new ResponseData<>(ResponseCode.C210.getCode(), "Có lỗi xảy ra khi lấy trường đại học.", e.getMessage());
+        }
+    }
+
+    public ResponseData<?> getDistinctMajorByUniversityId(Integer universityId){
+        try{
+            List<Object[]> majorFromUni = highschoolExamScoreRepository.findDistinctMajorByUniversityId(universityId);
+            List<MajorInfoDTO> majorResults = new ArrayList<>();
+            for (Object[] majorInfo : majorFromUni ){
+                Integer majorId = (Integer) majorInfo[0];
+                String majorName = (String) majorInfo[1];
+                String majorCode = (String) majorInfo[2];
+
+                MajorInfoDTO result = new MajorInfoDTO(majorId, majorName, majorCode);
+                majorResults.add(result);
+            }
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy dữ liệu ngành học của trường đại học thành công", majorResults);
+        } catch (Exception e){
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Có lỗi xảy ra khi lấy ngành học của trường đại học", e.getMessage());
+        }
+    }
+
+
+    public ResponseData<?> getSubjectGroupByUniversityIdAndMajorId(Integer universityId, Integer majorId){
+        try {
+            List<Object[]> subjectGroupResults = highschoolExamScoreRepository.findSubjectGroupByUniversityIdAndMajorId(universityId, majorId);
+            Map<Integer, SubjectGroupInfoDTO> subjectGroupInfoDTOMap = new HashMap<>();
+
+            for (Object[] subjectGroupResult : subjectGroupResults){
+                Integer subjectGroupId = (Integer) subjectGroupResult[0];
+                String subjectGroupName = (String) subjectGroupResult[1];
+                Integer subjectId = (Integer) subjectGroupResult[2];
+                String subjectName = (String) subjectGroupResult[3];
+
+                //check exist subject group id
+                SubjectGroupInfoDTO subjectGroupInfoDTO = subjectGroupInfoDTOMap.get(subjectGroupId);
+
+                //chua co, add moi
+                if (subjectGroupInfoDTO == null) {
+                    subjectGroupInfoDTO = new SubjectGroupInfoDTO(subjectGroupId, subjectGroupName, new ArrayList<>());
+                    subjectGroupInfoDTOMap.put(subjectGroupId, subjectGroupInfoDTO);
+                }
+
+                //add subject vo lits subjectgroup
+                List<SubjectInfDTO> subjectList = subjectGroupInfoDTO.getSubjects();
+                SubjectInfDTO subject = new SubjectInfDTO(subjectId, subjectName);
+
+
+                //dam bao subject chi add 1 lan 1 subject group
+                if(!subjectList.contains(subject)){
+                    subjectList.add(subject);
+                }
+            }
+
+            List<SubjectGroupInfoDTO> finalResult = new ArrayList<>(subjectGroupInfoDTOMap.values());
+
+            return new ResponseData<>(ResponseCode.C200.getCode(), "Lấy tổ hợp môn học thành công",finalResult);
+        } catch (Exception e){
+            return new ResponseData<>(ResponseCode.C204.getCode(), "Có lỗi xảy ra khi lấy tổ hợp môn học từ ngành học của trường đại học", e.getMessage());
         }
     }
 

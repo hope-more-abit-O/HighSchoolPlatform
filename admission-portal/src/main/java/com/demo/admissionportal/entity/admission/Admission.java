@@ -91,4 +91,23 @@ public class Admission {
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
         this.confirmStatus = AdmissionConfirmStatus.PENDING;
     }
+
+    public void modifyOldAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId){
+        this.admissionStatus = AdmissionStatus.STAFF_INACTIVE;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void modifyNewAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId){
+        this.admissionStatus = AdmissionStatus.INACTIVE;
+        this.confirmStatus = AdmissionConfirmStatus.CONFIRMED;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void staffReject(Integer staffId){
+        this.confirmStatus = AdmissionConfirmStatus.REJECTED;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
 }
