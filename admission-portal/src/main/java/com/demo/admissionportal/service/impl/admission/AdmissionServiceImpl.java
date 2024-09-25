@@ -140,6 +140,11 @@ public class AdmissionServiceImpl implements AdmissionService {
         return this.save(admission);
     }
 
+    public Admission createUpdateAdmission(Integer year, String documents, User consultantAccount) {
+        Admission admission = new Admission(year, documents, consultantAccount.getCreateBy(), consultantAccount.getId(), AdmissionStatus.UPDATE_PENDING);
+        return this.save(admission);
+    }
+
 //    public CreateAdmissionTrainingProgramResponse createAdmissionTrainingProgram(CreateAdmissionTrainingProgramRequest request) {
 //        Admission admission = this.findById(request.getAdmissionId());
 //
@@ -266,7 +271,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<AdmissionQuotaDTO> admissionQuotaDTOs = request.getQuotas().stream().map(AdmissionQuotaDTO::new).toList();
 
-        Admission admission = this.createAdmission(request.getYear(), request.getDocuments(), consultant);
+        Admission admission = this.createUpdateAdmission(request.getYear(), request.getDocuments(), consultant);
 
         List<Method> methods = methodService.findByIds(request.getQuotas().stream().map(UpdateAdmissionQuotaDTO::getMethodId).distinct().toList());
 
@@ -280,14 +285,11 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = updateAdmissionTrainingProgramSubjectGroup(request.getQuotas(), admissionTrainingPrograms, majors);
 
-        List<AdmissionTrainingProgramMethod> oldAdmissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionId(oldAdmissionId);
-
-        List<AdmissionTrainingProgram> oldAdmissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(oldAdmissionId);
-
-        List<AdmissionMethod> oldAdmissionMethods = admissionMethodService.findByAdmissionId(oldAdmissionId);
-
         AdmissionUpdate admissionUpdate = new AdmissionUpdate(oldAdmissionId, admission.getId(), consultant.getId());
         admissionUpdateService.save(admissionUpdate);
+
+
+        updateAdmissionScoreStatuses(checkAdmission.getId());
     }
 
     public List<AdmissionTrainingProgramMethod> setAdmissionTrainingProgramMethod(List<Major> majors,
@@ -306,7 +308,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             Integer admissionTrainingProgramId = getAdmissionTrainingProgramId(quotaRequest, admissionTrainingPrograms, majors);
 
-            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota()));
+            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota(), quotaRequest.getScore()));
         }
 
 
@@ -329,7 +331,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             Integer admissionTrainingProgramId = getAdmissionTrainingProgramIdV2(quotaRequest, admissionTrainingPrograms, majors);
 
-            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota()));
+            result.add(new AdmissionTrainingProgramMethod(admissionTrainingProgramId, admissionMethodId, quotaRequest.getQuota(), quotaRequest.getScore()));
         }
 
 
@@ -2642,22 +2644,30 @@ public class AdmissionServiceImpl implements AdmissionService {
         User staff= ServiceUtils.getUser();
         Admission oldAdmission = this.findById(beforeAdmissionId);
         AdmissionUpdate admissionUpdate = admissionUpdateService.findByBeforeAdmissionIdAndStatus(beforeAdmissionId, AdmissionUpdateStatus.PENDING);
-        Admission newAdmisison = this.findById(admissionUpdate.getAfterAdmissionId());
 
         if (admissionUpdate == null)
             throw new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhật đề án.");
 
+        Admission newAdmission = this.findById(admissionUpdate.getAfterAdmissionId());
+
+
         if (request.getStatus().equals(AdmissionUpdateStatus.DENIED)){
+            if (!admissionUpdate.getStatus().equals(AdmissionUpdateStatus.PENDING))
+                throw new BadRequestException("Trạng thái yêu cầu cập nhật đề án không phù hợp.");
+
             admissionUpdate.updateStatus(request.getStatus(), request.getNote(), staff.getId());
             admissionUpdateService.save(admissionUpdate);
 
-            oldAdmission.staffReject(staff.getId());
-            save(oldAdmission);
+            newAdmission.staffReject(staff.getId());
+            save(newAdmission);
         } else if (request.getStatus().equals(AdmissionUpdateStatus.ACCEPTED)){
+            if (!admissionUpdate.getStatus().equals(AdmissionUpdateStatus.PENDING))
+                throw new BadRequestException("Trạng thái yêu cầu cập nhật đề án không phù hợp.");
+
+            newAdmission.modifyNewAdmissionWhenStaffConfirmUpdateAdmission(staff.getId(), oldAdmission.getAdmissionStatus(), oldAdmission.getConfirmStatus());
+
             oldAdmission.modifyOldAdmissionWhenStaffConfirmUpdateAdmission(staff.getId());
 
-            Admission newAdmission = this.findById(admissionUpdate.getAfterAdmissionId());
-            newAdmission.modifyNewAdmissionWhenStaffConfirmUpdateAdmission(staff.getId());
             List<Admission> admissions = new ArrayList<>();
             admissions.add(oldAdmission);
             admissions.add(newAdmission);
@@ -2665,6 +2675,43 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             admissionUpdate.updateStatus(request.getStatus(), request.getNote(), staff.getId());
             admissionUpdateService.save(admissionUpdate);
+        }
+    }
+
+    @Transactional
+    public void consultantAndUniversityUpdateUpdateAdmissionStatus(Integer beforeAdmissionId, UpdateAdmissionUpdateStatusRequest request) {
+        User user= ServiceUtils.getUser();
+        Admission oldAdmission = this.findById(beforeAdmissionId);
+
+        if (user.getRole().equals(Role.UNIVERSITY) && !oldAdmission.getUniversityId().equals(user.getId())){
+            throw new ResourceNotFoundException("Không có quyền cập nhập đề án này.");
+        } else if (user.getRole().equals(Role.CONSULTANT) && !oldAdmission.getUniversityId().equals(user.getCreateBy()))
+            throw new ResourceNotFoundException("Không có quyền cập nhập đề án này.");
+        AdmissionUpdate admissionUpdate = admissionUpdateService.findByBeforeAdmissionIdAndStatus(beforeAdmissionId, AdmissionUpdateStatus.PENDING, AdmissionUpdateStatus.UNIVERSITY_DELETED);
+
+        if (admissionUpdate == null)
+            throw new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhật đề án.");
+
+        if (request.getStatus().equals(AdmissionUpdateStatus.UNIVERSITY_DELETED)){
+            if (!admissionUpdate.getStatus().equals(AdmissionUpdateStatus.PENDING)){
+                throw new BadRequestException("Không thể chuyển trạng thái yêu cầu cập nhật đề án.");
+            }
+            admissionUpdate.updateStatus(request.getStatus(), request.getNote(), user.getId());
+            admissionUpdateService.save(admissionUpdate);
+
+            Admission newAdmission = this.findById(admissionUpdate.getAfterAdmissionId());
+            newAdmission.universityUpdateCancel(user.getId());
+            save(newAdmission);
+        } else if (request.getStatus().equals(AdmissionUpdateStatus.PENDING)){
+            if (!admissionUpdate.getStatus().equals(AdmissionUpdateStatus.UNIVERSITY_DELETED)){
+                throw new BadRequestException("Không thể chuyển trạng thái yêu cầu cập nhật đề án.");
+            }
+            admissionUpdate.updateStatus(request.getStatus(), request.getNote(), user.getId());
+            admissionUpdateService.save(admissionUpdate);
+
+            Admission newAdmission = findById(admissionUpdate.getAfterAdmissionId());
+            newAdmission.universityUpdatePending(user.getId());
+            save(newAdmission);
         }
     }
 }
