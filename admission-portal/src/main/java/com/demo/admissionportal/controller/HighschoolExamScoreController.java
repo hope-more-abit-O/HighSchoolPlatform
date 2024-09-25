@@ -216,27 +216,8 @@ public class HighschoolExamScoreController {
 
     @PostMapping("/forecast")
     public ResponseEntity<ResponseData<?>> forecastScore2024(@RequestBody Aspiration request) {
-        List<Object> responseList = new ArrayList<>();
-        for (AdmissionAnalysisRequest requests : request.getAspirations()) {
-            ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
-            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-                responseList.add(responseData.getData());
-            } else if (responseData.getStatus() == ResponseCode.C204.getCode()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(responseData);
-            } else if (responseData.getStatus() == ResponseCode.C203.getCode()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseData);
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
-    }
-
-    @PostMapping("/forecastt")
-    public ResponseEntity<ResponseData<?>> forecastScore20244(@RequestBody Aspiration request) {
         List<Object> successList = new ArrayList<>();
         List<Object> errorList = new ArrayList<>();
-
         for (AdmissionAnalysisRequest requests : request.getAspirations()) {
             try {
                 ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
@@ -255,7 +236,6 @@ public class HighschoolExamScoreController {
                 errorList.add(errorInfo);
             }
         }
-
         if (!successList.isEmpty() && errorList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseData<>(ResponseCode.C200.getCode(), "Tất cả nguyện vọng được dự đoán thành công.", successList));
@@ -271,8 +251,6 @@ public class HighschoolExamScoreController {
                     .body(new ResponseData<>(ResponseCode.C207.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
         }
     }
-
-
 
     @GetMapping("/universities")
     public ResponseEntity<ResponseData<?>> getDistinctUniversityIds() {
