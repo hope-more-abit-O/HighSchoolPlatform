@@ -2532,7 +2532,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public void validateAllAdmission(){
-        List<Admission> admissions = admissionRepository.findByAdmissionStatusOrderByYearAsc(AdmissionStatus.ACTIVE);
+        List<Admission> admissions = admissionRepository.findByAdmissionStatusAndYear(AdmissionStatus.ACTIVE, 2024);
         User user = ServiceUtils.getUser();
         for (Admission ad: admissions){
             updateUniversityTrainingProgram(user, ad.getUniversityId(), ad);

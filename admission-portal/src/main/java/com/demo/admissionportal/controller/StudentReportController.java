@@ -2,6 +2,7 @@ package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
 import com.demo.admissionportal.dto.request.student_report.CreateStudentReportRequest;
+import com.demo.admissionportal.dto.request.student_report.UpdateHighSchoolExamScoreForStudentReportRequest;
 import com.demo.admissionportal.dto.request.student_report.UpdateStudentReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.student_report.CreateStudentReportResponseDTO;
@@ -135,6 +136,7 @@ public class StudentReportController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
     @DeleteMapping("/{studentReportId}")
     @PreAuthorize("hasAuthority('USER')")
     @SecurityRequirement(name = "BearerAuth")
@@ -148,5 +150,26 @@ public class StudentReportController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @PostMapping("/{studentReportId}/high-school-exam-score")
+    @PreAuthorize("hasAuthority('USER')")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> createHighSchoolExamScoreInStudentReport(@PathVariable Integer studentReportId, @RequestBody @Valid UpdateHighSchoolExamScoreForStudentReportRequest request) {
+        return ResponseEntity.ok(studentReportService.createHighSchoolExamScoreInStudentReport(studentReportId ,request));
+    }
+
+    @PutMapping("/{studentReportId}/high-school-exam-score")
+    @PreAuthorize("hasAuthority('USER')")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> updateHighSchoolExamScoreInStudentReport(@PathVariable Integer studentReportId, @RequestBody UpdateHighSchoolExamScoreForStudentReportRequest request) {
+        return ResponseEntity.ok(studentReportService.updateHighSchoolExamScoreInStudentReport(studentReportId ,request));
+    }
+
+    @DeleteMapping("/delete/{studentReportId}/high-school-exam-score")
+    @PreAuthorize("hasAuthority('USER')")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> deleteHighSchoolExamScoreInStudentReport(@PathVariable Integer studentReportId) {
+        return ResponseEntity.ok(studentReportService.deleteHighSchoolExamScoreInStudentReport(studentReportId));
     }
 }
