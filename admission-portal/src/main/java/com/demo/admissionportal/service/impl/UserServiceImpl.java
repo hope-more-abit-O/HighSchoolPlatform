@@ -761,4 +761,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    public List<User> findByAdmissionIds(List<Integer> admissionIds){
+        return userRepository.findByAdmissionIds(admissionIds);
+    }
 }

@@ -3,6 +3,8 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
+import com.demo.admissionportal.constants.AdmissionUpdateStatus;
+import com.demo.admissionportal.dto.GetUpdateAdmissionDetailResponse;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
@@ -440,4 +442,23 @@ public class AdmissionController {
         }
     }
 
+    @GetMapping("/update-admission")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> getUpdateAdmissionRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) Integer beforeAdmissionId,
+            @RequestParam(required = false) Date createTime,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) List<AdmissionUpdateStatus> status
+    ) {
+        return ResponseEntity.ok(admissionService.getUpdateAdmissionRequests(pageable, id, beforeAdmissionId, createTime, createBy, universityId, status));
+    }
+
+    @GetMapping("/update-admission-detail/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<GetUpdateAdmissionDetailResponse>> getUpdateAdmissionDetail(@PathVariable Integer id) {
+        return ResponseEntity.ok(admissionService.getUpdateAdmissionDetail(id));
+    }
 }

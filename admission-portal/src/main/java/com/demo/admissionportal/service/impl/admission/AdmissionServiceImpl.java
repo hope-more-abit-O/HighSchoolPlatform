@@ -1,7 +1,7 @@
 package com.demo.admissionportal.service.impl.admission;
 
 import com.demo.admissionportal.constants.*;
-import com.demo.admissionportal.dto.SubjectGroupDTO;
+import com.demo.admissionportal.dto.GetUpdateAdmissionDetailResponse;
 import com.demo.admissionportal.dto.entity.admission.UniversityCompareMajorDTO;
 import com.demo.admissionportal.dto.entity.ActionerDTO;
 import com.demo.admissionportal.dto.entity.admission.*;
@@ -22,7 +22,6 @@ import com.demo.admissionportal.entity.*;
 import com.demo.admissionportal.entity.admission.*;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramMethodId;
 import com.demo.admissionportal.entity.admission.sub_entity.AdmissionTrainingProgramSubjectGroupId;
-import com.demo.admissionportal.entity.sub_entity.SubjectGroupSubject;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.repository.UniversityInfoRepository;
 import com.demo.admissionportal.repository.admission.AdmissionRepository;
@@ -958,7 +957,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         return ResponseData.ok("Lấy thông tin các đề án thành công.", this.mappingFull(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, actionerDTOs, universityInfos, admissionTrainingProgramMethods));
     }
 
-    public ResponseData<FullAdmissionDTO> getByIdV2(Integer id)
+    public FullAdmissionDTO getByIdV2Detail(Integer id)
             throws ResourceNotFoundException {
         Admission admission = this.findById(id);
 
@@ -974,8 +973,11 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityId(admission.getUniversityId());
 
-        FullAdmissionDTO result = this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms) ;
-        return ResponseData.ok("Lấy thông tin các đề án thành công.", result);
+        return this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms);
+    }
+
+    public ResponseData<FullAdmissionDTO> getByIdV2(Integer id){
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", getByIdV2Detail(id));
     }
 
     @Transactional
@@ -2713,5 +2715,47 @@ public class AdmissionServiceImpl implements AdmissionService {
             newAdmission.universityUpdatePending(user.getId());
             save(newAdmission);
         }
+    }
+
+    public ResponseData<Page<GetAdmissionUpdateResponse>> getUpdateAdmissionRequests(Pageable pageable, Integer id, Integer beforeAdmissionId, Date createTime, Integer createBy, Integer universityId, List<AdmissionUpdateStatus> statuses) {
+        Page<AdmissionUpdate> admissionUpdates;
+        if (statuses == null || statuses.isEmpty())
+            admissionUpdates = admissionUpdateService.findAllBy(pageable, id, beforeAdmissionId, createTime, createBy, universityId);
+        else {
+            List<String> statusString = statuses.stream().map((ele) -> ele.name).toList();
+            admissionUpdates = admissionUpdateService.findAllBy(pageable, id, beforeAdmissionId, createTime, createBy, universityId, statusString);
+        }
+        List<GetAdmissionUpdateResponse> getAdmissionUpdateResponses = new ArrayList<>();
+        List<Integer> admissionIds = admissionUpdates.getContent().stream().map(AdmissionUpdate::getBeforeAdmissionId).distinct().toList();
+        List<Admission> admissions = findByIds(admissionIds);
+        List<Integer> actionerIds = Stream.concat(
+                admissionUpdates.stream().map(AdmissionUpdate::getCreateBy),
+                admissionUpdates.stream().map(AdmissionUpdate::getUpdateBy)
+        ).distinct().toList() ;
+        List<User> universityAccounts = userService.findByIds(admissions.stream().map(Admission::getUniversityId).distinct().toList());
+        List<UniversityInfo> universityInfos = universityInfoServiceImpl.findByIds(universityAccounts.stream().map(User::getId).distinct().toList());
+        List<ActionerDTO> actionerDTOs = userService.getActioners(actionerIds);
+        for (AdmissionUpdate admissionUpdate : admissionUpdates) {
+            Admission beforeAdmission = admissions.stream().filter((ele) -> ele.getId().equals(admissionUpdate.getBeforeAdmissionId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề án."));
+            User universityAccount = universityAccounts.stream().filter((ele) -> ele.getId().equals(beforeAdmission.getUniversityId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản trường học."));
+            UniversityInfo universityInfo = universityInfos.stream().filter((ele) -> ele.getId().equals(universityAccount.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin trường học."));
+            ActionerDTO createByDTO = actionerDTOs.stream().filter((ele) -> ele.getId().equals(admissionUpdate.getCreateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản tạo yêu cầu."));
+            ActionerDTO updateByDTO = actionerDTOs.stream().filter((ele) -> ele.getId().equals(admissionUpdate.getUpdateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản cập nhập yêu cầu."));
+            getAdmissionUpdateResponses.add(new GetAdmissionUpdateResponse(universityAccount, universityInfo, admissionUpdate, createByDTO, updateByDTO));
+        }
+        Page<GetAdmissionUpdateResponse> result = new PageImpl<>(getAdmissionUpdateResponses, pageable, admissionUpdates.getTotalElements());
+        return ResponseData.ok("Lấy các yêu cầu cập nhập đề án thành công",result);
+    }
+
+    public ResponseData<GetUpdateAdmissionDetailResponse> getUpdateAdmissionDetail(Integer id) {
+        AdmissionUpdate admissionUpdate = admissionUpdateService.findById(id);
+        List<ActionerDTO> actionerDTOS = userService.getActioners(List.of(admissionUpdate.getCreateBy(), admissionUpdate.getUpdateBy()).stream().distinct().toList());
+        FullAdmissionDTO oldAdmission = getByIdV2Detail(admissionUpdate.getBeforeAdmissionId());
+        FullAdmissionDTO newAdmission = getByIdV2Detail(admissionUpdate.getAfterAdmissionId());
+        return ResponseData.ok("Lấy chi tiết yêu cầu cập nhập đề án thành công", new GetUpdateAdmissionDetailResponse(oldAdmission,
+                newAdmission,
+                admissionUpdate,
+                actionerDTOS.stream().filter((ele) -> ele.getId().equals(admissionUpdate.getCreateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("không tìm thấy actioner.")),
+                admissionUpdate.getUpdateBy() != null ? actionerDTOS.stream().filter((ele) -> ele.getId().equals(admissionUpdate.getUpdateBy())).findFirst().orElseThrow(() -> new ResourceNotFoundException("không tìm thấy actioner.")) : null));
     }
 }
