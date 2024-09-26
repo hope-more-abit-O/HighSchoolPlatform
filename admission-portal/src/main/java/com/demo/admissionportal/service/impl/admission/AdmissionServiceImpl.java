@@ -2797,6 +2797,8 @@ public class AdmissionServiceImpl implements AdmissionService {
 
             admissionUpdate.updateStatus(request.getStatus(), request.getNote(), staff.getId());
             admissionUpdateService.save(admissionUpdate);
+            if (newAdmission.getYear().equals(LocalDateTime.now().getYear()))
+                updateUniversityTrainingProgram(staff, newAdmission.getUniversityId(), newAdmission);
         }
     }
 
