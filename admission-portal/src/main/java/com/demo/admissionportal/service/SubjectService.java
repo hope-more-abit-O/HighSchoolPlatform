@@ -5,6 +5,7 @@ import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.request.RequestSubjectDTO;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.sub_entity.SubjectResponseDTO;
+import com.demo.admissionportal.dto.response.subject.GetHighSchoolExamSubjectsResponse;
 import com.demo.admissionportal.entity.Subject;
 import com.demo.admissionportal.exception.exceptions.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
@@ -69,4 +70,8 @@ public interface SubjectService {
     ResponseData<?> activateSubject(Integer id);
 
     List<SubjectDTO> getAllActive();
+
+    List<SubjectDTO> getHighSchoolExamSubjects();
+
+    GetHighSchoolExamSubjectsResponse getHighSchoolExamSubjectsResponse();
 }

@@ -1,6 +1,7 @@
 package com.demo.admissionportal.repository;
 
 import com.demo.admissionportal.constants.HighschoolExamScoreStatus;
+import com.demo.admissionportal.dto.UniInfoDTO;
 import com.demo.admissionportal.entity.ExamYear;
 import com.demo.admissionportal.entity.HighschoolExamScore;
 import org.springframework.data.domain.Page;
@@ -113,4 +114,114 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
              AND h.score IS NOT NULL
 """)
     List<HighschoolExamScore> findByIdentificationNumberAndScoreIsNotNull(String identificationNumber);
+
+
+
+    @Query(value = """
+        SELECT DISTINCT a.university_id, u.name, u.code
+        FROM admission_training_program atp
+            INNER JOIN admission_training_program_method atpm ON atp.id = atpm.admission_training_program_id
+            INNER JOIN admission_method am ON atpm.admission_method_id = am.id
+            INNER JOIN admission a ON atp.admission_id = a.id
+            INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+            INNER JOIN university_info u ON a.university_id = u.university_id
+            INNER JOIN (
+                SELECT a.university_id, atp.major_id, atpsg.subject_group_id           
+                FROM admission_training_program_method atpm
+                INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+                INNER JOIN admission a ON atp.admission_id = a.id
+                INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+                WHERE a.status = 'ACTIVE' AND a.year = 2024
+                INTERSECT
+                SELECT a.university_id, atp.major_id, atpsg.subject_group_id           
+                FROM admission_training_program_method atpm
+                INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+                INNER JOIN admission a ON atp.admission_id = a.id
+                INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+                WHERE a.status = 'ACTIVE' AND a.year = 2023 AND atpm.addmission_score IS NOT NULL
+            ) ir ON atp.major_id = ir.major_id
+                      AND a.university_id = ir.university_id
+        WHERE a.status = 'ACTIVE'
+          AND a.confirm_status = 'CONFIRMED'
+          AND a.year IN (2023, 2024)
+        """, nativeQuery = true)
+    List<Object[]> findDistinctUniversityIds();
+
+
+    @Query(value = """
+          SELECT DISTINCT atp.major_id, m.name, m.code
+          FROM admission_training_program atp
+                INNER JOIN admission_training_program_method atpm ON atp.id = atpm.admission_training_program_id
+                INNER JOIN admission_method am ON atpm.admission_method_id = am.id
+                INNER JOIN admission a ON atp.admission_id = a.id
+                INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+                INNER JOIN major m ON atp.major_id = m.id
+                INNER JOIN (
+                    SELECT a.university_id, atp.major_id, atpsg.subject_group_id
+                    FROM admission_training_program_method atpm
+                        INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+                        INNER JOIN admission a ON atp.admission_id = a.id
+                        INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+                    WHERE a.status = 'ACTIVE'
+                      AND a.university_id = :universityId
+                      AND a.year = 2024
+                    INTERSECT
+                    SELECT a.university_id, atp.major_id, atpsg.subject_group_id
+                    FROM admission_training_program_method atpm
+                        INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+                        INNER JOIN admission a ON atp.admission_id = a.id
+                        INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+                    WHERE a.status = 'ACTIVE'
+                      AND a.university_id = :universityId
+                      AND a.year = 2023
+                      AND atpm.addmission_score IS NOT NULL
+                ) ir ON atp.major_id = ir.major_id
+                AND a.university_id = ir.university_id
+        WHERE a.status = 'ACTIVE'
+          AND a.confirm_status = 'CONFIRMED'
+          AND a.year IN (2023, 2024)
+        ORDER BY atp.major_id ASC
+""", nativeQuery = true)
+    List<Object[]> findDistinctMajorByUniversityId(@Param("universityId") Integer universityId);
+
+
+    @Query(value = """
+SELECT DISTINCT sgs.subject_group_id, sg.name, s.id, s.name
+FROM admission_training_program atp
+    INNER JOIN admission_training_program_method atpm ON atp.id = atpm.admission_training_program_id
+    INNER JOIN admission_method am ON atpm.admission_method_id = am.id
+    INNER JOIN admission a ON atp.admission_id = a.id
+    INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+    INNER JOIN subject_group sg ON atpsg.subject_group_id = sg.id
+    INNER JOIN subject_group_subject sgs ON atpsg.subject_group_id = sgs.subject_group_id
+    INNER JOIN subject s ON sgs.subject_id = s.id
+WHERE a.status = 'ACTIVE'
+  AND a.confirm_status = 'CONFIRMED'
+  AND a.year IN (2023, 2024)
+  AND atpsg.subject_group_id IN (
+        SELECT DISTINCT atpsg.subject_group_id
+        FROM admission_training_program_method atpm
+            INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+            INNER JOIN admission a ON atp.admission_id = a.id
+            INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+        WHERE a.status = 'ACTIVE'
+          AND a.year = 2024
+          AND a.university_id = :universityId
+          AND atp.major_id = :majorId
+        INTERSECT
+        SELECT DISTINCT atpsg.subject_group_id
+        FROM admission_training_program_method atpm
+            INNER JOIN admission_training_program atp ON atpm.admission_training_program_id = atp.id
+            INNER JOIN admission a ON atp.admission_id = a.id
+            INNER JOIN admission_training_program_subject_group atpsg ON atp.id = atpsg.admission_training_program_id
+        WHERE a.status = 'ACTIVE'
+          AND a.year = 2023
+          AND atpm.addmission_score IS NOT NULL
+          AND a.university_id = :universityId
+          AND atp.major_id = :majorId
+    )
+ORDER BY sgs.subject_group_id ASC;
+
+""", nativeQuery = true)
+    List<Object[]> findSubjectGroupByUniversityIdAndMajorId(@Param("universityId") Integer universityId, @Param("majorId") Integer majorId);
 }

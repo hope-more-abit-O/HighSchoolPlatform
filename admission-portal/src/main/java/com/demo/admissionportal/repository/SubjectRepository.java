@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -51,4 +52,19 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
     List<Subject> findByIdIn(Set<Integer> subjectIds);
     List<Subject> findAllByStatus(SubjectStatus status);
+
+    @Query(value = """
+select *
+from subject
+where id in (9, 16, 23, 27, 28, 34, 36, 38, 54)
+""", nativeQuery = true)
+    List<Subject> findHighSchoolSubjectExam();
+
+    @Query(value = """
+select distinct s.*
+from subject s
+inner join subject_group_subject sgs on s.id = sgs.subject_id
+where sgs.subject_group_id in (1,2,3)
+""", nativeQuery = true)
+    List<Subject> findBySubjectGroupIdsCustom(List<Integer> list);
 }

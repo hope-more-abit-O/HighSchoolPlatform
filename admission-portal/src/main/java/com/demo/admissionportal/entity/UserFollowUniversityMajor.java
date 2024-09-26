@@ -37,4 +37,7 @@ public class UserFollowUniversityMajor {
 
     @Column(name = "index_of_follow")
     private Integer indexOfFollow;
+
+    @Column(name = "fcm_token")
+    private String fcmToken;
 }

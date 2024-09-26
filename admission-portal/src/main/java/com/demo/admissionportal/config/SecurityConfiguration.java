@@ -64,6 +64,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_API = "/api/v1/subject/**";
     private static final String STATISTICS_API = "/api/v1/statistics/**";
     private static final String FOLLOW_API = "/api/v1/follow/**";
+    private static final String NOTIFICATION_API = "/api/v1/notification/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -117,6 +118,8 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/{id}").hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/university/{id}").hasAnyAuthority("UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admission/staff/{id}").hasAnyAuthority("STAFF", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/v1/admission/update-admission/**").hasAnyAuthority("CONSULTANT", "UNIVERSITY")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/admission/update-admission").hasAnyAuthority("CONSULTANT", "UNIVERSITY", "STAFF", "ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/v1/admission/forecast").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/compare").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/admission/compare-majors").permitAll()
@@ -133,6 +136,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(UNIVERSITY_TRAINING_PROGRAM).hasAnyAuthority("STAFF", "ADMIN", "UNIVERSITY", "CONSULTANT")
                                 .requestMatchers(STATISTICS_API).hasAnyAuthority("UNIVERSITY","ADMIN")
                                 .requestMatchers(AUTHENTICATION_API,
+                                        NOTIFICATION_API,
                                         EXAM_LOCAL,
                                         HOLLAND_TEST_API,
                                         CHATBOT_API,

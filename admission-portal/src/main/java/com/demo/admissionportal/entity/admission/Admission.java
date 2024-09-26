@@ -91,4 +91,60 @@ public class Admission {
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
         this.confirmStatus = AdmissionConfirmStatus.PENDING;
     }
+
+    public Admission(Integer year, String source, Integer universityId, Integer createBy, AdmissionStatus admissionStatus) {
+        this.year = year;
+        this.source = source;
+        this.universityId = universityId;
+        this.createBy = createBy;
+        this.createTime = new Date();
+        this.admissionStatus = admissionStatus;
+        this.scoreStatus = AdmissionScoreStatus.EMPTY;
+        this.confirmStatus = AdmissionConfirmStatus.PENDING;
+    }
+
+    public void modifyOldAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId){
+        this.admissionStatus = AdmissionStatus.STAFF_UPDATED;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void modifyNewAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId, AdmissionStatus status, AdmissionConfirmStatus confirmStatus){
+        this.admissionStatus = status;
+        this.confirmStatus = confirmStatus;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void modifyNewAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId){
+        this.admissionStatus = AdmissionStatus.INACTIVE;
+        this.confirmStatus = AdmissionConfirmStatus.CONFIRMED;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void staffReject(Integer staffId){
+        this.confirmStatus = AdmissionConfirmStatus.REJECTED;
+        this.admissionStatus = AdmissionStatus.UPDATE_DENIED;
+        this.updateBy = staffId;
+        this.updateTime = new Date();
+    }
+
+    public void universityInactive(Integer universityId){
+        this.admissionStatus = AdmissionStatus.INACTIVE;
+        this.updateBy = universityId;
+        this.updateTime = new Date();
+    }
+
+    public void universityUpdateCancel(Integer universityId){
+        this.admissionStatus = AdmissionStatus.UPDATE_CANCEL;
+        this.updateBy = universityId;
+        this.updateTime = new Date();
+    }
+
+    public void universityUpdatePending(Integer universityId){
+        this.admissionStatus = AdmissionStatus.UPDATE_PENDING;
+        this.updateBy = universityId;
+        this.updateTime = new Date();
+    }
 }

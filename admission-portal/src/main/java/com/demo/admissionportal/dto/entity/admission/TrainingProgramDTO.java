@@ -22,4 +22,12 @@ public class TrainingProgramDTO {
         this.trainingSpecific = request.getTrainingSpecific();
         this.quota = request.getQuota();
     }
+
+    public TrainingProgramDTO(UpdateAdmissionQuotaDTO request) {
+        this.majorId = request.getMajorId();
+        this.mainSubjectId = request.getMainSubjectId();
+        this.language = request.getLanguage();
+        this.trainingSpecific = request.getTrainingSpecific();
+        this.quota = request.getQuota();
+    }
 }

@@ -1,10 +1,12 @@
 package com.demo.admissionportal.controller;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.dto.AdviceResult;
 import com.demo.admissionportal.dto.Aspiration;
 import com.demo.admissionportal.dto.ExamYearData;
 import com.demo.admissionportal.dto.YearlyExamScoreResponse;
 import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
+import com.demo.admissionportal.dto.request.AspirationsRequest;
 import com.demo.admissionportal.dto.request.CreateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.request.UpdateHighschoolExamScoreRequest;
 import com.demo.admissionportal.dto.response.*;
@@ -21,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -211,23 +214,89 @@ public class HighschoolExamScoreController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+
     @PostMapping("/forecast")
-    public ResponseEntity<ResponseData<List<?>>> forecastScore2024(@RequestBody Aspiration request) {
-        List<Object> responseList = new ArrayList<>();
+    public ResponseEntity<ResponseData<?>> forecastScore2024(@RequestBody Aspiration request) {
+        List<Object> successList = new ArrayList<>();
+        List<Object> errorList = new ArrayList<>();
         for (AdmissionAnalysisRequest requests : request.getAspirations()) {
-            ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
-            if (responseData.getStatus() == ResponseCode.C200.getCode()) {
-                responseList.add(responseData.getData());
-            } else if (requests.getMajor() == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy ngành học của trường: " + requests.getUniversity() + " hoặc ngành học không hợp lệ: " +requests.getMajor()));
-            } else if (requests.getSubjectGroup() == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy tổ hợp môn hoặc tổ hợp môn học không hợp lệ: " + requests.getSubjectGroup()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(ResponseCode.C203.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thất bại, không tìm thấy điểm chuẩn của năm 2023 với trường: " + requests.getUniversity() + " cho tổ hợp môn và ngành đã chọn."));
+            try {
+                ResponseData<?> responseData = highschoolExamScoreServiceImpl.forecastScore2024(requests);
+
+                if (responseData.getStatus() == ResponseCode.C200.getCode()) {
+                    successList.add(responseData.getData());
+                } else {
+                    Map<String, Object> errorInfo = new HashMap<>();
+                    errorInfo.put("errorMessage", responseData.getMessage());
+                    errorList.add(errorInfo);
+                }
+            } catch (Exception e) {
+                Map<String, Object> errorInfo = new HashMap<>();
+
+                errorInfo.put("errorMessage", e.getMessage());
+                errorList.add(errorInfo);
             }
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseData<>(ResponseCode.C200.getCode(), "Dự đoán tỉ lệ đậu nguyện vọng thành công.", responseList));
+        if (!successList.isEmpty() && errorList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseData<>(ResponseCode.C200.getCode(), "Tất cả nguyện vọng được dự đoán thành công.", successList));
+        } else if (!successList.isEmpty() && !errorList.isEmpty()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", successList);
+            result.put("errors", errorList);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseData<>(ResponseCode.C206.getCode(), "Các nguyện vọng đã được dự đoán nhưng có một số nguyện vọng không thể dự đoán được", result));
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseData<>(ResponseCode.C207.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
+        }
     }
 
-    
+    @GetMapping("/universities")
+    public ResponseEntity<ResponseData<?>> getDistinctUniversityIds() {
+        ResponseData<?> universityIds = highschoolExamScoreServiceImpl.getDistinctUniversityIds();
+        if (universityIds.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(universityIds);
+        } else if (universityIds.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(universityIds);
+        } else if (universityIds.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(universityIds);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(universityIds);
+        }
+    }
+
+    @GetMapping("/major/{universityId}")
+    public ResponseEntity<ResponseData<?>> getMajorfromUniversityId(
+            @PathVariable (required = true) Integer universityId
+    ){
+        ResponseData<?> majorIds = highschoolExamScoreServiceImpl.getDistinctMajorByUniversityId(universityId);
+        if (majorIds.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(majorIds);
+        } else if (majorIds.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(majorIds);
+        } else if (majorIds.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(majorIds);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(majorIds);
+        }
+    }
+
+    @GetMapping("/{universityId}/{majorId}")
+    public ResponseEntity<ResponseData<?>> getSubjectGroupByUniversityIdAndMajorId(
+            @PathVariable (required = true) Integer universityId,
+            @PathVariable (required = true) Integer majorId
+    ) {
+        ResponseData<?> response = highschoolExamScoreServiceImpl.getSubjectGroupByUniversityIdAndMajorId(universityId, majorId);
+        if (response.getStatus() == ResponseCode.C200.getCode()) {
+            return ResponseEntity.ok(response);
+        } else if (response.getStatus() == ResponseCode.C204.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatus() == ResponseCode.C203.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

@@ -525,4 +525,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "FROM [user] u " +
             "WHERE u.role = 'CONSULTANT' AND CONVERT(DATE, u.create_time) = CONVERT(DATE, GETDATE())", nativeQuery = true)
     Optional<Integer> currentConsultantAccount();
+
+    @Query(value = """
+SELECT u.*
+FROM user u 
+INNER JOIN admission a on a.university_id = u.id
+where a.id in :admissionIds
+""", nativeQuery = true)
+    List<User> findByAdmissionIds(List<Integer> admissionIds);
 }

@@ -3,13 +3,12 @@ package com.demo.admissionportal.controller;
 import com.demo.admissionportal.constants.AdmissionConfirmStatus;
 import com.demo.admissionportal.constants.AdmissionScoreStatus;
 import com.demo.admissionportal.constants.AdmissionStatus;
-import com.demo.admissionportal.constants.ResponseCode;
-import com.demo.admissionportal.dto.Aspiration;
+import com.demo.admissionportal.constants.AdmissionUpdateStatus;
+import com.demo.admissionportal.dto.GetUpdateAdmissionDetailResponse;
 import com.demo.admissionportal.dto.entity.admission.FullAdmissionDTO;
 import com.demo.admissionportal.dto.entity.admission.GetAdmissionScoreResponse;
 import com.demo.admissionportal.dto.entity.admission.SchoolDirectoryRequest;
 import com.demo.admissionportal.dto.entity.admission.SearchAdmissionDTO;
-import com.demo.admissionportal.dto.request.AdmissionAnalysisRequest;
 import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -401,5 +399,66 @@ public class AdmissionController {
     @GetMapping("/university-got-major/{majorId}/year/{year}")
     public ResponseEntity getUniversitiesHaveMajor(@PathVariable("majorId") Integer majorId, @PathVariable("year") Integer year) {
         return ResponseEntity.ok(ResponseData.ok("Lấy thông tin chương trình đào tạo thành công", admissionService.getUniversitiesHaveMajorAtYear(majorId, year)));
+    }
+
+
+    @GetMapping("/test3")
+    @SecurityRequirement(name = "BearerAuth")
+    public void test3(){
+        admissionService.validateAllAdmission();
+    }
+
+    @PostMapping("/update-admission/{oldAdmissionId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> updateAdmissionV2(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionRequestV2 request)
+            throws DataExistedException {
+        try {
+            admissionService.updateAdmissionV2(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Tạo yêu cầu cập nhập đề án thành công."));
+        } catch (Exception e) {
+            throw new DataExistedException(e.getMessage());
+        }
+    }
+
+    @PutMapping("/staff/update-admission/from/{oldAdmissionId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> staffUpdateUpdateAdmissionStatus(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionUpdateStatusRequest request) {
+        try {
+            admissionService.staffUpdateUpdateAdmissionStatus(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        } catch (Exception e) {
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/consultant/update-admission/from/{oldAdmissionId}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> consultantAndUniversityUpdateUpdateAdmissionStatus(@PathVariable Integer oldAdmissionId, @RequestBody @Valid UpdateAdmissionUpdateStatusRequest request) {
+        try {
+            admissionService.consultantAndUniversityUpdateUpdateAdmissionStatus(oldAdmissionId, request);
+            return ResponseEntity.ok(ResponseData.ok("Cập nhập trạng thái đề án thành công."));
+        } catch (Exception e) {
+            throw new BadRequestException("Cập nhập trạng thái đề án thất bại.", Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/update-admission")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<?> getUpdateAdmissionRequests(
+            Pageable pageable,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) Integer beforeAdmissionId,
+            @RequestParam(required = false) Date createTime,
+            @RequestParam(required = false) Integer createBy,
+            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) List<AdmissionUpdateStatus> status
+    ) {
+        return ResponseEntity.ok(admissionService.getUpdateAdmissionRequests(pageable, id, beforeAdmissionId, createTime, createBy, universityId, status));
+    }
+
+    @GetMapping("/update-admission-detail/{id}")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<ResponseData<GetUpdateAdmissionDetailResponse>> getUpdateAdmissionDetail(@PathVariable Integer id) {
+        return ResponseEntity.ok(admissionService.getUpdateAdmissionDetail(id));
     }
 }

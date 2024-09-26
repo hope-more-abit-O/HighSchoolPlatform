@@ -1,6 +1,7 @@
 package com.demo.admissionportal.service;
 
 import com.demo.admissionportal.dto.request.student_report.CreateStudentReportRequest;
+import com.demo.admissionportal.dto.request.student_report.UpdateHighSchoolExamScoreForStudentReportRequest;
 import com.demo.admissionportal.dto.request.student_report.UpdateStudentReportRequest;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.student_report.CreateStudentReportResponseDTO;
@@ -105,4 +106,8 @@ public interface StudentReportService {
      * @since 1.0
      */
     ResponseData<Void> deleteStudentReportById(Integer studentReportId, Authentication authentication);
+
+    ResponseData<?> createHighSchoolExamScoreInStudentReport(Integer studentReportId, UpdateHighSchoolExamScoreForStudentReportRequest request);
+    ResponseData<?> updateHighSchoolExamScoreInStudentReport(Integer studentReportId, UpdateHighSchoolExamScoreForStudentReportRequest request);
+    ResponseData<?> deleteHighSchoolExamScoreInStudentReport(Integer studentReportId);
 }

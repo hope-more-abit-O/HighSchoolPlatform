@@ -36,4 +36,16 @@ public class AdmissionQuotaDTO {
         this.subjectGroupIds =request.getSubjectGroupIds();
         this.quota =request.getQuota();
     }
+
+    public AdmissionQuotaDTO(UpdateAdmissionQuotaDTO request) {
+        this.majorId =request.getMajorId();
+        this.mainSubjectId =request.getMainSubjectId();
+        this.language =request.getLanguage();
+        this.trainingSpecific =request.getTrainingSpecific();
+        this.admissionTrainingProgramId =request.getQuota();
+        this.methodId =request.getMethodId();
+        this.admissionMethodId =request.getMethodId();
+        this.subjectGroupIds =request.getSubjectGroupIds();
+        this.quota =request.getQuota();
+    }
 }
