@@ -60,7 +60,7 @@ public class SecurityConfiguration {
     private static final String SUBJECT_GROUP_API = "/api/v1/subject-group/**";
     private static final String CHATBOT_API = "/api/v1/chatbot/**";
     private static final String HOLLAND_TEST_API = "/api/v1/holland-test";
-    private static final String EXAM_LOCAL = "/api/v1/exam-local";
+    private static final String EXAM_LOCAL = "/api/v1/exam-local/**";
     private static final String SUBJECT_API = "/api/v1/subject/**";
     private static final String STATISTICS_API = "/api/v1/statistics/**";
     private static final String FOLLOW_API = "/api/v1/follow/**";
