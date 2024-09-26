@@ -22,4 +22,6 @@ public interface SubjectGradeSemesterRepository extends JpaRepository<SubjectGra
      * @return the optional
      */
     List<SubjectGradeSemester> findBySubjectIdAndGradeAndSemester(Integer subjectId, Integer grade, SemesterType semester);
+
+    List<SubjectGradeSemester> findBySemesterNot(SemesterType semester);
 }

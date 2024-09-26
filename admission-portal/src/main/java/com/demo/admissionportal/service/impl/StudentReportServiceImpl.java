@@ -1,11 +1,13 @@
 package com.demo.admissionportal.service.impl;
 
 import com.demo.admissionportal.constants.ResponseCode;
+import com.demo.admissionportal.constants.SemesterType;
 import com.demo.admissionportal.constants.StudentReportStatus;
 import com.demo.admissionportal.dto.entity.SubjectDTO;
 import com.demo.admissionportal.dto.entity.student_report.GetHighSchoolExamSubjectScoreDTO;
 import com.demo.admissionportal.dto.entity.student_report.GetStudentReportHighSchoolExamScoreDTO;
 import com.demo.admissionportal.dto.entity.student_report.StudentReportHighSchoolExamScoreDTO;
+import com.demo.admissionportal.dto.entity.subject_report_mark.SubjectMarkDTO;
 import com.demo.admissionportal.dto.request.student_report.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.response.student_report.CreateStudentReportResponseDTO;
@@ -46,6 +48,56 @@ public class StudentReportServiceImpl implements StudentReportService {
     private final SubjectServiceImpl subjectServiceImpl;
     private final StudentReportHighSchoolScoreServiceImpl studentReportHighSchoolScoreService;
 
+    public List<SubjectMarkDTO> getAverageScoreByStudentReportId(Integer studentReportId){
+        List<SubjectMarkDTO> subjectMarkDTOS = new ArrayList<>();
+        List<SubjectGradeSemester> subjectGradeSemesters = subjectGradeSemesterRepository.findBySemesterNot(SemesterType.AVERAGE);
+        List<StudentReportMark> studentReportMarks = studentReportMarkRepository.findByStudentReportIdAndSubjectGradeSemesterIdIn(studentReportId, subjectGradeSemesters.stream().map(SubjectGradeSemester::getId).toList());
+        if (studentReportMarks.isEmpty()){
+            return null;
+        }
+        List<Integer> subjectIds = subjectGradeSemesters.stream().map(SubjectGradeSemester::getSubjectId).distinct().toList();
+        for (Integer subjectId : subjectIds){
+            List<SubjectGradeSemester> subjectGradeSemesterList = subjectGradeSemesters
+                    .stream()
+                    .filter((element) -> element.getSubjectId() == subjectId && element.getGrade() > 10)
+                    .sorted(Comparator.comparing(SubjectGradeSemester::getGrade, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .toList();
+            List<Float> scores = new ArrayList<>();
+
+            List<SubjectGradeSemester> subjectGradeSemesterListGrade11 = subjectGradeSemesterList.stream().filter((element) -> element.getGrade() == 11).toList();
+            List<Integer> subjectGradeSemesterGrade11Ids = subjectGradeSemesterListGrade11.stream().map(SubjectGradeSemester::getId).toList();
+            List<StudentReportMark> studentReportMarkGrade11List = studentReportMarks
+                    .stream()
+                    .filter((element) -> subjectGradeSemesterGrade11Ids.contains(element.getSubjectGradeSemesterId()))
+                    .toList();
+            if (studentReportMarkGrade11List.get(0).getMark() == null || studentReportMarkGrade11List.get(1).getMark() == null){
+                scores.add(null);
+            } else {
+                scores.add((studentReportMarkGrade11List.get(0).getMark() * 1 + studentReportMarkGrade11List.get(1).getMark() * 2)/3);
+            }
+
+            List<SubjectGradeSemester> subjectGradeSemesterListGrade12 = subjectGradeSemesterList.stream().filter((element) -> element.getGrade() == 12).toList();
+            List<Integer> subjectGradeSemesterGrade2Ids = subjectGradeSemesterListGrade12.stream().map(SubjectGradeSemester::getId).toList();
+            List<StudentReportMark> studentReportMarkGrade12List = studentReportMarks
+                    .stream()
+                    .filter((element) -> subjectGradeSemesterGrade2Ids.contains(element.getSubjectGradeSemesterId()))
+                    .toList();
+            if (studentReportMarkGrade12List.get(0).getMark() == null || studentReportMarkGrade12List.get(1).getMark() == null){
+                scores.add(null);
+            } else {
+                scores.add((studentReportMarkGrade12List.get(0).getMark() * 1 + studentReportMarkGrade12List.get(1).getMark() * 2)/3);
+            }
+
+            if (scores.get(0) == null || scores.get(1) == null){
+                subjectMarkDTOS.add(new SubjectMarkDTO(subjectId, null));
+                continue;
+            }
+            Float sum = (scores.get(0) + scores.get(1))/2;
+            subjectMarkDTOS.add(new SubjectMarkDTO(subjectId, sum));
+        }
+
+        return subjectMarkDTOS;
+    }
     @Override
     @Transactional
     public ResponseData<CreateStudentReportResponseDTO> createStudentReport(CreateStudentReportRequest request, Authentication authentication) {

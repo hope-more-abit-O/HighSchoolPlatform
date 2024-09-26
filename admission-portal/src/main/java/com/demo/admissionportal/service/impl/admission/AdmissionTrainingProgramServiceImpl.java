@@ -314,7 +314,7 @@ public class AdmissionTrainingProgramServiceImpl {
         queryBuilder.append("select atp.* ")
                 .append("from admission_training_program atp ")
                 .append("inner join admission a on a.id = atp.admission_id ")
-                .append("where a.year = :year ");
+                .append("where a.status = 'ACTIVE' and a.year = :year ");
 
         parameters.put("year", year);
 
