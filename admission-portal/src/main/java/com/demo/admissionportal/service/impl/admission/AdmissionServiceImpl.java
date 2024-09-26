@@ -2710,7 +2710,7 @@ public class AdmissionServiceImpl implements AdmissionService {
             Method method = methods.stream().filter((element) -> element.getId().equals(admissionMethod.getMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương thức tuyển sinh."));
             if (method.getId() == 2){
                 //hoc ba
-                if (subjectMarkDTOS.get(0).getMark() == null) {
+                if (subjectMarkDTOS == null || subjectMarkDTOS.get(0).getMark() == null || admissionTrainingProgramMethod.getAdmissionScore() == null) {
                     methodAndScores.add(
                             new CompareMajorMethodDTO(admissionMethod,
                                     admissionTrainingProgramMethod,
@@ -2733,6 +2733,9 @@ public class AdmissionServiceImpl implements AdmissionService {
                         for (Integer subjectId : subjectIds) {
                             SubjectMarkDTO subjectMarkDTO = subjectMarkDTOS.stream().filter((element) -> element.getSubjectId().equals(subjectId)).findFirst().orElse(null);
                             if (subjectMarkDTO == null) {
+                                continue;
+                            }
+                            if (subjectMarkDTO.getMark() == null) {
                                 continue;
                             }
                             subjectGroupScore += subjectMarkDTO.getMark();
