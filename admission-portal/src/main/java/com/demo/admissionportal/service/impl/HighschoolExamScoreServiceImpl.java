@@ -980,13 +980,19 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 return new ResponseData<>(ResponseCode.C205.getCode(), "Dữ liệu điểm thi năm " + listExamScoreByYear.getYear() + " đã được công bố từ trước đó.");
             }
 
-            activeScores.forEach(activeScore -> activeScore.setStatus(ListExamScoreByYearStatus.ACTIVE));
-            listExamScoreByYearRepository.saveAll(activeScores);
+            listExamScoreByYearRepository.deactivateOtherExamScoreByYears(listExamScoreByYearId, ListExamScoreByYearStatus.INACTIVE);
+
+            listExamScoreHighSchoolExamScoreRepository.deactivateOtherHighSchoolExamScores(listExamScoreByYearId, HighschoolExamScoreStatus.INACTIVE);
+
+            listExamScoreByYear.setStatus(ListExamScoreByYearStatus.ACTIVE);
+            listExamScoreByYearRepository.save(listExamScoreByYear);
 
             ExamYear examYear = examYearRepository.findByYear(listExamScoreByYear.getYear());
             if (examYear == null) {
                 return new ResponseData<>(ResponseCode.C204.getCode(), "Dữ liệu năm thi không tồn tại.");
             }
+
+            highschoolExamScoreRepository.deactivateOtherHighSchoolExamScores(examYear.getId(), HighschoolExamScoreStatus.INACTIVE);
 
             highschoolExamScoreRepository.updateStatusByExamYear(HighschoolExamScoreStatus.ACTIVE, examYear, HighschoolExamScoreStatus.INACTIVE);
 
