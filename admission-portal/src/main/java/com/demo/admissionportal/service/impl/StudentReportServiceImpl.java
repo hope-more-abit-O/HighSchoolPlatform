@@ -392,6 +392,7 @@ public class StudentReportServiceImpl implements StudentReportService {
             responseDTO.setUpdateTime(studentReport.getUpdateTime());
             responseDTO.setStatus(studentReport.getStatus());
             responseDTO.setReport(subjectReportDTOList);
+            responseDTO.setCompetencyAssessmentExamScore(studentReport.getCompetencyAssessmentExamScore());
             responseDTO.setHighSchoolExamSubjectScores(GetHighSchoolExamSubjectScoreDTO.mapping(studentReportHighSchoolExamScoreDTOS));
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Học bạ được tìm thấy !", responseDTO);
