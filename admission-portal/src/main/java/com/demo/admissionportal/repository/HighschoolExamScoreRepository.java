@@ -31,7 +31,21 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "WHERE h.identificationNumber = :identificationNumber AND ey.year = :year")
     int countByIdentificationNumberAndExamYear(@Param("identificationNumber") String identificationNumber, @Param("year") Integer year);
 
-    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(String identificationNumber, Integer examYearId);
+    @Query(value = """
+    SELECT h.*
+    FROM highschool_exam_score h 
+    WHERE h.exam_year_id = :examYearId
+    AND h.identification_number = :identificationNumber
+""", nativeQuery = true)
+    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(@Param("identificationNumber") String identificationNumber, @Param("examYearId") Integer examYearId);
+
+    @Query(value = """
+    SELECT COUNT(h.identification_number)
+    FROM highschool_exam_score h
+    WHERE h.exam_year_id = :examYearId
+    AND h.identification_number = :identificationNumber
+""", nativeQuery = true)
+    long countByIdentificationNumberAndExamYearId(@Param("identificationNumber") String identificationNumber, @Param("examYearId") Integer examYearId);
 
 
     @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.exam_local_id FROM highschool_exam_score h " +
