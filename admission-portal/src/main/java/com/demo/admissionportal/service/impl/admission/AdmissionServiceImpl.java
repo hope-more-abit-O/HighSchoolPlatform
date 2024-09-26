@@ -1259,6 +1259,9 @@ public class AdmissionServiceImpl implements AdmissionService {
             if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
                 throw new NotAllowedException("Đề án này phải được chấp nhận trước.");
 
+            if (!admission.getAdmissionStatus().equals(AdmissionStatus.INACTIVE))
+                throw new BadRequestException("Đề án không ở trạng thái ngưng hoạt động.");
+
             if (user.getRole().equals(Role.UNIVERSITY)) {
                 Admission otherAdmission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(user.getId(), admission.getYear(), AdmissionStatus.ACTIVE)
                         .orElse(null);
