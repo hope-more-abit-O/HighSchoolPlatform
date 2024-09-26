@@ -198,8 +198,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                         }
 
 
-                        long count = highschoolExamScoreRepository
-                                .countByIdentificationNumberAndExamYearId(request.getIdentificationNumber().trim().toLowerCase(), examYear.getYear());
+                        long count = highschoolExamScoreRepository.countByIdentificationNumberAndExamYearId(request.getIdentificationNumber(), examYear.getId());
 
                         if (count >= 9) {
                             log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), examYear.getYear());
