@@ -5,6 +5,7 @@ import com.demo.admissionportal.entity.sub_entity.id.StudentReportMarkId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,4 +20,6 @@ public interface StudentReportMarkRepository extends JpaRepository<StudentReport
      * @return the list
      */
     List<StudentReportMark> findByStudentReportId(Integer studentReportId);
+
+    List<StudentReportMark> findByStudentReportIdAndSubjectGradeSemesterIdIn(Integer studentReportId, Collection<Integer> subjectGradeSemesterIds);
 }
