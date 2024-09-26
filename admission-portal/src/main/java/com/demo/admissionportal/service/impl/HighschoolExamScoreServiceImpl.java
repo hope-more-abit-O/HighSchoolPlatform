@@ -189,31 +189,23 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
                     String identificationNumber = request.getIdentificationNumber();
                     if (identificationNumber != null) {
+                        ExamLocal localNameOpt = examLocalRepository.findByName(request.getLocal());
 
-                        Optional<String> localNameOpt = examLocalRepository.findLocalNameById(request.getLocalId());
 
-                        String localName = localNameOpt.orElse(null);
-
-                        ExamLocal examLocal = examLocalRepository.findById(request.getLocalId())
-                                .orElse(null);
-
-                        if (examLocal == null) {
+                        if (localNameOpt == null) {
                             return new ResponseData<>(ResponseCode.C203.getCode(),
-                                    "Địa phương không tồn tại: " + localName);
+                                    "Địa phương không tồn tại: " + localNameOpt);
                         }
 
-                        String validLocalName = examLocal.getName();
 
-                        List<String> existingIdentificationNumbers = highschoolExamScoreRepository
-                                .findByIdentificationNumberAndExamYear_Id(request.getIdentificationNumber(), examYear.getYear())
-                                .stream()
-                                .map(HighschoolExamScore::getIdentificationNumber)
-                                .toList();
+                        long count = highschoolExamScoreRepository
+                                .countByIdentificationNumberAndExamYearId(request.getIdentificationNumber().trim().toLowerCase(), examYear.getYear());
 
-                        if (existingIdentificationNumbers.contains(request.getIdentificationNumber())) {
+                        if (count >= 9) {
                             log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), examYear.getYear());
                             return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh " + request.getIdentificationNumber() + " đã tồn tại trong năm " + examYear.getYear());
                         }
+
 
                         Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
                                 .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
@@ -222,7 +214,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
                             HighschoolExamScore examScore = new HighschoolExamScore();
                             examScore.setIdentificationNumber(request.getIdentificationNumber());
-                            examScore.setExamLocal(examLocal);
+                            examScore.setExamLocal(localNameOpt);
                             examScore.setExamYear(examYear);
                             examScore.setSubjectId(subjectId);
                             examScore.setScore(subjectScore.getScore());
@@ -285,7 +277,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
                         yearResponses.add(new HighschoolExamScoreResponse(
                                 request.getIdentificationNumber(),
-                                validLocalName,
+                                request.getLocal(),
                                 examYear.getYear(),
                                 allSubjectScores
                         ));
@@ -334,18 +326,12 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
                     String identificationNumber = request.getIdentificationNumber();
                     if (identificationNumber != null) {
-                        Optional<String> localNameOpt = examLocalRepository.findLocalNameById(request.getLocalId());
+                        ExamLocal localNameOpt = examLocalRepository.findByName(request.getLocal());
 
-                        String localName = localNameOpt.orElse("Unknown Locality");
-
-                        ExamLocal examLocal = examLocalRepository.findById(request.getLocalId())
-                                .orElse(null);
-
-                        if (examLocal == null) {
+                        if (localNameOpt == null) {
                             return new ResponseData<>(ResponseCode.C203.getCode(),
-                                    "Địa phương không tồn tại: " + localName);
+                                    "Địa phương không tồn tại: " + localNameOpt);
                         }
-                        String validLocalName = examLocal.getName();
 
                         List<HighschoolExamScore> existingScores = highschoolExamScoreRepository.findByIdentificationNumberAndExamYear_Id(
                                 identificationNumber, examYear.getYear());
@@ -370,7 +356,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 HighschoolExamScore newScore = new HighschoolExamScore();
                                 newScore.setIdentificationNumber(identificationNumber);
                                 newScore.setExamYear(examYear);
-                                newScore.setExamLocal(examLocal);
+                                newScore.setExamLocal(localNameOpt);
                                 newScore.setSubjectId(score.getSubjectId());
                                 newScore.setScore(score.getScore());
                                 newScore.setCreateTime(new Date());
@@ -396,7 +382,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 .toList();
                         HighschoolExamScoreResponse response = new HighschoolExamScoreResponse();
                         response.setIdentificationNumber(identificationNumber);
-                        response.setLocal(examLocal.getName());
+                        response.setLocal(localNameOpt.getName());
                         response.setYear(examYear.getYear());
                         response.setSubjectScores(allSubjectScores);
                         yearResponses.add(response);
