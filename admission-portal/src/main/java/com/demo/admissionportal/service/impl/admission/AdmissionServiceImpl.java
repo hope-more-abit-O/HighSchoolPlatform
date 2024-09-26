@@ -726,7 +726,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
-        UniversityInfo universityInfo = universityInfoRepository.findById(admission.getCreateBy()).orElseThrow(() -> new ResourceNotFoundException("University info not found"));
+        UniversityInfo universityInfo = universityInfoRepository.findById(admission.getUniversityId() ).orElseThrow(() -> new ResourceNotFoundException("University info not found"));
         result.setCreateBy(new ActionerDTO(universityInfo.getId(), universityInfo.getName(), null, null));
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
         List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
