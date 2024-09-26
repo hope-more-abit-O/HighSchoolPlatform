@@ -2775,7 +2775,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                         float subjectGroupScore = 0;
                         for (Integer subjectId: subjectIds) {
                             StudentReportHighSchoolScore studentReportHighSchoolScore = studentReportHighSchoolScores.stream().filter((element) -> element.getId().getSubjectId().equals(subjectId)).findFirst().orElse(null);
-                            if (studentReportHighSchoolScore == null){
+                            if (studentReportHighSchoolScore == null || studentReportHighSchoolScore.getScore() == null) {
                                 continue;
                             }
                             subjectGroupScore += studentReportHighSchoolScore.getScore();
@@ -2856,16 +2856,15 @@ public class AdmissionServiceImpl implements AdmissionService {
         return admissionRepository.findAllById(list);
     }
 
-    public List<UniversityCompareMajorDTO> compareMajorsFromUniversities(List<CompareMajorsFromUniversitiesRequest> request, Integer year, Integer studentReportId) {
+    public List<UniversityCompareMajorDTO> processCompare(List<AdmissionTrainingProgram> admissionTrainingPrograms, List<Integer> universityIds, List<Integer> majorIds, Integer studentReportId){
         StudentReport studentReport = studentReportService.findById(studentReportId);
-        List<Integer> majorIds = request.stream().map(CompareMajorsFromUniversitiesRequest::getMajorId).distinct().toList();
-        List<Integer> universityIds = request.stream().map(CompareMajorsFromUniversitiesRequest::getUniversityId).distinct().toList();
-        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(request, year);
-        if (admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList().size() < majorIds.size())
-            throw new ResourceNotFoundException("Không tìm thấy đủ chương trình đào tạo cho " + majorIds.size() + " ngành.");
+        majorIds = admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList();
+//        if (admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getMajorId).distinct().toList().size() < majorIds.size())
+//            throw new ResourceNotFoundException("Không tìm thấy đủ chương trình đào tạo cho " + majorIds.size() + " ngành.");
         List<Admission> admissions = findByIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getAdmissionId).distinct().toList());
-        if (admissions.stream().map(Admission::getUniversityId).distinct().toList().size() != universityIds.size())
-            throw new ResourceNotFoundException("Không tìm thấy đủ chương trình đào tạo cho " + universityIds.size() + " ngành.");
+        universityIds =List.of(admissions.get(0).getUniversityId());
+//        if (admissions.stream().map(Admission::getUniversityId).distinct().toList().size() != universityIds.size())
+//            throw new ResourceNotFoundException("Không tìm thấy đủ chương trình đào tạo cho " + universityIds.size() + " ngành.");
         List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).toList());
         List<AdmissionMethod> admissionMethods = admissionMethodService.findByAdmissionIds(admissions.stream().map(Admission::getId).distinct().toList());
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityIdsWithStatusWithMajorIds(universityIds, UniversityTrainingProgramStatus.ACTIVE, majorIds);
@@ -2910,6 +2909,21 @@ public class AdmissionServiceImpl implements AdmissionService {
             universityCompareMajorDTOS.add(new UniversityCompareMajorDTO(user, universityInfo, compareMajorDTOS, admission));
         }
         return universityCompareMajorDTOS;
+    }
+
+    public List<UniversityCompareMajorDTO> compareMajorsFromUniversities(List<CompareMajorsFromUniversitiesRequest> request, Integer year, Integer studentReportId) {
+        List<List<CompareMajorsFromUniversitiesRequest>> listRequest = request.stream().map(List::of).toList();
+        List<CompareMajorsFromUniversitiesRequest> first = listRequest.get(0);
+        List<CompareMajorsFromUniversitiesRequest> second = listRequest.get(1);
+        List<Integer> majorIds = request.stream().map(CompareMajorsFromUniversitiesRequest::getMajorId).distinct().toList();
+        List<Integer> universityIds = request.stream().map(CompareMajorsFromUniversitiesRequest::getUniversityId).distinct().toList();
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(request, year);
+        List<AdmissionTrainingProgram> admissionTrainingProgramsFirst = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(first, year);
+        List<AdmissionTrainingProgram> admissionTrainingProgramsSecond = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(second, year);
+
+        List<UniversityCompareMajorDTO> firstResult = processCompare(admissionTrainingProgramsFirst, universityIds, majorIds, studentReportId);
+        List<UniversityCompareMajorDTO> secondResult = processCompare(admissionTrainingProgramsSecond, universityIds, majorIds, studentReportId);
+        return Stream.concat(firstResult.stream(), secondResult.stream()).toList();
     }
 
     public void validateAllAdmission(){
