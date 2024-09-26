@@ -273,7 +273,12 @@ public class AdmissionServiceImpl implements AdmissionService {
     public void updateAdmissionV2(Integer oldAdmissionId, UpdateAdmissionRequestV2 request) throws DataExistedException {
         User consultant = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 
-        admissionUpdateService.expiredAllPendingAdmissionUpdate(oldAdmissionId, consultant.getId());
+        List<AdmissionUpdate> admissionUpdates = admissionUpdateService.expiredAllPendingAdmissionUpdate(oldAdmissionId, consultant.getId());
+
+        List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
+        List<Admission> admissions = this.findByIds(newAdmissionIds);
+        admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
+        admissionRepository.saveAll(admissions);
         
 //        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
         Admission checkAdmission = this.findById(oldAdmissionId);
@@ -752,6 +757,10 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
+    protected FullAdmissionDTOV3 mappingInfoV3(Admission admission) {
+        return new FullAdmissionDTOV3(admission);
+    }
+
     protected AdmissionDetailDTO mappingInfoAdmissionDetail(Admission admission, UniversityInfo universityInfo) {
         AdmissionDetailDTO result = modelMapper.map(admission, AdmissionDetailDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
@@ -953,6 +962,24 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
+    protected FullAdmissionDTOV3 mappingFullWithNoUniInfoV3(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<UniversityTrainingProgram> universityTrainingPrograms)
+            throws ResourceNotFoundException {
+        FullAdmissionDTOV3 result = this.mappingInfoV3(admission);
+
+        List<CreateAdmissionQuotaRequest> quotas = new ArrayList<>();
+        for (AdmissionTrainingProgramMethod admissionTrainingProgramMethod : admissionTrainingProgramMethods) {
+            AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingPrograms.stream().filter(ad -> ad.getId().equals(admissionTrainingProgramMethod.getId().getAdmissionTrainingProgramId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Admission training program not found"));
+            AdmissionMethod admissionMethod = admissionMethods.stream().filter(ad -> ad.getId().equals(admissionTrainingProgramMethod.getId().getAdmissionMethodId())).findFirst().orElseThrow(() -> new ResourceNotFoundException("Admission method not found"));
+            List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups1 = admissionTrainingProgramSubjectGroups.stream().filter(ad -> ad.getId().getAdmissionTrainingProgramId().equals(admissionTrainingProgram.getId())).toList();
+            List<Integer> subjectGroupIds = admissionTrainingProgramSubjectGroups1.stream().map(ad -> ad.getId().getSubjectGroupId()).distinct().toList();
+            quotas.add(new CreateAdmissionQuotaRequest(admissionMethod, admissionTrainingProgram, subjectGroupIds, admissionTrainingProgramMethod));
+        }
+
+        result.setQuotas(quotas);
+
+        return result;
+    }
+
     protected List<ScoreRange> getScoreRange(List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods) {
         List<ScoreRange> scoreRanges = new ArrayList<>();
 
@@ -1102,12 +1129,33 @@ public class AdmissionServiceImpl implements AdmissionService {
         return this.mappingFullWithNoUniInfoV2(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms);
     }
 
+    public FullAdmissionDTOV3 getByIdV4Detail(Integer id)
+            throws ResourceNotFoundException {
+        Admission admission = this.findById(id);
+
+        List<AdmissionMethod> admissionMethods = admissionMethodService.findByAdmissionId(admission.getId());
+
+        List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByAdmissionId(admission.getId());
+
+        List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups = admissionTrainingProgramSubjectGroupService.findByAdmissionTrainingProgramId(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).collect(Collectors.toList()));
+
+        List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods = admissionTrainingProgramMethodService.findByAdmissionTrainingProgramIds(admissionTrainingPrograms.stream().map(AdmissionTrainingProgram::getId).collect(Collectors.toList()));
+
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityId(admission.getUniversityId());
+
+        return this.mappingFullWithNoUniInfoV3(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms);
+    }
+
     public ResponseData<FullAdmissionDTO> getByIdV2(Integer id){
         return ResponseData.ok("Lấy thông tin các đề án thành công.", getByIdV2Detail(id));
     }
 
     public ResponseData<FullAdmissionDTOV2> getByIdV3(Integer id){
         return ResponseData.ok("Lấy thông tin các đề án thành công.", getByIdV3Detail(id));
+    }
+
+    public ResponseData<FullAdmissionDTOV3> getByIdV4(Integer id){
+        return ResponseData.ok("Lấy thông tin các đề án thành công.", getByIdV4Detail(id));
     }
 
     @Transactional

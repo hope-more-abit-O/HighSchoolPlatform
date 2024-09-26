@@ -13,6 +13,7 @@ import com.demo.admissionportal.dto.request.admisison.*;
 import com.demo.admissionportal.dto.response.ResponseData;
 import com.demo.admissionportal.dto.request.admisison.SchoolDirectoryDetailRequest;
 import com.demo.admissionportal.dto.response.admission.FullAdmissionDTOV2;
+import com.demo.admissionportal.dto.response.admission.FullAdmissionDTOV3;
 import com.demo.admissionportal.exception.exceptions.*;
 import com.demo.admissionportal.service.impl.admission.AdmissionServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -212,6 +213,11 @@ public class AdmissionController {
     @GetMapping("/v2/{id}")
     public ResponseEntity<ResponseData<FullAdmissionDTOV2>> getAdmissionV2(@PathVariable Integer id) {
         return ResponseEntity.ok(admissionService.getByIdV3(id));
+    }
+
+    @GetMapping("/v3/{id}")
+    public ResponseEntity<ResponseData<FullAdmissionDTOV3>> getAdmissionV3(@PathVariable Integer id) {
+        return ResponseEntity.ok(admissionService.getByIdV4(id));
     }
 
     @PutMapping("/university/{id}")
