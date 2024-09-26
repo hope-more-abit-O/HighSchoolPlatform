@@ -83,6 +83,13 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
 
     @Modifying
     @Transactional
+    @Query("UPDATE HighschoolExamScore h SET h.status = :inactiveStatus WHERE h.examYear.id != :examYearId")
+    int deactivateOtherHighSchoolExamScores(@Param("examYearId") Integer examYearId,
+                                            @Param("inactiveStatus") HighschoolExamScoreStatus inactiveStatus);
+
+
+    @Modifying
+    @Transactional
     @Query("UPDATE HighschoolExamScore h SET h.status = :status WHERE h.examYear = :examYear AND h.status = :oldStatus")
     int updateStatusByExamYear(@Param("status") HighschoolExamScoreStatus status, @Param("examYear") ExamYear examYear, @Param("oldStatus") HighschoolExamScoreStatus oldStatus);
 
