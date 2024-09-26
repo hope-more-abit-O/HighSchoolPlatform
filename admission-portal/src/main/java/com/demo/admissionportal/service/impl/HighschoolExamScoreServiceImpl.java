@@ -187,109 +187,121 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 List<HighschoolExamScoreResponse> yearResponses = new ArrayList<>();
 
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
-                    ExamLocal examLocal = examLocalRepository.findByName(request.getLocalName());
-                    if (examLocal == null) {
-                        return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocalName());
-                    }
+                    String identificationNumber = request.getIdentificationNumber();
+                    if (identificationNumber != null) {
 
-                    List<String> existingIdentificationNumbers = highschoolExamScoreRepository
-                            .findByIdentificationNumberAndExamYear_Id(request.getIdentificationNumber(), examYear.getYear())
-                            .stream()
-                            .map(HighschoolExamScore::getIdentificationNumber)
-                            .toList();
+                        Optional<String> localNameOpt = examLocalRepository.findLocalNameById(request.getLocalId());
 
-                    if (existingIdentificationNumbers.contains(request.getIdentificationNumber())) {
-                        log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), examYear.getYear());
-                        return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh " + request.getIdentificationNumber() + " đã tồn tại trong năm " + examYear.getYear());
-                    }
+                        String localName = localNameOpt.orElse(null);
 
-                    Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
-                            .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
-
-                    List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
-                        SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
-                        HighschoolExamScore examScore = new HighschoolExamScore();
-                        examScore.setIdentificationNumber(request.getIdentificationNumber());
-                        examScore.setExamLocal(examLocal);
-                        examScore.setExamYear(examYear);
-                        examScore.setSubjectId(subjectId);
-                        examScore.setScore(subjectScore.getScore());
-                        examScore.setCreateTime(new Date());
-                        examScore.setCreateBy(staffId);
-                        examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
-                        return examScore;
-                    }).toList();
-
-                    List<HighschoolExamScore> savedExamScores = highschoolExamScoreRepository.saveAll(examScores);
-                    allExamScores.addAll(savedExamScores);
-
-                    ListExamScoreByYear finalListExamScoreByYear = listExamScoreByYear;
-                    examScores.forEach(savedExamScore -> {
-                        ListExamScoreHighSchoolExamScore listExamScoreHighSchoolExamScore = new ListExamScoreHighSchoolExamScore();
-                        listExamScoreHighSchoolExamScore.setListExamScoreByYearId(finalListExamScoreByYear.getId());
-                        listExamScoreHighSchoolExamScore.setHighschoolExamScoreId(savedExamScore.getId());
-                        listExamScoreHighSchoolExamScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
-                        allListExamScores.add(listExamScoreHighSchoolExamScore);
-                    });
-
-                    List<SubjectScoreDTO> allSubjectScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
-                        String subjectName = subjectRepository.findById(subjectId)
-                                .map(Subject::getName)
+                        ExamLocal examLocal = examLocalRepository.findById(request.getLocalId())
                                 .orElse(null);
-                        SubjectScoreDTO scoreDTO = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
-                        return new SubjectScoreDTO(subjectId, subjectName, scoreDTO.getScore());
-                    }).collect(Collectors.toList());
 
-                    BigDecimal khtnTotalScore = BigDecimal.ZERO;
-                    BigDecimal khxhTotalScore = BigDecimal.ZERO;
-                    boolean hasKHTN = false;
-                    boolean hasKHXH = false;
+                        if (examLocal == null) {
+                            return new ResponseData<>(ResponseCode.C203.getCode(),
+                                    "Địa phương không tồn tại: " + localName);
+                        }
 
-                    for (SubjectScoreDTO scoreDTO : allSubjectScores) {
-                        if (scoreDTO.getScore() != null) {
-                            if (Set.of(27, 16, 23).contains(scoreDTO.getSubjectId())) {
-                                khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
-                                hasKHTN = true;
-                            } else if (Set.of(34, 9, 54).contains(scoreDTO.getSubjectId())) {
-                                khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
-                                hasKHXH = true;
+                        String validLocalName = examLocal.getName();
+
+                        List<String> existingIdentificationNumbers = highschoolExamScoreRepository
+                                .findByIdentificationNumberAndExamYear_Id(request.getIdentificationNumber(), examYear.getYear())
+                                .stream()
+                                .map(HighschoolExamScore::getIdentificationNumber)
+                                .toList();
+
+                        if (existingIdentificationNumbers.contains(request.getIdentificationNumber())) {
+                            log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), examYear.getYear());
+                            return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh " + request.getIdentificationNumber() + " đã tồn tại trong năm " + examYear.getYear());
+                        }
+
+                        Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
+                                .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
+
+                        List<HighschoolExamScore> examScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
+                            SubjectScoreDTO subjectScore = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
+                            HighschoolExamScore examScore = new HighschoolExamScore();
+                            examScore.setIdentificationNumber(request.getIdentificationNumber());
+                            examScore.setExamLocal(examLocal);
+                            examScore.setExamYear(examYear);
+                            examScore.setSubjectId(subjectId);
+                            examScore.setScore(subjectScore.getScore());
+                            examScore.setCreateTime(new Date());
+                            examScore.setCreateBy(staffId);
+                            examScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
+                            return examScore;
+                        }).toList();
+
+                        List<HighschoolExamScore> savedExamScores = highschoolExamScoreRepository.saveAll(examScores);
+                        allExamScores.addAll(savedExamScores);
+
+                        ListExamScoreByYear finalListExamScoreByYear = listExamScoreByYear;
+                        examScores.forEach(savedExamScore -> {
+                            ListExamScoreHighSchoolExamScore listExamScoreHighSchoolExamScore = new ListExamScoreHighSchoolExamScore();
+                            listExamScoreHighSchoolExamScore.setListExamScoreByYearId(finalListExamScoreByYear.getId());
+                            listExamScoreHighSchoolExamScore.setHighschoolExamScoreId(savedExamScore.getId());
+                            listExamScoreHighSchoolExamScore.setStatus(HighschoolExamScoreStatus.INACTIVE);
+                            allListExamScores.add(listExamScoreHighSchoolExamScore);
+                        });
+
+                        List<SubjectScoreDTO> allSubjectScores = ALLOWED_SUBJECT_IDS.stream().map(subjectId -> {
+                            String subjectName = subjectRepository.findById(subjectId)
+                                    .map(Subject::getName)
+                                    .orElse(null);
+                            SubjectScoreDTO scoreDTO = subjectScoreMap.getOrDefault(subjectId, new SubjectScoreDTO(subjectId, null, null));
+                            return new SubjectScoreDTO(subjectId, subjectName, scoreDTO.getScore());  // Include subjectName in response
+                        }).collect(Collectors.toList());
+
+                        BigDecimal khtnTotalScore = BigDecimal.ZERO;
+                        BigDecimal khxhTotalScore = BigDecimal.ZERO;
+                        boolean hasKHTN = false;
+                        boolean hasKHXH = false;
+
+                        for (SubjectScoreDTO scoreDTO : allSubjectScores) {
+                            if (scoreDTO.getScore() != null) {
+                                if (Set.of(27, 16, 23).contains(scoreDTO.getSubjectId())) {
+                                    khtnTotalScore = khtnTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHTN = true;
+                                } else if (Set.of(34, 9, 54).contains(scoreDTO.getSubjectId())) {
+                                    khxhTotalScore = khxhTotalScore.add(BigDecimal.valueOf(scoreDTO.getScore()));
+                                    hasKHXH = true;
+                                }
                             }
                         }
+
+                        if (hasKHTN) {
+                            khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
+                        }
+
+                        if (hasKHXH) {
+                            khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
+                        } else {
+                            allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", null));
+                        }
+
+                        yearResponses.add(new HighschoolExamScoreResponse(
+                                request.getIdentificationNumber(),
+                                validLocalName,
+                                examYear.getYear(),
+                                allSubjectScores
+                        ));
                     }
 
-                    if (hasKHTN) {
-                        khtnTotalScore = khtnTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
-                        allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", khtnTotalScore.floatValue()));
-                    } else {
-                        allSubjectScores.add(new SubjectScoreDTO(999999, "KHTN", null));
-                    }
-
-                    if (hasKHXH) {
-                        khxhTotalScore = khxhTotalScore.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
-                        allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", khxhTotalScore.floatValue()));
-                    } else {
-                        allSubjectScores.add(new SubjectScoreDTO(999998, "KHXH", null));
-                    }
-
-                    yearResponses.add(new HighschoolExamScoreResponse(
-                            request.getIdentificationNumber(),
-                            examLocal.getName(),
-                            examYear.getYear(),
-                            allSubjectScores
-                    ));
+                    yearlyResponses.add(new YearlyExamScoreResponse(listExamScoreByYear.getTitle(), examYear.getYear(), yearResponses));
                 }
-
-                yearlyResponses.add(new YearlyExamScoreResponse(listExamScoreByYear.getTitle(), examYear.getYear(), yearResponses));
+                listExamScoreHighSchoolExamScoreRepository.saveAll(allListExamScores);
             }
-            listExamScoreHighSchoolExamScoreRepository.saveAll(allListExamScores);
-
             return new ResponseData<>(ResponseCode.C200.getCode(), "Tạo điểm thi thành công!", yearlyResponses);
-
         } catch (Exception e) {
             log.error("Error creating exam scores", e);
             return new ResponseData<>(ResponseCode.C207.getCode(), "Đã có lỗi xảy ra trong quá trình tạo điểm, vui lòng thử lại sau.");
         }
     }
+
 
 
     @Override
@@ -322,10 +334,18 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                 for (CreateHighschoolExamScoreRequest request : examYearData.getExamScoreData()) {
                     String identificationNumber = request.getIdentificationNumber();
                     if (identificationNumber != null) {
-                        ExamLocal examLocal = examLocalRepository.findByName(request.getLocalName());
+                        Optional<String> localNameOpt = examLocalRepository.findLocalNameById(request.getLocalId());
+
+                        String localName = localNameOpt.orElse("Unknown Locality");
+
+                        ExamLocal examLocal = examLocalRepository.findById(request.getLocalId())
+                                .orElse(null);
+
                         if (examLocal == null) {
-                            return new ResponseData<>(ResponseCode.C203.getCode(), "Địa phương không tồn tại: " + request.getLocalName());
+                            return new ResponseData<>(ResponseCode.C203.getCode(),
+                                    "Địa phương không tồn tại: " + localName);
                         }
+                        String validLocalName = examLocal.getName();
 
                         List<HighschoolExamScore> existingScores = highschoolExamScoreRepository.findByIdentificationNumberAndExamYear_Id(
                                 identificationNumber, examYear.getYear());

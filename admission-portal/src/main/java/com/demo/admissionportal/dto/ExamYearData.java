@@ -12,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ExamYearData {
     private String title;
-    private int year;
+    private Integer year;
     private List<CreateHighschoolExamScoreRequest> examScoreData;
 }
