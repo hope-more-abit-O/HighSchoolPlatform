@@ -150,7 +150,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     public Admission createUpdateAdmission(Integer year, String documents, User consultantAccount) {
-        Admission admission = new Admission(year, documents, consultantAccount.getCreateBy(), consultantAccount.getId(), AdmissionStatus.UPDATE_PENDING);
+        Admission admission = new Admission(year, documents, consultantAccount.getCreateBy(), consultantAccount.getId(), AdmissionStatus.PENDING);
         return this.save(admission);
     }
 
@@ -278,7 +278,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (admissionUpdates != null && !admissionUpdates.isEmpty()) {
             List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
             List<Admission> admissions = this.findByIds(newAdmissionIds);
-            admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
+            admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.STAFF_INACTIVE));
             admissionRepository.saveAll(admissions);
         }
         
