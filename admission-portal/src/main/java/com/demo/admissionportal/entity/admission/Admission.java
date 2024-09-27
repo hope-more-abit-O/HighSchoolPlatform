@@ -126,7 +126,7 @@ public class Admission {
 
     public void staffReject(Integer staffId){
         this.confirmStatus = AdmissionConfirmStatus.REJECTED;
-        this.admissionStatus = AdmissionStatus.STAFF_INACTIVE;
+        this.admissionStatus = AdmissionStatus.UPDATE_DENIED;
         this.updateBy = staffId;
         this.updateTime = new Date();
     }
