@@ -733,6 +733,27 @@ public class AdmissionServiceImpl implements AdmissionService {
         FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
         result.setStatus(admission.getAdmissionStatus().name);
         result.setScoreStatus(admission.getScoreStatus().name);
+        result.setStatus(admission.getAdmissionStatus().name);
+        result.setOldAdmissionId(null);
+        result.setConfirmStatus(admission.getConfirmStatus().name);
+        UniversityInfo universityInfo = universityInfoRepository.findById(admission.getUniversityId() ).orElseThrow(() -> new ResourceNotFoundException("University info not found"));
+        result.setCreateBy(new ActionerDTO(universityInfo.getId(), universityInfo.getName(), null, null));
+        result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
+        List<String> sources = Arrays.stream(admission.getSource().split(";")).toList();
+        result.setSources(sources);
+
+        result.setUniversity(null);
+
+        return result;
+    }
+
+    protected FullAdmissionDTO mappingInfo(Admission admission, AdmissionUpdate admissionUpdate) {
+        FullAdmissionDTO result = modelMapper.map(admission, FullAdmissionDTO.class);
+        result.setStatus(admission.getAdmissionStatus().name);
+        result.setScoreStatus(admission.getScoreStatus().name);
+        result.setStatus(admission.getAdmissionStatus().name);
+        result.setConfirmStatus(admission.getConfirmStatus().name);
+        result.setOldAdmissionId(admissionUpdate.getBeforeAdmissionId());
         UniversityInfo universityInfo = universityInfoRepository.findById(admission.getUniversityId() ).orElseThrow(() -> new ResourceNotFoundException("University info not found"));
         result.setCreateBy(new ActionerDTO(universityInfo.getId(), universityInfo.getName(), null, null));
         result.setName("ĐỀ ÁN TUYỂN SINH NĂM " + (admission.getYear() - 1) + "-" + admission.getYear() + " CỦA " + universityInfo.getName().toUpperCase());
@@ -813,9 +834,14 @@ public class AdmissionServiceImpl implements AdmissionService {
         return result;
     }
 
-    protected FullAdmissionDTO mappingFullWithNoUniInfo(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<UniversityTrainingProgram> universityTrainingPrograms)
+    protected FullAdmissionDTO mappingFullWithNoUniInfo(Admission admission, List<AdmissionMethod> admissionMethods, List<AdmissionTrainingProgram> admissionTrainingPrograms, List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroups, List<AdmissionTrainingProgramMethod> admissionTrainingProgramMethods, List<UniversityTrainingProgram> universityTrainingPrograms, AdmissionUpdate admissionUpdate)
             throws ResourceNotFoundException {
-        FullAdmissionDTO result = this.mappingInfo(admission);
+        FullAdmissionDTO result ;
+        if (admissionUpdate != null) {
+            result = this.mappingInfo(admission, admissionUpdate);
+        } else {
+            result = this.mappingInfo(admission);
+        }
 
         List<Method> methods = methodService.findByIds(admissionMethods.stream().map(AdmissionMethod::getMethodId).toList());
         List<AdmissionMethodDTO> admissionMethodDTOS = admissionMethods.stream().map((element) -> new AdmissionMethodDTO(element, methods)).toList();
@@ -1109,7 +1135,9 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityId(admission.getUniversityId());
 
-        return this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms);
+        AdmissionUpdate admissionUpdate = admissionUpdateService.findByAfterAdmissionIdAndStatus(admission.getId(), AdmissionUpdateStatus.PENDING);
+
+        return this.mappingFullWithNoUniInfo(admission, admissionMethods, admissionTrainingPrograms, admissionTrainingProgramSubjectGroups, admissionTrainingProgramMethods, universityTrainingPrograms, admissionUpdate);
     }
 
     public FullAdmissionDTOV2 getByIdV3Detail(Integer id)

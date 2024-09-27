@@ -1,9 +1,9 @@
 package com.demo.admissionportal.constants;
 
 public enum AdmissionUpdateStatus {
-    PENDING("Hoạt động"),
-    ACCEPTED("Không hoạt động"),
-    DENIED("Chờ duyệt"),
+    PENDING("Chờ duyệt"),
+    ACCEPTED("Đã được chấp nhận"),
+    DENIED("Đã bị từ chối"),
     UNIVERSITY_DELETED("Đã xóa"),
     EXPIRED("Hết hạn");
     public final String name;
