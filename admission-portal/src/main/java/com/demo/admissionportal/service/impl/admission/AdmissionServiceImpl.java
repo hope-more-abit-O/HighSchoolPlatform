@@ -275,10 +275,12 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<AdmissionUpdate> admissionUpdates = admissionUpdateService.expiredAllPendingAdmissionUpdate(oldAdmissionId, consultant.getId());
 
-        List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
-        List<Admission> admissions = this.findByIds(newAdmissionIds);
-        admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
-        admissionRepository.saveAll(admissions);
+        if (admissionUpdates != null && !admissionUpdates.isEmpty()) {
+            List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
+            List<Admission> admissions = this.findByIds(newAdmissionIds);
+            admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
+            admissionRepository.saveAll(admissions);
+        }
         
 //        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
         Admission checkAdmission = this.findById(oldAdmissionId);
