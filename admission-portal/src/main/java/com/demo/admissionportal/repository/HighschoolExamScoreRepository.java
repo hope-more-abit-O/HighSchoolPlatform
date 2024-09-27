@@ -42,7 +42,8 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     @Query(value = """
     SELECT COUNT(h.identification_number)
     FROM highschool_exam_score h
-    WHERE h.exam_year_id = :examYearId
+    JOIN exam_year ey ON h.exam_year_id = ey.id
+    WHERE ey.id = :examYearId
     AND h.identification_number = :identificationNumber
 """, nativeQuery = true)
     long countByIdentificationNumberAndExamYearId(@Param("identificationNumber") String identificationNumber, @Param("examYearId") Integer examYearId);
