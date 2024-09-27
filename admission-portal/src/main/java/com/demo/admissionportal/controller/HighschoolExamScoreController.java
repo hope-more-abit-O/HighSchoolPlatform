@@ -245,11 +245,11 @@ public class HighschoolExamScoreController {
             result.put("success", successList);
             result.put("errors", errorList);
 
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ResponseData<>(ResponseCode.C206.getCode(), "Các nguyện vọng đã được dự đoán nhưng có một số nguyện vọng không thể dự đoán được", result));
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseData<>(ResponseCode.C207.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
+                    .body(new ResponseData<>(ResponseCode.C210.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
         }
     }
 

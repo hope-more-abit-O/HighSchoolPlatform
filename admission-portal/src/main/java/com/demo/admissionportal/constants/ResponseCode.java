@@ -28,7 +28,7 @@ public enum ResponseCode {
     /**
      * C 206 response code.
      */
-    C206(200, "CREATED"),
+    C206(201, "CREATED"),
 
     /**
      * C 207 response code.
