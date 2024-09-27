@@ -22,6 +22,7 @@ import com.demo.admissionportal.exception.exceptions.StoreDataFailedException;
 import com.demo.admissionportal.repository.*;
 import com.demo.admissionportal.service.UserService;
 import com.demo.admissionportal.service.ValidationService;
+import com.demo.admissionportal.util.impl.EmailUtil;
 import com.demo.admissionportal.util.impl.NameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,7 @@ public class UserServiceImpl implements UserService {
     private final StaffInfoServiceImpl staffInfoService;
     private final UserIdentificationNumberRegisterRepository userIdentificationNumberRegisterRepository;
     private final HighschoolExamScoreRepository highschoolExamScoreRepository;
+    private final EmailUtil emailUtil;
 
 
     @Override
@@ -639,6 +641,23 @@ public class UserServiceImpl implements UserService {
             registerIdentificationNumber.setCreateTime(new Date());
 
             userIdentificationNumberRegisterRepository.save(registerIdentificationNumber);
+
+            if(registerIdentificationNumber.equals(IdentificationNumberRegisterStatus.PENDING)){
+                 email = registerIdentificationNumber.getEmail();
+                 String subject = "Xác nhận đăng ký nhận điểm số báo danh kỳ thi Trung học phổ thông năm " +registerIdentificationNumber.getYear();
+                 StringBuilder message = new StringBuilder();
+                 message.append("<h1>Cổng thông tin tuyển sinh trường đại học - UAP</h1>");
+                 message.append("<h2>Email xác nhận đã đăng ký thành công số báo danh: " + registerIdentificationNumber.getIdentificationNumber() + "</h2>");
+                 message.append("<h3>Chúng tôi sẽ thông báo điểm đến cho bạn ngay sau khi điểm thi được công bố.</h3>");
+                message.append("<h2>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này. </h2>");
+
+                boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
+                if (!emailSent) {
+                    log.error("Failed to send email to {}", email);
+                } else {
+                    log.info("Successfully sent email to {}", email);
+                }
+            }
 
             return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh được đăng kí thành công !");
 
