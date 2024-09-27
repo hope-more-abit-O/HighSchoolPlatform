@@ -100,11 +100,12 @@ public class Admission {
         this.createTime = new Date();
         this.admissionStatus = admissionStatus;
         this.scoreStatus = AdmissionScoreStatus.EMPTY;
-        this.confirmStatus = AdmissionConfirmStatus.PENDING;
+        this.confirmStatus = AdmissionConfirmStatus.UPDATE_PENDING;
     }
 
     public void modifyOldAdmissionWhenStaffConfirmUpdateAdmission(Integer staffId){
-        this.admissionStatus = AdmissionStatus.STAFF_UPDATED;
+        this.admissionStatus = AdmissionStatus.STAFF_INACTIVE;
+        this.confirmStatus = AdmissionConfirmStatus.STAFF_UPDATED;
         this.updateBy = staffId;
         this.updateTime = new Date();
     }
@@ -125,7 +126,7 @@ public class Admission {
 
     public void staffReject(Integer staffId){
         this.confirmStatus = AdmissionConfirmStatus.REJECTED;
-        this.admissionStatus = AdmissionStatus.UPDATE_DENIED;
+        this.admissionStatus = AdmissionStatus.STAFF_INACTIVE;
         this.updateBy = staffId;
         this.updateTime = new Date();
     }
@@ -138,12 +139,14 @@ public class Admission {
 
     public void universityUpdateCancel(Integer universityId){
         this.admissionStatus = AdmissionStatus.UPDATE_CANCEL;
+        this.confirmStatus = AdmissionConfirmStatus.UPDATE_CANCEL;
         this.updateBy = universityId;
         this.updateTime = new Date();
     }
 
     public void universityUpdatePending(Integer universityId){
-        this.admissionStatus = AdmissionStatus.UPDATE_PENDING;
+        this.admissionStatus = AdmissionStatus.PENDING;
+        this.confirmStatus = AdmissionConfirmStatus.UPDATE_PENDING;
         this.updateBy = universityId;
         this.updateTime = new Date();
     }

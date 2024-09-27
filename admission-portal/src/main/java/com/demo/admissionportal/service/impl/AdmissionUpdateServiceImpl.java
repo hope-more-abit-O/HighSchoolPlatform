@@ -31,7 +31,7 @@ public class AdmissionUpdateServiceImpl implements AdmissionUpdateService {
     }
 
     public AdmissionUpdate getById(Integer id) {
-        return admissionUpdateRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhập đề án."));
+        return admissionUpdateRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu cập nhật đề án."));
     }
 
     public AdmissionUpdate findByBeforeAdmissionIdAndStatus(Integer beforeAdmissionId, AdmissionUpdateStatus status){

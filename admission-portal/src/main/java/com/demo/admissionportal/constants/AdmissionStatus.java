@@ -7,11 +7,11 @@ public enum AdmissionStatus {
     ACTIVE ("Hoạt động"),
     INACTIVE ("Không hoạt động"),
     STAFF_INACTIVE ("Không hoạt động (Nhân viên)"),
-    UPDATE_PENDING("Chờ cập nhập"),
-    UPDATE_CANCEL("Huỷ cập nhập"),
-    UPDATE_DENIED("Từ chối cập nhập"),
-    STAFF_UPDATED("Đã cập nhập sang đề án khác (Nhân viên)"),
-    UPDATE_EXPIRED("Hết hạn cập nhập");
+    UPDATE_PENDING("Chờ cập nhật"),
+    UPDATE_CANCEL("Huỷ cập nhật"),
+    UPDATE_DENIED("Từ chối cập nhật"),
+    STAFF_UPDATED("Đã cập nhật sang đề án khác (Nhân viên)"),
+    UPDATE_EXPIRED("Hết hạn cập nhật");
     public String name;
 
     AdmissionStatus(String name) {
