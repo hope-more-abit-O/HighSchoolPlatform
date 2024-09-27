@@ -275,10 +275,12 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         List<AdmissionUpdate> admissionUpdates = admissionUpdateService.expiredAllPendingAdmissionUpdate(oldAdmissionId, consultant.getId());
 
-        List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
-        List<Admission> admissions = this.findByIds(newAdmissionIds);
-        admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
-        admissionRepository.saveAll(admissions);
+        if (admissionUpdates != null && !admissionUpdates.isEmpty()) {
+            List<Integer> newAdmissionIds = admissionUpdates.stream().map(AdmissionUpdate::getAfterAdmissionId).distinct().toList();
+            List<Admission> admissions = this.findByIds(newAdmissionIds);
+            admissions.forEach((ele) -> ele.setAdmissionStatus(AdmissionStatus.UPDATE_CANCEL));
+            admissionRepository.saveAll(admissions);
+        }
         
 //        Admission checkAdmission = admissionRepository.findByUniversityIdAndYearAndConfirmStatus(consultant.getCreateBy(), request.getYear(), AdmissionConfirmStatus.CONFIRMED).orElse(null);
         Admission checkAdmission = this.findById(oldAdmissionId);
@@ -1258,6 +1260,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         if (request.getStatus().equals(AdmissionStatus.ACTIVE)) {
             if (!admission.getConfirmStatus().equals(AdmissionConfirmStatus.CONFIRMED))
                 throw new NotAllowedException("Đề án này phải được chấp nhận trước.");
+
+            if (!admission.getAdmissionStatus().equals(AdmissionStatus.INACTIVE))
+                throw new BadRequestException("Đề án không ở trạng thái ngưng hoạt động.");
 
             if (user.getRole().equals(Role.UNIVERSITY)) {
                 Admission otherAdmission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(user.getId(), admission.getYear(), AdmissionStatus.ACTIVE)

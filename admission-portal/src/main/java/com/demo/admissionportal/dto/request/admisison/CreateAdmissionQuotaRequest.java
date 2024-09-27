@@ -50,7 +50,7 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     public CreateAdmissionQuotaRequest(AdmissionMethod admissionMethod, AdmissionTrainingProgram admissionTrainingProgram, List<Integer> subjectGroupIds, AdmissionTrainingProgramMethod admissionTrainingProgramMethod) {
         this.majorId = admissionTrainingProgram.getMajorId();
         this.mainSubjectId = admissionTrainingProgram.getMainSubjectId();
-        this.language = language;
+        this.language = admissionTrainingProgram.getLanguage();
         this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
         this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
         this.methodId = admissionMethod.getMethodId();
