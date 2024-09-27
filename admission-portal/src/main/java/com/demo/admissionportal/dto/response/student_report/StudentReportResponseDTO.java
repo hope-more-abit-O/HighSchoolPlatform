@@ -26,5 +26,6 @@ public class StudentReportResponseDTO {
     private Date updateTime;
     private StudentReportStatus status;
     private List<SubjectReportDTO> report;
+    private Float competencyAssessmentExamScore;;
     private GetHighSchoolExamSubjectScoreDTO highSchoolExamSubjectScores;
 }

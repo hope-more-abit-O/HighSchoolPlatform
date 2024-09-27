@@ -450,6 +450,11 @@ public class SubjectGroupServiceImpl implements SubjectGroupService {
         return result;
     }
 
+    public List<SubjectGroupResponseDTO2> getBySubjectGroupIdsAndMappingToSubjectGroupResponseDTO2(List<Integer> subjectGroupIds){
+        List<SubjectGroup> subjectGroups = subjectGroupRepository.findAllById(subjectGroupIds);
+        return mapping(subjectGroups);
+    }
+
     public List<Subject> getSubjectsBySubjectGroupIds(List<SubjectGroup> subjectGroups){
         List<SubjectGroupSubject> subjectGroupSubjects = subjectGroupSubjectRepository.findBySubjectGroupIdIn(subjectGroups.stream().map(SubjectGroup::getId).collect(Collectors.toList()));
         List<Integer> subjectIds = subjectGroupSubjects.stream().map(SubjectGroupSubject::getSubjectId).distinct().toList();

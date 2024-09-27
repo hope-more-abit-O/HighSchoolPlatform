@@ -1,5 +1,8 @@
 package com.demo.admissionportal.dto.request.admisison;
 
+import com.demo.admissionportal.entity.admission.AdmissionMethod;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgram;
+import com.demo.admissionportal.entity.admission.AdmissionTrainingProgramMethod;
 import com.demo.admissionportal.util.enum_validator.EnumId;
 import com.demo.admissionportal.util.enum_validator.EnumIdList;
 import com.demo.admissionportal.util.enum_validator.EnumQuota;
@@ -43,4 +46,16 @@ public class CreateAdmissionQuotaRequest implements Serializable {
     private Integer quota;
 
     private Float score;
+
+    public CreateAdmissionQuotaRequest(AdmissionMethod admissionMethod, AdmissionTrainingProgram admissionTrainingProgram, List<Integer> subjectGroupIds, AdmissionTrainingProgramMethod admissionTrainingProgramMethod) {
+        this.majorId = admissionTrainingProgram.getMajorId();
+        this.mainSubjectId = admissionTrainingProgram.getMainSubjectId();
+        this.language = admissionTrainingProgram.getLanguage();
+        this.trainingSpecific = admissionTrainingProgram.getTrainingSpecific();
+        this.trainingProgramCode = admissionTrainingProgram.getTrainingProgramCode();
+        this.methodId = admissionMethod.getMethodId();
+        this.subjectGroupIds = subjectGroupIds;
+        this.quota = admissionTrainingProgramMethod.getQuota();
+        this.score = admissionTrainingProgramMethod.getAdmissionScore();
+    }
 }

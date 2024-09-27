@@ -31,7 +31,22 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
             "WHERE h.identificationNumber = :identificationNumber AND ey.year = :year")
     int countByIdentificationNumberAndExamYear(@Param("identificationNumber") String identificationNumber, @Param("year") Integer year);
 
-    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(String identificationNumber, Integer examYearId);
+    @Query(value = """
+    SELECT h.*
+    FROM highschool_exam_score h 
+    WHERE h.exam_year_id = :examYearId
+    AND h.identification_number = :identificationNumber
+""", nativeQuery = true)
+    List<HighschoolExamScore> findByIdentificationNumberAndExamYear_Id(@Param("identificationNumber") String identificationNumber, @Param("examYearId") Integer examYearId);
+
+    @Query(value = """
+    SELECT COUNT(h.identification_number)
+    FROM highschool_exam_score h
+    JOIN exam_year ey ON h.exam_year_id = ey.id
+    WHERE ey.id = :examYearId
+    AND h.identification_number = :identificationNumber
+""", nativeQuery = true)
+    long countByIdentificationNumberAndExamYearId(@Param("identificationNumber") String identificationNumber, @Param("examYearId") Integer examYearId);
 
 
     @Query(value = "SELECT h.identification_number, h.subject_id, h.score, h.exam_local_id FROM highschool_exam_score h " +
@@ -80,6 +95,13 @@ public interface HighschoolExamScoreRepository extends JpaRepository<HighschoolE
     //    Page<HighschoolExamScore> findByYear(Integer examYearId, Pageable pageable);
     @Query("SELECT h FROM HighschoolExamScore h WHERE h.examYear.year = :year AND h.examLocal.name = :local AND h.status = :status")
     List<HighschoolExamScore> findAllByYearAndLocalAndStatus(@Param("year") Integer year, @Param("local") String local, @Param("status") HighschoolExamScoreStatus status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE HighschoolExamScore h SET h.status = :inactiveStatus WHERE h.examYear.id != :examYearId")
+    int deactivateOtherHighSchoolExamScores(@Param("examYearId") Integer examYearId,
+                                            @Param("inactiveStatus") HighschoolExamScoreStatus inactiveStatus);
+
 
     @Modifying
     @Transactional

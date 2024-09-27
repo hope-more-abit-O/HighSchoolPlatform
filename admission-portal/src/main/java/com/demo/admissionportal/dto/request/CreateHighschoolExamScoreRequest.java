@@ -17,7 +17,7 @@ public class CreateHighschoolExamScoreRequest {
     @NotNull(message = "Số báo danh không được để trống")
     private String identificationNumber;
     @NotNull(message = "Địa phương không được để trống")
-    private String localName;
+    private String local;
     @NotNull(message = "Năm không được để trống")
     private Integer year;
     @NotNull(message = "Hội đồng thi không được để trống")
