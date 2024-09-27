@@ -75,4 +75,6 @@ and (:createBy is null or au.create_by = :createBy)
 and (:universityId is null or a.university_id = :universityId)
 """,nativeQuery = true)
     Page<AdmissionUpdate> findAllBy(Pageable pageable, Integer id, Integer beforeAdmissionId, Date createTime, Integer createBy, Integer universityId);
+
+    Optional<AdmissionUpdate> findFirstByAfterAdmissionIdAndStatusOrderByCreateTimeAsc(Integer afterAdmissionId, AdmissionUpdateStatus status);
 }

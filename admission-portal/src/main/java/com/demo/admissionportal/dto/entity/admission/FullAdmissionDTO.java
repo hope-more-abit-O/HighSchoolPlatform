@@ -18,6 +18,7 @@ import java.util.List;
 @Data
 public class FullAdmissionDTO {
     private Integer admissionId;
+    private Integer oldAdmissionId;
     private Integer year;
     private String name;
     private List<String> sources;
