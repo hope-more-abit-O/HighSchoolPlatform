@@ -203,7 +203,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                             log.error("Identification Number {} is already existed for year {}", request.getIdentificationNumber(), examYear.getYear());
                             return new ResponseData<>(ResponseCode.C204.getCode(), "Số báo danh thí sinh " + request.getIdentificationNumber() + " đã tồn tại trong năm " + examYear.getYear());
                         }
-                        
+
                         Map<Integer, SubjectScoreDTO> subjectScoreMap = request.getSubjectScores().stream()
                                 .collect(Collectors.toMap(SubjectScoreDTO::getSubjectId, score -> score));
 
@@ -1053,6 +1053,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 .append("- Điểm: ").append("<b>" + khxhTotalScore.floatValue() + "</b>")
                                 .append("</p>");
                     }
+                    message.append("<h2>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này. </h2>");
 
                     boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
                     if (!emailSent) {
