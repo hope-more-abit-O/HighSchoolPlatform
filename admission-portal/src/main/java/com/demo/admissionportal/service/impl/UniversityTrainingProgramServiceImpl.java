@@ -80,14 +80,14 @@ public class UniversityTrainingProgramServiceImpl implements UniversityTrainingP
     }
 
     public GetFullUniversityTrainingProgramResponse getUniversityTrainingPrograms(Integer universityId) {
-        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhập danh sách các chương trình giảng dạy."));
+        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhật danh sách các chương trình giảng dạy."));
         List<UniversityTrainingProgram> universityTrainingPrograms = findByUniversityIdWithStatus(universityId, UniversityTrainingProgramStatus.ACTIVE);
         List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
         return new GetFullUniversityTrainingProgramResponse(admission.getYear(), fullMapping(universityTrainingPrograms, majors));
     }
 
     public GetInfoUniversityTrainingProgramResponse getInfoUniversityTrainingPrograms(Integer universityId) {
-        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhập danh sách các chương trình giảng dạy."));
+        Admission admission = admissionRepository.findFirstByUniversityIdAndAdmissionStatusOrderByYearDesc(universityId, AdmissionStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Hiện chưa cập nhật danh sách các chương trình giảng dạy."));
         List<UniversityTrainingProgram> universityTrainingPrograms = findActiveByUniversityId(universityId);
         List<Major> majors = majorService.findByIds(universityTrainingPrograms.stream().map(UniversityTrainingProgram::getMajorId).distinct().toList());
         return new GetInfoUniversityTrainingProgramResponse(admission.getYear(), infoMapping(universityTrainingPrograms, majors));

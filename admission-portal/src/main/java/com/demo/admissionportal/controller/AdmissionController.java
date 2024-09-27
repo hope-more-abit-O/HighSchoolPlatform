@@ -426,7 +426,7 @@ public class AdmissionController {
             throws DataExistedException {
         try {
             admissionService.updateAdmissionV2(oldAdmissionId, request);
-            return ResponseEntity.ok(ResponseData.ok("Tạo yêu cầu cập nhập đề án thành công."));
+            return ResponseEntity.ok(ResponseData.ok("Tạo yêu cầu cập nhật đề án thành công."));
         } catch (Exception e) {
             throw new DataExistedException(e.getMessage());
         }
