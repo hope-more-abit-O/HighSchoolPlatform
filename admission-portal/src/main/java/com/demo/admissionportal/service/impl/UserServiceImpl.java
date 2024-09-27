@@ -648,7 +648,7 @@ public class UserServiceImpl implements UserService {
             message.append("<h1>Cổng thông tin tuyển sinh trường đại học - UAP</h1>");
             message.append("<h2>Email xác nhận đã đăng ký thành công số báo danh: ").append(registerIdentificationNumber.getIdentificationNumber()).append("</h2>");
             message.append("<h3>Chúng tôi sẽ thông báo điểm đến cho bạn ngay sau khi điểm thi được công bố.</h3>");
-            message.append("<h2>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này.</h2>");
+            message.append("<p>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này.</p>");
 
             boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
             if (!emailSent) {

@@ -238,18 +238,23 @@ public class HighschoolExamScoreController {
             }
         }
         if (!successList.isEmpty() && errorList.isEmpty()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", successList);
+            result.put("errors", errorList);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseData<>(ResponseCode.C200.getCode(), "Tất cả nguyện vọng được dự đoán thành công.", successList));
+                    .body(new ResponseData<>(ResponseCode.C200.getCode(), "Tất cả nguyện vọng được dự đoán thành công.", result));
         } else if (!successList.isEmpty() && !errorList.isEmpty()) {
             Map<String, Object> result = new HashMap<>();
             result.put("success", successList);
             result.put("errors", errorList);
-
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseData<>(ResponseCode.C206.getCode(), "Các nguyện vọng đã được dự đoán nhưng có một số nguyện vọng không thể dự đoán được", result));
+                    .body(new ResponseData<>(ResponseCode.C200.getCode(), "Các nguyện vọng đã được dự đoán nhưng có một số nguyện vọng không thể dự đoán được", result));
         } else {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", successList);
+            result.put("errors", errorList);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseData<>(ResponseCode.C207.getCode(), "Tất cả nguyện vọng dự đoán thất bại", errorList));
+                    .body(new ResponseData<>(ResponseCode.C210.getCode(), "Tất cả nguyện vọng dự đoán thất bại", result));
         }
     }
 
