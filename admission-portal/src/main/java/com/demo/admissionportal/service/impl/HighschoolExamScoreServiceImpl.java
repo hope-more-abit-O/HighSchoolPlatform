@@ -1053,7 +1053,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 .append("- Điểm: ").append("<b>" + khxhTotalScore.floatValue() + "</b>")
                                 .append("</p>");
                     }
-                    message.append("<h2>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này. </h2>");
+                    message.append("<p>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này. </p>");
 
                     boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
                     if (!emailSent) {
