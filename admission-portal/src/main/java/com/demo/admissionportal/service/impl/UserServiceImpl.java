@@ -656,7 +656,6 @@ public class UserServiceImpl implements UserService {
             } else {
                 log.info("Successfully sent email to {}", email);
             }
-
             return new ResponseData<>(ResponseCode.C200.getCode(), "Số báo danh được đăng kí thành công !");
 
         } catch (Exception e) {
