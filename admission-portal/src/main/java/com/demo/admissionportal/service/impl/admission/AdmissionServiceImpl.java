@@ -2544,7 +2544,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         }
 
         if (schoolDirectoryRequest.getProvinceIds() != null && !schoolDirectoryRequest.getProvinceIds().isEmpty()) {
-            queryBuilder.append("and uc.province_id in (:provinceIds)\n");
+            queryBuilder.append("and uc.status = 'ACTIVE' and uc.province_id in (:provinceIds)\n");
             parameters.put("provinceIds", schoolDirectoryRequest.getProvinceIds());
         }
 
