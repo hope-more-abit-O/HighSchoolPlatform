@@ -2796,7 +2796,7 @@ public class AdmissionServiceImpl implements AdmissionService {
                             new CompareMajorMethodDTO(admissionMethod,
                                     admissionTrainingProgramMethod,
                                     studentReport,
-                                    method)
+                                    method, subjectGroups)
                     );
                 } else {
                     if (subjectMarkDTOS == null || subjectMarkDTOS.isEmpty()) {
@@ -3001,6 +3001,9 @@ public class AdmissionServiceImpl implements AdmissionService {
         List<AdmissionTrainingProgram> admissionTrainingPrograms = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(request, year);
         List<AdmissionTrainingProgram> admissionTrainingProgramsFirst = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(first, year);
         List<AdmissionTrainingProgram> admissionTrainingProgramsSecond = admissionTrainingProgramService.findByMajorIdWithUniversityIdAndYear(second, year);
+
+        if (admissionTrainingProgramsFirst.isEmpty() || admissionTrainingProgramsSecond.isEmpty())
+            throw new ResourceNotFoundException("Không tìm thấy ngành.");
 
         List<UniversityCompareMajorDTO> firstResult = processCompare(admissionTrainingProgramsFirst, universityIds, majorIds, studentReportId);
         List<UniversityCompareMajorDTO> secondResult = processCompare(admissionTrainingProgramsSecond, universityIds, majorIds, studentReportId);

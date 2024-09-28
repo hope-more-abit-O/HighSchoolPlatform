@@ -38,6 +38,16 @@ public class CompareMajorMethodDTO {
         setRecommend(admissionMethod, studentReport, admissionTrainingProgramMethod);
     }
 
+    public CompareMajorMethodDTO(AdmissionMethod admissionMethod, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, StudentReport studentReport, Method method, List<SubjectGroupResponseDTO2> availableSubjects) {
+        this.method = new InfoMethodDTO(method);
+        this.score = admissionTrainingProgramMethod.getAdmissionScore();
+        this.isRecommended = false;
+        this.quota = admissionTrainingProgramMethod.getQuota();
+        this.admissionMethodId = admissionMethod.getMethodId();
+        this.availableSubjects = availableSubjects;
+        setRecommend(admissionMethod, studentReport, admissionTrainingProgramMethod);
+    }
+
     public CompareMajorMethodDTO(AdmissionMethod admissionMethod, AdmissionTrainingProgramMethod admissionTrainingProgramMethod, Boolean isRecommended, List<SubjectGroupResponseDTO2> availableSubjects, Method method) {
         this.method = new InfoMethodDTO(method);
         this.score = admissionTrainingProgramMethod.getAdmissionScore();
