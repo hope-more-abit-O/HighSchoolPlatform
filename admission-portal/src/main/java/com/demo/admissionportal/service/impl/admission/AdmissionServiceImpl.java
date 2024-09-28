@@ -1133,7 +1133,7 @@ public class AdmissionServiceImpl implements AdmissionService {
 
         Integer totalQuota = admissionTrainingProgramMethods.stream().mapToInt(AdmissionTrainingProgramMethod::getQuota).sum();
 
-        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findByUniversityId(admission.getUniversityId());
+        List<UniversityTrainingProgram> universityTrainingPrograms = universityTrainingProgramService.findActiveByUniversityId(admission.getUniversityId());
 
         AdmissionUpdate admissionUpdate = admissionUpdateService.findByAfterAdmissionIdAndStatus(admission.getId(), AdmissionUpdateStatus.PENDING);
 
