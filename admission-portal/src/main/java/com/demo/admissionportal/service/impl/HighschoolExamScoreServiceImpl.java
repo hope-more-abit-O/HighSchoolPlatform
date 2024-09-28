@@ -1053,6 +1053,7 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
                                 .append("- Điểm: ").append("<b>" + khxhTotalScore.floatValue() + "</b>")
                                 .append("</p>");
                     }
+                    message.append("<p>Bạn có thể xem phổ điểm hoặc sử dụng chức năng nhận lời khuyên về nguyện vọng bằng cách nhấp vào <a href=\"https://main--uap-portal.netlify.app/tra-cuu-diem-thi\">link này</a>.</p>");
                     message.append("<p>Đây chỉ là Email được gửi từ hệ thống, vui lòng không trả lời lại email này. </p>");
 
                     boolean emailSent = emailUtil.sendExamScoreEmail(email, subject, message.toString());
