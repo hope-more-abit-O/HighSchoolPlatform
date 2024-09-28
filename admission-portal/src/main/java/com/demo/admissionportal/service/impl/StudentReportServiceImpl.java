@@ -536,12 +536,12 @@ public class StudentReportServiceImpl implements StudentReportService {
     }
 
     public ResponseData<?> createHighSchoolExamScoreInStudentReport(Integer studentReportId ,UpdateHighSchoolExamScoreForStudentReportRequest request){
-        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
+//        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
         return createHighSchoolExamScore(studentReportId, request);
     }
 
     public ResponseData<?> updateHighSchoolExamScoreInStudentReport(Integer studentReportId ,UpdateHighSchoolExamScoreForStudentReportRequest request){
-        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
+//        isCreateAndUpdateHighSchoolExamScoreRequestValid(request);
         return updateHighSchoolExamScore(studentReportId, request);
     }
 

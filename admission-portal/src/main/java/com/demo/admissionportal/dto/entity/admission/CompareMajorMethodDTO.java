@@ -44,7 +44,7 @@ public class CompareMajorMethodDTO {
         this.isRecommended = false;
         this.quota = admissionTrainingProgramMethod.getQuota();
         this.admissionMethodId = admissionMethod.getMethodId();
-        this.availableSubjects = availableSubjects;
+//        this.availableSubjects = availableSubjects;
         setRecommend(admissionMethod, studentReport, admissionTrainingProgramMethod);
     }
 
