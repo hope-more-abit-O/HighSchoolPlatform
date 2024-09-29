@@ -211,7 +211,7 @@ public class FollowServiceImpl implements FollowService {
         UniversityCampus universityCampus = universityCampusRepository.findHeadQuartersCampusByUniversityId(userUniversityInfo.getId());
         Province province = provinceRepository.findProvinceById(universityCampus.getProvinceId());
         Admission admission = admissionRepository.findByUniversityIdAndYearAndAdmissionStatus(userUniversityInfo.getId(), year, AdmissionStatus.ACTIVE).orElse(null);
-        AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingProgramRepository.findById(admission.getId()).orElse(null);
+        AdmissionTrainingProgram admissionTrainingProgram = admissionTrainingProgramRepository.findById(userFollowUniversityMajor.getUniversityMajor().getId()).orElse(null);
         Collection<Integer> admissionTrainingProgramIds = Collections.singleton(admissionTrainingProgram.getId());
         List<AdmissionTrainingProgramSubjectGroup> admissionTrainingProgramSubjectGroup = admissionTrainingProgramSubjectGroupRepository.findById_AdmissionTrainingProgramIdIn(admissionTrainingProgramIds);
         String subjectGroups = admissionTrainingProgramSubjectGroup.stream()
