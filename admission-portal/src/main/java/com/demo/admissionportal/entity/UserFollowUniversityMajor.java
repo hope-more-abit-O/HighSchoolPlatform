@@ -23,7 +23,7 @@ public class UserFollowUniversityMajor {
     private User user;
 
     @MapsId("universityMajor")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "university_major")
     private UniversityTrainingProgram universityMajor;
 

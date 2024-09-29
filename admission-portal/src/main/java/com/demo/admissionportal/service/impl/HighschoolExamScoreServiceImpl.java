@@ -1671,33 +1671,33 @@ public class HighschoolExamScoreServiceImpl implements HighschoolExamScoreServic
 
         if (finalStatus == DiemChuanStatus.Giam) {
             if (scoreDifference >= -1.5 && scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference >= 0 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else if (scoreDifference <= -1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường  " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường  " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.Tang) {
             if (scoreDifference < 0) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference >= 0 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         } else if (finalStatus == DiemChuanStatus.KhongDoi) {
             if (scoreDifference >= -0.5 && scoreDifference <= 0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là TRUNG BÌNH.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là TRUNG BÌNH.";
             } else if (scoreDifference < -0.5) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là RẤT THẤP.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là RẤT THẤP.";
             } else if (scoreDifference > 0.5 && scoreDifference <= 1) {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là KHÁ CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là KHÁ CAO.";
             } else {
-                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + "của bạn vào năm 2024 là CAO.";
+                return "Với số liệu điểm trung bình và chỉ tiêu được phân tích, khả năng đậu vào trường " + university + " với ngành " + major + " của bạn vào năm 2024 là CAO.";
             }
         }
         return "Không xác định được khả năng trúng tuyển.";
